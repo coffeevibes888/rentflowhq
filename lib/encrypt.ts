@@ -1,7 +1,6 @@
 const encoder = new TextEncoder();
-const key = new TextEncoder().encode(process.env.ENCRYPTION_KEY); // Retrieve key from env var
+const key = new TextEncoder().encode(process.env.ENCRYPTION_KEY);
 
-// Hash function with key-based encryption
 export const hash = async (plainPassword: string): Promise<string> => {
   const passwordData = encoder.encode(plainPassword);
 
@@ -19,7 +18,6 @@ export const hash = async (plainPassword: string): Promise<string> => {
     .join('');
 };
 
-// Compare function using key from env var
 export const compare = async (
   plainPassword: string,
   encryptedPassword: string

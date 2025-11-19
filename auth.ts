@@ -62,6 +62,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.role = token.role;
       session.user.name = token.name;
 
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.sub },
+        select: { 
+          phoneVerified: true, 
+          phoneNumber: true,
+          address: true,
+          shippingAddress: true,
+          billingAddress: true,
+          image: true,
+        },
+      });
+
+      if (dbUser) {
+        session.user.phoneVerified = dbUser.phoneVerified;
+        session.user.phoneNumber = dbUser.phoneNumber;
+        session.user.address = dbUser.address;
+        session.user.shippingAddress = dbUser.shippingAddress;
+        session.user.billingAddress = dbUser.billingAddress;
+        session.user.image = dbUser.image || undefined;
+      }
+
       // If there is an update, set the user name
       if (trigger === 'update') {
         session.user.name = user.name;

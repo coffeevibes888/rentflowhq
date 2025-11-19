@@ -6,6 +6,8 @@ import {
   signUpFormSchema,
   paymentMethodSchema,
   updateUserSchema,
+  updateAddressSchema,
+  savedPaymentMethodSchema,
 } from '../validators';
 import { auth, signIn, signOut } from '@/auth';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
@@ -260,6 +262,332 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
     return {
       success: true,
       message: 'User updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Update user address
+export async function updateUserProfileAddress(
+  data: z.infer<typeof updateAddressSchema>
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const validatedAddress = updateAddressSchema.parse(data);
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { address: validatedAddress },
+    });
+
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: 'Address updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Update user avatar
+export async function updateUserAvatar(imageUrl: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { image: imageUrl },
+    });
+
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: 'Avatar updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Save payment method (Stripe tokenized)
+export async function addSavedPaymentMethod(
+  data: z.infer<typeof savedPaymentMethodSchema>
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const validatedData = savedPaymentMethodSchema.parse(data);
+
+    if (validatedData.isDefault) {
+      await prisma.savedPaymentMethod.updateMany({
+        where: { userId: session.user.id },
+        data: { isDefault: false },
+      });
+    }
+
+    const paymentMethod = await prisma.savedPaymentMethod.create({
+      data: {
+        userId: session.user.id,
+        stripePaymentMethodId: validatedData.stripePaymentMethodId,
+        type: validatedData.type,
+        cardholderName: validatedData.cardholderName,
+        last4: validatedData.last4,
+        expirationDate: validatedData.expirationDate,
+        brand: validatedData.brand,
+        billingAddress: validatedData.billingAddress,
+        isDefault: validatedData.isDefault,
+        isVerified: true,
+      },
+    });
+
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: 'Payment method saved successfully!',
+      paymentMethodId: paymentMethod.id,
+    };
+  } catch (error) {
+    console.error('Error saving payment method:', error);
+    const message = formatError(error);
+    return { success: false, message: message || 'Failed to save payment method' };
+  }
+}
+
+// Get saved payment methods
+export async function getSavedPaymentMethods() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, methods: [], message: 'Not authenticated' };
+    }
+
+    const methods = await prisma.savedPaymentMethod.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      success: true,
+      methods,
+      message: '',
+    };
+  } catch (error) {
+    return { success: false, methods: [], message: formatError(error) };
+  }
+}
+
+// Delete saved payment method
+export async function deleteSavedPaymentMethod(paymentMethodId: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const paymentMethod = await prisma.savedPaymentMethod.findUnique({
+      where: { id: paymentMethodId },
+    });
+
+    if (!paymentMethod || paymentMethod.userId !== session.user.id) {
+      return { success: false, message: 'Payment method not found' };
+    }
+
+    await prisma.savedPaymentMethod.delete({
+      where: { id: paymentMethodId },
+    });
+
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: 'Payment method deleted successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Verify payment method
+export async function verifyPaymentMethod(token: string) {
+  try {
+    const verificationToken =
+      await prisma.paymentMethodVerificationToken.findUnique({
+        where: { token },
+      });
+
+    if (!verificationToken) {
+      return { success: false, message: 'Invalid or expired token' };
+    }
+
+    if (verificationToken.expires < new Date()) {
+      await prisma.paymentMethodVerificationToken.delete({
+        where: { id: verificationToken.id },
+      });
+      return { success: false, message: 'Token has expired' };
+    }
+
+    await prisma.savedPaymentMethod.update({
+      where: { id: verificationToken.paymentMethodId },
+      data: { isVerified: true },
+    });
+
+    await prisma.paymentMethodVerificationToken.delete({
+      where: { id: verificationToken.id },
+    });
+
+    return { success: true, message: 'Payment method verified successfully' };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Update shipping address
+export async function updateShippingAddress(
+  data: z.infer<typeof updateAddressSchema>
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const validatedAddress = updateAddressSchema.parse(data);
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { shippingAddress: validatedAddress },
+    });
+
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: 'Shipping address updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Update billing address
+export async function updateBillingAddress(
+  data: z.infer<typeof updateAddressSchema>
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const validatedAddress = updateAddressSchema.parse(data);
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { billingAddress: validatedAddress },
+    });
+
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: 'Billing address updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Get saved payment method by ID (Stripe tokenized)
+export async function getSavedPaymentMethodById(paymentMethodId: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, method: null, message: 'Not authenticated' };
+    }
+
+    const method = await prisma.savedPaymentMethod.findUnique({
+      where: { id: paymentMethodId },
+    });
+
+    if (!method || method.userId !== session.user.id) {
+      return { success: false, method: null, message: 'Payment method not found' };
+    }
+
+    return {
+      success: true,
+      method,
+      message: '',
+    };
+  } catch (error) {
+    return { success: false, method: null, message: formatError(error) };
+  }
+}
+
+// Update saved payment method
+export async function updateSavedPaymentMethod(
+  paymentMethodId: string,
+  data: z.infer<typeof savedPaymentMethodSchema>
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const paymentMethod = await prisma.savedPaymentMethod.findUnique({
+      where: { id: paymentMethodId },
+    });
+
+    if (!paymentMethod || paymentMethod.userId !== session.user.id) {
+      return { success: false, message: 'Payment method not found' };
+    }
+
+    const validatedData = savedPaymentMethodSchema.parse(data);
+
+    if (validatedData.isDefault) {
+      await prisma.savedPaymentMethod.updateMany({
+        where: { userId: session.user.id },
+        data: { isDefault: false },
+      });
+    }
+
+    await prisma.savedPaymentMethod.update({
+      where: { id: paymentMethodId },
+      data: {
+        cardholderName: validatedData.cardholderName,
+        isDefault: validatedData.isDefault,
+      },
+    });
+
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: 'Payment method updated successfully',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

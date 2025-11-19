@@ -28,22 +28,28 @@ model Product {
 }
 
 model User {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String    @default("NO_NAME")
-  email         String    @unique(map: "user_email_idx")
-  emailVerified DateTime? @db.Timestamp(6)
-  image         String?
-  password      String?
-  role          String    @default("user")
-  address       Json?     @db.Json
-  paymentMethod String?
-  createdAt     DateTime  @default(now()) @db.Timestamp(6)
-  updatedAt     DateTime  @updatedAt
-  account       Account[]
-  session       Session[]
-  Cart          Cart[]
-  Order         Order[]
-  Review        Review[]
+  id                        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                      String    @default("NO_NAME")
+  email                     String    @unique(map: "user_email_idx")
+  emailVerified             DateTime? @db.Timestamp(6)
+  image                     String?
+  password                  String?
+  role                      String    @default("user")
+  shippingAddress           Json?     @db.Json
+  billingAddress            Json?     @db.Json
+  address                   Json?     @db.Json
+  paymentMethod             String?
+  phoneNumber               String?
+  phoneVerified             DateTime? @db.Timestamp(6)
+  createdAt                 DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt                 DateTime  @updatedAt
+  account                   Account[]
+  session                   Session[]
+  Cart                      Cart[]
+  Order                     Order[]
+  Review                    Review[]
+  savedPaymentMethods       SavedPaymentMethod[]
+  paymentMethodTokens       PaymentMethodVerificationToken[]
 }
 
 model Account {
@@ -105,6 +111,20 @@ model PasswordResetToken {
   createdAt DateTime @default(now()) @db.Timestamp(6)
 
   @@index([email])
+}
+
+model PhoneVerificationToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @db.Uuid
+  phone     String
+  otp       String
+  expires   DateTime
+  attempts  Int      @default(0)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([userId])
+  @@index([phone])
 }
 
 model Cart {
@@ -202,4 +222,37 @@ model Review {
   createdAt          DateTime @default(now()) @db.Timestamp(6)
   product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavedPaymentMethod {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @db.Uuid
+  stripePaymentMethodId String @unique
+  type              String
+  cardholderName    String?
+  last4             String
+  expirationDate    String?
+  brand             String?
+  billingAddress    Json?    @db.Json
+  isDefault         Boolean  @default(false)
+  isVerified        Boolean  @default(false)
+  createdAt         DateTime @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripePaymentMethodId])
+}
+
+model PaymentMethodVerificationToken {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @db.Uuid
+  paymentMethodId   String   @db.Uuid
+  token             String   @unique
+  expires           DateTime
+  createdAt         DateTime @default(now()) @db.Timestamp(6)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
 }

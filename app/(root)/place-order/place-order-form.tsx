@@ -9,14 +9,39 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DEFAULT_PAYMENT_METHOD } from '@/lib/constants';
-import { updateUserPaymentMethod } from '@/lib/actions/user.actions';
-import { useTransition } from 'react';
+import { updateUserPaymentMethod, getSavedPaymentMethods } from '@/lib/actions/user.actions';
+import { useTransition, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '@/components/ui/form';
+
+type SavedPaymentMethod = {
+  id: string;
+  type: string;
+  last4: string;
+  cardholderName?: string;
+  isDefault: boolean;
+  isVerified: boolean;
+};
 
 const PlaceOrderForm = ({ preferredPaymentMethod }: { preferredPaymentMethod: string | null }) => {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [savedMethods, setSavedMethods] = useState<SavedPaymentMethod[]>([]);
+  const [selectedMethodId, setSelectedMethodId] = useState<string>('');
+  const [isLoadingMethods, setIsLoadingMethods] = useState(true);
 
   const form = useForm<z.infer<typeof paymentMethodSchema>>({
     resolver: zodResolver(paymentMethodSchema),
@@ -25,9 +50,36 @@ const PlaceOrderForm = ({ preferredPaymentMethod }: { preferredPaymentMethod: st
     },
   });
 
+  useEffect(() => {
+    const fetchSavedMethods = async () => {
+      const result = await getSavedPaymentMethods();
+      if (result.success) {
+        const methods = result.methods as SavedPaymentMethod[];
+        setSavedMethods(methods.filter((m) => m.isVerified));
+
+        const defaultMethod = methods.find((m) => m.isDefault && m.isVerified);
+        if (defaultMethod) {
+          setSelectedMethodId(defaultMethod.id);
+        }
+      }
+      setIsLoadingMethods(false);
+    };
+
+    fetchSavedMethods();
+  }, []);
+
   const handleSubmit = async (values: z.infer<typeof paymentMethodSchema>) => {
     startTransition(async () => {
-      const updateRes = await updateUserPaymentMethod(values);
+      let paymentType = values.type;
+
+      if (selectedMethodId) {
+        const selectedMethod = savedMethods.find((m) => m.id === selectedMethodId);
+        if (selectedMethod) {
+          paymentType = selectedMethod.type;
+        }
+      }
+
+      const updateRes = await updateUserPaymentMethod({ type: paymentType });
 
       if (!updateRes.success) {
         toast({
@@ -53,7 +105,7 @@ const PlaceOrderForm = ({ preferredPaymentMethod }: { preferredPaymentMethod: st
         ) : (
           <Check className='w-4 h-4' />
         )}{' '}
-        Place Order
+        Pay Now
       </Button>
     );
   };
@@ -61,10 +113,55 @@ const PlaceOrderForm = ({ preferredPaymentMethod }: { preferredPaymentMethod: st
   return (
     <>
       <div className='space-y-4 mb-4'>
+        {!isLoadingMethods && savedMethods.length > 0 && (
+          <div className='border rounded-lg p-4 bg-muted'>
+            <FormLabel className='mb-3 block'>Use Saved Payment Method</FormLabel>
+            <Select value={selectedMethodId} onValueChange={setSelectedMethodId}>
+              <SelectTrigger>
+                <SelectValue placeholder='Select a saved payment method' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value=''>Select a saved payment method</SelectItem>
+                {savedMethods.map((method) => (
+                  <SelectItem key={method.id} value={method.id}>
+                    {method.cardholderName && `${method.cardholderName} - `}
+                    {method.type} •••• {method.last4}
+                    {method.isDefault && ' (Default)'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
           className='w-full'
         >
+          {!selectedMethodId && (
+            <FormField
+              control={form.control}
+              name='type'
+              render={({ field }) => (
+                <FormItem className='mb-4'>
+                  <FormLabel>Payment Method</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select payment method' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value='PayPal'>PayPal</SelectItem>
+                      <SelectItem value='Stripe'>Stripe</SelectItem>
+                      <SelectItem value='Bank Transfer'>Bank Transfer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+          )}
+
           <PlaceOrderButton />
         </form>
       </div>

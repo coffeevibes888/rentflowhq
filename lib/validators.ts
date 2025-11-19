@@ -129,10 +129,54 @@ export const paymentResultSchema = z.object({
   pricePaid: z.string(),
 });
 
+const phoneRegex = /^(\+1|1)?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/;
+
 // Schema for updating the user profile
 export const updateProfileSchema = z.object({
   name: z.string().min(3, 'Name must be at leaast 3 characters'),
   email: z.string().min(3, 'Email must be at leaast 3 characters'),
+});
+
+// Schema for updating user address
+export const updateAddressSchema = z.object({
+  fullName: z.string().min(3, 'Full name must be at least 3 characters'),
+  streetAddress: z.string().min(5, 'Street address must be at least 5 characters'),
+  city: z.string().min(2, 'City must be at least 2 characters'),
+  postalCode: z.string().min(3, 'Postal code must be at least 3 characters'),
+  country: z.string().min(2, 'Country must be at least 2 characters'),
+});
+
+// Schema for billing address
+export const billingAddressSchema = z.object({
+  fullName: z.string().min(3, 'Full name must be at least 3 characters'),
+  streetAddress: z.string().min(5, 'Street address must be at least 5 characters'),
+  city: z.string().min(2, 'City must be at least 2 characters'),
+  postalCode: z.string().min(3, 'Postal code must be at least 3 characters'),
+  country: z.string().min(2, 'Country must be at least 2 characters'),
+});
+
+// Schema for saved payment method (Stripe tokenized)
+export const savedPaymentMethodSchema = z.object({
+  stripePaymentMethodId: z.string().min(1, 'Stripe payment method ID is required'),
+  type: z.string().min(1, 'Payment method type is required'),
+  cardholderName: z.string().min(1, 'Cardholder name is required'),
+  last4: z.string().length(4, 'Last 4 digits must be exactly 4 characters'),
+  expirationDate: z.string().regex(/^\d{2}\/\d{2}$/, 'Expiration date must be MM/YY format'),
+  brand: z.string().min(1, 'Card brand is required'),
+  billingAddress: billingAddressSchema,
+  isDefault: z.boolean().optional().default(false),
+});
+
+// Schema for phone number verification
+export const sendPhoneOtpSchema = z.object({
+  phoneNumber: z
+    .string()
+    .regex(phoneRegex, 'Invalid phone number format (e.g., +1 (555) 123-4567)'),
+});
+
+// Schema for verifying phone OTP
+export const verifyPhoneOtpSchema = z.object({
+  otp: z.string().min(6, 'OTP must be 6 digits').max(6, 'OTP must be 6 digits'),
 });
 
 // Schema to update users
