@@ -47,3 +47,19 @@ export type Review = z.infer<typeof insertReviewSchema> & {
   createdAt: Date;
   user?: { name: string };
 };
+
+export interface ChatMessage {
+  id: string;
+  content: string;
+  sender: 'user' | 'ai' | 'agent';
+  timestamp: Date;
+  senderName?: string;
+  isTyping?: boolean;
+}
+
+export interface ChatSession {
+  id: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}
