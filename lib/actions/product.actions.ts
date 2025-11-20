@@ -166,29 +166,24 @@ export async function deleteProduct(id: string) {
 export async function createProduct(data: z.infer<typeof insertProductSchema>) {
   try {
     const product = insertProductSchema.parse(data);
+    
+    // Extract only Product model fields, excluding colorIds and sizeIds
+    const { colorIds, sizeIds, ...productData } = product;
+    
     // create product and optionally create variants from provided colorIds/sizeIds
-    const created = await prisma.product.create({ data: product });
+    const created = await prisma.product.create({ data: productData });
 
-    // Type guard to check if colorIds and sizeIds exist
-    const productWithVariants = product as typeof product & {
-      colorIds?: string[];
-      sizeIds?: string[];
-      price?: number;
-      stock?: number;
-      images?: string[];
-    };
-
-    if (productWithVariants.colorIds && productWithVariants.sizeIds) {
+    if (colorIds && sizeIds) {
       const variants: VariantInput[] = [];
-      for (const colorId of productWithVariants.colorIds) {
-        for (const sizeId of productWithVariants.sizeIds) {
+      for (const colorId of colorIds) {
+        for (const sizeId of sizeIds) {
           variants.push({
             productId: created.id,
             colorId,
             sizeId,
-            price: productWithVariants.price ?? 0,
-            stock: productWithVariants.stock ?? 0,
-            images: productWithVariants.images || [],
+            price: Number(product.price),
+            stock: product.stock,
+            images: product.images || [],
           });
         }
       }
@@ -220,30 +215,24 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
 
     // Update product and optionally refresh variants
     await prisma.$transaction(async (tx) => {
-      await tx.product.update({ where: { id: product.id }, data: product });
-
-      // Type guard to check if colorIds and sizeIds exist
-      const productWithVariants = product as typeof product & {
-        colorIds?: string[];
-        sizeIds?: string[];
-        price?: number;
-        stock?: number;
-        images?: string[];
-      };
+      // Extract only Product model fields, excluding colorIds and sizeIds
+      const { colorIds, sizeIds, ...productData } = product;
+      
+      await tx.product.update({ where: { id: product.id }, data: productData });
 
       // If colorIds and sizeIds provided, remove existing variants and recreate
-      if (productWithVariants.colorIds && productWithVariants.sizeIds) {
+      if (colorIds && sizeIds) {
         await tx.productVariant.deleteMany({ where: { productId: product.id } });
         const variants: VariantInput[] = [];
-        for (const colorId of productWithVariants.colorIds) {
-          for (const sizeId of productWithVariants.sizeIds) {
+        for (const colorId of colorIds) {
+          for (const sizeId of sizeIds) {
             variants.push({
               productId: product.id,
               colorId,
               sizeId,
-              price: productWithVariants.price ?? 0,
-              stock: productWithVariants.stock ?? 0,
-              images: productWithVariants.images || [],
+              price: Number(product.price),
+              stock: product.stock,
+              images: product.images || [],
             });
           }
         }
