@@ -86,6 +86,11 @@ export async function createOrder() {
       return insertedOrder.id;
     });
 
+    if (insertedOrderId) {
+      const { generateTrackingNumberForOrder } = await import('./tracking.actions');
+      await generateTrackingNumberForOrder(insertedOrderId);
+    }
+
     return insertedOrderId
       ? { success: true, message: 'Order created', redirectTo: `/order/${insertedOrderId}` }
       : { success: false, message: 'Order not created' };

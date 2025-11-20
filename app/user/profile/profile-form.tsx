@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -19,8 +19,9 @@ import { z } from 'zod';
 import PhoneVerification from './phone-verification';
 import AvatarUpload from './avatar-upload';
 import AddressForm from './address-form';
-import SavedPaymentMethods from './saved-payment-methods';
 import StripeProvider from './stripe-provider';
+
+const SavedPaymentMethods = lazy(() => import('./saved-payment-methods'));
 
 const ProfileForm = () => {
   const { data: session, update } = useSession();
@@ -74,37 +75,35 @@ const ProfileForm = () => {
   const userBillingAddress = session?.user?.billingAddress as Address | undefined;
 
   return (
-    <div className='space-y-6'>
-      <div>
-        <h2 className='text-2xl font-bold mb-6'>Profile Settings</h2>
-        
-        <div className='border rounded-lg p-6 bg-card space-y-6'>
-          <div>
-            <h3 className='text-lg font-semibold mb-4'>Avatar</h3>
+    <div className='space-y-8'>
+      <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg'>
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8 items-start'>
+          <div className='flex flex-col items-center'>
+            <h3 className='text-xl font-semibold text-white mb-6'>Avatar</h3>
             <AvatarUpload
               currentImage={session?.user?.image}
               userName={session?.user?.name}
             />
           </div>
 
-          <div className='border-t pt-6'>
-            <h3 className='text-lg font-semibold mb-4'>Basic Information</h3>
+          <div className='lg:col-span-2'>
+            <h3 className='text-xl font-semibold text-white mb-6'>Basic Information</h3>
             <Form {...form}>
               <form
-                className='flex flex-col gap-5'
+                className='space-y-6'
                 onSubmit={form.handleSubmit(onSubmit)}
               >
-                <div className='flex flex-col gap-5'>
+                <div className='space-y-4'>
                   <FormField
                     control={form.control}
                     name='email'
                     render={({ field }) => (
-                      <FormItem className='w-full'>
+                      <FormItem>
                         <FormControl>
                           <Input
                             disabled
                             placeholder='Email'
-                            className='input-field'
+                            className='input-field bg-white/5 border-white/20 text-white placeholder:text-gray-400'
                             {...field}
                           />
                         </FormControl>
@@ -116,11 +115,11 @@ const ProfileForm = () => {
                     control={form.control}
                     name='name'
                     render={({ field }) => (
-                      <FormItem className='w-full'>
+                      <FormItem>
                         <FormControl>
                           <Input
                             placeholder='Name'
-                            className='input-field'
+                            className='input-field bg-white/5 border-white/20 text-white placeholder:text-gray-400'
                             {...field}
                           />
                         </FormControl>
@@ -132,7 +131,7 @@ const ProfileForm = () => {
                 <Button
                   type='submit'
                   size='lg'
-                  className='button col-span-2 w-full'
+                  className='w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white'
                   disabled={form.formState.isSubmitting}
                 >
                   {form.formState.isSubmitting ? 'Submitting...' : 'Update Profile'}
@@ -143,9 +142,9 @@ const ProfileForm = () => {
         </div>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-        <div className='border rounded-lg p-6 bg-card'>
-          <h3 className='text-lg font-semibold mb-4'>Addresses</h3>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+        <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg'>
+          <h3 className='text-xl font-semibold text-white mb-6'>Addresses</h3>
           <AddressForm 
             initialAddress={userAddress}
             initialShippingAddress={userShippingAddress}
@@ -153,27 +152,36 @@ const ProfileForm = () => {
           />
         </div>
 
-        <div className='border rounded-lg p-6 bg-card'>
-          <h3 className='text-lg font-semibold mb-4'>Phone Number</h3>
-          {session?.user?.phoneVerified ? (
+        <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg'>
+          <h3 className='text-xl font-semibold text-white mb-6'>Phone Number</h3>
+          {session?.user?.phoneNumber ? (
             <div className='space-y-4'>
-              <div className='p-4 bg-green-50 border border-green-200 rounded-lg'>
-                <p className='text-sm font-medium text-green-800'>
-                  ✓ Phone Verified: {session.user.phoneNumber}
-                </p>
+              <div className='p-4 bg-white/5 border border-white/20 rounded-lg'>
+                <p className='text-sm text-gray-300'>Phone Number on File</p>
+                <p className='text-lg font-semibold text-white mt-2'>{session.user.phoneNumber}</p>
+                {session?.user?.phoneVerified && (
+                  <div className='flex items-center gap-2 mt-3'>
+                    <div className='w-2 h-2 bg-green-400 rounded-full'></div>
+                    <p className='text-xs font-medium text-green-300'>Verified</p>
+                  </div>
+                )}
               </div>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setShowPhoneVerification(!showPhoneVerification)}
-              >
-                {showPhoneVerification ? 'Hide' : 'Update Phone Number'}
-              </Button>
+              <div className='flex gap-3'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  className='flex-1 border-white/20 text-white hover:bg-white/10'
+                  onClick={() => setShowPhoneVerification(!showPhoneVerification)}
+                >
+                  {!session.user.phoneVerified ? 'Verify Number' : 'Update Number'}
+                </Button>
+              </div>
             </div>
           ) : (
             <Button
               type='button'
               variant='outline'
+              className='w-full border-white/20 text-white hover:bg-white/10'
               onClick={() => setShowPhoneVerification(!showPhoneVerification)}
             >
               {showPhoneVerification ? 'Cancel' : 'Add Phone Number'}
@@ -181,8 +189,9 @@ const ProfileForm = () => {
           )}
 
           {showPhoneVerification && (
-            <div className='mt-4'>
+            <div className='mt-6 p-4 bg-white/5 border border-white/20 rounded-lg'>
               <PhoneVerification
+                mode={session?.user?.phoneNumber ? 'verify' : 'add'}
                 onPhoneVerified={() => {
                   setShowPhoneVerification(false);
                   window.location.reload();
@@ -193,13 +202,24 @@ const ProfileForm = () => {
         </div>
       </div>
 
-      <div className='border rounded-lg p-6 bg-card'>
-        <StripeProvider>
-          <SavedPaymentMethods />
-        </StripeProvider>
+      <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg'>
+        <h3 className='text-xl font-semibold text-white mb-6'>Payment Methods</h3>
+        <Suspense fallback={
+          <div className='text-center text-gray-400 py-8'>
+            <div className='inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500'></div>
+            <p className='mt-3 text-sm'>Loading payment methods...</p>
+          </div>
+        }>
+          <StripeProvider>
+            <SavedPaymentMethods />
+          </StripeProvider>
+        </Suspense>
       </div>
     </div>
   );
 };
 
 export default ProfileForm;
+
+
+

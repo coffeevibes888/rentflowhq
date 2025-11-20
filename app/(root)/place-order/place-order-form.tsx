@@ -20,11 +20,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 
 type SavedPaymentMethod = {
   id: string;
@@ -115,7 +117,7 @@ const PlaceOrderForm = ({ preferredPaymentMethod }: { preferredPaymentMethod: st
       <div className='space-y-4 mb-4'>
         {!isLoadingMethods && savedMethods.length > 0 && (
           <div className='border rounded-lg p-4 bg-muted'>
-            <FormLabel className='mb-3 block'>Use Saved Payment Method</FormLabel>
+            <Label className='mb-3 block'>Use Saved Payment Method</Label>
             <Select value={selectedMethodId} onValueChange={setSelectedMethodId}>
               <SelectTrigger>
                 <SelectValue placeholder='Select a saved payment method' />
@@ -134,36 +136,38 @@ const PlaceOrderForm = ({ preferredPaymentMethod }: { preferredPaymentMethod: st
           </div>
         )}
 
-        <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          className='w-full'
-        >
-          {!selectedMethodId && (
-            <FormField
-              control={form.control}
-              name='type'
-              render={({ field }) => (
-                <FormItem className='mb-4'>
-                  <FormLabel>Payment Method</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select payment method' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value='PayPal'>PayPal</SelectItem>
-                      <SelectItem value='Stripe'>Stripe</SelectItem>
-                      <SelectItem value='Bank Transfer'>Bank Transfer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-          )}
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className='w-full'
+          >
+            {!selectedMethodId && (
+              <FormField
+                control={form.control}
+                name='type'
+                render={({ field }) => (
+                  <FormItem className='mb-4'>
+                    <FormLabel>Payment Method</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Select payment method' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value='PayPal'>PayPal</SelectItem>
+                        <SelectItem value='Stripe'>Stripe</SelectItem>
+                        <SelectItem value='Bank Transfer'>Bank Transfer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            )}
 
-          <PlaceOrderButton />
-        </form>
+            <PlaceOrderButton />
+          </form>
+        </Form>
       </div>
     </>
   );

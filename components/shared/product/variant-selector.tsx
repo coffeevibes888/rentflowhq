@@ -89,6 +89,16 @@ export default function VariantSelector({
     variantSize: selectedVariant?.size?.name,
   } as unknown as CartItem;
 
+  const hasRequiredSelections = () => {
+    if (colors.length === 0 && sizes.length === 0) return true;
+    if (colors.length > 0 && !selectedColor) return false;
+    if (sizes.length > 0 && !selectedSize) return false;
+    return true;
+  };
+
+  const shouldShowButton = hasRequiredSelections();
+  const shouldShowMessage = !hasRequiredSelections();
+
   return (
     <div className='space-y-4'>
       {colors.length > 0 && (
@@ -130,13 +140,13 @@ export default function VariantSelector({
         <ProductPrice value={Number(selectedVariant?.price ?? product.price)} />
       </div>
 
-      {((!colors.length && !sizes.length) || selectedVariant) && image ? (
+      {shouldShowButton ? (
         <div>
           <AddToCart cart={cart} item={item} />
         </div>
-      ) : (
+      ) : shouldShowMessage ? (
         <p className='text-sm text-gray-500'>Please select color and size</p>
-      )}
+      ) : null}
     </div>
   );
 }

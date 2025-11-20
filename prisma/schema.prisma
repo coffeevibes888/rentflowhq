@@ -154,6 +154,10 @@ model Order {
   paidAt          DateTime?   @db.Timestamp(6)
   isDelivered     Boolean     @default(false)
   deliveredAt     DateTime?   @db.Timestamp(6)
+  trackingNumber  String?     @unique
+  trackingStatus  String?     @default("pending")
+  trackingEvents  Json[]      @default([]) @db.Json
+  lastTrackingUpdate DateTime? @db.Timestamp(6)
   createdAt       DateTime    @default(now()) @db.Timestamp(6)
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderitems      OrderItem[]

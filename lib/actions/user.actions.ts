@@ -119,8 +119,10 @@ export async function updateUserAddress(data: ShippingAddress) {
 
     await prisma.user.update({
       where: { id: currentUser.id },
-      data: { address },
+      data: { shippingAddress: address },
     });
+
+    revalidatePath('/shipping-address');
 
     return {
       success: true,
@@ -588,6 +590,30 @@ export async function updateSavedPaymentMethod(
     return {
       success: true,
       message: 'Payment method updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function updatePhoneNumber(phoneNumber: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { phoneNumber },
+    });
+
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: 'Phone number updated successfully',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

@@ -114,10 +114,11 @@ export default function SavedPaymentMethods() {
   return (
     <div className='space-y-4'>
       <div className='flex justify-between items-center'>
-        <h3 className='text-lg font-semibold'>Saved Payment Methods</h3>
+        <h3 className='text-lg font-semibold text-white'>Saved Payment Methods</h3>
         <Button
           type='button'
           variant='outline'
+          className='border-white/20 text-white hover:bg-white/10'
           onClick={() => setShowForm(!showForm)}
           disabled={isLoading}
         >
@@ -126,15 +127,15 @@ export default function SavedPaymentMethods() {
       </div>
 
       {isLoading && (
-        <div className='text-center text-gray-500 py-8'>
-          <div className='inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300'></div>
+        <div className='text-center text-gray-400 py-8'>
+          <div className='inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500'></div>
           <p className='mt-2'>Loading payment methods...</p>
         </div>
       )}
 
       {showForm && (
-        <div className='border rounded-lg p-6 bg-card space-y-4'>
-          <h4 className='font-semibold'>{editingId ? 'Edit Payment Method' : 'Add New Payment Method'}</h4>
+        <div className='border border-white/20 rounded-lg p-6 bg-white/5 space-y-4'>
+          <h4 className='font-semibold text-white'>{editingId ? 'Edit Payment Method' : 'Add New Payment Method'}</h4>
           <CardForm
             initialData={editingMethod}
             onSubmit={onSubmit}
@@ -144,8 +145,8 @@ export default function SavedPaymentMethods() {
         </div>
       )}
 
-      {methods.length === 0 ? (
-        <div className='p-4 text-center text-gray-500 border border-dashed rounded-lg'>
+      {methods.length === 0 && !isLoading ? (
+        <div className='p-4 text-center text-gray-400 border border-dashed border-white/20 rounded-lg bg-white/5'>
           No saved payment methods. Add one to get started!
         </div>
       ) : (
@@ -153,24 +154,24 @@ export default function SavedPaymentMethods() {
           {methods.map((method) => (
             <div
               key={method.id}
-              className='flex flex-col justify-between p-4 border rounded-lg bg-card'
+              className='flex flex-col justify-between p-4 border border-white/20 rounded-lg bg-white/5'
             >
               <div>
-                <p className='font-medium'>
+                <p className='font-medium text-white'>
                   {method.cardholderName && <span>{method.cardholderName} - </span>}
                   {method.brand} •••• {method.last4}
                   {method.expirationDate && (
-                    <span className='text-sm text-gray-500 ml-2'>Expires {method.expirationDate}</span>
+                    <span className='text-sm text-gray-400 ml-2'>Expires {method.expirationDate}</span>
                   )}
                 </p>
                 <div className='flex gap-2 mt-2'>
                   {method.isDefault && (
-                    <span className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
+                    <span className='text-xs bg-violet-500/30 text-violet-200 px-2 py-1 rounded border border-violet-400/50'>
                       Default
                     </span>
                   )}
                   {!method.isVerified && (
-                    <span className='text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded'>
+                    <span className='text-xs bg-yellow-500/30 text-yellow-200 px-2 py-1 rounded border border-yellow-400/50'>
                       Pending Verification
                     </span>
                   )}
@@ -181,6 +182,7 @@ export default function SavedPaymentMethods() {
                   type='button'
                   variant='ghost'
                   size='sm'
+                  className='text-gray-400 hover:text-white hover:bg-white/10'
                   onClick={() => handleEdit(method)}
                 >
                   <Edit2 className='w-4 h-4' />
@@ -189,10 +191,11 @@ export default function SavedPaymentMethods() {
                   type='button'
                   variant='ghost'
                   size='sm'
+                  className='text-red-400 hover:text-red-300 hover:bg-white/10'
                   onClick={() => handleDelete(method.id)}
                   disabled={isDeleting === method.id}
                 >
-                  <Trash2 className='w-4 h-4 text-red-600' />
+                  <Trash2 className='w-4 h-4' />
                 </Button>
               </div>
             </div>

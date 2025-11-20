@@ -95,16 +95,16 @@ export default function AddressForm({
     
     return (
       <div className='space-y-4'>
-        <h4 className='font-semibold'>{title}</h4>
-        <div className='p-4 bg-gray-50 border border-gray-200 rounded-lg'>
-          <p className='text-sm text-gray-600'>
-            <span className='font-medium'>{address.fullName}</span>
+        <h4 className='font-semibold text-white'>{title}</h4>
+        <div className='p-4 bg-white/5 border border-white/20 rounded-lg'>
+          <p className='text-sm text-gray-300'>
+            <span className='font-medium text-white'>{address.fullName}</span>
           </p>
-          <p className='text-sm text-gray-600'>{address.streetAddress}</p>
-          <p className='text-sm text-gray-600'>
+          <p className='text-sm text-gray-300'>{address.streetAddress}</p>
+          <p className='text-sm text-gray-300'>
             {address.city}, {address.postalCode}
           </p>
-          <p className='text-sm text-gray-600'>{address.country}</p>
+          <p className='text-sm text-gray-300'>{address.country}</p>
         </div>
       </div>
     );
@@ -123,9 +123,9 @@ export default function AddressForm({
             name='fullName'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel className='text-gray-200'>Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder='Full Name' className='input-field' {...field} />
+                  <Input placeholder='Full Name' className='input-field bg-white/5 border-white/20 text-white placeholder:text-gray-500' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -136,11 +136,11 @@ export default function AddressForm({
             name='streetAddress'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Street Address</FormLabel>
+                <FormLabel className='text-gray-200'>Street Address</FormLabel>
                 <FormControl>
                   <Input
                     placeholder='Street Address'
-                    className='input-field'
+                    className='input-field bg-white/5 border-white/20 text-white placeholder:text-gray-500'
                     {...field}
                   />
                 </FormControl>
@@ -154,9 +154,9 @@ export default function AddressForm({
               name='city'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City</FormLabel>
+                  <FormLabel className='text-gray-200'>City</FormLabel>
                   <FormControl>
-                    <Input placeholder='City' className='input-field' {...field} />
+                    <Input placeholder='City' className='input-field bg-white/5 border-white/20 text-white placeholder:text-gray-500' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -167,11 +167,11 @@ export default function AddressForm({
               name='postalCode'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Postal Code</FormLabel>
+                  <FormLabel className='text-gray-200'>Postal Code</FormLabel>
                   <FormControl>
                     <Input
                       placeholder='Postal Code'
-                      className='input-field'
+                      className='input-field bg-white/5 border-white/20 text-white placeholder:text-gray-500'
                       {...field}
                     />
                   </FormControl>
@@ -185,9 +185,9 @@ export default function AddressForm({
             name='country'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Country</FormLabel>
+                <FormLabel className='text-gray-200'>Country</FormLabel>
                 <FormControl>
-                  <Input placeholder='Country' className='input-field' {...field} />
+                  <Input placeholder='Country' className='input-field bg-white/5 border-white/20 text-white placeholder:text-gray-500' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -195,7 +195,7 @@ export default function AddressForm({
           />
           <Button
             type='submit'
-            className='w-full'
+            className='w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white'
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? 'Saving...' : `Save ${title}`}
@@ -212,6 +212,7 @@ export default function AddressForm({
           <Button
             type='button'
             variant={addressType === 'shipping' ? 'default' : 'outline'}
+            className={addressType === 'shipping' ? 'bg-gradient-to-r from-violet-600 to-purple-600' : 'border-white/20 text-white hover:bg-white/10'}
             onClick={() => setAddressType('shipping')}
           >
             Shipping Address
@@ -219,6 +220,7 @@ export default function AddressForm({
           <Button
             type='button'
             variant={addressType === 'billing' ? 'default' : 'outline'}
+            className={addressType === 'billing' ? 'bg-gradient-to-r from-violet-600 to-purple-600' : 'border-white/20 text-white hover:bg-white/10'}
             onClick={() => setAddressType('billing')}
           >
             Billing Address
@@ -231,14 +233,14 @@ export default function AddressForm({
               {initialShippingAddress ? (
                 renderAddressDisplay(initialShippingAddress, 'Shipping Address')
               ) : (
-                <div className='p-4 text-center text-gray-500 border border-dashed rounded-lg'>
+                <div className='p-4 text-center text-gray-400 border border-dashed border-white/20 rounded-lg bg-white/5'>
                   No shipping address saved
                 </div>
               )}
               <Button
                 type='button'
                 variant='outline'
-                className='w-full'
+                className='w-full border-white/20 text-white hover:bg-white/10'
                 onClick={() => {
                   setAddressType('shipping');
                   setIsEditing(true);
@@ -254,14 +256,14 @@ export default function AddressForm({
               {initialBillingAddress ? (
                 renderAddressDisplay(initialBillingAddress, 'Billing Address')
               ) : (
-                <div className='p-4 text-center text-gray-500 border border-dashed rounded-lg'>
+                <div className='p-4 text-center text-gray-400 border border-dashed border-white/20 rounded-lg bg-white/5'>
                   No billing address saved
                 </div>
               )}
               <Button
                 type='button'
                 variant='outline'
-                className='w-full'
+                className='w-full border-white/20 text-white hover:bg-white/10'
                 onClick={() => {
                   setAddressType('billing');
                   setIsEditing(true);
@@ -278,8 +280,8 @@ export default function AddressForm({
 
   if (isEditing) {
     return (
-      <div className='space-y-4 border rounded-lg p-6 bg-card'>
-        <h3 className='text-lg font-semibold'>
+      <div className='space-y-4'>
+        <h3 className='text-lg font-semibold text-white'>
           {addressType === 'shipping' ? 'Shipping' : 'Billing'} Address
         </h3>
         {addressType === 'shipping'
@@ -288,7 +290,7 @@ export default function AddressForm({
         <Button
           type='button'
           variant='outline'
-          className='w-full'
+          className='w-full border-white/20 text-white hover:bg-white/10'
           onClick={() => {
             setIsEditing(false);
           }}
@@ -300,11 +302,12 @@ export default function AddressForm({
   }
 
   return (
-    <div className='space-y-4 border rounded-lg p-6 bg-card'>
-      <h3 className='text-lg font-semibold'>Add Addresses</h3>
+    <div className='space-y-4'>
+      <h3 className='text-lg font-semibold text-white'>Add Addresses</h3>
       <Button
         type='button'
         variant='outline'
+        className='w-full border-white/20 text-white hover:bg-white/10'
         onClick={() => {
           setAddressType('shipping');
           setIsEditing(true);
@@ -315,6 +318,7 @@ export default function AddressForm({
       <Button
         type='button'
         variant='outline'
+        className='w-full border-white/20 text-white hover:bg-white/10'
         onClick={() => {
           setAddressType('billing');
           setIsEditing(true);

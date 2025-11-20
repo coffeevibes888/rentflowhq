@@ -15,6 +15,7 @@ import {
   verifyPhoneOtp,
   incrementPhoneOtpAttempts,
 } from '@/lib/actions/auth.actions';
+import { updatePhoneNumber } from '@/lib/actions/user.actions';
 import {
   sendPhoneOtpSchema,
   verifyPhoneOtpSchema,
@@ -27,16 +28,19 @@ import { Loader } from 'lucide-react';
 
 type PhoneVerificationProps = {
   onPhoneVerified?: () => void;
+  mode?: 'verify' | 'add';
 };
 
 export default function PhoneVerification({
   onPhoneVerified,
+  mode = 'verify',
 }: PhoneVerificationProps) {
   const { data: session } = useSession();
   const { toast } = useToast();
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [skipVerification, setSkipVerification] = useState(false);
 
   const phoneForm = useForm<z.infer<typeof sendPhoneOtpSchema>>({
     resolver: zodResolver(sendPhoneOtpSchema),
@@ -65,19 +69,35 @@ export default function PhoneVerification({
 
     setLoading(true);
     try {
-      const result = await sendPhoneOtp(session.user.id, values.phoneNumber);
-
-      if (result.success) {
-        setPhoneNumber(values.phoneNumber);
-        setStep('otp');
-        toast({
-          description: 'Verification code sent to your phone',
-        });
+      if (mode === 'add' && skipVerification) {
+        const result = await updatePhoneNumber(values.phoneNumber);
+        if (result.success) {
+          toast({
+            description: 'Phone number saved successfully',
+          });
+          phoneForm.reset();
+          onPhoneVerified?.();
+        } else {
+          toast({
+            variant: 'destructive',
+            description: result.message,
+          });
+        }
       } else {
-        toast({
-          variant: 'destructive',
-          description: result.message,
-        });
+        const result = await sendPhoneOtp(session.user.id, values.phoneNumber);
+
+        if (result.success) {
+          setPhoneNumber(values.phoneNumber);
+          setStep('otp');
+          toast({
+            description: 'Verification code sent to your phone',
+          });
+        } else {
+          toast({
+            variant: 'destructive',
+            description: result.message,
+          });
+        }
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
@@ -131,8 +151,10 @@ export default function PhoneVerification({
 
   if (step === 'phone') {
     return (
-      <div className='space-y-4 border rounded-lg p-6 bg-card'>
-        <h3 className='text-lg font-semibold'>Add Phone Number</h3>
+      <div className='space-y-4'>
+        <h3 className='text-lg font-semibold text-white'>
+          {mode === 'add' ? 'Add Phone Number' : 'Verify Phone Number'}
+        </h3>
         <Form {...phoneForm}>
           <form
             onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}
@@ -146,7 +168,7 @@ export default function PhoneVerification({
                   <FormControl>
                     <Input
                       placeholder='Phone number (e.g., +1 (555) 123-4567)'
-                      className='input-field'
+                      className='input-field bg-white/5 border-white/20 text-white placeholder:text-gray-500'
                       {...field}
                       disabled={loading}
                     />
@@ -155,16 +177,32 @@ export default function PhoneVerification({
                 </FormItem>
               )}
             />
+            {mode === 'add' && (
+              <div className='flex items-center gap-2 p-3 bg-white/5 border border-white/20 rounded-lg'>
+                <input
+                  type='checkbox'
+                  id='skipVerification'
+                  checked={skipVerification}
+                  onChange={(e) => setSkipVerification(e.target.checked)}
+                  className='w-4 h-4 cursor-pointer'
+                  disabled={loading}
+                />
+                <label htmlFor='skipVerification' className='text-sm text-gray-300 cursor-pointer flex-1'>
+                  Save without verification
+                </label>
+              </div>
+            )}
             <Button
               type='submit'
-              className='w-full'
+              className='w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white'
               disabled={loading}
             >
               {loading ? (
-                <Loader className='w-4 h-4 animate-spin' />
-              ) : (
-                'Send Verification Code'
-              )}
+                <Loader className='w-4 h-4 animate-spin mr-2' />
+              ) : null}
+              {mode === 'add' && skipVerification
+                ? 'Save Phone Number'
+                : 'Send Verification Code'}
             </Button>
           </form>
         </Form>
@@ -173,9 +211,9 @@ export default function PhoneVerification({
   }
 
   return (
-    <div className='space-y-4 border rounded-lg p-6 bg-card'>
-      <h3 className='text-lg font-semibold'>Verify Phone Number</h3>
-      <p className='text-sm text-gray-600'>
+    <div className='space-y-4'>
+      <h3 className='text-lg font-semibold text-white'>Verify Phone Number</h3>
+      <p className='text-sm text-gray-400'>
         Enter the 6-digit code sent to {phoneNumber}
       </p>
       <Form {...otpForm}>
@@ -191,7 +229,7 @@ export default function PhoneVerification({
                 <FormControl>
                   <Input
                     placeholder='000000'
-                    className='input-field text-center tracking-widest'
+                    className='input-field text-center tracking-widest bg-white/5 border-white/20 text-white placeholder:text-gray-500'
                     maxLength={6}
                     {...field}
                     disabled={loading}
@@ -204,19 +242,18 @@ export default function PhoneVerification({
           <div className='flex gap-2'>
             <Button
               type='submit'
-              className='flex-1'
+              className='flex-1 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white'
               disabled={loading}
             >
               {loading ? (
-                <Loader className='w-4 h-4 animate-spin' />
-              ) : (
-                'Verify Code'
-              )}
+                <Loader className='w-4 h-4 animate-spin mr-2' />
+              ) : null}
+              Verify Code
             </Button>
             <Button
               type='button'
               variant='outline'
-              className='flex-1'
+              className='flex-1 border-white/20 text-white hover:bg-white/10'
               onClick={() => {
                 setStep('phone');
                 otpForm.reset();

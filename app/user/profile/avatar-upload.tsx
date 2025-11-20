@@ -71,7 +71,7 @@ export default function AvatarUpload({ currentImage, userName }: AvatarUploadPro
         )}
       </div>
 
-      <div className='flex justify-center'>
+      <div className='flex justify-center max-w-xs mx-auto'>
         <UploadButton
           endpoint='imageUploader'
           onClientUploadComplete={handleUploadComplete}
@@ -85,7 +85,7 @@ export default function AvatarUpload({ currentImage, userName }: AvatarUploadPro
             button: ({ ready }) => (
               <Button
                 disabled={!ready || isUploading}
-                className='w-full'
+                className='w-auto px-6'
               >
                 {isUploading ? (
                   <Loader className='w-4 h-4 animate-spin mr-2' />
