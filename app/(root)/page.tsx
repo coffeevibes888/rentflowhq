@@ -4,6 +4,8 @@ import ProductCarousel from '@/components/shared/product/product-carousel';
 import ViewAllProductsButton from '@/components/view-all-products-button';
 import DealCountdown from '@/components/deal-countdown';
 import Hero from '@/components/hero/hero';
+import CustomerReviews from '@/components/home/customer-reviews';
+import HomeContactCard from '@/components/home/home-contact-card';
 
 const Homepage = async () => {
   const latestProducts = await getLatestProducts();
@@ -41,6 +43,8 @@ const Homepage = async () => {
         <ProductList data={christmasProducts} title='Christmas' limit={4} />
       )}
       <DealCountdown />
+      <CustomerReviews />
+      <HomeContactCard />
     </>
   );
 };

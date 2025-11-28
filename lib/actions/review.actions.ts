@@ -105,6 +105,30 @@ export async function getReviews({ productId }: { productId: string }) {
   return { data };
 }
 
+// Get latest reviews across all products (for homepage/customer reviews)
+export async function getLatestProductReviews(limit = 3) {
+  const reviews = await prisma.review.findMany({
+    take: limit,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      user: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+      product: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  return reviews;
+}
+
 // Get a review written by the current user
 export async function getReviewByProductId({
   productId,

@@ -9,9 +9,33 @@ const Header = async () => {
 
   return ( 
     <header className="w-full">
-      <div className="wrapper flex-between">
-        <div className="flex-start">
-          <Link href='/' className="flex-start">
+      {/* Mobile header: hamburger left, logo centered, menu (three dots) right */}
+      <div className="wrapper flex items-center justify-between md:hidden">
+        <div className="flex items-center">
+          <CategoryDrawer />
+        </div>
+
+        <Link href='/' className="flex items-center justify-center">
+          <div className="relative w-28 h-16">
+            <Image
+              src='/images/2.svg'
+              fill
+              className="object-contain"
+              alt="Rocken My Vibe Logo"
+              priority={true}
+            />
+          </div>
+        </Link>
+
+        <div className="flex items-center">
+          <Menu />
+        </div>
+      </div>
+
+      {/* Desktop / tablet header */}
+      <div className="wrapper hidden md:flex items-center justify-between">
+        <div className="flex items-center">
+          <Link href='/' className="flex items-center">
             <CategoryDrawer />
             <div className="relative w-36 h-36">
               <Image
@@ -25,7 +49,7 @@ const Header = async () => {
           </Link>
         </div>
 
-        <div className="hidden md:flex items-center justify-center text-white">
+        <div className="flex items-center justify-center text-white">
           <Link href='/' className="m-2.5 hover:text-black hover:underline">Home</Link>
           <Link href='/about' className="m-2.5 hover:text-black hover:underline">About</Link>
           <Link href='/blog' className="m-2.5 hover:text-black hover:underline">Blog</Link>
