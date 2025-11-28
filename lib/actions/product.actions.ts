@@ -211,11 +211,11 @@ export async function createProduct(data: z.infer<typeof insertProductSchema>) {
   try {
     const product = insertProductSchema.parse(data);
     
-    // Extract only Product model fields, excluding sizeIds (color selection removed)
-    const { sizeIds, ...productData } = product;
-    
-    // create product and optionally create variants from provided sizeIds
-    const created = await prisma.product.create({ data: productData });
+    // Extract only Product model fields, excluding sizeIds and colorIds (variant metadata)
+    const { sizeIds, colorIds, ...productData } = product;
+      
+      // create product and optionally create variants from provided sizeIds
+      const created = await prisma.product.create({ data: productData });
 
     if (sizeIds && sizeIds.length) {
       const variants: VariantInput[] = [];
@@ -256,8 +256,8 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
 
     // Update product and optionally refresh variants
     await prisma.$transaction(async (tx) => {
-      // Extract only Product model fields, excluding sizeIds (color selection removed)
-      const { sizeIds, ...productData } = product;
+      // Extract only Product model fields, excluding sizeIds and colorIds (variant metadata)
+      const { sizeIds, colorIds, ...productData } = product;
       
       await tx.product.update({ where: { id: product.id }, data: productData });
 
