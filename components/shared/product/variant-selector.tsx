@@ -131,7 +131,8 @@ export default function VariantSelector({
   } as unknown as CartItem;
 
   const hasRequiredSelections = () => {
-    if (!selectedVariant) return false;
+    // If there are no variants, we don't require a selectedVariant.
+    if (!selectedVariant && variants.length > 0) return false;
     if (effectiveColors.length === 0 && sizes.length === 0) return true;
     if (effectiveColors.length > 0 && !selectedColor) return false;
     if (sizes.length > 0 && !selectedSize) return false;

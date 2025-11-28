@@ -52,7 +52,7 @@ export async function createOrder() {
     if (!cart || cart.items.length === 0) {
       return { success: false, message: 'Your cart is empty', redirectTo: '/cart' };
     }
-    if (!user.address) {
+    if (!user.shippingAddress) {
       return { success: false, message: 'No shipping address', redirectTo: '/shipping-address' };
     }
     if (!user.paymentMethod) {
@@ -61,7 +61,7 @@ export async function createOrder() {
 
     const order = insertOrderSchema.parse({
       userId: user.id,
-      shippingAddress: user.address,
+      shippingAddress: user.shippingAddress,
       paymentMethod: user.paymentMethod,
       itemsPrice: cart.itemsPrice,
       shippingPrice: cart.shippingPrice,
