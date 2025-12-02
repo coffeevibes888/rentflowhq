@@ -25,6 +25,9 @@ export const insertProductSchema = z.object({
   price: currency,
   colorIds: z.array(z.string()).optional(),
   sizeIds: z.array(z.string()).optional(),
+  onSale: z.boolean().optional().default(false),
+  salePercent: z.coerce.number().min(1).max(90).optional(),
+  saleUntil: z.string().datetime().nullable().optional(),
 });
 
 // Schema for updating products

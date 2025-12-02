@@ -336,11 +336,14 @@ export async function getOrderSummary() {
   const productsCount = await prisma.product.count();
   const usersCount = await prisma.user.count();
 
-  const totalSales = await prisma.order.aggregate({ _sum: { totalPrice: true } });
+  const totalSales = await prisma.order.aggregate({
+    _sum: { totalPrice: true },
+    where: { isPaid: true },
+  });
 
   const rawSales = await prisma.$queryRaw<
     Array<{ month: string; totalSales: Prisma.Decimal }>
-  >`SELECT to_char("createdAt", 'MM/YY') as "month", sum("totalPrice") as "totalSales" FROM "Order" GROUP BY to_char("createdAt", 'MM/YY')`;
+  >`SELECT to_char("createdAt", 'MM/YY') as "month", sum("totalPrice") as "totalSales" FROM "Order" WHERE "isPaid" = true GROUP BY to_char("createdAt", 'MM/YY')`;
 
   const salesData = rawSales.map((entry) => ({
     month: entry.month,
@@ -348,6 +351,7 @@ export async function getOrderSummary() {
   }));
 
   const latestSales = await prisma.order.findMany({
+    where: { isPaid: true },
     orderBy: { createdAt: 'desc' },
     include: { user: { select: { name: true } } },
     take: 6,

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader, Check } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Cart } from "@/types";
+import Link from "next/link";
 
 // NOTE: This is a client wrapper that relies on the existing cart API routes/actions via fetch.
 // It keeps implementation minimal while providing a unified checkout surface with guest fields.
@@ -126,7 +127,16 @@ const CheckoutPage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="py-4 text-2xl">Checkout</h1>
+      <div className="flex items-baseline justify-between gap-4 py-4">
+        <h1 className="text-2xl">Fast, secure checkout</h1>
+        <p className="text-xs text-slate-500">
+          Need help?{' '}
+          <Link href="/chat" className="underline">
+            Chat with us
+          </Link>
+          .
+        </p>
+      </div>
       <div className="grid md:grid-cols-3 md:gap-6">
         <div className="md:col-span-2 space-y-4">
           <Card>
@@ -202,6 +212,9 @@ const CheckoutPage = () => {
                 <span>Total</span>
                 <span>{formatCurrency(cart.totalPrice)}</span>
               </div>
+              <p className="text-[11px] text-slate-500 mt-1">
+                Secure checkout powered by Stripe. Wallets like Apple Pay, Google Pay, and Cash App may be available.
+              </p>
               <Button
                 className="w-full mt-2"
                 disabled={isPlacingOrder}

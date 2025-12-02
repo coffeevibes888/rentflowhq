@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import type { Session } from "next-auth";
 import {
@@ -128,6 +128,7 @@ function parseOS(userAgent?: string | null): string {
 
 const SuperAdminDashboard = ({ userEmail, summary, analytics, currentUser }: SuperAdminDashboardProps) => {
   const [activeView, setActiveView] = useState<(typeof views)[number]["id"]>("overview");
+  const [isClearingStats, startClearingStats] = useTransition();
   const [activeTrafficDetail, setActiveTrafficDetail] = useState<
     "today" | "yesterday" | "last7" | null
   >(null);
@@ -189,6 +190,24 @@ const SuperAdminDashboard = ({ userEmail, summary, analytics, currentUser }: Sup
       return false;
     });
   }, [activeTrafficDetail, recentEvents]);
+
+  const handleClearStatistics = () => {
+    if (!window.confirm("This will clear all tracked analytics statistics. Continue?")) return;
+
+    startClearingStats(async () => {
+      try {
+        const res = await fetch("/api/analytics/reset", { method: "POST" });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          console.error("Failed to clear analytics statistics", data?.message);
+          return;
+        }
+        window.location.reload();
+      } catch (err) {
+        console.error("Error clearing analytics statistics", err);
+      }
+    });
+  };
 
   const suspiciousSessionsMap = new Map<string, number>();
   for (const ev of recentEvents) {
@@ -739,6 +758,16 @@ const SuperAdminDashboard = ({ userEmail, summary, analytics, currentUser }: Sup
             <CardTitle className="text-sm">Super Admin</CardTitle>
             <CardDescription className="text-xs">Deep visibility into users and visitors.</CardDescription>
           </CardHeader>
+          <CardContent className="pt-0 pb-4">
+            <button
+              type="button"
+              onClick={handleClearStatistics}
+              disabled={isClearingStats}
+              className="mt-1 w-full rounded-md bg-red-500/90 text-xs font-semibold text-white py-1.5 hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isClearingStats ? "Clearing statistics..." : "Clear All Statistics"}
+            </button>
+          </CardContent>
         </Card>
         <nav className="flex flex-col gap-1">
           {views.map((view) => (

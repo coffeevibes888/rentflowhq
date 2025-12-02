@@ -50,7 +50,8 @@ export default async function ChatPage() {
               📝 About
             </h3>
             <p className="text-sm text-slate-700 dark:text-slate-300">
-              This chat interface supports both AI and live agent responses. The AI learns from conversations, and live agents can take over anytime.
+              This chat supports both AI and live agents. During live support hours, a Rocken My Vibe team member can join the
+              conversation. After hours, our AI assistant can still help with tracking, returns, sizing, and more.
             </p>
           </div>
         </div>

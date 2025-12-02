@@ -24,6 +24,9 @@ model Product {
   isFeatured  Boolean     @default(false)
   banner      String?
   printfulProductId String?
+  onSale      Boolean     @default(false)
+  salePercent Decimal?    @db.Decimal(5, 2)
+  saleUntil   DateTime?   @db.Timestamp(6)
   createdAt   DateTime    @default(now()) @db.Timestamp(6)
   OrderItem   OrderItem[]
   Review      Review[]

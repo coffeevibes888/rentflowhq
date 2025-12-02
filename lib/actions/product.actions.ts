@@ -109,6 +109,9 @@ export async function getAllProducts({
   price,
   rating,
   sort,
+  sizeSlug,
+  colorSlug,
+  inStockOnly,
 }: {
   query: string;
   limit?: number;
@@ -117,6 +120,9 @@ export async function getAllProducts({
   price?: string;
   rating?: string;
   sort?: string;
+  sizeSlug?: string;
+  colorSlug?: string;
+  inStockOnly?: boolean;
 }) {
   // Query filter
   const queryFilter: Prisma.ProductWhereInput =
@@ -153,13 +159,55 @@ export async function getAllProducts({
         }
       : {};
 
+  const sizeFilter: Prisma.ProductWhereInput =
+    sizeSlug && sizeSlug !== 'all'
+      ? {
+          variants: {
+            some: {
+              size: { slug: sizeSlug },
+            },
+          },
+        }
+      : {};
+
+  const colorFilter: Prisma.ProductWhereInput =
+    colorSlug && colorSlug !== 'all'
+      ? {
+          variants: {
+            some: {
+              color: { slug: colorSlug },
+            },
+          },
+        }
+      : {};
+
+  const stockFilter: Prisma.ProductWhereInput = inStockOnly
+    ? {
+        OR: [
+          { stock: { gt: 0 } },
+          {
+            variants: {
+              some: {
+                stock: { gt: 0 },
+              },
+            },
+          },
+        ],
+      }
+    : {};
+
+  const where: Prisma.ProductWhereInput = {
+    ...queryFilter,
+    ...categoryFilter,
+    ...priceFilter,
+    ...ratingFilter,
+    ...sizeFilter,
+    ...colorFilter,
+    ...stockFilter,
+  };
+
   const data = await prisma.product.findMany({
-    where: {
-      ...queryFilter,
-      ...categoryFilter,
-      ...priceFilter,
-      ...ratingFilter,
-    },
+    where,
     orderBy:
       sort === 'lowest'
         ? { price: 'asc' }
@@ -172,7 +220,7 @@ export async function getAllProducts({
     take: limit,
   });
 
-  const dataCount = await prisma.product.count();
+  const dataCount = await prisma.product.count({ where });
 
   return {
     data: data.map((p) => ({

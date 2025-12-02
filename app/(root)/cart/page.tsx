@@ -10,6 +10,10 @@ const CartPage = async () => {
   return (
     <>
       <CartTable cart={cart} />
+      <p className="mt-4 text-xs text-slate-500">
+        Checkout on the next step with secure Stripe payments and wallet options. Questions about size or shipping?
+        Visit our support chat any time.
+      </p>
     </>
   );
 };

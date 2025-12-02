@@ -122,6 +122,9 @@ const SearchPage = async (props: {
     rating,
     sort,
     page: Number(page),
+    sizeSlug: 'all',
+    colorSlug: 'all',
+    inStockOnly: false,
   });
 
   const categories = await getAllCategories();
@@ -236,9 +239,25 @@ const SearchPage = async (props: {
         </div>
         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
           {products.data.length === 0 && <div>No products found</div>}
-          {products.data.map((product) => (
-            <ProductCard key={product.id} product={product as Product} />
-          ))}
+          {products.data.map((product) => {
+            const normalizedProduct: Product = {
+              ...product,
+              subCategory: product.subCategory ?? undefined,
+              salePercent: product.salePercent
+                ? Number(product.salePercent)
+                : undefined,
+              saleUntil: product.saleUntil
+                ? product.saleUntil.toISOString()
+                : undefined,
+            };
+
+            return (
+              <ProductCard
+                key={product.id}
+                product={normalizedProduct}
+              />
+            );
+          })}
         </div>
       </div>
     </div>

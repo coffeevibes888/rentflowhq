@@ -153,3 +153,17 @@
   }
 }
 
+@keyframes banner-marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.banner-marquee {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: banner-marquee-scroll 52s linear infinite;
+}

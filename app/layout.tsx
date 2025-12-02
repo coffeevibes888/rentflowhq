@@ -31,6 +31,28 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <PageViewTracker />
+          <div
+            className='w-full text-[11px] md:text-xs font-medium tracking-tight flex items-center overflow-hidden bg-gradient-to-r from-purple-700 via-purple-600 to-yellow-400 shadow-sm'
+            style={{ height: '24px' }}
+          >
+            <div className='banner-marquee flex items-center gap-6 px-4 text-white whitespace-nowrap'>
+              <span>Free shipping over $75 within the US.</span>
+              <span className='text-white/70'>|</span>
+              <span>Easy 30-day returns on unworn items.</span>
+              <span className='text-white/70'>|</span>
+              <span>Secure checkout powered by Stripe.</span>
+              <span className='text-white/70'>|</span>
+              <span>Need help deciding? Chat with us.</span>
+
+              <span className='ml-10'>Free shipping over $75 within the US.</span>
+              <span className='text-white/70'>|</span>
+              <span>Easy 30-day returns on unworn items.</span>
+              <span className='text-white/70'>|</span>
+              <span>Secure checkout powered by Stripe.</span>
+              <span className='text-white/70'>|</span>
+              <span>Need help deciding? Chat with us.</span>
+            </div>
+          </div>
           {children}
           <Toaster />
           <ChatWidget />

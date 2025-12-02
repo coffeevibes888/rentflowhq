@@ -3,6 +3,7 @@ import { getProductById } from '@/lib/actions/product.actions';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth-guard';
+import type { Product } from '@/types';
 
 export const metadata: Metadata = {
   title: 'Update Product',
@@ -21,11 +22,21 @@ const AdminProductUpdatePage = async (props: {
 
   if (!product) return notFound();
 
+  const productForForm: Product = {
+    ...product,
+    // Normalize Prisma-specific fields to match Product type
+    salePercent:
+      product.salePercent !== null && product.salePercent !== undefined
+        ? Number(product.salePercent as unknown as number | string)
+        : undefined,
+    saleUntil: product.saleUntil ? product.saleUntil.toISOString() : null,
+  };
+
   return (
     <div className='space-y-8 max-w-5xl mx-auto'>
       <h1 className='h2-bold'>Update Product</h1>
 
-      <ProductForm type='Update' product={product} productId={product.id} />
+      <ProductForm type='Update' product={productForForm} productId={product.id} />
     </div>
   );
 };

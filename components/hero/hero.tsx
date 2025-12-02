@@ -47,7 +47,7 @@ export default function Hero() {
                 whileTap={{ scale: 0.97, y: 0, boxShadow: '0 14px 30px rgba(0,0,0,0.6)' }}
                 className="relative px-8 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-slate-900 via-slate-800 to-zinc-900 hover:from-zinc-800 hover:via-black hover:to-zinc-800 transition-all duration-300 text-sm sm:text-base shadow-[0_16px_40px_rgba(0,0,0,0.55)] overflow-hidden"
               >
-                <span className="relative z-10">View Latest Products</span>
+                <span className="relative z-10">Shop New Drops</span>
                 <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-fuchsia-500/0 via-fuchsia-400/15 to-sky-400/0 opacity-0 hover:opacity-100 transition-opacity duration-300" />
               </motion.button>
             </Link>

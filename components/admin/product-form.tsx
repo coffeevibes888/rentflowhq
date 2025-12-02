@@ -63,6 +63,7 @@ const ProductForm = ({
 
   const images = (form.watch('images') as string[]) || [];
   const imageColors = (form.watch('imageColors') as string[]) || [];
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
   const isFeatured = form.watch('isFeatured');
   const banner = form.watch('banner');
   const [sizes, setSizes] = useState<{ id: string; name: string; slug: string }[]>([]);
@@ -171,7 +172,7 @@ const ProductForm = ({
           />
         </div>
 
-        {/* -------------------- Price & Stock -------------------- */}
+        {/* -------------------- Price, Stock & Sale -------------------- */}
         <div className="flex flex-col md:flex-row gap-5">
           <FormField
             control={form.control}
@@ -213,14 +214,51 @@ const ProductForm = ({
                 <CardContent className="space-y-4 mt-2 min-h-48">
                   <div className="flex flex-wrap gap-4">
                     {images.map((image, index) => (
-                      <div key={image} className="flex flex-col items-start space-y-2">
-                        <Image
-                          src={image}
-                          alt="product image"
-                          className="w-20 h-20 object-cover object-center rounded-sm"
-                          width={100}
-                          height={100}
-                        />
+                      <div
+                        key={`${image}-${index}`}
+                        className="flex flex-col items-start space-y-2 cursor-move"
+                        draggable
+                        onDragStart={() => setDragIndex(index)}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                        }}
+                        onDrop={() => {
+                          if (dragIndex === null || dragIndex === index) return;
+                          const nextImages = [...images];
+                          const [movedImage] = nextImages.splice(dragIndex, 1);
+                          nextImages.splice(index, 0, movedImage);
+
+                          const nextColors = [...imageColors];
+                          const [movedColor] = nextColors.splice(dragIndex, 1);
+                          nextColors.splice(index, 0, movedColor);
+
+                          form.setValue('images', nextImages);
+                          form.setValue('imageColors', nextColors);
+                          setDragIndex(null);
+                        }}
+                      >
+                        <div className="flex items-start gap-2">
+                          <Image
+                            src={image}
+                            alt="product image"
+                            className="w-20 h-20 object-cover object-center rounded-sm"
+                            width={100}
+                            height={100}
+                          />
+                          <button
+                            type="button"
+                            className="text-xs text-red-600 hover:underline"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const nextImages = images.filter((_, i) => i !== index);
+                              const nextColors = imageColors.filter((_, i) => i !== index);
+                              form.setValue('images', nextImages);
+                              form.setValue('imageColors', nextColors);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
                         <Input
                           placeholder="Color for this image (e.g. Black, Red, Navy)"
                           value={imageColors[index] || ''}
@@ -229,6 +267,7 @@ const ProductForm = ({
                             next[index] = e.target.value;
                             form.setValue('imageColors', next);
                           }}
+                          className="w-20"
                         />
                       </div>
                     ))}
@@ -288,6 +327,46 @@ const ProductForm = ({
               );
             })}
           </div>
+        </div>
+
+        {/* -------------------- Sale -------------------- */}
+        <div className="mb-4">
+          <FormLabel>Sale</FormLabel>
+          <div className="flex items-center gap-2 text-xs">
+            <Checkbox
+              checked={form.watch('onSale')}
+              onCheckedChange={(v) => form.setValue('onSale', Boolean(v))}
+            />
+            <span>On Sale</span>
+          </div>
+          {form.watch('onSale') && (
+            <div className="mt-2 flex flex-col gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  max={90}
+                  step={1}
+                  placeholder="10"
+                  value={form.watch('salePercent') ?? ''}
+                  onChange={(e) =>
+                    form.setValue(
+                      'salePercent',
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
+                  className="w-20"
+                />
+                <span>% off</span>
+              </div>
+              <Input
+                type="datetime-local"
+                value={form.watch('saleUntil') ?? ''}
+                onChange={(e) => form.setValue('saleUntil', e.target.value || null)}
+                className="text-xs"
+              />
+            </div>
+          )}
         </div>
 
         {/* -------------------- Featured Product -------------------- */}

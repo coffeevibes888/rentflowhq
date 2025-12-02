@@ -53,6 +53,9 @@ export const productDefaultValues = {
   banner: null,
   colorIds: [],
   sizeIds: [],
+  onSale: false,
+  salePercent: undefined as number | undefined,
+  saleUntil: null as string | null,
 };
 
 export const USER_ROLES = process.env.USER_ROLES
