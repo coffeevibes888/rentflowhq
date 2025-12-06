@@ -1,6 +1,5 @@
 "use client";
 import React, { useMemo, useState, useEffect } from 'react';
-import { Decimal } from '@prisma/client/runtime/library';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { Loader } from 'lucide-react';
@@ -14,7 +13,7 @@ import { addItemToCart } from '@/lib/actions/cart.actions';
 export type Variant = {
   id: string;
   sku?: string | null;
-  price: string | number | Decimal;
+  price: string | number;
   stock?: number;
   images?: string[];
   printfulExternalId?: string | null;

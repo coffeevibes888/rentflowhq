@@ -1,9 +1,17 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaNeon } from '@prisma/adapter-neon';
 import sampleData from './sample-data';
 import { hash } from '@/lib/encrypt';
 
 async function main() {
-  const prisma = new PrismaClient();
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is not set');
+  }
+
+  const adapter = new PrismaNeon({ connectionString });
+
+  const prisma = new PrismaClient({ adapter });
   const p: any = prisma;
   await prisma.product.deleteMany();
   await prisma.account.deleteMany();
