@@ -66,7 +66,7 @@ const ContactClient = () => {
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-10">
         <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] lg:w-[380px] lg:h-[380px]">
           <Image
-            src="/images/logo.png"
+            src="/images/logo.svg"
             alt="RockEnMyVibe logo watermark"
             fill
             className="object-contain drop-shadow-[0_0_45px_rgba(129,140,248,0.6)]"

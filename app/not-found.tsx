@@ -6,9 +6,9 @@ import Link from 'next/link';
 
 const NotFoundPage = () => {
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen'>
+    <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-sky-700 via-blue-500 to-cyan-500'>
       <Image
-        src='/images/logo.png'
+        src='/images/logo.svg'
         width={48}
         height={48}
         alt={`${APP_NAME} logo`}

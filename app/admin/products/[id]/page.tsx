@@ -24,7 +24,15 @@ const AdminProductUpdatePage = async (props: {
 
   const productForForm: Product = {
     ...product,
-    // Normalize Prisma-specific fields to match Product type
+    // Normalize Prisma-specific / nullable fields to match Product type
+    streetAddress: product.streetAddress ?? undefined,
+    unitNumber: product.unitNumber ?? undefined,
+    bedrooms: product.bedrooms ?? undefined,
+    bathrooms:
+      product.bathrooms !== null && product.bathrooms !== undefined
+        ? Number(product.bathrooms as unknown as number | string)
+        : undefined,
+    sizeSqFt: product.sizeSqFt ?? undefined,
     salePercent:
       product.salePercent !== null && product.salePercent !== undefined
         ? Number(product.salePercent as unknown as number | string)

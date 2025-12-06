@@ -16,7 +16,7 @@ export default function SuperAdminLayout({
           <div className='flex items-center h-16 px-4 max-w-6xl mx-auto w-full'>
             <Link href='/' className='w-22 flex items-center space-x-2'>
               <Image
-                src='/images/logo.png'
+                src='/images/logo.svg'
                 height={40}
                 width={40}
                 alt={APP_NAME}

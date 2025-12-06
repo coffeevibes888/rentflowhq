@@ -6,8 +6,8 @@ import { useState, useEffect } from 'react';
 
 export default function Hero() {
   return (
-    <div className="relative w-full h-[600px] overflow-visible flex items-center justify-center bg-transparent">
-      <div className="w-full max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-start gap-10 h-full pt-10 pb-10 ml-4">
+    <div className="relative w-full h-[600px] overflow-visible flex items-center justify-center bg-gradient-to-r from-sky-700 via-blue-500 to-cyan-500">
+      <div className="w-full max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-start gap-10 h-full pt-12 pb-12 ml-4">
         <div className="flex-1 flex flex-col items-center md:items-start gap-6 mt-0">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -15,23 +15,23 @@ export default function Hero() {
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="text-center md:text-left space-y-3"
           >
-            <p className="text-xs tracking-[0.35em] uppercase text-gray-400">Discover Style</p>
+            <p className="text-xs tracking-[0.35em] uppercase text-black font-semibold">Modern Living</p>
             <motion.h1
-              className="text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight bg-gradient-to-r from-fuchsia-300 via-violet-200 to-sky-300 bg-clip-text text-transparent drop-shadow-[0_0_32px_rgba(129,140,248,0.65)]"
+              className="text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-sky-500 bg-clip-text text-transparent drop-shadow-[0_0_32px_rgba(15,23,42,0.35)]"
               style={{ fontFamily: 'Helvetica Neue, system-ui' }}
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.9, ease: 'easeOut' }}
             >
-              Rocken My Vibe
+              <span className='text-white'>Managed Properties & Residences</span>
             </motion.h1>
             <motion.p
-              className="text-sm sm:text-lg text-white/90 max-w-xl mx-auto md:mx-0 font-light"
+              className="text-sm sm:text-lg text-slate-600 max-w-xl mx-auto md:mx-0 font-light"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.7, ease: 'easeOut' }}
             >
-              Style your soul and your body will thank you for it.
+              <span className='text-white'>Premium apartments, offices, and homes with seamless online applications, rent payments, and maintenance.</span>
             </motion.p>
           </motion.div>
 
@@ -41,14 +41,23 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.6, ease: 'easeOut' }}
           >
-            <Link href="/products">
+            <Link href="/search?category=all">
               <motion.button
                 whileHover={{ scale: 1.05, y: -2, boxShadow: '0 24px 60px rgba(0,0,0,0.75)' }}
                 whileTap={{ scale: 0.97, y: 0, boxShadow: '0 14px 30px rgba(0,0,0,0.6)' }}
-                className="relative px-8 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-slate-900 via-slate-800 to-zinc-900 hover:from-zinc-800 hover:via-black hover:to-zinc-800 transition-all duration-300 text-sm sm:text-base shadow-[0_16px_40px_rgba(0,0,0,0.55)] overflow-hidden"
+                className="relative px-8 py-3 rounded-full font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-all duration-300 text-sm sm:text-base shadow-[0_16px_40px_rgba(15,23,42,0.45)] overflow-hidden"
               >
-                <span className="relative z-10">Shop New Drops</span>
-                <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-fuchsia-500/0 via-fuchsia-400/15 to-sky-400/0 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                <span className="relative z-10">View Available Units</span>
+                <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-sky-500/0 via-sky-400/20 to-indigo-400/0 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              </motion.button>
+            </Link>
+            <Link href="/contact">
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2, boxShadow: '0 24px 60px rgba(0,0,0,0.75)' }}
+                whileTap={{ scale: 0.97, y: 0, boxShadow: '0 14px 30px rgba(0,0,0,0.6)' }}
+                className="relative px-8 py-3 rounded-full font-semibold text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 transition-all duration-300 text-sm sm:text-base shadow-[0_12px_30px_rgba(15,23,42,0.15)] overflow-hidden"
+              >
+                <span className="relative z-10">Schedule a Tour</span>
               </motion.button>
             </Link>
           </motion.div>
@@ -66,9 +75,11 @@ function Product3DRotator() {
   const [index, setIndex] = useState(0);
 
   const products = [
-    { src: '/images/rocken.png', alt: 'Product 1' },
-    { src: '/images/light1.png', alt: 'Product 2' },
-    { src: '/images/rocken1.png', alt: 'Product 3' },
+    { src: '/images/outside.jpg', alt: 'Property exterior placeholder' },
+    { src: '/images/livingroom.jpg', alt: 'Interior space placeholder' },
+    { src: '/images/bedroom.jpg', alt: 'Office space placeholder' },
+    { src: '/images/bathroom.jpg', alt: 'Office space placeholder' },
+
   ];
 
   useEffect(() => {

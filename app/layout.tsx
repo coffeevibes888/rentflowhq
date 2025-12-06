@@ -22,35 +22,35 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className='bg-gradient-to-br from-slate-950 via-violet-800/60 to-slate-900 text-foreground flex flex-col min-h-screen overflow-x-hidden'>
+      <body className='bg-gradient-to-r from-sky-700 via-blue-500 to-cyan-500 text-black flex flex-col min-h-screen overflow-x-hidden'>
         <ThemeProvider
           attribute='class'
-          defaultTheme='dark'
+          defaultTheme='light'
           enableSystem={false}
-          forcedTheme='dark'
+          forcedTheme='light'
           disableTransitionOnChange
         >
           <PageViewTracker />
           <div
-            className='w-full text-[11px] md:text-xs font-medium tracking-tight flex items-center overflow-hidden bg-gradient-to-r from-purple-700 via-purple-600 to-yellow-400 shadow-sm'
+            className='w-full text-[11px] md:text-xs font-medium tracking-tight flex items-center overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-500 shadow-sm'
             style={{ height: '24px' }}
           >
             <div className='banner-marquee flex items-center gap-6 px-4 text-white whitespace-nowrap'>
-              <span>Free shipping over $75 within the US.</span>
+              <span>Modern apartments, offices, and homes professionally managed.</span>
               <span className='text-white/70'>|</span>
-              <span>Easy 30-day returns on unworn items.</span>
+              <span>24/7 online rent payments and maintenance requests.</span>
               <span className='text-white/70'>|</span>
-              <span>Secure checkout powered by Stripe.</span>
+              <span>Secure payments powered by Stripe.</span>
               <span className='text-white/70'>|</span>
-              <span>Need help deciding? Chat with us.</span>
+              <span>Speak with our management team anytime.</span>
 
-              <span className='ml-10'>Free shipping over $75 within the US.</span>
+              <span className='ml-10'>Now accepting new tenant applications.</span>
               <span className='text-white/70'>|</span>
-              <span>Easy 30-day returns on unworn items.</span>
+              <span>Schedule a tour or apply online in minutes.</span>
               <span className='text-white/70'>|</span>
-              <span>Secure checkout powered by Stripe.</span>
+              <span>Professional property management you can trust.</span>
               <span className='text-white/70'>|</span>
-              <span>Need help deciding? Chat with us.</span>
+              <span>Residents: log in to submit a work ticket.</span>
             </div>
           </div>
           {children}

@@ -47,10 +47,10 @@ const AdminProductsPage = async (props: {
   });
 
   return (
-    <div className='space-y-2'>
+    <div className='space-y-4'>
       <div className='flex-between'>
         <div className='flex items-center gap-3'>
-          <h1 className='h2-bold'>Products</h1>
+          <h1 className='h2-bold'>Properties</h1>
           {searchText && (
             <div>
               Filtered by <i>&quot;{searchText}&quot;</i>{' '}
@@ -64,7 +64,7 @@ const AdminProductsPage = async (props: {
         </div>
         <div className='flex gap-2'>
           <Button asChild variant='default'>
-            <Link href='/admin/products/create'>Create Product</Link>
+            <Link href='/admin/products/create'>Add Property</Link>
           </Button>
         </div>
       </div>
@@ -72,12 +72,12 @@ const AdminProductsPage = async (props: {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>PRODUCT</TableHead>
-            <TableHead>NAME</TableHead>
-            <TableHead className='text-right'>PRICE</TableHead>
-            <TableHead>CATEGORY</TableHead>
-            <TableHead>STOCK</TableHead>
-            <TableHead>PROMO CODES</TableHead>
+            <TableHead>PHOTO</TableHead>
+            <TableHead>PROPERTY</TableHead>
+            <TableHead className='text-right'>MONTHLY RENT</TableHead>
+            <TableHead>TYPE</TableHead>
+            <TableHead>AVAILABLE UNITS</TableHead>
+            <TableHead>MARKETING</TableHead>
             <TableHead className='w-[100px]'>ACTIONS</TableHead>
           </TableRow>
         </TableHeader>

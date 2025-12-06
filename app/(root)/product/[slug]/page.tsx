@@ -1,6 +1,5 @@
 import { getProductBySlug } from '@/lib/actions/product.actions';
 import { notFound } from 'next/navigation';
-import { getMyCart } from '@/lib/actions/cart.actions';
 import ReviewList from './review-list';
 import { auth } from '@/auth';
 import ProductDetailClient from '@/components/shared/product/product-detail-client';
@@ -10,13 +9,15 @@ const ProductDetailsPage = async (props: {
 }) => {
   const { slug } = await props.params;
 
-  const product = await getProductBySlug(slug);
+  const [userId, product] = await Promise.all([
+    (async () => {
+      const session = await auth();
+      return session?.user?.id;
+    })(),
+    getProductBySlug(slug),
+  ]);
+
   if (!product) notFound();
-
-  const session = await auth();
-  const userId = session?.user?.id;
-
-  const cart = await getMyCart();
 
   const clientProduct = {
     ...product,
@@ -38,7 +39,7 @@ const ProductDetailsPage = async (props: {
 
   return (
     <>
-      <ProductDetailClient product={clientProduct} cart={cart} />
+      <ProductDetailClient product={clientProduct} />
       <section className='mt-10'>
         <h2 className='h2-bold mb-5'>Customer Reviews</h2>
         <ReviewList

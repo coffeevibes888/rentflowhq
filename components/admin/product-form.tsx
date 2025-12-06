@@ -16,7 +16,6 @@ import { createProduct, updateProduct } from '@/lib/actions/product.actions';
 import { UploadButton } from '@/lib/uploadthing';
 import { Card, CardContent } from '../ui/card';
 import Image from 'next/image';
-import { Checkbox } from '../ui/checkbox';
 import { z } from 'zod';
 
 const ProductForm = ({
@@ -64,23 +63,7 @@ const ProductForm = ({
   const images = (form.watch('images') as string[]) || [];
   const imageColors = (form.watch('imageColors') as string[]) || [];
   const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const isFeatured = form.watch('isFeatured');
-  const banner = form.watch('banner');
-  const [sizes, setSizes] = useState<{ id: string; name: string; slug: string }[]>([]);
-
-  const handleOnSaleChange = (v: boolean | 'indeterminate') => {
-    const checked = Boolean(v);
-    form.setValue('onSale', checked);
-    if (checked) {
-      const currentSalePercent = form.getValues('salePercent');
-      if (currentSalePercent === undefined || Number.isNaN(currentSalePercent)) {
-        form.setValue('salePercent', 10);
-      }
-    } else {
-      form.setValue('salePercent', undefined);
-      form.setValue('saleUntil', null);
-    }
-  };
+  const [, setSizes] = useState<{ id: string; name: string; slug: string }[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -96,16 +79,16 @@ const ProductForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* -------------------- Name & Slug -------------------- */}
+        {/* -------------------- Property Name & Slug -------------------- */}
         <div className="flex flex-col md:flex-row gap-5">
           <FormField
             control={form.control}
             name="name"
             render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'name'> }) => (
               <FormItem className="w-full">
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Property name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter product name" {...field} />
+                  <Input placeholder="e.g. Skyview Apartments" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -120,7 +103,7 @@ const ProductForm = ({
                 <FormLabel>Slug</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <Input placeholder="Enter slug" {...field} />
+                    <Input placeholder="auto-generated from property name" {...field} />
                     <Button
                       type="button"
                       className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 mt-2"
@@ -141,16 +124,91 @@ const ProductForm = ({
           />
         </div>
 
-        {/* -------------------- Category, Sub Category & Brand -------------------- */}
+        {/* -------------------- Layout & Address -------------------- */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <FormField
+            control={form.control}
+            name="bedrooms"
+            render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'bedrooms'> }) => (
+              <FormItem className="w-full">
+                <FormLabel>Bedrooms</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 2" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="bathrooms"
+            render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'bathrooms'> }) => (
+              <FormItem className="w-full">
+                <FormLabel>Bathrooms</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 1.5" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="sizeSqFt"
+            render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'sizeSqFt'> }) => (
+              <FormItem className="w-full">
+                <FormLabel>Square feet</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 850" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <FormField
+            control={form.control}
+            name="streetAddress"
+            render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'streetAddress'> }) => (
+              <FormItem className="w-full md:col-span-2">
+                <FormLabel>Street address</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 123 Main St, City, State" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="unitNumber"
+            render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'unitNumber'> }) => (
+              <FormItem className="w-full">
+                <FormLabel>Unit / Apt</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Apt 4B" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* -------------------- Type, Neighborhood & Branding -------------------- */}
         <div className="flex flex-col md:flex-row gap-5">
           <FormField
             control={form.control}
             name="category"
             render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'category'> }) => (
               <FormItem className="w-full">
-                <FormLabel>Category</FormLabel>
+                <FormLabel>Property type</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter category" {...field} />
+                  <Input placeholder="e.g. Apartment, House, Office" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -162,9 +220,9 @@ const ProductForm = ({
             name="subCategory"
             render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'subCategory'> }) => (
               <FormItem className="w-full">
-                <FormLabel>Sub Category</FormLabel>
+                <FormLabel>Neighborhood / Area</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter sub category (e.g. T-shirt, Hoodie, Hat)" {...field} />
+                  <Input placeholder="e.g. Downtown, Riverside District" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -176,9 +234,9 @@ const ProductForm = ({
             name="brand"
             render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'brand'> }) => (
               <FormItem className="w-full">
-                <FormLabel>Brand</FormLabel>
+                <FormLabel>Ownership / Branding</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter brand" {...field} />
+                  <Input placeholder="e.g. Skyline Properties" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -186,16 +244,16 @@ const ProductForm = ({
           />
         </div>
 
-        {/* -------------------- Price, Stock & Sale -------------------- */}
+        {/* -------------------- Monthly Rent & Availability -------------------- */}
         <div className="flex flex-col md:flex-row gap-5">
           <FormField
             control={form.control}
             name="price"
             render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'price'> }) => (
               <FormItem className="w-full">
-                <FormLabel>Price</FormLabel>
+                <FormLabel>Starting monthly rent</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter product price" {...field} />
+                  <Input placeholder="e.g. 1650" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -207,9 +265,9 @@ const ProductForm = ({
             name="stock"
             render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'stock'> }) => (
               <FormItem className="w-full">
-                <FormLabel>Stock</FormLabel>
+                <FormLabel>Available units</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter stock" {...field} />
+                  <Input placeholder="Number of available units" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -217,13 +275,13 @@ const ProductForm = ({
           />
         </div>
 
-        {/* -------------------- Images Upload with Color Labels -------------------- */}
+        {/* -------------------- Property Photos -------------------- */}
         <FormField
           control={form.control}
           name="images"
           render={() => (
             <FormItem className="w-full">
-              <FormLabel>Images & Colors</FormLabel>
+              <FormLabel>Property photos</FormLabel>
               <Card>
                 <CardContent className="space-y-4 mt-2 min-h-48">
                   <div className="flex flex-wrap gap-4">
@@ -254,7 +312,7 @@ const ProductForm = ({
                         <div className="flex items-start gap-2">
                           <Image
                             src={image}
-                            alt="product image"
+                            alt="property image"
                             className="w-20 h-20 object-cover object-center rounded-sm"
                             width={100}
                             height={100}
@@ -274,14 +332,14 @@ const ProductForm = ({
                           </button>
                         </div>
                         <Input
-                          placeholder="Color for this image (e.g. Black, Red, Navy)"
+                          placeholder="Label (e.g. Exterior, Lobby, Floorplan)"
                           value={imageColors[index] || ''}
                           onChange={(e) => {
                             const next = [...imageColors];
                             next[index] = e.target.value;
                             form.setValue('imageColors', next);
                           }}
-                          className="w-20"
+                          className="w-40"
                         />
                       </div>
                     ))}
@@ -310,136 +368,16 @@ const ProductForm = ({
           )}
         />
 
-        {/* -------------------- Available Sizes -------------------- */}
-        <div className="mb-4">
-          <FormLabel>Available Sizes</FormLabel>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {sizes.map((s) => {
-              const checked =
-                (form.getValues('sizeIds') || []).includes(s.id);
-              return (
-                <label
-                  key={s.id}
-                  className="inline-flex items-center space-x-1 text-xs px-2 py-1 border rounded-md"
-                >
-                  <input
-                    type="checkbox"
-                    className="h-3 w-3"
-                    checked={checked}
-                    onChange={(e) => {
-                      const current = form.getValues('sizeIds') || [];
-                      form.setValue(
-                        'sizeIds',
-                        e.target.checked
-                          ? [...current, s.id]
-                          : current.filter((id: string) => id !== s.id)
-                      );
-                    }}
-                  />
-                  <span>{s.name}</span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* -------------------- Sale -------------------- */}
-        <div className="mb-4">
-          <FormLabel>Sale</FormLabel>
-          <div className="flex items-center gap-2 text-xs">
-            <Checkbox
-              checked={form.watch('onSale')}
-              onCheckedChange={handleOnSaleChange}
-            />
-            <span>On Sale</span>
-          </div>
-          {form.watch('onSale') && (
-            <div className="mt-2 flex flex-col gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={1}
-                  max={90}
-                  step={1}
-                  placeholder="10"
-                  value={form.watch('salePercent') ?? ''}
-                  onChange={(e) =>
-                    form.setValue(
-                      'salePercent',
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  className="w-20"
-                />
-                <span>% off</span>
-              </div>
-              <Input
-                type="datetime-local"
-                value={form.watch('saleUntil') ?? ''}
-                onChange={(e) => form.setValue('saleUntil', e.target.value || null)}
-                className="text-xs"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* -------------------- Featured Product -------------------- */}
-        <div className="mb-4">
-          <FormLabel>Featured Product</FormLabel>
-          <Card>
-            <CardContent className="space-y-2 mt-2">
-              <FormField
-                control={form.control}
-                name="isFeatured"
-                render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'isFeatured'> }) => (
-                  <FormItem className="flex items-center space-x-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel>Is Featured?</FormLabel>
-                  </FormItem>
-                )}
-              />
-              {isFeatured && banner && (
-                <Image
-                  src={banner}
-                  alt="banner image"
-                  className="w-full object-cover object-center rounded-sm"
-                  width={1920}
-                  height={680}
-                />
-              )}
-              {isFeatured && !banner && (
-                <UploadButton
-                  endpoint="imageUploader"
-                  onClientUploadComplete={(res: { url: string }[]) => {
-                    form.setValue('banner', res[0].url);
-                  }}
-                  onUploadError={(error: Error) => {
-                    toast({
-                      variant: 'destructive',
-                      description: `ERROR! ${error.message}`,
-                    });
-                  }}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
         {/* -------------------- Description -------------------- */}
         <FormField
           control={form.control}
           name="description"
           render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'description'> }) => (
             <FormItem className="w-full">
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Property description</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Enter product description"
+                  placeholder="Describe the property, amenities, nearby points of interest, and any leasing details."
                   className="resize-none"
                   {...field}
                 />
@@ -457,7 +395,7 @@ const ProductForm = ({
             disabled={form.formState.isSubmitting}
             className="w-full"
           >
-            {form.formState.isSubmitting ? 'Submitting...' : `${type} Product`}
+            {form.formState.isSubmitting ? 'Saving Property...' : `${type} Property`}
           </Button>
         </div>
       </form>

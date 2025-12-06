@@ -8,7 +8,7 @@ const Header = async () => {
   const categories = await getCategoryTree();
 
   return ( 
-    <header className="w-full">
+    <header className="w-full bg-gradient-to-r from-sky-700 via-blue-500 to-cyan-500">
       {/* Mobile header: hamburger left, logo centered, menu (three dots) right */}
       <div className="wrapper flex items-center justify-between md:hidden">
         <div className="flex items-center">
@@ -21,7 +21,7 @@ const Header = async () => {
               src='/images/2.svg'
               fill
               className="object-contain"
-              alt="Rocken My Vibe Logo"
+              alt="Property Management Logo"
               priority={true}
             />
           </div>
@@ -38,21 +38,22 @@ const Header = async () => {
           <Link href='/' className="flex items-center">
             <CategoryDrawer />
             <div className="relative w-36 h-36">
-              <Image src='/images/2.svg'
+              <Image src='/images/logo.svg'
                 fill
                 className="object-contain"
-                alt="Rocken My Vibe Logo"
+                alt="Property Management Logo"
                 priority={true}
               />
             </div>
           </Link>
         </div>
 
-        <div className="flex items-center justify-center text-white">
-          <Link href='/' className="m-2.5 hover:text-black hover:underline">Home</Link>
-          <Link href='/about' className="m-2.5 hover:text-black hover:underline">About</Link>
-          <Link href='/blog' className="m-2.5 hover:text-black hover:underline">Blog</Link>
-          <Link href='/contact' className="m-2.5 hover:text-black hover:underline">Contact</Link>
+        <div className="flex items-center justify-center text-slate-900 text-sm font-medium">
+          <Link href='/' className="m-2.5 px-1 hover:text-slate-900 hover:underline">Home</Link>
+          <Link href='/search?category=all' className="m-2.5 px-1 hover:text-slate-900 hover:underline">Listings</Link>
+          <Link href='/about' className="m-2.5 px-1 hover:text-slate-900 hover:underline">About</Link>
+          <Link href='/blog' className="m-2.5 px-1 hover:text-slate-900 hover:underline">Neighborhood & Tips</Link>
+          <Link href='/contact' className="m-2.5 px-1 hover:text-slate-900 hover:underline">Contact</Link>
 
         
           <div className="relative m-2.5 group">

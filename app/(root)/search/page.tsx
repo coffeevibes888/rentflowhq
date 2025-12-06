@@ -243,6 +243,11 @@ const SearchPage = async (props: {
             const normalizedProduct: Product = {
               ...product,
               subCategory: product.subCategory ?? undefined,
+              streetAddress: product.streetAddress ?? undefined,
+              unitNumber: product.unitNumber ?? undefined,
+              bedrooms: product.bedrooms ?? undefined,
+              bathrooms: product.bathrooms ? Number(product.bathrooms) : undefined,
+              sizeSqFt: product.sizeSqFt ?? undefined,
               salePercent: product.salePercent
                 ? Number(product.salePercent)
                 : undefined,
