@@ -10,46 +10,71 @@ import {
   FileSignature,
   ReceiptText,
   MessageCircle,
+  LayoutDashboard,
 } from 'lucide-react';
-
-const links = [
-  {
-    title: 'Profile',
-    description: 'Manage your personal details',
-    href: '/user/profile',
-    icon: User,
-  },
-  {
-    title: 'Application',
-    description: 'View your rental application',
-    href: '/user/profile/application',
-    icon: FileText,
-  },
-  {
-    title: 'Lease',
-    description: 'Review lease documents',
-    href: '/user/profile/lease',
-    icon: FileSignature,
-  },
-  {
-    title: 'Rent Receipts',
-    description: 'Download payment receipts',
-    href: '/user/profile/rent-receipts',
-    icon: ReceiptText,
-  },
-  {
-    title: 'Create Ticket',
-    description: 'Submit a maintenance request',
-    href: '/user/profile/ticket',
-    icon: MessageCircle,
-  },
-];
+import { useSession } from 'next-auth/react';
 
 const MainNav = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLElement>) => {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
+
+  // Determine dashboard label and link based on role
+  let dashboardLabel = 'Dashboard';
+  let dashboardLink = '/';
+  
+  if (userRole === 'tenant') {
+    dashboardLabel = 'Tenant Dashboard';
+    dashboardLink = '/user/dashboard';
+  } else if (userRole === 'landlord' || userRole === 'admin' || userRole === 'superAdmin') {
+    dashboardLabel = 'Landlord Dashboard';
+    dashboardLink = '/admin/overview';
+  } else if (userRole === 'property_manager') {
+    dashboardLabel = 'Property Manager Dashboard';
+    dashboardLink = '/admin/overview';
+  }
+
+  const links = [
+    {
+      title: dashboardLabel,
+      description: 'View your dashboard',
+      href: dashboardLink,
+      icon: LayoutDashboard,
+    },
+    {
+      title: 'Profile',
+      description: 'Manage your personal details',
+      href: '/user/profile',
+      icon: User,
+    },
+    {
+      title: 'Application',
+      description: 'View your rental application',
+      href: '/user/profile/application',
+      icon: FileText,
+    },
+    {
+      title: 'Lease',
+      description: 'Review lease documents',
+      href: '/user/profile/lease',
+      icon: FileSignature,
+    },
+    {
+      title: 'Rent Receipts',
+      description: 'Download payment receipts',
+      href: '/user/profile/rent-receipts',
+      icon: ReceiptText,
+    },
+    {
+      title: 'Create Ticket',
+      description: 'Submit a maintenance request',
+      href: '/user/profile/ticket',
+      icon: MessageCircle,
+    },
+  ];
 
   return (
     <nav

@@ -14,7 +14,7 @@ export default function AdminLayout({
 }>) {
   return (
     <SessionProviderWrapper>
-      <div className='flex min-h-screen flex-col gradient-bg-animated'>
+      <div className='flex min-h-screen flex-col bg-gradient-to-br from-slate-950 via-violet-800/60 to-slate-900'>
         <Header />
         <div className='flex flex-1 text-slate-50'>
           {/* Sidebar - Mobile Responsive */}
@@ -67,7 +67,7 @@ export default function AdminLayout({
 
             <main className='flex-1 overflow-y-auto px-3 md:px-6 lg:px-8 py-4 md:py-6'>
               <div className='mx-auto max-w-7xl w-full'>
-                <div className='modern-card rounded-xl p-4 md:p-6'>{children}</div>
+                <div className='rounded-xl p-4 md:p-6'>{children}</div>
               </div>
             </main>
           </div>

@@ -254,6 +254,31 @@ export const updateBlogPostSchema = insertBlogPostSchema.extend({
   id: z.string().min(1, 'Id is required'),
 });
 
+// Schema for saved payout method (bank account or debit card for instant payouts)
+export const savedPayoutMethodSchema = z.object({
+  stripePaymentMethodId: z.string().min(1, 'Stripe payment method ID is required'),
+  type: z.enum(['bank_account', 'card'], { 
+    errorMap: () => ({ message: 'Type must be either bank_account or card' })
+  }),
+  accountHolderName: z.string().min(1, 'Account holder name is required'),
+  last4: z.string().length(4, 'Last 4 digits must be exactly 4 characters'),
+  bankName: z.string().optional(),
+  accountType: z.enum(['checking', 'savings']).optional(),
+  routingNumber: z.string().optional(),
+  isDefault: z.boolean().optional().default(false),
+});
+
+// Schema for bank account form input
+export const bankAccountFormSchema = z.object({
+  accountHolderName: z.string().min(2, 'Account holder name must be at least 2 characters'),
+  accountNumber: z.string().min(4, 'Account number is required'),
+  routingNumber: z.string().length(9, 'Routing number must be exactly 9 digits'),
+  accountType: z.enum(['checking', 'savings'], {
+    errorMap: () => ({ message: 'Please select account type' })
+  }),
+  isDefault: z.boolean().optional().default(false),
+});
+
 // Schema for rental application
 const ssnRegex = /^\d{3}-?\d{2}-?\d{4}$/;
 

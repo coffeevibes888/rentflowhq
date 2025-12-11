@@ -56,47 +56,47 @@ export default function UserDashboard({ tenantLease, landlord }: UserDashboardPr
         </div>
 
         {/* Current Rental Info */}
-        <Card>
+        <Card className='border border-white/10 bg-slate-900/60'>
           <CardHeader>
-            <CardTitle className='flex items-center gap-2'>
+            <CardTitle className='flex items-center gap-2 text-slate-50'>
               <Home className='h-5 w-5' />
               Your Current Rental
             </CardTitle>
-            <CardDescription>Details about your leased property</CardDescription>
+            <CardDescription className='text-slate-300/80'>Details about your leased property</CardDescription>
           </CardHeader>
           <CardContent>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div className='space-y-4'>
                 <div className='flex items-center gap-3'>
-                  <MapPin className='h-4 w-4 text-slate-500' />
+                  <MapPin className='h-4 w-4 text-violet-200/80' />
                   <div>
-                    <p className='font-medium'>{tenantLease.unit.property.name}</p>
-                    <p className='text-sm text-slate-600'>
+                    <p className='font-medium text-slate-50'>{tenantLease.unit.property.name}</p>
+                    <p className='text-sm text-slate-300/80'>
                       {tenantLease.unit.name} • {typeof tenantLease.unit.property.address === 'string' ? tenantLease.unit.property.address : 'Address not available'}
                     </p>
                   </div>
                 </div>
                 <div className='flex items-center gap-3'>
-                  <User className='h-4 w-4 text-slate-500' />
+                  <User className='h-4 w-4 text-violet-200/80' />
                   <div>
-                    <p className='font-medium'>Landlord</p>
-                    <p className='text-sm text-slate-600'>{landlord.name}</p>
+                    <p className='font-medium text-slate-50'>Landlord</p>
+                    <p className='text-sm text-slate-300/80'>{landlord.name}</p>
                   </div>
                 </div>
               </div>
               <div className='space-y-4'>
                 <div className='flex items-center gap-3'>
-                  <DollarSign className='h-4 w-4 text-slate-500' />
+                  <DollarSign className='h-4 w-4 text-violet-200/80' />
                   <div>
-                    <p className='font-medium'>Monthly Rent</p>
-                    <p className='text-sm text-slate-600'>{tenantInfo.rentAmount}</p>
+                    <p className='font-medium text-slate-50'>Monthly Rent</p>
+                    <p className='text-sm text-slate-300/80'>{tenantInfo.rentAmount}</p>
                   </div>
                 </div>
                 <div className='flex items-center gap-3'>
-                  <Calendar className='h-4 w-4 text-slate-500' />
+                  <Calendar className='h-4 w-4 text-violet-200/80' />
                   <div>
-                    <p className='font-medium'>Next Payment Due</p>
-                    <p className='text-sm text-slate-600'>{tenantInfo.nextRentDue}</p>
+                    <p className='font-medium text-slate-50'>Next Payment Due</p>
+                    <p className='text-sm text-slate-300/80'>{tenantInfo.nextRentDue}</p>
                   </div>
                 </div>
               </div>
@@ -106,72 +106,72 @@ export default function UserDashboard({ tenantLease, landlord }: UserDashboardPr
 
         {/* Quick Actions */}
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-          <Card>
+          <Card className='border border-white/10 bg-slate-900/60'>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
+              <CardTitle className='flex items-center gap-2 text-slate-50'>
                 <CreditCard className='h-5 w-5' />
                 Rent Payment
               </CardTitle>
-              <CardDescription>
+              <CardDescription className='text-slate-300/80'>
                 Due in {tenantInfo.daysUntilDue} days
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='text-center'>
-                <div className='text-2xl font-bold text-green-600'>{tenantInfo.rentAmount}</div>
-                <p className='text-sm text-slate-600'>Next payment: {tenantInfo.nextRentDue}</p>
+                <div className='text-2xl font-bold text-emerald-300'>{tenantInfo.rentAmount}</div>
+                <p className='text-sm text-slate-300/80'>Next payment: {tenantInfo.nextRentDue}</p>
               </div>
-              <Button className='w-full'>
+              <Button className='w-full bg-violet-500 hover:bg-violet-400 text-white'>
                 Pay Rent Now
               </Button>
               <Link href='/user/notifications'>
-                <Button variant='outline' className='w-full mt-2'>
+                <Button variant='outline' className='w-full mt-2 border-white/10 text-slate-200/90 hover:bg-slate-900/80'>
                   Pay with Cash at Store
                 </Button>
               </Link>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className='border border-white/10 bg-slate-900/60'>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
+              <CardTitle className='flex items-center gap-2 text-slate-50'>
                 <Wrench className='h-5 w-5' />
                 Maintenance
               </CardTitle>
-              <CardDescription>
+              <CardDescription className='text-slate-300/80'>
                 {tenantInfo.maintenanceRequests} active request(s)
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='text-center'>
-                <div className='text-2xl font-bold'>{tenantInfo.maintenanceRequests}</div>
-                <p className='text-sm text-slate-600'>Active requests</p>
+                <div className='text-2xl font-bold text-slate-50'>{tenantInfo.maintenanceRequests}</div>
+                <p className='text-sm text-slate-300/80'>Active requests</p>
               </div>
               <Link href='/user/maintenance'>
-                <Button variant='outline' className='w-full'>
+                <Button variant='outline' className='w-full border-white/10 text-slate-200/90 hover:bg-slate-900/80'>
                   Manage Requests
                 </Button>
               </Link>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className='border border-white/10 bg-slate-900/60'>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
+              <CardTitle className='flex items-center gap-2 text-slate-50'>
                 <Bell className='h-5 w-5' />
                 Notifications
               </CardTitle>
-              <CardDescription>
+              <CardDescription className='text-slate-300/80'>
                 {tenantInfo.unreadNotifications} unread message(s)
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='text-center'>
-                <div className='text-2xl font-bold'>{tenantInfo.unreadNotifications}</div>
-                <p className='text-sm text-slate-600'>Unread notifications</p>
+                <div className='text-2xl font-bold text-slate-50'>{tenantInfo.unreadNotifications}</div>
+                <p className='text-sm text-slate-300/80'>Unread notifications</p>
               </div>
               <Link href='/user/notifications'>
-                <Button variant='outline' className='w-full'>
+                <Button variant='outline' className='w-full border-white/10 text-slate-200/90 hover:bg-slate-900/80'>
                   View Messages
                 </Button>
               </Link>
@@ -185,110 +185,110 @@ export default function UserDashboard({ tenantLease, landlord }: UserDashboardPr
           <div className='grid gap-3'>
             <Link
               href='/user/profile'
-              className='rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm p-4 flex items-start gap-3 shadow-sm hover:bg-white/20 transition-colors cursor-pointer'
+              className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'
             >
-              <div className='h-9 w-9 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0'>
+              <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
                 <User className='h-4 w-4' />
               </div>
               <div className='flex flex-col gap-1'>
-                <span className='text-sm font-semibold text-white'>Profile</span>
-                <span className='text-xs text-slate-200'>Manage your personal details</span>
+                <span className='text-sm font-semibold text-slate-50'>Profile</span>
+                <span className='text-xs text-slate-300/80'>Manage your personal details</span>
               </div>
             </Link>
 
             <Link
               href='/user/profile/application'
-              className='rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm p-4 flex items-start gap-3 shadow-sm hover:bg-white/20 transition-colors cursor-pointer'
+              className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'
             >
-              <div className='h-9 w-9 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0'>
+              <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
                 <FileText className='h-4 w-4' />
               </div>
               <div className='flex flex-col gap-1'>
-                <span className='text-sm font-semibold text-white'>Application</span>
-                <span className='text-xs text-slate-200'>View your rental application</span>
+                <span className='text-sm font-semibold text-slate-50'>Application</span>
+                <span className='text-xs text-slate-300/80'>View your rental application</span>
               </div>
             </Link>
 
             <Link
               href='/user/profile/lease'
-              className='rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm p-4 flex items-start gap-3 shadow-sm hover:bg-white/20 transition-colors cursor-pointer'
+              className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'
             >
-              <div className='h-9 w-9 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0'>
+              <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
                 <FileSignature className='h-4 w-4' />
               </div>
               <div className='flex flex-col gap-1'>
-                <span className='text-sm font-semibold text-white'>Lease</span>
-                <span className='text-xs text-slate-200'>Review lease documents</span>
+                <span className='text-sm font-semibold text-slate-50'>Lease</span>
+                <span className='text-xs text-slate-300/80'>Review lease documents</span>
               </div>
             </Link>
 
             <Link
               href='/user/profile/rent-receipts'
-              className='rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm p-4 flex items-start gap-3 shadow-sm hover:bg-white/20 transition-colors cursor-pointer'
+              className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'
             >
-              <div className='h-9 w-9 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0'>
+              <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
                 <ReceiptText className='h-4 w-4' />
               </div>
               <div className='flex flex-col gap-1'>
-                <span className='text-sm font-semibold text-white'>Rent Receipts</span>
-                <span className='text-xs text-slate-200'>Download payment receipts</span>
+                <span className='text-sm font-semibold text-slate-50'>Rent Receipts</span>
+                <span className='text-xs text-slate-300/80'>Download payment receipts</span>
               </div>
             </Link>
 
             <Link
               href='/user/profile/ticket'
-              className='rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm p-4 flex items-start gap-3 shadow-sm hover:bg-white/20 transition-colors cursor-pointer'
+              className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'
             >
-              <div className='h-9 w-9 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0'>
+              <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
                 <MessageCircle className='h-4 w-4' />
               </div>
               <div className='flex flex-col gap-1'>
-                <span className='text-sm font-semibold text-white'>Create Ticket</span>
-                <span className='text-xs text-slate-200'>Submit a maintenance request</span>
+                <span className='text-sm font-semibold text-slate-50'>Create Ticket</span>
+                <span className='text-xs text-slate-300/80'>Submit a maintenance request</span>
               </div>
             </Link>
           </div>
         </div>
 
         {/* Recent Activity */}
-        <Card>
+        <Card className='border border-white/10 bg-slate-900/60'>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest rental activity</CardDescription>
+            <CardTitle className='text-slate-50'>Recent Activity</CardTitle>
+            <CardDescription className='text-slate-300/80'>Your latest rental activity</CardDescription>
           </CardHeader>
           <CardContent>
             <div className='space-y-4'>
-              <div className='flex items-center justify-between p-3 bg-slate-50 rounded-lg'>
+              <div className='flex items-center justify-between p-3 bg-slate-900/80 rounded-lg border border-white/10'>
                 <div className='flex items-center gap-3'>
-                  <CreditCard className='h-4 w-4 text-green-600' />
+                  <CreditCard className='h-4 w-4 text-emerald-300' />
                   <div>
-                    <p className='text-sm font-medium'>Rent payment confirmed</p>
-                    <p className='text-xs text-slate-500'>December 1, 2024</p>
+                    <p className='text-sm font-medium text-slate-50'>Rent payment confirmed</p>
+                    <p className='text-xs text-slate-300/80'>December 1, 2024</p>
                   </div>
                 </div>
-                <Badge variant='secondary'>Paid</Badge>
+                <Badge variant='secondary' className='bg-emerald-500/20 text-emerald-200/90 border-emerald-400/40'>Paid</Badge>
               </div>
               
-              <div className='flex items-center justify-between p-3 bg-slate-50 rounded-lg'>
+              <div className='flex items-center justify-between p-3 bg-slate-900/80 rounded-lg border border-white/10'>
                 <div className='flex items-center gap-3'>
-                  <FileText className='h-4 w-4 text-blue-600' />
+                  <FileText className='h-4 w-4 text-violet-300' />
                   <div>
-                    <p className='text-sm font-medium'>Lease agreement renewed</p>
-                    <p className='text-xs text-slate-500'>November 15, 2024</p>
+                    <p className='text-sm font-medium text-slate-50'>Lease agreement renewed</p>
+                    <p className='text-xs text-slate-300/80'>November 15, 2024</p>
                   </div>
                 </div>
-                <Badge variant='secondary'>Active</Badge>
+                <Badge variant='secondary' className='bg-violet-500/20 text-violet-200/90 border-violet-400/40'>Active</Badge>
               </div>
               
-              <div className='flex items-center justify-between p-3 bg-slate-50 rounded-lg'>
+              <div className='flex items-center justify-between p-3 bg-slate-900/80 rounded-lg border border-white/10'>
                 <div className='flex items-center gap-3'>
-                  <Wrench className='h-4 w-4 text-orange-600' />
+                  <Wrench className='h-4 w-4 text-amber-300' />
                   <div>
-                    <p className='text-sm font-medium'>Maintenance request completed</p>
-                    <p className='text-xs text-slate-500'>November 10, 2024</p>
+                    <p className='text-sm font-medium text-slate-50'>Maintenance request completed</p>
+                    <p className='text-xs text-slate-300/80'>November 10, 2024</p>
                   </div>
                 </div>
-                <Badge variant='secondary'>Resolved</Badge>
+                <Badge variant='secondary' className='bg-amber-500/20 text-amber-200/90 border-amber-400/40'>Resolved</Badge>
               </div>
             </div>
           </CardContent>

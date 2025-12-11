@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 // import { Badge } from '@/components/ui/badge';
 // import ModeToggle from './mode-toggle';
 import Link from 'next/link';
-import { EllipsisVertical } from 'lucide-react';
+import { EllipsisVertical, LayoutDashboard } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription,SheetTitle,SheetTrigger,} from '@/components/ui/sheet';
 import UserButton from './user-button';
 import NotificationBell from './notification-bell';
@@ -11,29 +11,39 @@ import { auth } from '@/auth';
 const Menu = async () => {
   const session = await auth();
   const isAdmin = session?.user?.role === 'admin';
+  const userRole = session?.user?.role;
+  
+  // Determine dashboard label and link based on role
+  let dashboardLabel = 'Dashboard';
+  let dashboardLink = '/';
+  
+  if (userRole === 'tenant') {
+    dashboardLabel = 'Tenant Dashboard';
+    dashboardLink = '/user/dashboard';
+  } else if (userRole === 'landlord' || userRole === 'admin' || userRole === 'superAdmin') {
+    dashboardLabel = 'Landlord Dashboard';
+    dashboardLink = '/admin/overview';
+  } else if (userRole === 'property_manager') {
+    dashboardLabel = 'Property Manager Dashboard';
+    dashboardLink = '/admin/overview';
+  }
+  
   return (
     <div className='flex justify-end gap-3'>
-      <nav className='hidden md:flex w-full max-w-xs gap-1'>
+      <nav className='hidden md:flex w-full max-w-xs gap-1 items-center'>
         {/* <ModeToggle /> */}
         <NotificationBell isAdmin={isAdmin} />
-        {/* {isSuperAdmin && (
-          <Button asChild variant='ghost'>
-            <Link href='/super-admin'>Monitoring</Link>
+        
+        {/* Dashboard Link - Only on Desktop */}
+        {session && (
+          <Button asChild variant='ghost' className='text-slate-200 hover:text-white'>
+            <Link href={dashboardLink} className='flex items-center gap-2'>
+              <LayoutDashboard className='h-4 w-4' />
+              {dashboardLabel}
+            </Link>
           </Button>
-        )} */}
-        {/* <Button asChild variant='ghost' className='relative'>
-          <Link href='/cart' className='relative flex items-center gap-1'>
-            <div className='relative'>
-              <ShoppingCart />
-              {cartItemCount > 0 && (
-                <Badge variant='destructive' className='absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full'>
-                  {cartItemCount}
-                </Badge>
-              )}
-            </div>
-            Cart
-          </Link>
-        </Button> */}
+        )}
+        
         <UserButton />
       </nav>
       <nav className='md:hidden'>
@@ -57,6 +67,7 @@ const Menu = async () => {
             <Button asChild variant='ghost' className='w-full justify-start'>
               <Link href='/contact'>Contact</Link>
             </Button>
+            {/* Dashboard link NOT shown on mobile - only in sidebar */}
             <UserButton />
             <SheetDescription></SheetDescription>
           </SheetContent>

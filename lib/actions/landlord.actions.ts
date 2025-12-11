@@ -262,3 +262,209 @@ export async function getLandlordBySubdomain(subdomain: string) {
     return { success: false as const, message: formatError(error) };
   }
 }
+
+// ========== PAYOUT METHODS ==========
+
+import { savedPayoutMethodSchema } from '../validators';
+import { revalidatePath } from 'next/cache';
+
+// Add saved payout method (bank account or card)
+export async function addSavedPayoutMethod(
+  data: z.infer<typeof savedPayoutMethodSchema>
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+    const validatedData = savedPayoutMethodSchema.parse(data);
+
+    if (validatedData.isDefault) {
+      await prisma.savedPayoutMethod.updateMany({
+        where: { landlordId: landlord.id },
+        data: { isDefault: false },
+      });
+    }
+
+    const payoutMethod = await prisma.savedPayoutMethod.create({
+      data: {
+        landlordId: landlord.id,
+        stripePaymentMethodId: validatedData.stripePaymentMethodId,
+        type: validatedData.type,
+        accountHolderName: validatedData.accountHolderName,
+        last4: validatedData.last4,
+        bankName: validatedData.bankName,
+        accountType: validatedData.accountType,
+        routingNumber: validatedData.routingNumber,
+        isDefault: validatedData.isDefault,
+        isVerified: true,
+      },
+    });
+
+    revalidatePath('/admin/payouts');
+
+    return {
+      success: true,
+      message: 'Payout method saved successfully!',
+      payoutMethodId: payoutMethod.id,
+    };
+  } catch (error) {
+    console.error('Error saving payout method:', error);
+    const message = formatError(error);
+    return { success: false, message: message || 'Failed to save payout method' };
+  }
+}
+
+// Get saved payout methods for current landlord
+export async function getSavedPayoutMethods() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated', methods: [] };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message, methods: [] };
+    }
+
+    const landlord = landlordResult.landlord;
+
+    const methods = await prisma.savedPayoutMethod.findMany({
+      where: { landlordId: landlord.id },
+      orderBy: [
+        { isDefault: 'desc' },
+        { createdAt: 'desc' },
+      ],
+    });
+
+    return {
+      success: true,
+      methods: methods.map(method => ({
+        id: method.id,
+        type: method.type,
+        last4: method.last4,
+        bankName: method.bankName,
+        accountType: method.accountType,
+        accountHolderName: method.accountHolderName,
+        isDefault: method.isDefault,
+        isVerified: method.isVerified,
+      })),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error), methods: [] };
+  }
+}
+
+// Delete saved payout method
+export async function deleteSavedPayoutMethod(payoutMethodId: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+
+    const payoutMethod = await prisma.savedPayoutMethod.findUnique({
+      where: { id: payoutMethodId },
+    });
+
+    if (!payoutMethod || payoutMethod.landlordId !== landlord.id) {
+      return { success: false, message: 'Payout method not found' };
+    }
+
+    await prisma.savedPayoutMethod.delete({
+      where: { id: payoutMethodId },
+    });
+
+    revalidatePath('/admin/payouts');
+
+    return {
+      success: true,
+      message: 'Payout method deleted successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Update saved payout method
+export async function updateSavedPayoutMethod(
+  payoutMethodId: string,
+  data: z.infer<typeof savedPayoutMethodSchema>
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+
+    const payoutMethod = await prisma.savedPayoutMethod.findUnique({
+      where: { id: payoutMethodId },
+    });
+
+    if (!payoutMethod || payoutMethod.landlordId !== landlord.id) {
+      return { success: false, message: 'Payout method not found' };
+    }
+
+    const validatedData = savedPayoutMethodSchema.parse(data);
+
+    if (validatedData.isDefault) {
+      await prisma.savedPayoutMethod.updateMany({
+        where: { 
+          landlordId: landlord.id,
+          id: { not: payoutMethodId }
+        },
+        data: { isDefault: false },
+      });
+    }
+
+    await prisma.savedPayoutMethod.update({
+      where: { id: payoutMethodId },
+      data: {
+        stripePaymentMethodId: validatedData.stripePaymentMethodId,
+        type: validatedData.type,
+        accountHolderName: validatedData.accountHolderName,
+        last4: validatedData.last4,
+        bankName: validatedData.bankName,
+        accountType: validatedData.accountType,
+        routingNumber: validatedData.routingNumber,
+        isDefault: validatedData.isDefault,
+      },
+    });
+
+    revalidatePath('/admin/payouts');
+
+    return {
+      success: true,
+      message: 'Payout method updated successfully',
+    };
+  } catch (error) {
+    console.error('Error updating payout method:', error);
+    return { success: false, message: formatError(error) };
+  }
+}

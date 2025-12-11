@@ -12,6 +12,11 @@ export default function RentPayClient({
   totalInCents: number;
 }) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentData, setPaymentData] = useState<{
+    rentAmount: number;
+    convenienceFee: number;
+    totalAmount: number;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -25,7 +30,10 @@ export default function RentPayClient({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ rentPaymentIds }),
+        body: JSON.stringify({ 
+          rentPaymentIds,
+          paymentMethodType: 'card' // Default to card to show max convenience fee
+        }),
       });
 
       if (!res.ok) {
@@ -33,7 +41,12 @@ export default function RentPayClient({
         return;
       }
 
-      const data = (await res.json()) as { clientSecret?: string };
+      const data = (await res.json()) as { 
+        clientSecret?: string;
+        rentAmount?: number;
+        convenienceFee?: number;
+        totalAmount?: number;
+      };
 
       if (!data.clientSecret) {
         setErrorMessage('Payment could not be initialized.');
@@ -41,6 +54,11 @@ export default function RentPayClient({
       }
 
       setClientSecret(data.clientSecret);
+      setPaymentData({
+        rentAmount: data.rentAmount || 0,
+        convenienceFee: data.convenienceFee || 0,
+        totalAmount: data.totalAmount || 0,
+      });
     } catch (err) {
       setErrorMessage('Something went wrong starting the payment.');
     } finally {
@@ -48,26 +66,39 @@ export default function RentPayClient({
     }
   };
 
-  if (clientSecret) {
+  if (clientSecret && paymentData) {
     return (
       <div className='space-y-4'>
-        <RentStripePayment totalInCents={totalInCents} clientSecret={clientSecret} />
+        <RentStripePayment 
+          totalInCents={Math.round(paymentData.totalAmount * 100)}
+          clientSecret={clientSecret}
+          rentAmount={paymentData.rentAmount}
+          initialConvenienceFee={paymentData.convenienceFee}
+        />
       </div>
     );
   }
 
   return (
-    <div className='space-y-2'>
-      {errorMessage && <p className='text-xs text-destructive'>{errorMessage}</p>}
+    <div className='space-y-3'>
+      {errorMessage && (
+        <div className='p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg'>
+          {errorMessage}
+        </div>
+      )}
       <Button
-        className='inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-xs font-semibold text-white hover:bg-slate-800'
+        className='inline-flex items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 px-8 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all'
         size='lg'
         onClick={handleStartPayment}
         disabled={isLoading}
       >
-        {isLoading ? 'Preparing payment...' : 'Pay rent'}
+        {isLoading ? 'Preparing payment...' : 'Pay Rent Now'}
       </Button>
-      <p className='mt-1 text-[11px] text-slate-400'>You will be redirected to secure Stripe payment fields.</p>
+      <div className='text-xs text-slate-400 space-y-1'>
+        <p>✓ Multiple payment options available</p>
+        <p>✓ Bank transfer (ACH) is FREE with no convenience fee</p>
+        <p>✓ Card/wallet payments have a $2 convenience fee</p>
+      </div>
     </div>
   );
 }

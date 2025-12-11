@@ -22,8 +22,8 @@ const AdminAnalyticsPage = async () => {
     <main className='w-full'>
       <div className='max-w-7xl space-y-6'>
         <div>
-          <h1 className='text-3xl md:text-4xl font-semibold text-slate-900 mb-1'>Financial Analytics</h1>
-          <p className='text-sm text-slate-600'>
+          <h1 className='text-3xl md:text-4xl font-semibold text-slate-50 mb-2'>Financial Analytics</h1>
+          <p className='text-sm text-slate-300/80'>
             Track your property performance, ROI, and generate comprehensive financial reports.
           </p>
         </div>

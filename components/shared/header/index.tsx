@@ -42,7 +42,7 @@ const Header = async () => {
   const displayName = landlord?.name || 'Property Management';
 
   return ( 
-    <header className="w-full bg-transparent border-b border-slate-200 text-white">
+    <header className="w-full bg-transparent border-b border-white/10 text-slate-50">
       {/* Mobile header: hamburger left, logo centered, menu (three dots) right */}
       <div className="wrapper flex items-center justify-between md:hidden">
         {/* <div className="flex items-center">
@@ -80,33 +80,32 @@ const Header = async () => {
                 priority={true}
               />
             </div>
-            <span className='hidden lg:block font-bold text-2xl ml-3'>
+            <span className='hidden lg:block font-bold text-2xl ml-3 text-slate-50'>
               {displayName}
             </span>
           </Link>
         </div>
 
-        <div className="flex items-center justify-center text-slate-900 text-sm font-medium">
-          <Link href='/' className="m-2.5 px-1 hover:text-slate-900 hover:underline">Home</Link>
-          <Link href='/search?category=all' className="m-2.5 px-1 hover:text-slate-900 hover:underline">Listings</Link>
-          <Link href='/about' className="m-2.5 px-1 hover:text-slate-900 hover:underline">About</Link>
-          <Link href='/blog' className="m-2.5 px-1 hover:text-slate-900 hover:underline">Neighborhood & Tips</Link>
-          <Link href='/contact' className="m-2.5 px-1 hover:text-slate-900 hover:underline">Contact</Link>
+        <div className="flex items-center justify-center text-slate-200/90 text-sm font-medium">
+          <Link href='/' className="m-2.5 px-1 hover:text-violet-200/80 hover:underline transition-colors">Home</Link>
+          <Link href='/search?category=all' className="m-2.5 px-1 hover:text-violet-200/80 hover:underline transition-colors">Listings</Link>
+          <Link href='/about' className="m-2.5 px-1 hover:text-violet-200/80 hover:underline transition-colors">About</Link>
+          <Link href='/contact' className="m-2.5 px-1 hover:text-violet-200/80 hover:underline transition-colors">Contact</Link>
 
         
           <div className="relative m-2.5 group">
             {/* <button className="hover:text-black hover:underline">Products</button> */}
             {categories.length > 0 && (
-              <div className="absolute left-0 top-full mt-1 hidden group-hover:flex bg-white text-black rounded-md shadow-lg z-50 min-w-[520px]">
-                <div className="w-52 border-r border-gray-200 py-3">
+              <div className="absolute left-0 top-full mt-1 hidden group-hover:flex bg-slate-900/95 backdrop-blur-2xl border border-white/10 text-slate-50 rounded-md shadow-lg z-50 min-w-[520px]">
+                <div className="w-52 border-r border-white/10 py-3">
                   {categories.map((cat) => (
                     <Link
                       key={cat.category}
                       href={`/search?category=${encodeURIComponent(cat.category)}`}
-                      className="flex items-center justify-between px-4 py-1.5 text-sm hover:bg-gray-100"
+                      className="flex items-center justify-between px-4 py-1.5 text-sm hover:bg-slate-900/60 transition-colors text-slate-200/90"
                     >
                       <span>{cat.category}</span>
-                      <span className="text-xs text-gray-400">{cat.count}</span>
+                      <span className="text-xs text-slate-400/80">{cat.count}</span>
                     </Link>
                   ))}
                 </div>
@@ -114,13 +113,13 @@ const Header = async () => {
                   {categories.map((cat) => (
                     cat.subCategories.length > 0 && (
                       <div key={cat.category} className="space-y-1">
-                        <p className="text-xs font-semibold uppercase text-gray-500">{cat.category}</p>
+                        <p className="text-xs font-semibold uppercase text-slate-400/80">{cat.category}</p>
                         <div className="flex flex-col space-y-0.5">
                           {cat.subCategories.map((sub) => (
                             <Link
                               key={`${cat.category}-${sub}`}
                               href={`/search?category=${encodeURIComponent(cat.category)}&subCategory=${encodeURIComponent(sub)}`}
-                              className="text-sm text-gray-700 hover:text-black hover:underline">
+                              className="text-sm text-slate-200/90 hover:text-violet-200/80 hover:underline transition-colors">
                               {sub}
                             </Link>
                           ))}

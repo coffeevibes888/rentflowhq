@@ -71,53 +71,53 @@ const AdminOverviewPage = async () => {
     <div className='w-full px-4 py-8 md:px-0'>
       <div className='max-w-6xl mx-auto space-y-8'>
         <div>
-          <h1 className='text-3xl md:text-4xl font-semibold text-slate-900 mb-2'>Property Dashboard</h1>
-          <p className='text-sm text-slate-500'>High-level snapshot of properties, tenants, and operations.</p>
+          <h1 className='text-3xl md:text-4xl font-semibold text-slate-50 mb-2'>Property Dashboard</h1>
+          <p className='text-sm text-slate-300/80'>High-level snapshot of properties, tenants, and operations.</p>
         </div>
 
         {/* Stats Cards - Clickable on mobile */}
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <Link href='/admin/products' className='rounded-xl border border-slate-200 bg-white p-4 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer'>
-            <div className='h-9 w-9 rounded-lg bg-slate-900 text-white flex items-center justify-center'>
+          <Link href='/admin/products' className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'>
+            <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center ring-1 ring-white/10'>
               <Building2 className='h-4 w-4' />
             </div>
             <div className='flex flex-col gap-1'>
-              <span className='text-xs font-medium text-slate-500 uppercase tracking-wide'>Properties</span>
-              <span className='text-2xl font-semibold text-slate-900'>{propertiesCount}</span>
-              <span className='text-xs text-slate-500'>Active buildings and communities</span>
+              <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Properties</span>
+              <span className='text-2xl font-semibold text-slate-50'>{propertiesCount}</span>
+              <span className='text-xs text-slate-300/80'>Active buildings and communities</span>
             </div>
           </Link>
 
-          <Link href='/admin/applications' className='rounded-xl border border-slate-200 bg-white p-4 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer'>
-            <div className='h-9 w-9 rounded-lg bg-slate-900 text-white flex items-center justify-center'>
+          <Link href='/admin/applications' className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'>
+            <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center ring-1 ring-white/10'>
               <FileText className='h-4 w-4' />
             </div>
             <div className='flex flex-col gap-1'>
-              <span className='text-xs font-medium text-slate-500 uppercase tracking-wide'>Applications</span>
-              <span className='text-2xl font-semibold text-slate-900'>{applicationsCount}</span>
-              <span className='text-xs text-slate-500'>Submitted rental applications</span>
+              <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Applications</span>
+              <span className='text-2xl font-semibold text-slate-50'>{applicationsCount}</span>
+              <span className='text-xs text-slate-300/80'>Submitted rental applications</span>
             </div>
           </Link>
 
-          <Link href='/admin/users' className='rounded-xl border border-slate-200 bg-white p-4 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer'>
-            <div className='h-9 w-9 rounded-lg bg-slate-900 text-white flex items-center justify-center'>
+          <Link href='/admin/users' className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'>
+            <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center ring-1 ring-white/10'>
               <Users className='h-4 w-4' />
             </div>
             <div className='flex flex-col gap-1'>
-              <span className='text-xs font-medium text-slate-500 uppercase tracking-wide'>Tenants</span>
-              <span className='text-2xl font-semibold text-slate-900'>{tenantsCount}</span>
-              <span className='text-xs text-slate-500'>Users with tenant access</span>
+              <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Tenants</span>
+              <span className='text-2xl font-semibold text-slate-50'>{tenantsCount}</span>
+              <span className='text-xs text-slate-300/80'>Users with tenant access</span>
             </div>
           </Link>
 
-          <Link href='/admin/maintenance' className='rounded-xl border border-slate-200 bg-white p-4 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer'>
-            <div className='h-9 w-9 rounded-lg bg-slate-900 text-white flex items-center justify-center'>
+          <Link href='/admin/maintenance' className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'>
+            <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center ring-1 ring-white/10'>
               <Wrench className='h-4 w-4' />
             </div>
             <div className='flex flex-col gap-1'>
-              <span className='text-xs font-medium text-slate-500 uppercase tracking-wide'>Maintenance</span>
-              <span className='text-2xl font-semibold text-slate-900'>{ticketsCount}</span>
-              <span className='text-xs text-slate-500'>Total work tickets logged</span>
+              <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Maintenance</span>
+              <span className='text-2xl font-semibold text-slate-50'>{ticketsCount}</span>
+              <span className='text-xs text-slate-300/80'>Total work tickets logged</span>
             </div>
           </Link>
         </div>
@@ -137,14 +137,14 @@ const AdminOverviewPage = async () => {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className='rounded-xl border border-slate-200 bg-white p-4 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer'
+                    className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'
                   >
-                    <div className='h-9 w-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0'>
+                    <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
                       <Icon className='h-4 w-4' />
                     </div>
                     <div className='flex flex-col gap-1'>
-                      <span className='text-sm font-semibold text-slate-900'>{item.title}</span>
-                      <span className='text-xs text-slate-500'>{item.description}</span>
+                      <span className='text-sm font-semibold text-slate-50'>{item.title}</span>
+                      <span className='text-xs text-slate-300/80'>{item.description}</span>
                     </div>
                   </Link>
                 );

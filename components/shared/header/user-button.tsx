@@ -65,28 +65,6 @@ const UserButton = async () => {
             </div>
           </DropdownMenuLabel>
 
-          <DropdownMenuItem>
-            <Link href='/user/profile' className='w-full'>
-              User Profile
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Link href='/user/orders' className='w-full'>
-              Order History
-            </Link>
-          </DropdownMenuItem>
-
-          {(session?.user?.role === 'admin' || 
-            session?.user?.role === 'superAdmin' || 
-            session?.user?.role === 'landlord' || 
-            session?.user?.role === 'property_manager') && (
-            <DropdownMenuItem>
-              <Link href='/admin/overview' className='w-full'>
-                Landlord Dashboard
-              </Link>
-            </DropdownMenuItem>
-          )}
-
           <DropdownMenuItem asChild className='p-0 mb-1'>
             <SignOutButton />
           </DropdownMenuItem>

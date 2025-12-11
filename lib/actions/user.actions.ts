@@ -132,10 +132,16 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       redirect(rawCallbackUrl);
     }
 
+    // Redirect based on role
     if (roleValue === 'tenant') {
-      redirect('/user/applications');
-    } else {
+      // Tenants go directly to their profile - no onboarding wizard
+      redirect('/user/profile');
+    } else if (roleValue === 'landlord' || roleValue === 'property_manager') {
+      // Landlords and property managers go through onboarding wizard
       redirect('/onboarding/role');
+    } else {
+      // Default fallback
+      redirect('/');
     }
   } catch (error) {
     if (isRedirectError(error)) {

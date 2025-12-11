@@ -2,8 +2,9 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
-import PayoutsConnectButton from '@/components/admin/payouts-connect-button';
 import { Button } from '@/components/ui/button';
+import PayoutForm from '@/components/admin/payout-form';
+import StripeElementsWrapper from './stripe-elements-wrapper';
 
 const AdminPayoutsPage = async () => {
   await requireAdmin();
@@ -68,35 +69,7 @@ const AdminPayoutsPage = async () => {
               </div>
             </div>
 
-            <div className='grid gap-3 md:grid-cols-2 text-xs md:text-sm'>
-              <form action='/api/landlord/payouts/cash-out' method='POST' className='space-y-1'>
-                <input type='hidden' name='type' value='standard' />
-                <button
-                  type='submit'
-                  disabled={availableAmount <= 0}
-                  className='inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed'
-                >
-                  Free bank transfer
-                </button>
-                <p className='text-[11px] text-slate-500'>
-                  Processed every Monday. No payout fee.
-                </p>
-              </form>
-
-              <form action='/api/landlord/payouts/cash-out' method='POST' className='space-y-1'>
-                <input type='hidden' name='type' value='instant' />
-                <button
-                  type='submit'
-                  disabled={availableAmount <= 0}
-                  className='inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed'
-                >
-                  Instant cash out ($2 fee)
-                </button>
-                <p className='text-[11px] text-slate-500'>
-                  Sent as soon as possible to your saved payout method.
-                </p>
-              </form>
-            </div>
+            <PayoutForm availableAmount={availableAmount} />
 
             <div className='mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3 text-xs md:text-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3'>
               <div>
@@ -121,27 +94,23 @@ const AdminPayoutsPage = async () => {
           </div>
 
           <div className='rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 space-y-3'>
-            <div className='space-y-2'>
-              <p className='font-semibold text-slate-900'>Payout method</p>
-              <p className='text-xs text-slate-500'>
-                Add or update the bank account or debit card where you want to receive payouts. Details are
-                stored securely and only the last 4 digits are shown.
-              </p>
-              <PayoutsConnectButton />
-            </div>
-
-            <div className='space-y-1 border-t border-slate-200 pt-3'>
+            <div className='space-y-1'>
               <p className='font-semibold text-slate-900'>How payouts work</p>
-              <p>
-                Free bank transfers are bundled and processed every Monday. Instant cash outs are processed
-                immediately with a flat $2.00 fee.
+              <p className='text-xs'>
+                <strong>Standard:</strong> Free bank transfer, arrives in 2-3 business days to your bank account.
               </p>
-              <p className='text-xs text-slate-500'>
-                Banking details are encrypted and processed by a PCI-compliant provider. We never store full
-                card or account numbers on our servers.
+              <p className='text-xs'>
+                <strong>Instant:</strong> 1.5% fee (max $10), arrives within minutes to your debit card.
+              </p>
+              <p className='text-xs text-slate-500 mt-2'>
+                Banking details are encrypted and processed by Stripe. We never store full card or account numbers.
               </p>
             </div>
           </div>
+        </section>
+
+        <section className='space-y-3'>
+          <StripeElementsWrapper />
         </section>
 
         <section className='space-y-3'>

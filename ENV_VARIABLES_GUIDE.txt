@@ -1,0 +1,60 @@
+# ==============================================
+# PLATFORM FEE ENVIRONMENT VARIABLES
+# Add these to your .env file
+# ==============================================
+
+# Your SaaS Revenue: Application Fee per Rent Transaction
+# This is automatically split by Stripe and sent to your platform account
+# Recommended: $2.00 (covers costs, competitive pricing)
+PLATFORM_FEE_RENT=2.00
+
+# Pass Card Processing Fees to Tenant
+# true = Tenant pays 2.9% + $0.30 on top of rent + platform fee
+# false = You absorb the card processing fee (expensive!)
+# Recommended: true
+PASS_CARD_FEE_TO_TENANT=true
+
+# Pass ACH Processing Fees to Tenant
+# true = Tenant pays 0.8% (max $5) on top of rent + platform fee
+# false = You absorb the ACH fee (only $5 max per transaction)
+# Recommended: false (good for growth, small cost)
+PASS_ACH_FEE_TO_TENANT=false
+
+# Instant Payout Markup (Additional Revenue Stream)
+# Additional fee you charge on top of Stripe's 1.5% instant payout fee
+# Example: 0.5 means landlords pay 2% total (1.5% Stripe + 0.5% you)
+# Recommended: 0.5
+INSTANT_PAYOUT_MARKUP=0.5
+
+# ==============================================
+# EXAMPLE SCENARIOS
+# ==============================================
+
+# Scenario 1: Growth Mode (Recommended)
+# - Tenant pays: $1,500 rent + $2 platform fee = $1,502
+# - You get: $2 application fee
+# - You absorb: ~$5 ACH fee (if tenant uses ACH)
+# - Net profit per transaction: -$3 (loss leader for growth)
+# - Make it up with volume + instant payout fees
+
+# Scenario 2: Profit Mode
+# - Tenant pays: $1,500 + $2 + $5 ACH fee = $1,507
+# - You get: $2 application fee
+# - You absorb: $0 (tenant paid ACH fee)
+# - Net profit per transaction: $2 (pure profit)
+
+# Scenario 3: Card Payments (If tenant chooses card)
+# - Tenant pays: $1,500 + $2 + $45 card fee = $1,547
+# - You get: $2 application fee
+# - You absorb: $0 (tenant paid card fee)
+# - Net profit per transaction: $2 (pure profit)
+
+# ==============================================
+# COPY & PASTE INTO YOUR .env FILE
+# ==============================================
+
+PLATFORM_FEE_RENT=2.00
+PASS_CARD_FEE_TO_TENANT=true
+PASS_ACH_FEE_TO_TENANT=false
+INSTANT_PAYOUT_MARKUP=0.5
+

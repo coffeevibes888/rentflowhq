@@ -83,9 +83,9 @@ const Homepage = async () => {
     return (
       <main className='flex-1 w-full'>
         <section className='w-full pt-10 pb-14 px-4'>
-          <div className='max-w-6xl mx-auto space-y-4 bg-translucent rounded-3xl p-6 md:p-8 text-slate-50'>
+          <div className='max-w-6xl mx-auto space-y-4 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl p-6 md:p-8 text-slate-50 shadow-[0_20px_70px_rgba(15,23,42,0.9)]'>
             <div className='space-y-1'>
-              <p className='text-xs font-medium text-emerald-300 uppercase tracking-wide'>Listings</p>
+              <p className='text-xs font-medium text-violet-200/80 uppercase tracking-wide'>Listings</p>
               <h1 className='text-2xl md:text-3xl font-semibold tracking-tight text-white'>Homes and apartments by {landlord.name}</h1>
               <p className='text-sm text-slate-100/80 max-w-2xl'>
                 Browse available units and start your application online. All rent payments and maintenance
@@ -96,9 +96,9 @@ const Homepage = async () => {
         </section>
 
         <section className='w-full py-10 px-4'>
-          <div className='max-w-6xl mx-auto bg-translucent rounded-3xl p-6 md:p-8 text-slate-50'>
+          <div className='max-w-6xl mx-auto rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl p-6 md:p-8 text-slate-50 shadow-[0_20px_70px_rgba(15,23,42,0.9)]'>
             {properties.length === 0 ? (
-              <div className='rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-600'>
+              <div className='rounded-xl border border-white/10 bg-slate-900/60 backdrop-blur-sm px-4 py-8 text-center text-sm text-slate-200/90'>
                 No properties are currently available for this landlord. Please check back soon.
               </div>
             ) : (
@@ -108,7 +108,7 @@ const Homepage = async () => {
                   return (
                     <div
                       key={property.id}
-                      className='rounded-2xl border border-white/10 bg-slate-950/40 shadow-sm overflow-hidden flex flex-col backdrop-blur-sm'
+                      className='rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-[0_20px_70px_rgba(15,23,42,0.9)] overflow-hidden flex flex-col'
                     >
                       <div className='relative h-44 w-full bg-slate-900/60'>
                         <Image
@@ -131,7 +131,7 @@ const Homepage = async () => {
                         </div>
 
                         {property.units[0] && (
-                          <p className='text-sm font-medium text-emerald-300 mt-1'>
+                          <p className='text-sm font-medium text-violet-200/80 mt-1'>
                             {formatCurrency(Number(property.units[0].rentAmount))} / month
                           </p>
                         )}
@@ -144,7 +144,7 @@ const Homepage = async () => {
                         <div className='mt-4 flex gap-2'>
                           <Link
                             href={`/${property.slug}/apply`}
-                            className='inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-1.5 text-[11px] font-medium text-slate-950 hover:bg-emerald-400 flex-1 transition-colors'
+                            className='inline-flex items-center justify-center rounded-full bg-violet-500 px-4 py-1.5 text-[11px] font-medium text-white hover:bg-violet-400 flex-1 transition-colors'
                           >
                             Start application
                           </Link>
@@ -166,11 +166,11 @@ const Homepage = async () => {
       <main className='flex-1 w-full'>
         {/* Hero Section - Conversion Focused */}
         <section className='w-full pt-12 pb-16 md:pt-20 md:pb-24 px-4 relative overflow-hidden'>
-          <div className='absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-blue-500/10 animate-pulse' />
+          <div className='absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10 animate-pulse' />
           <div className='max-w-7xl mx-auto relative z-10'>
             <div className='grid gap-8 lg:grid-cols-2 items-center'>
               <div className='space-y-6 animate-in fade-in slide-in-from-left duration-700'>
-                <div className='inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-1.5 text-emerald-300 text-xs font-medium border border-emerald-500/30 backdrop-blur-sm'>
+                <div className='inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-violet-200/80 text-xs font-medium border border-white/10 backdrop-blur-sm ring-1 ring-white/10'>
                   <Sparkles className='h-3 w-3' />
                   <span>100% Free Forever • No Credit Card Required</span>
                 </div>
@@ -180,13 +180,13 @@ const Homepage = async () => {
                 </h1>
                 
                 <p className='text-base md:text-lg text-slate-200 max-w-xl leading-relaxed'>
-                  Tired of late payments, maintenance chaos, and spreadsheet nightmares? Join thousands of small landlords who manage everything—rent collection, leases, maintenance, and tenant communication—all in one place. <span className='text-emerald-300 font-semibold'>Completely free.</span>
+                  Tired of late payments, maintenance chaos, and spreadsheet nightmares? Join thousands of small landlords who manage everything—rent collection, leases, maintenance, and tenant communication—all in one place. <span className='text-violet-200/80 font-semibold'>Completely free.</span>
                 </p>
                 
                 <div className='flex flex-wrap items-center gap-4'>
                   <Link
                     href='/sign-up'
-                    className='group inline-flex items-center justify-center rounded-full bg-emerald-500 text-slate-950 px-8 py-3.5 text-base font-bold shadow-lg hover:bg-emerald-400 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/50'
+                    className='group inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-8 py-3.5 text-base font-bold shadow-lg hover:bg-violet-400 transition-all duration-300 hover:scale-105 hover:shadow-violet-500/50'
                   >
                     Start Free Today
                     <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
@@ -201,45 +201,45 @@ const Homepage = async () => {
                 
                 <div className='flex flex-wrap items-center gap-6 pt-4 text-sm text-slate-300'>
                   <div className='flex items-center gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300' />
                     <span>No setup fees</span>
                   </div>
                   <div className='flex items-center gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300' />
                     <span>Up to 24 units free</span>
                   </div>
                   <div className='flex items-center gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300' />
                     <span>Cancel anytime</span>
                   </div>
                 </div>
               </div>
               
               <div className='relative h-[500px] lg:h-[600px] rounded-3xl bg-slate-950/60 border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200'>
-                <div className='absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5' />
+                <div className='absolute inset-0 bg-gradient-to-br from-violet-500/5 to-cyan-500/5' />
                 <div className='relative h-full p-6 flex flex-col justify-between'>
                   <div className='space-y-4'>
                     <div className='flex items-center justify-between'>
                       <h3 className='text-lg font-bold text-white'>Your Dashboard</h3>
-                      <span className='text-xs text-emerald-300 bg-emerald-500/20 px-2 py-1 rounded-full'>Live Demo</span>
+                      <span className='text-xs text-violet-200/80 bg-white/5 px-2 py-1 rounded-full ring-1 ring-white/10'>Live Demo</span>
                     </div>
                     <div className='grid grid-cols-2 gap-3'>
-                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-emerald-500/30 transition-colors'>
+                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors'>
                         <div className='text-xs text-slate-400'>Total Units</div>
                         <div className='text-2xl font-bold text-white'>24</div>
-                        <div className='text-[10px] text-emerald-300'>3 vacant</div>
+                        <div className='text-[10px] text-violet-200/80'>3 vacant</div>
                       </div>
-                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-emerald-500/30 transition-colors'>
+                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors'>
                         <div className='text-xs text-slate-400'>This Month</div>
                         <div className='text-2xl font-bold text-white'>$28,500</div>
-                        <div className='text-[10px] text-emerald-300'>98% collected</div>
+                        <div className='text-[10px] text-violet-200/80'>98% collected</div>
                       </div>
-                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-emerald-500/30 transition-colors'>
+                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors'>
                         <div className='text-xs text-slate-400'>Maintenance</div>
                         <div className='text-2xl font-bold text-white'>2</div>
                         <div className='text-[10px] text-amber-300'>1 urgent</div>
                       </div>
-                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-emerald-500/30 transition-colors'>
+                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors'>
                         <div className='text-xs text-slate-400'>Applications</div>
                         <div className='text-2xl font-bold text-white'>5</div>
                         <div className='text-[10px] text-blue-300'>3 pending</div>
@@ -251,7 +251,7 @@ const Homepage = async () => {
                       <span className='font-semibold text-white'>Quick Actions</span>
                     </div>
                     <div className='grid grid-cols-2 gap-2'>
-                      <button className='text-xs bg-emerald-500/20 text-emerald-300 px-3 py-2 rounded-lg border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors'>
+                      <button className='text-xs bg-violet-500/20 text-violet-200/80 px-3 py-2 rounded-lg border border-violet-400/40 hover:bg-violet-500/30 transition-colors ring-1 ring-violet-400/40'>
                         Collect Rent
                       </button>
                       <button className='text-xs bg-blue-500/20 text-blue-300 px-3 py-2 rounded-lg border border-blue-500/30 hover:bg-blue-500/30 transition-colors'>
@@ -289,7 +289,7 @@ const Homepage = async () => {
                     <p className='text-sm text-slate-400 mb-3'>
                       Chasing tenants for payments, sending reminders, tracking who paid what...
                     </p>
-                    <div className='flex items-center gap-2 text-emerald-300 text-sm font-semibold'>
+                    <div className='flex items-center gap-2 text-violet-200/80 text-sm font-semibold'>
                       <ArrowRight className='h-4 w-4' />
                       <span>Solution: Automated online payments with Stripe</span>
                     </div>
@@ -417,9 +417,9 @@ const Homepage = async () => {
                   icon: Building2,
                   title: 'Add Your Properties',
                   description: 'Create properties and units in minutes. Add photos, rent amounts, and amenities.',
-                  iconBg: 'bg-emerald-500/20',
-                  iconBorder: 'border-emerald-500/30',
-                  iconColor: 'text-emerald-400',
+                  iconBg: 'bg-violet-500/20',
+                  iconBorder: 'border-violet-400/40',
+                  iconColor: 'text-violet-300',
                 },
                 {
                   step: '2',
@@ -444,16 +444,16 @@ const Homepage = async () => {
                   icon: CreditCard,
                   title: 'Collect Rent Online',
                   description: 'Tenants pay through Stripe. Money goes directly to your bank account. Automated reminders included.',
-                  iconBg: 'bg-emerald-500/20',
-                  iconBorder: 'border-emerald-500/30',
-                  iconColor: 'text-emerald-400',
+                  iconBg: 'bg-violet-500/20',
+                  iconBorder: 'border-violet-400/40',
+                  iconColor: 'text-violet-300',
                 },
               ].map((item, index) => {
                 const Icon = item.icon;
                 return (
                   <div
                     key={item.step}
-                    className='group rounded-2xl border border-white/10 bg-slate-950/60 p-6 space-y-4 hover:border-emerald-500/40 hover:bg-slate-950/80 transition-all duration-300 hover:scale-105 animate-in fade-in slide-in-from-bottom'
+                    className='group rounded-2xl border border-white/10 bg-slate-950/60 p-6 space-y-4 hover:border-violet-400/60 hover:bg-slate-950/80 transition-all duration-300 hover:scale-105 animate-in fade-in slide-in-from-bottom'
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className='flex items-center gap-3'>
@@ -499,12 +499,12 @@ const Homepage = async () => {
                 return (
                   <div
                     key={feature.title}
-                    className='rounded-xl border border-white/10 bg-slate-950/40 p-5 space-y-3 hover:border-emerald-500/30 hover:bg-slate-950/60 transition-all duration-300 group animate-in fade-in slide-in-from-bottom'
+                    className='rounded-xl border border-white/10 bg-slate-950/40 p-5 space-y-3 hover:border-violet-400/60 hover:bg-slate-950/60 transition-all duration-300 group animate-in fade-in slide-in-from-bottom'
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className='flex items-center gap-3'>
-                      <div className='rounded-lg bg-emerald-500/20 p-2 border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors'>
-                        <Icon className='h-5 w-5 text-emerald-400' />
+                      <div className='rounded-lg bg-violet-500/20 p-2 border border-violet-400/40 group-hover:bg-violet-500/30 transition-colors ring-1 ring-violet-400/40'>
+                        <Icon className='h-5 w-5 text-violet-300' />
                       </div>
                       <h3 className='font-semibold text-white text-sm'>{feature.title}</h3>
                     </div>
@@ -520,7 +520,7 @@ const Homepage = async () => {
         <section className='w-full py-16 md:py-20 px-4'>
           <div className='max-w-5xl mx-auto space-y-12'>
             <div className='text-center space-y-3 animate-in fade-in duration-700'>
-              <div className='inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-1.5 text-emerald-300 text-xs font-medium border border-emerald-500/30'>
+              <div className='inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-violet-200/80 text-xs font-medium border border-white/10 ring-1 ring-white/10'>
                 <Sparkles className='h-3 w-3' />
                 <span>No Credit Card Required</span>
               </div>
@@ -533,49 +533,49 @@ const Homepage = async () => {
             </div>
 
             <div className='grid gap-6 md:grid-cols-3'>
-              <div className='rounded-2xl border-2 border-emerald-500/50 bg-emerald-500/10 p-8 flex flex-col gap-6 relative overflow-hidden'>
-                <div className='absolute top-0 right-0 bg-emerald-500 text-slate-950 px-4 py-1 text-xs font-bold rounded-bl-lg'>
+              <div className='rounded-2xl border-2 border-violet-400/60 bg-violet-500/10 p-8 flex flex-col gap-6 relative overflow-hidden'>
+                <div className='absolute top-0 right-0 bg-violet-500 text-white px-4 py-1 text-xs font-bold rounded-bl-lg'>
                   MOST POPULAR
                 </div>
                 <div className='space-y-2'>
                   <h3 className='text-2xl font-bold text-white'>Free Plan</h3>
-                  <p className='text-emerald-200 text-sm'>Perfect for all landlords</p>
+                  <p className='text-violet-200/80 text-sm'>Perfect for all landlords</p>
                 </div>
                 <div className='space-y-1'>
                   <div className='text-5xl font-bold text-white'>$0</div>
-                  <div className='text-emerald-200 text-sm'>Forever • Up to 24 units</div>
+                  <div className='text-violet-200/80 text-sm'>Forever • Up to 24 units</div>
                 </div>
                 <ul className='space-y-3 text-sm text-white flex-1'>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Up to 24 units</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Online rent payments (Stripe)</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Digital leases & e-signatures</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Maintenance ticket system</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Tenant applications</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Revenue tracking & reports</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Tenant communication portal</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Mobile-friendly dashboard</span>
                   </li>
                 </ul>
@@ -585,7 +585,7 @@ const Homepage = async () => {
                 </div>
                 <Link
                   href='/sign-up'
-                  className='w-full inline-flex items-center justify-center rounded-full bg-emerald-500 text-slate-950 px-6 py-3 text-sm font-bold hover:bg-emerald-400 transition-all duration-300 hover:scale-105'
+                  className='w-full inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-6 py-3 text-sm font-bold hover:bg-violet-400 transition-all duration-300 hover:scale-105'
                 >
                   Start Free Now
                   <ArrowRight className='ml-2 h-4 w-4' />
@@ -603,23 +603,23 @@ const Homepage = async () => {
                 </div>
                 <ul className='space-y-3 text-sm text-slate-300 flex-1'>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Everything in Free</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Advanced analytics & reports</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Automated late fees</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Team access & collaboration</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Priority support</span>
                   </li>
                 </ul>
@@ -646,23 +646,23 @@ const Homepage = async () => {
                 </div>
                 <ul className='space-y-3 text-sm text-slate-300 flex-1'>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Everything in Pro</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Custom branding & subdomains</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>API access</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Dedicated support</span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                    <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
                     <span>Custom integrations</span>
                   </li>
                 </ul>
@@ -682,7 +682,7 @@ const Homepage = async () => {
         </section>
 
         {/* Final CTA */}
-        <section className='w-full py-16 md:py-20 px-4 bg-gradient-to-br from-emerald-500/10 via-blue-500/10 to-purple-500/10'>
+        <section className='w-full py-16 md:py-20 px-4 bg-gradient-to-br from-violet-500/10 via-cyan-500/10 to-purple-500/10'>
           <div className='max-w-4xl mx-auto text-center space-y-8 animate-in fade-in duration-700'>
             <h2 className='text-3xl md:text-5xl font-bold text-white leading-tight'>
               Ready to Stop Chasing Rent?
@@ -693,7 +693,7 @@ const Homepage = async () => {
             <div className='flex flex-wrap items-center justify-center gap-4'>
               <Link
                 href='/sign-up'
-                className='group inline-flex items-center justify-center rounded-full bg-emerald-500 text-slate-950 px-10 py-4 text-lg font-bold shadow-lg hover:bg-emerald-400 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/50'
+                className='group inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-10 py-4 text-lg font-bold shadow-lg hover:bg-violet-400 transition-all duration-300 hover:scale-105 hover:shadow-violet-500/50'
               >
                 Get Started Free
                 <ArrowRight className='ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform' />

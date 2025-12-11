@@ -164,60 +164,60 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
     <div className='space-y-6'>
       {/* Key Metrics */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Total Revenue</CardTitle>
-            <DollarSign className='h-4 w-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>${data.totalRevenue.toLocaleString()}</div>
-            <p className='text-xs text-muted-foreground'>
+        <div className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex flex-col gap-3'>
+          <div className='flex items-center justify-between'>
+            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Total Revenue</span>
+            <DollarSign className='h-4 w-4 text-violet-200/80' />
+          </div>
+          <div>
+            <div className='text-2xl font-semibold text-slate-50'>${data.totalRevenue.toLocaleString()}</div>
+            <p className='text-xs text-slate-300/80 mt-1'>
               <TrendingUp className='inline h-3 w-3 mr-1' />
               +12.5% from last month
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Net Profit</CardTitle>
-            <TrendingUp className='h-4 w-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>${data.netProfit.toLocaleString()}</div>
-            <p className='text-xs text-muted-foreground'>
-              <ArrowUpRight className='inline h-3 w-3 mr-1 text-green-600' />
+        <div className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex flex-col gap-3'>
+          <div className='flex items-center justify-between'>
+            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Net Profit</span>
+            <TrendingUp className='h-4 w-4 text-violet-200/80' />
+          </div>
+          <div>
+            <div className='text-2xl font-semibold text-slate-50'>${data.netProfit.toLocaleString()}</div>
+            <p className='text-xs text-slate-300/80 mt-1'>
+              <ArrowUpRight className='inline h-3 w-3 mr-1 text-green-400' />
               {profitMargin.toFixed(1)}% profit margin
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Occupancy Rate</CardTitle>
-            <Home className='h-4 w-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{(100 - data.vacancyRate).toFixed(1)}%</div>
-            <p className='text-xs text-muted-foreground'>
+        <div className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex flex-col gap-3'>
+          <div className='flex items-center justify-between'>
+            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Occupancy Rate</span>
+            <Home className='h-4 w-4 text-violet-200/80' />
+          </div>
+          <div>
+            <div className='text-2xl font-semibold text-slate-50'>{(100 - data.vacancyRate).toFixed(1)}%</div>
+            <p className='text-xs text-slate-300/80 mt-1'>
               {data.occupiedUnits} of {data.totalUnits} units occupied
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Total Tenants</CardTitle>
-            <Users className='h-4 w-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{data.totalTenants}</div>
-            <p className='text-xs text-muted-foreground'>
-              <ArrowUpRight className='inline h-3 w-3 mr-1 text-green-600' />
+        <div className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex flex-col gap-3'>
+          <div className='flex items-center justify-between'>
+            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Total Tenants</span>
+            <Users className='h-4 w-4 text-violet-200/80' />
+          </div>
+          <div>
+            <div className='text-2xl font-semibold text-slate-50'>{data.totalTenants}</div>
+            <p className='text-xs text-slate-300/80 mt-1'>
+              <ArrowUpRight className='inline h-3 w-3 mr-1 text-green-400' />
               +2 new this month
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Main Content Tabs */}

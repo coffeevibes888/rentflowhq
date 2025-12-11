@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import Stripe from 'stripe';
 import { getLandlordBySubdomain } from '@/lib/actions/landlord.actions';
+import { getConvenienceFeeInCents } from '@/lib/config/platform-fees';
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null) as
-    | { rentPaymentIds?: string[] }
+    | { rentPaymentIds?: string[]; paymentMethodType?: 'ach' | 'card' }
     | null;
 
   if (!body?.rentPaymentIds || !Array.isArray(body.rentPaymentIds) || body.rentPaymentIds.length === 0) {
@@ -86,18 +87,52 @@ export async function POST(req: NextRequest) {
     select: { stripeConnectAccountId: true },
   });
 
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: Math.round(totalAmount * 100),
-    currency: 'USD',
+  // Get convenience fee based on payment method type
+  // Default to 'card' to show the convenience fee, but ACH will be free
+  const paymentMethodType = body.paymentMethodType || 'card';
+  const convenienceFee = getConvenienceFeeInCents(paymentMethodType);
+  const rentAmountInCents = Math.round(totalAmount * 100);
+  const totalWithFee = rentAmountInCents + convenienceFee;
+
+  // Create Payment Intent with dynamic payment method options
+  const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
+    amount: totalWithFee,
+    currency: 'usd',
     metadata: {
       type: 'rent_payment',
       tenantId: session.user.id as string,
       rentPaymentIds: rentPayments.map((p) => p.id).join(','),
       landlordId,
       landlordStripeConnectAccountId: landlord?.stripeConnectAccountId ?? null,
+      rentAmount: rentAmountInCents.toString(),
+      convenienceFee: convenienceFee.toString(),
+      maxConvenienceFee: getConvenienceFeeInCents('card').toString(), // Max possible fee
     },
-    automatic_payment_methods: { enabled: true },
-  });
+    // Enable multiple payment methods including wallets
+    payment_method_types: ['card', 'us_bank_account', 'link'],
+    // Enable automatic payment methods (Apple Pay, Google Pay, etc.)
+    automatic_payment_methods: {
+      enabled: true,
+      allow_redirects: 'never', // Keep everything in-page
+    },
+    // ACH requires customer email for mandate
+    receipt_email: session.user.email || undefined,
+    // Enable setup for future recurring payments
+    setup_future_usage: 'off_session', // Allows saving payment method for recurring
+  };
+
+  // If landlord has Stripe Connect account, charge them directly with application fee
+  if (landlord?.stripeConnectAccountId) {
+    // The convenience fee is the application fee that goes to platform
+    paymentIntentParams.application_fee_amount = convenienceFee;
+    paymentIntentParams.on_behalf_of = landlord.stripeConnectAccountId;
+    // Transfer remaining funds (rent amount) to landlord's connected account
+    paymentIntentParams.transfer_data = {
+      destination: landlord.stripeConnectAccountId,
+    };
+  }
+
+  const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
   await prisma.rentPayment.updateMany({
     where: { id: { in: rentPayments.map((p) => p.id) } },
@@ -106,5 +141,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     clientSecret: paymentIntent.client_secret,
+    convenienceFee: convenienceFee / 100, // Return as dollars
+    rentAmount: totalAmount,
+    totalAmount: totalWithFee / 100,
   });
 }

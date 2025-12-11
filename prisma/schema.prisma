@@ -534,6 +534,27 @@ model Landlord {
   properties Property[]
   payouts    Payout[]
   platformFees PlatformFee[]
+  savedPayoutMethods SavedPayoutMethod[]
+}
+
+model SavedPayoutMethod {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId            String   @db.Uuid
+  stripePaymentMethodId String   @unique
+  type                  String   // 'bank_account' or 'card' (for instant payouts)
+  accountHolderName     String?
+  last4                 String
+  bankName              String?
+  accountType           String?  // 'checking' or 'savings'
+  routingNumber         String?
+  isDefault             Boolean  @default(false)
+  isVerified            Boolean  @default(false)
+  createdAt             DateTime @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime @updatedAt
+  landlord              Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+
+  @@index([landlordId])
+  @@index([stripePaymentMethodId])
 }
 
 model Property {
@@ -601,9 +622,12 @@ model RentPayment {
   dueDate       DateTime @db.Timestamp(6)
   paidAt        DateTime? @db.Timestamp(6)
   amount        Decimal  @db.Decimal(12, 2)
-  status        String   @default("pending") // pending, paid, failed, overdue
+  status        String   @default("pending") // pending, processing, paid, failed, overdue
   stripePaymentIntentId String?
   stripeInvoiceId       String?
+  paymentMethod String?  // card, us_bank_account, apple_pay, google_pay, link
+  convenienceFee Decimal? @default(0) @db.Decimal(12, 2)
+  isRecurring   Boolean  @default(false)
   metadata      Json?    @db.Json
   createdAt     DateTime @default(now()) @db.Timestamp(6)
   updatedAt     DateTime @updatedAt

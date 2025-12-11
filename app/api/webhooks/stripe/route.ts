@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     process.env.STRIPE_WEBHOOK_SECRET as string
   );
 
+  // Handle charge.succeeded for card payments and settled ACH payments
   if (event.type === 'charge.succeeded') {
     const charge = event.data.object as Stripe.Charge;
 
@@ -36,6 +37,12 @@ export async function POST(req: NextRequest) {
 
     if (paymentIntentId) {
       const now = new Date();
+      
+      // Get payment method details from the charge
+      const paymentMethodType = charge.payment_method_details?.type || 'unknown';
+      const convenienceFee = charge.metadata?.convenienceFee 
+        ? parseFloat(charge.metadata.convenienceFee) / 100 
+        : 0;
 
       await prisma.rentPayment.updateMany({
         where: {
@@ -44,16 +51,58 @@ export async function POST(req: NextRequest) {
         data: {
           status: 'paid',
           paidAt: now,
+          paymentMethod: paymentMethodType,
+          convenienceFee: convenienceFee,
         },
       });
     }
 
     return NextResponse.json({
-      message: 'Webhook processed',
+      message: 'Webhook processed: charge.succeeded',
+    });
+  }
+
+  // Handle payment_intent.processing for ACH payments (takes 5-7 days)
+  if (event.type === 'payment_intent.processing') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+    if (paymentIntent.metadata?.type === 'rent_payment') {
+      await prisma.rentPayment.updateMany({
+        where: {
+          stripePaymentIntentId: paymentIntent.id,
+        },
+        data: {
+          status: 'processing',
+        },
+      });
+    }
+
+    return NextResponse.json({
+      message: 'Webhook processed: payment_intent.processing',
+    });
+  }
+
+  // Handle payment_intent.payment_failed for ACH failures
+  if (event.type === 'payment_intent.payment_failed') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+    if (paymentIntent.metadata?.type === 'rent_payment') {
+      await prisma.rentPayment.updateMany({
+        where: {
+          stripePaymentIntentId: paymentIntent.id,
+        },
+        data: {
+          status: 'failed',
+        },
+      });
+    }
+
+    return NextResponse.json({
+      message: 'Webhook processed: payment_intent.payment_failed',
     });
   }
 
   return NextResponse.json({
-    message: 'event is not charge.succeeded',
+    message: 'Webhook event not handled: ' + event.type,
   });
 }

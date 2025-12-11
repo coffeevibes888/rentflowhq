@@ -215,7 +215,26 @@ export default async function UserProfileRentReceiptsPage() {
                           <td className='px-3 py-2 align-top text-gray-100'>
                             {formatCurrency(p.amount.toString())}
                           </td>
-                          <td className='px-3 py-2 align-top text-gray-100 capitalize'>{p.status}</td>
+                          <td className='px-3 py-2 align-top text-gray-100'>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                              p.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300' :
+                              p.status === 'processing' ? 'bg-blue-500/20 text-blue-300' :
+                              p.status === 'failed' ? 'bg-red-500/20 text-red-300' :
+                              p.status === 'overdue' ? 'bg-amber-500/20 text-amber-300' :
+                              'bg-slate-500/20 text-slate-300'
+                            }`}>
+                              {p.status === 'processing' && (
+                                <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                              )}
+                              {p.status}
+                            </span>
+                            {p.status === 'processing' && (
+                              <p className='text-[10px] text-blue-300 mt-1'>ACH payment clearing (5-7 days)</p>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

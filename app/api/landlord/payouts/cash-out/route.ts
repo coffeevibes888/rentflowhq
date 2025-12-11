@@ -70,10 +70,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const formData = await req.formData().catch(() => null);
-    const typeRaw = formData?.get('type');
-    const payoutType = typeRaw === 'instant' ? 'instant' : 'standard';
-    const fee = payoutType === 'instant' ? 2 : 0;
+    const body = await req.json().catch(() => ({}));
+    const payoutType = body.type === 'instant' ? 'instant' : 'standard';
+    
+    // Calculate fees based on payout type
+    // Instant: 1.5% (Stripe's instant payout fee, capped at $10)
+    // Standard: Free (arrives in 2-3 business days)
+    let fee = 0;
+    if (payoutType === 'instant') {
+      fee = Math.min(totalAmount * 0.015, 10); // 1.5% capped at $10
+    }
+    
     const netAmount = totalAmount - fee;
 
     if (!netAmount || netAmount <= 0) {
@@ -124,22 +131,30 @@ export async function POST(req: NextRequest) {
       return payout;
     });
 
-    const transfer = await stripe.transfers.create({
-      amount: Math.round(netAmount * 100),
-      currency: 'usd',
-      destination: landlord.stripeConnectAccountId!,
-      metadata: {
-        landlordId: landlord.id,
-        payoutId: payoutRecord.id,
+    // Create Stripe payout to Connected Account
+    // For instant payouts, Stripe will attempt instant transfer to debit card
+    // For standard, it takes 2-3 business days
+    const stripePayout = await stripe.payouts.create(
+      {
+        amount: Math.round(netAmount * 100),
+        currency: 'usd',
+        method: payoutType, // 'instant' or 'standard'
+        metadata: {
+          landlordId: landlord.id,
+          payoutId: payoutRecord.id,
+        },
       },
-    });
+      {
+        stripeAccount: landlord.stripeConnectAccountId!,
+      }
+    );
 
     await prisma.payout.update({
       where: { id: payoutRecord.id },
       data: {
-        status: 'paid',
-        paidAt: new Date(),
-        stripeTransferId: transfer.id,
+        status: stripePayout.status === 'paid' ? 'paid' : 'processing',
+        paidAt: stripePayout.status === 'paid' ? new Date() : null,
+        stripeTransferId: stripePayout.id,
       },
     });
 
