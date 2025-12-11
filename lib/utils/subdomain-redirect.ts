@@ -75,11 +75,10 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
           where: { ownerUserId: userId },
         });
 
-        if (landlordRecord?.subdomain && landlordRecord.useSubdomain) {
-          const rootDomain = rawApex || 'localhost:3000';
-          return `https://${landlordRecord.subdomain}.${rootDomain}/admin`;
+        if (landlordRecord?.subdomain && landlordRecord.useSubdomain && rawApex) {
+          return `https://${landlordRecord.subdomain}.${rawApex}/admin`;
         }
-        return '/admin';
+        return '/admin/overview';
       case 'property_manager':
         // For now, redirect property managers to main admin dashboard
         // TODO: Implement property manager to landlord association when schema supports it
@@ -102,11 +101,10 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
           },
         });
 
-        if (tenantLease?.unit?.property?.landlord?.subdomain && tenantLease.unit.property.landlord.useSubdomain) {
-          const rootDomain = rawApex || 'localhost:3000';
-          return `https://${tenantLease.unit.property.landlord.subdomain}.${rootDomain}/user`;
+        if (tenantLease?.unit?.property?.landlord?.subdomain && tenantLease.unit.property.landlord.useSubdomain && rawApex) {
+          return `https://${tenantLease.unit.property.landlord.subdomain}.${rawApex}/user`;
         }
-        return '/user';
+        return '/user/dashboard';
       default:
         return '/';
     }
