@@ -2,48 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import Stripe from 'stripe';
-import { getLandlordBySubdomain } from '@/lib/actions/landlord.actions';
 import { getConvenienceFeeInCents } from '@/lib/config/platform-fees';
 
+/**
+ * Rent checkout API - works with path-based routing
+ * Landlord is determined from the rent payment's property, not from subdomain
+ */
 export async function POST(req: NextRequest) {
   const session = await auth();
 
   if (!session?.user?.id) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
-  const host = req.headers.get('host') || '';
-  const apex = process.env.NEXT_PUBLIC_ROOT_DOMAIN || '';
-
-  const bareHost = host.split(':')[0].toLowerCase();
-  const apexLower = apex.split(':')[0].toLowerCase(); // Strip port from apex too
-
-  let landlordId: string | null = null;
-  let subdomain: string | null = null;
-
-  // Handle localhost subdomains (e.g., subdomain.localhost:3000)
-  if (bareHost.endsWith('.localhost')) {
-    subdomain = bareHost.slice(0, bareHost.length - '.localhost'.length);
-  }
-  // Handle production subdomains (e.g., subdomain.domain.com)
-  else if (apexLower && bareHost.endsWith(`.${apexLower}`) && bareHost !== apexLower) {
-    subdomain = bareHost.slice(0, bareHost.length - apexLower.length - 1);
-  }
-
-  console.log('[rent/checkout] host:', host, 'bareHost:', bareHost, 'subdomain:', subdomain);
-
-  if (subdomain) {
-    const landlordResult = await getLandlordBySubdomain(subdomain);
-    console.log('[rent/checkout] landlordResult:', landlordResult);
-
-    if (!landlordResult.success) {
-      return NextResponse.json(
-        { message: landlordResult.message || 'Landlord not found for this subdomain.' },
-        { status: 404 }
-      );
-    }
-
-    landlordId = landlordResult.landlord.id;
   }
 
   const body = await req.json().catch(() => null) as
@@ -54,9 +23,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'No rent payments specified' }, { status: 400 });
   }
 
-  // Build the query - if we have a landlordId from subdomain, filter by it
-  // Otherwise, just verify the rent payments belong to the tenant
-  const rentPaymentQuery: Parameters<typeof prisma.rentPayment.findMany>[0] = {
+  // Get rent payments for this tenant
+  const rentPayments = await prisma.rentPayment.findMany({
     where: {
       id: { in: body.rentPaymentIds },
       tenantId: session.user.id as string,
@@ -73,35 +41,17 @@ export async function POST(req: NextRequest) {
         },
       },
     },
-  };
-
-  // If we have landlordId from subdomain, add that filter
-  if (landlordId) {
-    rentPaymentQuery.where = {
-      ...rentPaymentQuery.where,
-      lease: {
-        unit: {
-          property: {
-            landlordId,
-          },
-        },
-      },
-    };
-  }
-
-  const rentPayments = await prisma.rentPayment.findMany(rentPaymentQuery);
+  });
 
   if (rentPayments.length === 0) {
     return NextResponse.json({ message: 'No pending rent payments found' }, { status: 400 });
   }
 
-  // If we didn't have a landlordId from subdomain, get it from the first rent payment
-  if (!landlordId) {
-    const firstPayment = rentPayments[0] as typeof rentPayments[0] & {
-      lease: { unit: { property: { landlordId: string } } };
-    };
-    landlordId = firstPayment.lease?.unit?.property?.landlordId || null;
-  }
+  // Get landlordId from the rent payment's property
+  const firstPayment = rentPayments[0] as typeof rentPayments[0] & {
+    lease: { unit: { property: { landlordId: string } } };
+  };
+  const landlordId = firstPayment.lease?.unit?.property?.landlordId || null;
 
   if (!landlordId) {
     return NextResponse.json({ message: 'Could not determine landlord for payment' }, { status: 400 });

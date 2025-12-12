@@ -50,52 +50,23 @@ export default async function SubdomainRootPage({
 
   const session = await auth();
 
-  // Handle redirects for authenticated users
-  if (session?.user?.id && session.user.role) {
-    // If landlord/property manager owns this subdomain, redirect to admin dashboard
-    if ((session.user.role === 'landlord' || session.user.role === 'property_manager') && landlord.ownerUserId === session.user.id) {
-      const headersList = await headers();
-      const host = headersList.get('host') || '';
-      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'rooms4rentlv.com';
-      const isLocalhost = host.includes('localhost');
-      const protocol = isLocalhost ? 'http' : 'https';
-      const port = isLocalhost && host.includes(':') ? `:${host.split(':')[1]}` : '';
-      
-      if (isLocalhost) {
-        redirect(`${protocol}://localhost${port}/admin/overview`);
-      } else {
-        redirect(`${protocol}://${rootDomain}/admin/overview`);
-      }
-    }
-
-    // If tenant is logged in and belongs to this landlord, redirect to tenant dashboard
-    if (session.user.role === 'tenant') {
-      const tenantLease = await prisma.lease.findFirst({
-        where: {
-          tenantId: session.user.id,
-          status: 'active',
-          unit: {
-            property: {
-              landlordId: landlord.id,
-            },
+  // Note: We allow landlords to view their own portal (for preview purposes)
+  // Only redirect tenants who already have an active lease with this landlord
+  if (session?.user?.id && session.user.role === 'tenant') {
+    const tenantLease = await prisma.lease.findFirst({
+      where: {
+        tenantId: session.user.id,
+        status: 'active',
+        unit: {
+          property: {
+            landlordId: landlord.id,
           },
         },
-      }).catch(() => null);
+      },
+    }).catch(() => null);
 
-      if (tenantLease) {
-        const headersList = await headers();
-        const host = headersList.get('host') || '';
-        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'rooms4rentlv.com';
-        const isLocalhost = host.includes('localhost');
-        const protocol = isLocalhost ? 'http' : 'https';
-        const port = isLocalhost && host.includes(':') ? `:${host.split(':')[1]}` : '';
-        
-        if (isLocalhost) {
-          redirect(`${protocol}://localhost${port}/user/dashboard`);
-        } else {
-          redirect(`${protocol}://${rootDomain}/user/dashboard`);
-        }
-      }
+    if (tenantLease) {
+      redirect('/user/dashboard');
     }
   }
 

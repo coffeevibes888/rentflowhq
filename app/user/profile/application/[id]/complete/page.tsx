@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 const applicationSchema = z.object({
@@ -53,6 +53,7 @@ export default function CompleteApplicationPage({
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [showSsn, setShowSsn] = useState(false);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -352,12 +353,27 @@ export default function CompleteApplicationPage({
 
             <div className='space-y-2'>
               <Label htmlFor='ssn' className='text-slate-200'>Social Security Number *</Label>
-              <Input
-                id='ssn'
-                {...form.register('ssn')}
-                placeholder='XXX-XX-XXXX'
-                className='bg-slate-800 border-slate-700 text-slate-50'
-              />
+              <div className='relative'>
+                <Input
+                  id='ssn'
+                  type={showSsn ? 'text' : 'password'}
+                  {...form.register('ssn')}
+                  placeholder='XXX-XX-XXXX'
+                  className='bg-slate-800 border-slate-700 text-slate-50 pr-10'
+                />
+                <button
+                  type='button'
+                  onClick={() => setShowSsn(!showSsn)}
+                  className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors'
+                  tabIndex={-1}
+                >
+                  {showSsn ? (
+                    <EyeOff className='h-4 w-4' />
+                  ) : (
+                    <Eye className='h-4 w-4' />
+                  )}
+                </button>
+              </div>
               {form.formState.errors.ssn && (
                 <p className='text-xs text-red-400'>{form.formState.errors.ssn.message}</p>
               )}

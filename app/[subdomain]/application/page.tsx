@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CheckCircle2, ArrowRight, Shield, Zap } from "lucide-react";
+import { CheckCircle2, ArrowRight, Shield, Zap, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
 const applicationSchema = z.object({
@@ -55,6 +55,7 @@ export default function SubdomainApplicationPage() {
 
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSsn, setShowSsn] = useState(false);
 
   // Redirect to sign-up if not authenticated or not a tenant
   useEffect(() => {
@@ -409,12 +410,26 @@ export default function SubdomainApplicationPage() {
                     <FormItem>
                       <FormLabel className="text-slate-200">SSN</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Social Security Number" 
-                          type="password"
-                          {...field}
-                          className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                        />
+                        <div className="relative">
+                          <Input 
+                            placeholder="Social Security Number" 
+                            type={showSsn ? "text" : "password"}
+                            {...field}
+                            className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400 pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowSsn(!showSsn)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                            tabIndex={-1}
+                          >
+                            {showSsn ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
                       </FormControl>
                       <p className="text-xs text-slate-300/80 mt-1">
                         Your SSN is encrypted and stored securely. We use it for background checks only.

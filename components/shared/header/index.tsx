@@ -6,33 +6,19 @@ import { getCategoryTree } from '@/lib/actions/product.actions';
 import { prisma } from '@/db/prisma';
 import { headers } from 'next/headers';
 
+/**
+ * Get landlord from path-based routing (x-landlord-slug header set by middleware)
+ * For path-based "subdomains" like /love-your-god/...
+ */
 async function getLandlordForRequest() {
   const headersList = await headers();
-  const host = headersList.get('host') || '';
-  const rawApex = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+  
+  // Get landlord slug from middleware header (path-based routing)
+  const landlordSlug = headersList.get('x-landlord-slug');
+  
+  if (!landlordSlug) return null;
 
-  const bareHost = host.split(':')[0].toLowerCase();
-  let subdomain: string | null = null;
-
-  if (rawApex) {
-    let apex = rawApex.trim().toLowerCase();
-    if (apex.startsWith('http://')) apex = apex.slice(7);
-    if (apex.startsWith('https://')) apex = apex.slice(8);
-    if (apex.endsWith('/')) apex = apex.slice(0, -1);
-    const apexBase = apex.split(':')[0];
-
-    if (bareHost !== apexBase && bareHost.endsWith(`.${apexBase}`)) {
-      subdomain = bareHost.slice(0, bareHost.length - apexBase.length - 1);
-    }
-  }
-
-  if (!subdomain && bareHost.endsWith('.localhost')) {
-    subdomain = bareHost.slice(0, bareHost.length - '.localhost'.length);
-  }
-
-  if (!subdomain) return null;
-
-  const landlord = await prisma.landlord.findUnique({ where: { subdomain } });
+  const landlord = await prisma.landlord.findUnique({ where: { subdomain: landlordSlug } });
   return landlord;
 }
 

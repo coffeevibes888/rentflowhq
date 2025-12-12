@@ -1,82 +1,54 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+/**
+ * Middleware for path-based "subdomain" routing
+ * 
+ * Since we're on Vercel Hobby (no wildcard custom domains), we use path-based routing:
+ * - rooms4rentlv.com/[landlord-slug]/... for tenant-facing pages
+ * - rooms4rentlv.com/admin/... for landlord admin
+ * - rooms4rentlv.com/user/... for tenant dashboard
+ * 
+ * The [subdomain] dynamic route folder handles /[landlord-slug]/... paths automatically.
+ * This middleware just ensures proper header passing and basic routing.
+ */
 export function middleware(req: NextRequest) {
-  const host = req.headers.get('host') || '';
   const url = req.nextUrl.clone();
+  const path = url.pathname;
 
   // Skip middleware for API routes and static files
-  if (url.pathname.startsWith('/api/') ||
-      url.pathname.startsWith('/_next/') ||
-      url.pathname.includes('.')) {
+  if (path.startsWith('/api/') ||
+      path.startsWith('/_next/') ||
+      path.includes('.')) {
     return NextResponse.next();
   }
 
-  // Handle subdomain routing
-  const subdomain = getSubdomain(host);
+  // Extract landlord slug from path if present (e.g., /love-your-god/... -> love-your-god)
+  // This is for path-based "subdomain" routing
+  const pathParts = path.split('/').filter(Boolean);
+  const potentialSlug = pathParts[0];
+  
+  // Known top-level routes that are NOT landlord slugs
+  const reservedRoutes = [
+    'admin', 'user', 'super-admin', 'onboarding', 'sign-in', 'sign-up',
+    'verify-email', 'forgot-password', 'reset-password', 'unauthorized',
+    'about', 'blog', 'contact', 'cart', 'checkout', 'products', 'product',
+    'search', 'order', 'shipping-address', 'place-order', 'payment-method',
+    'verify-payment-method', 'application', 'chat'
+  ];
 
-  if (subdomain) {
-    // Add subdomain to headers so pages can access it
+  // If first path segment looks like a landlord slug (not a reserved route)
+  if (potentialSlug && !reservedRoutes.includes(potentialSlug)) {
+    // Add the slug to headers so pages can access it
     const requestHeaders = new Headers(req.headers);
-    requestHeaders.set('x-subdomain', subdomain);
+    requestHeaders.set('x-landlord-slug', potentialSlug);
 
-    // Determine if path should be handled by subdomain storefront
-    const path = url.pathname;
-    const isProtectedOrAuthPath =
-      path.startsWith('/admin') ||
-      path.startsWith('/user') ||
-      path.startsWith('/super-admin') ||
-      path.startsWith('/onboarding') ||
-      path.startsWith('/sign-in') ||
-      path.startsWith('/sign-up') ||
-      path.startsWith('/verify-email') ||
-      path.startsWith('/forgot-password') ||
-      path.startsWith('/reset-password');
-
-    if (!isProtectedOrAuthPath) {
-      // Rewrite to the dynamic route with subdomain context for public/storefront paths only
-      // The [subdomain] folder structure expects paths like /[subdomain]/... for public pages
-      url.pathname = `/${subdomain}${url.pathname}`;
-
-      return NextResponse.rewrite(url, {
-        request: {
-          headers: requestHeaders,
-        },
-      });
-    }
-    // For protected/auth paths, do not rewrite; let main domain handle them
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
   return NextResponse.next();
-}
-
-function getSubdomain(host: string): string | null {
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'rooms4rentlv.com';
-  const bareHost = host.split(':')[0].toLowerCase();
-
-  // Handle localhost subdomains (e.g., ilovegod.localhost:3000)
-  if (bareHost.includes('localhost')) {
-    const parts = bareHost.split('.');
-    // If it's a subdomain like "subdomain.localhost", extract the subdomain
-    if (parts.length > 1 && parts[0] !== 'localhost' && parts[0] !== 'www') {
-      return parts[0];
-    }
-    // If it's just "localhost", return null (main domain)
-    return null;
-  }
-
-  // Handle production subdomains (e.g., subdomain.rooms4rentlv.com)
-  if (bareHost === rootDomain) {
-    return null; // Main domain
-  }
-
-  if (bareHost.endsWith(`.${rootDomain}`)) {
-    const subdomain = bareHost.slice(0, bareHost.length - rootDomain.length - 1);
-    // Skip www subdomain
-    if (subdomain && subdomain !== 'www') {
-      return subdomain;
-    }
-  }
-
-  return null;
 }

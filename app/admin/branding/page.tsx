@@ -2,8 +2,6 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { getOrCreateCurrentLandlord, uploadLandlordLogo, updateCustomDomain } from '@/lib/actions/landlord.actions';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
-import { getRootDomainFromHost, getProtocol } from '@/lib/utils/domain-utils';
 import SubdomainForm from '@/components/admin/subdomain-form';
 import DomainSearch from '@/components/admin/domain-search';
 import { Image, Globe, Palette } from 'lucide-react';
@@ -23,11 +21,8 @@ const AdminBrandingPage = async () => {
 
   const landlord = landlordResult.landlord;
   
-  // Get root domain from request headers (works in production)
-  const headersList = await headers();
-  const host = headersList.get('host') || '';
-  const rootDomain = getRootDomainFromHost(host);
-  const protocol = getProtocol(host);
+  // Base URL for production (path-based routing, not subdomain)
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://www.rooms4rentlv.com';
 
   const handleLogoUpload = async (formData: FormData) => {
     'use server';
@@ -121,29 +116,31 @@ const AdminBrandingPage = async () => {
           </div>
         </section>
 
-        {/* Subdomain Section */}
+        {/* Portal Slug Section */}
         <section className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors'>
           <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
             <Globe className='h-4 w-4' />
           </div>
           <div className='flex-1 space-y-4'>
             <div className='space-y-1'>
-              <h2 className='text-sm font-semibold text-slate-50'>Subdomain</h2>
+              <h2 className='text-sm font-semibold text-slate-50'>Portal URL Slug</h2>
               <p className='text-xs text-slate-300/80'>
-                Your free subdomain where tenants can view listings, apply, and pay rent online.
+                Your unique URL slug where tenants can view listings, apply, and pay rent online.
               </p>
             </div>
 
-          <SubdomainForm currentSubdomain={landlord.subdomain} rootDomain={rootDomain} />
+          <SubdomainForm currentSubdomain={landlord.subdomain} baseUrl={baseUrl} />
 
             {landlord.subdomain && (
               <p className='text-xs text-slate-200/90'>
-                Current URL:{' '}
+                Your tenant portal:{' '}
                 <a
-                  href={`${protocol}://${landlord.subdomain}.${rootDomain}`}
+                  href={`${baseUrl}/${landlord.subdomain}`}
+                  target='_blank'
+                  rel='noopener noreferrer'
                   className='font-mono text-violet-200/80 hover:text-violet-100 transition-colors'
                 >
-                  {`${protocol}://${landlord.subdomain}.${rootDomain}`}
+                  {`${baseUrl}/${landlord.subdomain}`}
                 </a>
               </p>
             )}

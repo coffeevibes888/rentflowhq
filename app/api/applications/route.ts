@@ -2,51 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/db/prisma";
 import { auth } from "@/auth";
-import { getLandlordBySubdomain } from "@/lib/actions/landlord.actions";
 import { rentalApplicationSchema } from "@/lib/validators";
 import { encryptField } from "@/lib/encrypt";
 
+/**
+ * Applications API - works with path-based routing
+ * Landlord is determined from the propertySlug in the request body
+ */
 export async function POST(req: NextRequest) {
   try {
-    const host = req.headers.get("host") || "";
-    const apex = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "";
-
-    const bareHost = host.split(":")[0].toLowerCase();
-    const apexLower = apex.toLowerCase();
-
-    let landlordId: string | null = null;
-    let subdomain: string | null = null;
-
-    // Production-style subdomain: subdomain.apex
-    if (apexLower && bareHost.endsWith(`.${apexLower}`) && bareHost !== apexLower) {
-      subdomain = bareHost.slice(0, bareHost.length - apexLower.length - 1);
-    }
-
-    // Localhost-style subdomain: subdomain.localhost
-    if (!subdomain && bareHost.endsWith('.localhost') && bareHost !== 'localhost') {
-      subdomain = bareHost.slice(0, -'.localhost'.length);
-    }
-
-    if (subdomain) {
-      const landlordResult = await getLandlordBySubdomain(subdomain);
-
-      if (!landlordResult.success) {
-        return NextResponse.json(
-          { success: false, message: landlordResult.message || "Landlord not found for this subdomain." },
-          { status: 404 }
-        );
-      }
-
-      landlordId = landlordResult.landlord.id;
-    }
-
-    if (!landlordId) {
-      return NextResponse.json(
-        { success: false, message: "Missing or invalid landlord context for this request." },
-        { status: 400 }
-      );
-    }
-
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -74,19 +38,19 @@ export async function POST(req: NextRequest) {
 
     const data = validationResult.data;
 
-    // Verify the property belongs to this landlord (if propertySlug is provided)
+    // Verify the property exists (if propertySlug is provided)
+    let property = null;
     if (data.propertySlug) {
-      const property = await prisma.property.findFirst({
+      property = await prisma.property.findFirst({
         where: {
           slug: data.propertySlug,
-          landlordId,
         },
       });
 
       if (!property) {
         return NextResponse.json(
-          { success: false, message: "Property not found or does not belong to this landlord" },
-          { status: 403 }
+          { success: false, message: "Property not found" },
+          { status: 404 }
         );
       }
     }
@@ -115,14 +79,13 @@ export async function POST(req: NextRequest) {
 
     const applicantId = session.user.id as string;
 
-    // Verify applicant is not trying to apply to a property they don't have access to
+    // Find an available unit for the property
     const unit = data.propertySlug
       ? await prisma.unit.findFirst({
           where: {
             isAvailable: true,
             property: {
               slug: data.propertySlug,
-              landlordId,
             },
           },
           orderBy: { createdAt: "asc" },
