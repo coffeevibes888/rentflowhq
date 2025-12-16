@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { trackPageView } from '@/lib/actions/analytics.actions';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
     const { path, referrer } = await request.json();
 
-    const sessionCartId = request.cookies.get('sessionCartId')?.value;
+    let sessionCartId = request.cookies.get('sessionCartId')?.value;
     const country = request.headers.get('x-vercel-ip-country');
     const region = request.headers.get('x-vercel-ip-country-region');
     const city = request.headers.get('x-vercel-ip-city');
     const userAgent = request.headers.get('user-agent');
 
-    if (!sessionCartId || !path) {
+    if (!path) {
       return NextResponse.json({ ok: false }, { status: 400 });
+    }
+
+    const res = NextResponse.json({ ok: true });
+
+    if (!sessionCartId) {
+      sessionCartId = randomUUID();
+      res.cookies.set('sessionCartId', sessionCartId, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30,
+      });
     }
 
     // User ID (if logged in) is already associated with the sessionCartId via auth
@@ -27,7 +41,7 @@ export async function POST(request: NextRequest) {
       userAgent: userAgent || null,
     });
 
-    return NextResponse.json({ ok: true });
+    return res;
   } catch (error) {
     console.error('Error in analytics track route', error);
     return NextResponse.json({ ok: false }, { status: 500 });

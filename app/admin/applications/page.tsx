@@ -4,6 +4,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Admin Applications',
@@ -74,6 +75,35 @@ const AdminApplicationsPage = async () => {
     }
   }
 
+  const renderStatusPill = (app: (typeof applications)[number]) => {
+    const unitHasApproved = app.unitId ? approvedByUnit[app.unitId] : false;
+
+    if (app.status === 'approved') {
+      return (
+        <span className='inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-1 text-[11px] font-medium text-emerald-200/90 border border-emerald-400/40 capitalize'>
+          <span className='h-1.5 w-1.5 rounded-full bg-emerald-400' />
+          Approved
+        </span>
+      );
+    }
+
+    if (unitHasApproved) {
+      return (
+        <span className='inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-1 text-[11px] font-medium text-red-200/90 border border-red-400/40 capitalize'>
+          <span className='h-1.5 w-1.5 rounded-full bg-red-400' />
+          {app.status}
+        </span>
+      );
+    }
+
+    return (
+      <span className='inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-medium text-slate-200/90 border border-white/10 capitalize ring-1 ring-white/10'>
+        <span className='h-1.5 w-1.5 rounded-full bg-slate-400' />
+        {app.status}
+      </span>
+    );
+  };
+
   return (
     <main className='w-full px-4 py-8 md:px-0'>
       <div className='max-w-6xl mx-auto space-y-6'>
@@ -83,7 +113,7 @@ const AdminApplicationsPage = async () => {
         </div>
 
         <div className='rounded-xl border border-white/10 bg-slate-900/60 shadow-sm overflow-hidden'>
-          <div className='overflow-x-auto'>
+          <div className='hidden md:block overflow-x-auto'>
             <table className='min-w-full text-sm'>
             <thead className='bg-slate-900/80 border-b border-white/10'>
               <tr>
@@ -119,34 +149,7 @@ const AdminApplicationsPage = async () => {
                     {app.monthlyIncome ? formatCurrency(Number(app.monthlyIncome)) : '—'}
                   </td>
                   <td className='px-4 py-2 align-top text-xs'>
-                    {(() => {
-                      const unitHasApproved = app.unitId ? approvedByUnit[app.unitId] : false;
-
-                      if (app.status === 'approved') {
-                        return (
-                          <span className='inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-1 text-[11px] font-medium text-emerald-200/90 border border-emerald-400/40 capitalize'>
-                            <span className='h-1.5 w-1.5 rounded-full bg-emerald-400' />
-                            Approved
-                          </span>
-                        );
-                      }
-
-                      if (unitHasApproved) {
-                        return (
-                          <span className='inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-1 text-[11px] font-medium text-red-200/90 border border-red-400/40 capitalize'>
-                            <span className='h-1.5 w-1.5 rounded-full bg-red-400' />
-                            {app.status}
-                          </span>
-                        );
-                      }
-
-                      return (
-                        <span className='inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-medium text-slate-200/90 border border-white/10 capitalize ring-1 ring-white/10'>
-                          <span className='h-1.5 w-1.5 rounded-full bg-slate-400' />
-                          {app.status}
-                        </span>
-                      );
-                    })()}
+                    {renderStatusPill(app)}
                   </td>
                   <td className='px-4 py-2 align-top text-xs'>
                     <Link
@@ -161,6 +164,42 @@ const AdminApplicationsPage = async () => {
             </tbody>
           </table>
           </div>
+          <div className='md:hidden divide-y divide-white/10'>
+            {applications.length === 0 ? (
+              <p className='px-4 py-6 text-center text-sm text-slate-400'>No applications yet.</p>
+            ) : (
+              applications.map((app) => (
+                <div key={app.id} className='px-4 py-4 flex flex-col gap-3'>
+                  <div className='flex items-start justify-between gap-3'>
+                    <div className='space-y-1'>
+                      <p className='text-base font-semibold text-slate-50'>{app.fullName || app.applicant?.name || 'Applicant'}</p>
+                      <p className='text-xs text-slate-300'>{app.email || app.applicant?.email || '—'}</p>
+                    </div>
+                    {renderStatusPill(app)}
+                  </div>
+                  <div className='grid grid-cols-1 gap-2 text-xs text-slate-300'>
+                    <InfoRow label='Unit / property' value={formatUnitLabel(app)} />
+                    <InfoRow
+                      label='Submitted'
+                      value={new Date(app.createdAt).toLocaleString()}
+                    />
+                    <InfoRow
+                      label='Monthly income'
+                      value={app.monthlyIncome ? formatCurrency(Number(app.monthlyIncome)) : '—'}
+                    />
+                  </div>
+                  <div>
+                    <Link
+                      href={`/admin/applications/${app.id}`}
+                      className='inline-flex w-full items-center justify-center rounded-full bg-violet-500 px-3 py-2 text-sm font-medium text-white hover:bg-violet-400 transition-colors'
+                    >
+                      Open application
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </main>
@@ -168,3 +207,10 @@ const AdminApplicationsPage = async () => {
 };
 
 export default AdminApplicationsPage;
+
+const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className='flex flex-col rounded-lg border border-white/5 bg-slate-900/40 p-3'>
+    <span className='text-[11px] uppercase tracking-wide text-slate-400'>{label}</span>
+    <span className={cn('text-sm text-slate-100', typeof value === 'string' && value === '—' ? 'text-slate-400' : '')}>{value}</span>
+  </div>
+);

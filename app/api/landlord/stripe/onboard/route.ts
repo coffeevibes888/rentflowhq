@@ -19,7 +19,7 @@ export async function GET(_req: NextRequest) {
 
     if (!stripeSecretKey) {
       return NextResponse.json(
-        { success: false, message: 'Stripe configuration is missing on the server.' },
+        { success: false, message: 'Payout verification is not configured on the server.' },
         { status: 500 }
       );
     }
@@ -88,7 +88,7 @@ export async function GET(_req: NextRequest) {
   } catch (error) {
     console.error('Error creating Stripe Connect onboarding link:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to create or fetch Stripe Connect account.' },
+      { success: false, message: 'Failed to start secure payout verification.' },
       { status: 500 }
     );
   }

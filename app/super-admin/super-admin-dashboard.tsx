@@ -69,8 +69,15 @@ type OverviewSummary = {
 };
 type StoreSummary = OverviewSummary & { latestSales: LatestSale[] };
 type RentTotals = { day: number; week: number; month: number; year: number };
-type LandlordPortfolio = { id: string; name: string; subdomain: string; properties: number; units: number; tenants: number; rentCollected: number };
+type LandlordPortfolio = { id: string; name: string; subdomain: string; properties: number; units: number; tenants: number; rentCollected: number; subscriptionTier?: string };
 type LocationBreakdown = { state?: string; city?: string; count: number };
+type PlatformRevenue = {
+  convenienceFees: RentTotals;
+  cashoutFees: RentTotals;
+  subscriptionRevenue: RentTotals;
+  total: RentTotals;
+};
+type SubscriptionBreakdown = { free: number; growth: number; professional: number; enterprise: number };
 
 type SuperAdminInsights = {
   landlordsCount: number;
@@ -93,6 +100,8 @@ type SuperAdminInsights = {
   lateRate: number;
   revenueTimeline: { month: string; total: number }[];
   locations: { states: LocationBreakdown[]; cities: LocationBreakdown[] };
+  platformRevenue?: PlatformRevenue;
+  subscriptionBreakdown?: SubscriptionBreakdown;
 };
 
 interface SuperAdminDashboardProps {
@@ -937,6 +946,111 @@ const SuperAdminDashboard = ({
   const portfolioContent = (
     <div className="space-y-8">
       <section className="space-y-4">
+        <h2 className="text-lg font-semibold tracking-tight text-emerald-400">Platform Revenue (Your Earnings)</h2>
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="bg-emerald-950/50 border-emerald-800">
+            <CardContent className="pt-4">
+              <p className="text-xs text-emerald-300 mb-1">Today</p>
+              <p className="text-2xl font-semibold text-emerald-400">
+                {formatCurrency(insights?.platformRevenue?.total.day ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-emerald-950/50 border-emerald-800">
+            <CardContent className="pt-4">
+              <p className="text-xs text-emerald-300 mb-1">This Week</p>
+              <p className="text-2xl font-semibold text-emerald-400">
+                {formatCurrency(insights?.platformRevenue?.total.week ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-emerald-950/50 border-emerald-800">
+            <CardContent className="pt-4">
+              <p className="text-xs text-emerald-300 mb-1">This Month</p>
+              <p className="text-2xl font-semibold text-emerald-400">
+                {formatCurrency(insights?.platformRevenue?.total.month ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-emerald-950/50 border-emerald-800">
+            <CardContent className="pt-4">
+              <p className="text-xs text-emerald-300 mb-1">This Year</p>
+              <p className="text-2xl font-semibold text-emerald-400">
+                {formatCurrency(insights?.platformRevenue?.total.year ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground mb-1">Convenience Fees (Rent Payments)</p>
+              <p className="text-lg font-semibold">
+                {formatCurrency(insights?.platformRevenue?.convenienceFees.month ?? 0)}
+                <span className="text-xs text-muted-foreground ml-1">this month</span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground mb-1">Cashout Fees (Landlord Payouts)</p>
+              <p className="text-lg font-semibold">
+                {formatCurrency(insights?.platformRevenue?.cashoutFees.month ?? 0)}
+                <span className="text-xs text-muted-foreground ml-1">this month</span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground mb-1">Subscription Revenue</p>
+              <p className="text-lg font-semibold">
+                {formatCurrency(insights?.platformRevenue?.subscriptionRevenue.month ?? 0)}
+                <span className="text-xs text-muted-foreground ml-1">this month</span>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold tracking-tight">Subscription Breakdown</h2>
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground mb-1">Free Tier</p>
+              <p className="text-2xl font-semibold">
+                {formatNumber(insights?.subscriptionBreakdown?.free ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground mb-1">Growth ($29.99/mo)</p>
+              <p className="text-2xl font-semibold text-violet-400">
+                {formatNumber(insights?.subscriptionBreakdown?.growth ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground mb-1">Professional ($79.99/mo)</p>
+              <p className="text-2xl font-semibold text-violet-400">
+                {formatNumber(insights?.subscriptionBreakdown?.professional ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground mb-1">Enterprise</p>
+              <p className="text-2xl font-semibold text-violet-400">
+                {formatNumber(insights?.subscriptionBreakdown?.enterprise ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Landlords & Managers</h2>
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
@@ -1019,6 +1133,7 @@ const SuperAdminDashboard = ({
             <TableHeader>
               <TableRow>
                 <TableHead>Landlord</TableHead>
+                <TableHead>Tier</TableHead>
                 <TableHead>Properties</TableHead>
                 <TableHead>Units</TableHead>
                 <TableHead>Tenants</TableHead>
@@ -1028,7 +1143,7 @@ const SuperAdminDashboard = ({
             <TableBody>
               {(insights?.landlordsPortfolio || []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                  <TableCell colSpan={6} className="text-sm text-muted-foreground">
                     No landlord data yet.
                   </TableCell>
                 </TableRow>
@@ -1044,6 +1159,16 @@ const SuperAdminDashboard = ({
                         <span className="font-medium">{ll.name}</span>
                         <span className="text-xs text-muted-foreground">{ll.subdomain}</span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                        ll.subscriptionTier === 'enterprise' ? 'bg-amber-100 text-amber-800' :
+                        ll.subscriptionTier === 'professional' ? 'bg-violet-100 text-violet-800' :
+                        ll.subscriptionTier === 'growth' ? 'bg-emerald-100 text-emerald-800' :
+                        'bg-slate-100 text-slate-800'
+                      }`}>
+                        {ll.subscriptionTier || 'free'}
+                      </span>
                     </TableCell>
                     <TableCell>{ll.properties}</TableCell>
                     <TableCell>{ll.units}</TableCell>

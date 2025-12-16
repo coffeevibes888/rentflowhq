@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import '@/assets/styles/globals.css';
 import { APP_DESCRIPTION, APP_NAME, SERVER_URL } from '@/lib/constants';
 import { Toaster } from '@/components/ui/toaster';
-import { ChatWidget } from '@/components/shared/chat-widget';
+// import { ChatWidget } from '@/components/shared/chat-widget';
 import PageViewTracker from '@/components/analytics/page-view-tracker';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { ThemeProvider } from 'next-themes';
@@ -23,20 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className='bg-gradient-to-r from-blue-900 to-indigo-600 text-white flex flex-col min-h-screen overflow-x-hidden'>
+      <body className='bg-linear-to-r from-blue-900 to-indigo-600 text-white font-semibold flex flex-col min-h-screen overflow-x-hidden'>
         <SessionProviderWrapper>
-          <ThemeProvider
-            attribute='class'
-            defaultTheme='light'
-            enableSystem={false}
-            forcedTheme='light'
-            disableTransitionOnChange
-          >
+          <ThemeProvider attribute='class' defaultTheme='dark' enableSystem={false} disableTransitionOnChange>
             <PageViewTracker />
             <div
-              className='w-full text-sm md:text-sm font-medium tracking-tight flex items-center overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-500 shadow-sm'
-              style={{ height: '24px' }}
-            >
+              className='w-full text-sm md:text-sm font-medium tracking-tight flex items-center overflow-hidden bg-linear-to-r from-slate-950 via-slate-900 to-emerald-500 shadow-sm' style={{ height: '24px' }}>
               <div className='banner-marquee flex items-center gap-6 px-4 text-white whitespace-nowrap'>
                 <span>Modern apartments, offices, and homes professionally managed.</span>
                 <span className='text-white/70'>|</span>
@@ -45,7 +37,6 @@ export default function RootLayout({
                 <span>Secure payments powered by Stripe.</span>
                 <span className='text-white/70'>|</span>
                 <span>Speak with our management team anytime.</span>
-
                 <span className='ml-10'>Now accepting new tenant applications.</span>
                 <span className='text-white/70'>|</span>
                 <span>Schedule a tour or apply online in minutes.</span>
@@ -57,11 +48,10 @@ export default function RootLayout({
             </div>
             {children}
             <Toaster />
-            <ChatWidget />
+            {/* <ChatWidget /> */}
           </ThemeProvider>
         </SessionProviderWrapper>
       </body>
     </html>
   );
 }
-

@@ -23,8 +23,7 @@ export default async function AdminMessagesPage() {
   await requireAdmin();
   const session = await auth();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const threads = (await (prisma as any).thread.findMany({
+  const threads = (await prisma.thread.findMany({
     where: {
       type: { in: ['contact', 'support'] },
     },

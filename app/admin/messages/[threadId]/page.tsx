@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { auth } from '@/auth';
 import Link from 'next/link';
+import { decryptField } from '@/lib/encrypt';
 
 interface AdminThreadPageProps {
   params: Promise<{ threadId: string }>;
@@ -20,6 +21,15 @@ export default async function AdminThreadPage({ params }: AdminThreadPageProps) 
       },
     },
   });
+
+  if (thread?.messages?.length) {
+    thread.messages = await Promise.all(
+      thread.messages.map(async (m) => ({
+        ...m,
+        content: await decryptField(m.content),
+      }))
+    );
+  }
 
   if (!thread) {
     return (

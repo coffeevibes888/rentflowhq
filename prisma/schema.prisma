@@ -540,6 +540,16 @@ model Landlord {
   managesForOthers       Boolean?   @default(false)
   useSubdomain           Boolean    @default(true)
 
+  // Subscription & Tier
+  subscriptionTier       String     @default("free") // free, growth, professional, enterprise
+  stripeSubscriptionId   String?
+  stripeCustomerId       String?
+  subscriptionStatus     String     @default("active") // active, past_due, canceled, trialing
+  subscriptionEndsAt     DateTime?  @db.Timestamp(6)
+  unitLimitNotifiedAt    DateTime?  @db.Timestamp(6) // last time we sent unit limit warning
+  freeBackgroundChecks   Boolean    @default(false)
+  freeEmploymentVerification Boolean @default(false)
+
   owner      User?      @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
   properties Property[]
   payouts    Payout[]
@@ -550,6 +560,7 @@ model Landlord {
   docuSignConnection DocuSignConnection?
   scannedDocuments ScannedDocument[]
   classificationRules DocumentClassificationRule[]
+  subscription LandlordSubscription?
 }
 
 model QuickBooksConnection {
@@ -974,4 +985,51 @@ model DocumentClassificationRule {
 
   @@index([landlordId])
   @@index([documentType])
+}
+
+model LandlordSubscription {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId            String   @unique @db.Uuid
+  tier                  String   @default("free") // free, growth, professional, enterprise
+  stripeSubscriptionId  String?  @unique
+  stripeCustomerId      String?
+  stripePriceId         String?
+  status                String   @default("active") // active, past_due, canceled, trialing, incomplete
+  currentPeriodStart    DateTime? @db.Timestamp(6)
+  currentPeriodEnd      DateTime? @db.Timestamp(6)
+  cancelAtPeriodEnd     Boolean  @default(false)
+  canceledAt            DateTime? @db.Timestamp(6)
+  trialEnd              DateTime? @db.Timestamp(6)
+  
+  // Tier limits
+  unitLimit             Int      @default(24) // Free tier: 24 units
+  
+  // Perks
+  freeBackgroundChecks  Boolean  @default(false)
+  freeEvictionChecks    Boolean  @default(false)
+  freeEmploymentVerification Boolean @default(false)
+  
+  createdAt             DateTime @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime @updatedAt
+
+  landlord              Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([tier])
+}
+
+model SubscriptionEvent {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId            String   @db.Uuid
+  eventType             String   // upgrade, downgrade, canceled, payment_failed, renewed
+  fromTier              String?
+  toTier                String?
+  amount                Decimal? @db.Decimal(12, 2)
+  stripeEventId         String?  @unique
+  metadata              Json?    @db.Json
+  createdAt             DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([landlordId])
+  @@index([eventType])
+  @@index([createdAt])
 }

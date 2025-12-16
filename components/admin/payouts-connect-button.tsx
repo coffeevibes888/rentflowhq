@@ -98,7 +98,7 @@ function EmbeddedStripeOnboarding({
         const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
         if (!publishableKey) {
-          onError('Stripe publishable key is missing.');
+          onError('Payout setup is not configured yet. Please contact support.');
           return;
         }
 
@@ -107,7 +107,7 @@ function EmbeddedStripeOnboarding({
           const data = await res.json();
 
           if (!res.ok || !data?.success || !data?.clientSecret) {
-            const message = data?.message || 'Unable to contact Stripe for payouts setup.';
+            const message = data?.message || 'Unable to start secure payout verification.';
             throw new Error(message);
           }
 
@@ -118,7 +118,7 @@ function EmbeddedStripeOnboarding({
         try {
           clientSecret = await fetchClientSecret();
         } catch (e) {
-          onError(e instanceof Error ? e.message : 'Unable to contact Stripe for payouts setup.');
+          onError(e instanceof Error ? e.message : 'Unable to start secure payout verification.');
           return;
         }
 
@@ -150,7 +150,7 @@ function EmbeddedStripeOnboarding({
         container.appendChild(accountOnboarding);
       } catch (err) {
         console.error('Stripe embedded onboarding error', err);
-        onError('Unable to load payouts setup. Please try again.');
+        onError('Unable to load secure payout verification. Please try again.');
       } finally {
         if (!canceled) setIsInitializing(false);
       }

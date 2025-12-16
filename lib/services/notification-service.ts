@@ -1,4 +1,5 @@
 import { prisma } from '@/db/prisma';
+import { decryptField } from '@/lib/encrypt';
 import { sendBrandedEmail } from './email-service';
 
 interface NotificationOptions {
@@ -337,6 +338,17 @@ export class NotificationService {
       },
       take: limit,
     });
+
+    for (const tp of threads as any[]) {
+      const msgs = tp?.thread?.messages;
+      if (Array.isArray(msgs)) {
+        for (const m of msgs) {
+          if (m && typeof m.content === 'string') {
+            m.content = await decryptField(m.content);
+          }
+        }
+      }
+    }
 
     return threads;
   }

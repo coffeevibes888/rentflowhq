@@ -40,8 +40,7 @@ export default async function AdminCommunicationsPage() {
 
   const landlordId = landlord?.id ?? null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const threads = (await (prisma as any).thread.findMany({
+  const threads = (await prisma.thread.findMany({
     where: {
       type: { in: ['contact', 'support'] },
     },

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { updateOrderToPaid } from '@/lib/actions/order-actions';
 import { prisma } from '@/db/prisma';
+import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-tiers';
 
 export async function POST(req: NextRequest) {
   const payload = await req.text();
@@ -13,7 +14,6 @@ export async function POST(req: NextRequest) {
     process.env.STRIPE_WEBHOOK_SECRET as string
   );
 
-  // Handle charge.succeeded for card payments and settled ACH payments
   if (event.type === 'charge.succeeded') {
     const charge = event.data.object as Stripe.Charge;
 
@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
     if (paymentIntentId) {
       const now = new Date();
       
-      // Get payment method details from the charge
       const paymentMethodType = charge.payment_method_details?.type || 'unknown';
       const convenienceFee = charge.metadata?.convenienceFee 
         ? parseFloat(charge.metadata.convenienceFee) / 100 
@@ -62,7 +61,6 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Handle payment_intent.processing for ACH payments (takes 5-7 days)
   if (event.type === 'payment_intent.processing') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
@@ -82,7 +80,6 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Handle payment_intent.payment_failed for ACH failures
   if (event.type === 'payment_intent.payment_failed') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
@@ -99,6 +96,177 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       message: 'Webhook processed: payment_intent.payment_failed',
+    });
+  }
+
+  if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object as Stripe.Subscription;
+    const landlordId = subscription.metadata?.landlordId;
+    const tier = (subscription.metadata?.tier || 'free') as SubscriptionTier;
+
+    if (landlordId) {
+      const tierConfig = SUBSCRIPTION_TIERS[tier];
+
+      await prisma.landlordSubscription.upsert({
+        where: { landlordId },
+        create: {
+          landlordId,
+          tier,
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id,
+          stripePriceId: subscription.items.data[0]?.price?.id,
+          status: subscription.status,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          unitLimit: tierConfig.unitLimit === Infinity ? 999999 : tierConfig.unitLimit,
+          freeBackgroundChecks: tierConfig.features.freeBackgroundChecks,
+          freeEvictionChecks: tierConfig.features.freeEvictionChecks,
+          freeEmploymentVerification: tierConfig.features.freeEmploymentVerification,
+        },
+        update: {
+          tier,
+          stripeSubscriptionId: subscription.id,
+          stripePriceId: subscription.items.data[0]?.price?.id,
+          status: subscription.status,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          unitLimit: tierConfig.unitLimit === Infinity ? 999999 : tierConfig.unitLimit,
+          freeBackgroundChecks: tierConfig.features.freeBackgroundChecks,
+          freeEvictionChecks: tierConfig.features.freeEvictionChecks,
+          freeEmploymentVerification: tierConfig.features.freeEmploymentVerification,
+        },
+      });
+
+      await prisma.landlord.update({
+        where: { id: landlordId },
+        data: {
+          subscriptionTier: tier,
+          stripeSubscriptionId: subscription.id,
+          subscriptionStatus: subscription.status,
+          freeBackgroundChecks: tierConfig.features.freeBackgroundChecks,
+          freeEmploymentVerification: tierConfig.features.freeEmploymentVerification,
+        },
+      });
+
+      await prisma.subscriptionEvent.create({
+        data: {
+          landlordId,
+          eventType: event.type === 'customer.subscription.created' ? 'upgrade' : 'updated',
+          toTier: tier,
+          stripeEventId: event.id,
+          metadata: {
+            subscriptionId: subscription.id,
+            status: subscription.status,
+          },
+        },
+      });
+    }
+
+    return NextResponse.json({
+      message: `Webhook processed: ${event.type}`,
+    });
+  }
+
+  if (event.type === 'customer.subscription.deleted') {
+    const subscription = event.data.object as Stripe.Subscription;
+    const landlordId = subscription.metadata?.landlordId;
+
+    if (landlordId) {
+      await prisma.landlordSubscription.update({
+        where: { landlordId },
+        data: {
+          status: 'canceled',
+          canceledAt: new Date(),
+          tier: 'free',
+          unitLimit: 24,
+          freeBackgroundChecks: false,
+          freeEvictionChecks: false,
+          freeEmploymentVerification: false,
+        },
+      });
+
+      await prisma.landlord.update({
+        where: { id: landlordId },
+        data: {
+          subscriptionTier: 'free',
+          subscriptionStatus: 'canceled',
+          freeBackgroundChecks: false,
+          freeEmploymentVerification: false,
+        },
+      });
+
+      await prisma.subscriptionEvent.create({
+        data: {
+          landlordId,
+          eventType: 'canceled',
+          fromTier: subscription.metadata?.tier,
+          toTier: 'free',
+          stripeEventId: event.id,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      message: 'Webhook processed: customer.subscription.deleted',
+    });
+  }
+
+  if (event.type === 'invoice.payment_succeeded') {
+    const invoice = event.data.object as Stripe.Invoice;
+    
+    if (invoice.subscription && invoice.metadata?.landlordId) {
+      await prisma.subscriptionEvent.create({
+        data: {
+          landlordId: invoice.metadata.landlordId,
+          eventType: 'renewed',
+          amount: invoice.amount_paid / 100,
+          stripeEventId: event.id,
+          metadata: {
+            invoiceId: invoice.id,
+            subscriptionId: invoice.subscription,
+          },
+        },
+      });
+    }
+
+    return NextResponse.json({
+      message: 'Webhook processed: invoice.payment_succeeded',
+    });
+  }
+
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object as Stripe.Invoice;
+    
+    if (invoice.subscription && invoice.metadata?.landlordId) {
+      const landlordId = invoice.metadata.landlordId;
+
+      await prisma.landlordSubscription.update({
+        where: { landlordId },
+        data: { status: 'past_due' },
+      });
+
+      await prisma.landlord.update({
+        where: { id: landlordId },
+        data: { subscriptionStatus: 'past_due' },
+      });
+
+      await prisma.subscriptionEvent.create({
+        data: {
+          landlordId,
+          eventType: 'payment_failed',
+          stripeEventId: event.id,
+          metadata: {
+            invoiceId: invoice.id,
+            subscriptionId: invoice.subscription,
+          },
+        },
+      });
+    }
+
+    return NextResponse.json({
+      message: 'Webhook processed: invoice.payment_failed',
     });
   }
 

@@ -3,6 +3,7 @@ import { prisma } from '@/db/prisma';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { cn } from '@/lib/utils';
 
 export default async function RentManagementPage() {
   await requireAdmin();
@@ -163,6 +164,13 @@ export default async function RentManagementPage() {
     return unitName || 'Unit';
   };
 
+  const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
+    <div className='flex flex-col rounded-lg border border-slate-200 bg-white p-3'>
+      <span className='text-[11px] uppercase tracking-wide text-slate-500'>{label}</span>
+      <span className={cn('text-sm text-slate-900', typeof value === 'string' && value === '—' ? 'text-slate-500' : '')}>{value}</span>
+    </div>
+  );
+
   return (
     <main className='w-full px-4 py-8 md:px-0'>
       <div className='max-w-6xl mx-auto space-y-8'>
@@ -181,7 +189,7 @@ export default async function RentManagementPage() {
 
         {Object.keys(moveInByTenant).length > 0 && (
           <section className='space-y-3'>
-            <h2 className='text-sm font-semibold text-emerald-800'>Pending move-in payments</h2>
+            <h2 className='text-sm font-semibold text-slate-800'>Pending move-in payments</h2>
             <p className='text-xs text-slate-500'>First month, last month rent, and security deposits awaiting payment.</p>
             <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
               {Object.values(moveInByTenant).map((group) => {
@@ -196,42 +204,42 @@ export default async function RentManagementPage() {
                 return (
                   <div
                     key={group.tenant?.id || group.payments[0]?.id}
-                    className='rounded-xl border border-emerald-200 bg-emerald-50 shadow-sm p-4 space-y-3'
+                    className='rounded-xl border border-slate-200 bg-white shadow-sm p-4 space-y-3'
                   >
                     <div>
-                      <p className='text-sm font-semibold text-emerald-900'>
+                      <p className='text-sm font-semibold text-slate-900'>
                         {group.tenant?.name || 'Tenant'}
                       </p>
                       {group.tenant?.email && (
-                        <p className='text-[11px] text-emerald-700'>{group.tenant.email}</p>
+                        <p className='text-[11px] text-slate-500'>{group.tenant.email}</p>
                       )}
-                      <p className='text-xs text-emerald-800 mt-1'>{unitLabel}</p>
+                      <p className='text-xs text-slate-600 mt-1'>{unitLabel}</p>
                     </div>
 
                     <div className='grid grid-cols-3 gap-2 text-xs'>
                       <div>
-                        <p className='font-medium text-emerald-700'>First month</p>
-                        <p className='text-emerald-900'>
+                        <p className='font-medium text-slate-600'>First month</p>
+                        <p className='text-slate-900'>
                           {firstMonth ? formatCurrency(Number(firstMonth.amount)) : '—'}
                         </p>
                       </div>
                       <div>
-                        <p className='font-medium text-emerald-700'>Last month</p>
-                        <p className='text-emerald-900'>
+                        <p className='font-medium text-slate-600'>Last month</p>
+                        <p className='text-slate-900'>
                           {lastMonth ? formatCurrency(Number(lastMonth.amount)) : '—'}
                         </p>
                       </div>
                       <div>
-                        <p className='font-medium text-emerald-700'>Security</p>
-                        <p className='text-emerald-900'>
+                        <p className='font-medium text-slate-600'>Security</p>
+                        <p className='text-slate-900'>
                           {securityDeposit ? formatCurrency(Number(securityDeposit.amount)) : '—'}
                         </p>
                       </div>
                     </div>
 
-                    <div className='pt-2 border-t border-emerald-200'>
-                      <p className='text-xs font-semibold text-emerald-700'>Total due</p>
-                      <p className='text-base font-bold text-emerald-900'>
+                    <div className='pt-2 border-t border-slate-200'>
+                      <p className='text-xs font-semibold text-slate-600'>Total due</p>
+                      <p className='text-base font-bold text-slate-900'>
                         {formatCurrency(totalDue)}
                       </p>
                     </div>
@@ -245,7 +253,7 @@ export default async function RentManagementPage() {
         <section className='space-y-3'>
           <h2 className='text-sm font-semibold text-slate-800'>Paid this month</h2>
           <div className='rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden'>
-            <div className='overflow-x-auto'>
+            <div className='hidden md:block overflow-x-auto'>
               <table className='min-w-full text-sm'>
               <thead className='bg-slate-50'>
                 <tr>
@@ -287,48 +295,74 @@ export default async function RentManagementPage() {
               </tbody>
             </table>
             </div>
+            <div className='md:hidden divide-y divide-slate-200'>
+              {paidThisMonth.length === 0 ? (
+                <p className='px-4 py-6 text-center text-sm text-slate-500'>No rent payments recorded as paid this month yet.</p>
+              ) : (
+                paidThisMonth.map((p) => (
+                  <div key={p.id} className='px-4 py-4 flex flex-col gap-3'>
+                    <div className='flex items-start justify-between gap-3'>
+                      <div>
+                        <p className='text-base font-semibold text-slate-900'>{p.tenant?.name || 'Tenant'}</p>
+                        {p.tenant?.email && <p className='text-xs text-slate-500'>{p.tenant.email}</p>}
+                      </div>
+                      <span className='text-sm font-semibold text-emerald-700'>{formatCurrency(Number(p.amount))}</span>
+                    </div>
+                    <div className='grid gap-2'>
+                      <InfoRow label='Unit' value={formatUnitLabel(p)} />
+                      <div className='grid grid-cols-2 gap-2'>
+                        <InfoRow label='Due date' value={new Date(p.dueDate).toLocaleDateString()} />
+                        <InfoRow label='Rent' value={formatCurrency(Number(p.lease.rentAmount))} />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </section>
 
         <section className='space-y-3'>
-          <h2 className='text-sm font-semibold text-red-700'>Late this month</h2>
-          <div className='rounded-xl border border-red-200 bg-red-50 shadow-sm overflow-hidden'>
-            <div className='overflow-x-auto'>
+          <h2 className='text-sm font-semibold text-slate-800'>Late this month</h2>
+          <div className='rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden'>
+            <div className='hidden md:block overflow-x-auto'>
               <table className='min-w-full text-sm'>
-              <thead className='bg-red-100'>
+              <thead className='bg-slate-50'>
                 <tr>
-                  <th className='px-4 py-2 text-left font-medium text-red-800'>Tenant</th>
-                  <th className='px-4 py-2 text-left font-medium text-red-800'>Unit</th>
-                  <th className='px-4 py-2 text-left font-medium text-red-800'>Due date</th>
-                  <th className='px-4 py-2 text-left font-medium text-red-800'>Rent</th>
-                  <th className='px-4 py-2 text-left font-medium text-red-800'>Status</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Tenant</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Unit</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Due date</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Rent</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {lateThisMonth.length === 0 && (
                   <tr>
-                    <td colSpan={5} className='px-4 py-6 text-center text-red-700/70'>
+                    <td colSpan={5} className='px-4 py-6 text-center text-slate-500'>
                       No tenants marked late so far this month.
                     </td>
                   </tr>
                 )}
                 {lateThisMonth.map((p) => (
-                  <tr key={p.id} className='border-t border-red-100 bg-red-50/80'>
-                    <td className='px-4 py-2 text-xs text-red-900'>
+                  <tr key={p.id} className='border-t border-slate-100'>
+                    <td className='px-4 py-2 text-xs text-slate-700'>
                       {p.tenant?.name || 'Tenant'}
                       {p.tenant?.email && (
-                        <span className='block text-[11px] text-red-700/80'>{p.tenant.email}</span>
+                        <span className='block text-[11px] text-slate-400'>{p.tenant.email}</span>
                       )}
                     </td>
-                    <td className='px-4 py-2 text-xs text-red-900'>{formatUnitLabel(p)}</td>
-                    <td className='px-4 py-2 text-xs text-red-800'>
+                    <td className='px-4 py-2 text-xs text-slate-700'>{formatUnitLabel(p)}</td>
+                    <td className='px-4 py-2 text-xs text-slate-500'>
                       {new Date(p.dueDate).toLocaleDateString()}
                     </td>
-                    <td className='px-4 py-2 text-xs text-red-900'>
+                    <td className='px-4 py-2 text-xs text-slate-700'>
                       {formatCurrency(Number(p.lease.rentAmount))}
                     </td>
-                    <td className='px-4 py-2 text-xs font-semibold uppercase text-red-800 space-y-1'>
-                      <div>{p.status}</div>
+                    <td className='px-4 py-2 text-xs font-semibold uppercase text-slate-700 space-y-1'>
+                      <div className='inline-flex items-center rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold uppercase text-white'>
+                        {p.status}
+                      </div>
                       <div>
                         {(() => {
                           const rent = Number(p.lease.rentAmount);
@@ -346,7 +380,7 @@ export default async function RentManagementPage() {
                           return (
                             <Link
                               href={`/admin/evictions?${params.toString()}`}
-                              className='inline-flex items-center rounded-full bg-red-700 px-3 py-1 text-[11px] font-medium text-white hover:bg-red-800'
+                              className='inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-[11px] font-medium text-white hover:bg-slate-800'
                             >
                               Start notice
                             </Link>
@@ -359,28 +393,81 @@ export default async function RentManagementPage() {
               </tbody>
             </table>
             </div>
+            <div className='md:hidden divide-y divide-slate-200'>
+              {lateThisMonth.length === 0 ? (
+                <p className='px-4 py-6 text-center text-sm text-slate-500'>No tenants marked late so far this month.</p>
+              ) : (
+                lateThisMonth.map((p) => {
+                  const rent = Number(p.lease.rentAmount);
+                  const amt = Number(p.amount);
+                  const amountOwed = rent - (Number.isNaN(amt) ? 0 : amt);
+                  const params = new URLSearchParams();
+                  if (p.tenant?.name) params.set('tenant', p.tenant.name);
+                  if (p.tenant?.email) params.set('tenantEmail', p.tenant.email);
+                  const unitLabel = formatUnitLabel(p);
+                  if (unitLabel) params.set('unit', unitLabel);
+                  if (!Number.isNaN(amountOwed) && amountOwed > 0) {
+                    params.set('amountOwed', amountOwed.toFixed(2));
+                  }
+
+                  return (
+                    <div key={p.id} className='px-4 py-4 flex flex-col gap-3 bg-white'>
+                      <div className='flex items-start justify-between gap-3'>
+                        <div>
+                          <p className='text-base font-semibold text-slate-900'>{p.tenant?.name || 'Tenant'}</p>
+                          {p.tenant?.email && <p className='text-xs text-slate-500'>{p.tenant.email}</p>}
+                        </div>
+                        <span className='inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold uppercase text-white'>
+                          {p.status}
+                        </span>
+                      </div>
+
+                      <div className='grid gap-2'>
+                        <InfoRow label='Unit' value={unitLabel} />
+                        <div className='grid grid-cols-2 gap-2'>
+                          <InfoRow label='Due date' value={new Date(p.dueDate).toLocaleDateString()} />
+                          <InfoRow label='Rent' value={formatCurrency(rent)} />
+                        </div>
+                      </div>
+
+                      <div className='grid grid-cols-2 gap-2'>
+                        <InfoRow label='Paid' value={formatCurrency(Number(p.amount))} />
+                        <InfoRow label='Owed' value={amountOwed > 0 ? formatCurrency(amountOwed) : '—'} />
+                      </div>
+
+                      <Link
+                        href={`/admin/evictions?${params.toString()}`}
+                        className='inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800'
+                      >
+                        Start notice
+                      </Link>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </section>
 
         <section className='space-y-3'>
-          <h2 className='text-sm font-semibold text-amber-800'>Partial payments</h2>
-          <div className='rounded-xl border border-amber-200 bg-amber-50 shadow-sm overflow-hidden'>
-            <div className='overflow-x-auto'>
+          <h2 className='text-sm font-semibold text-slate-800'>Partial payments</h2>
+          <div className='rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden'>
+            <div className='hidden md:block overflow-x-auto'>
               <table className='min-w-full text-sm'>
-              <thead className='bg-amber-100'>
+              <thead className='bg-slate-50'>
                 <tr>
-                  <th className='px-4 py-2 text-left font-medium text-amber-800'>Tenant</th>
-                  <th className='px-4 py-2 text-left font-medium text-amber-800'>Unit</th>
-                  <th className='px-4 py-2 text-left font-medium text-amber-800'>Due date</th>
-                  <th className='px-4 py-2 text-left font-medium text-amber-800'>Rent</th>
-                  <th className='px-4 py-2 text-left font-medium text-amber-800'>Paid</th>
-                  <th className='px-4 py-2 text-left font-medium text-amber-800'>Remaining</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Tenant</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Unit</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Due date</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Rent</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Paid</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Remaining</th>
                 </tr>
               </thead>
               <tbody>
                 {partialPayments.length === 0 && (
                   <tr>
-                    <td colSpan={6} className='px-4 py-6 text-center text-amber-700/80'>
+                    <td colSpan={6} className='px-4 py-6 text-center text-slate-500'>
                       No partial payments detected for this month.
                     </td>
                   </tr>
@@ -391,24 +478,24 @@ export default async function RentManagementPage() {
                   const remaining = rent - amt;
 
                   return (
-                    <tr key={p.id} className='border-t border-amber-100 bg-amber-50/80'>
-                      <td className='px-4 py-2 text-xs text-amber-900'>
+                    <tr key={p.id} className='border-t border-slate-100'>
+                      <td className='px-4 py-2 text-xs text-slate-700'>
                         {p.tenant?.name || 'Tenant'}
                         {p.tenant?.email && (
-                          <span className='block text-[11px] text-amber-700/80'>{p.tenant.email}</span>
+                          <span className='block text-[11px] text-slate-400'>{p.tenant.email}</span>
                         )}
                       </td>
-                      <td className='px-4 py-2 text-xs text-amber-900'>{formatUnitLabel(p)}</td>
-                      <td className='px-4 py-2 text-xs text-amber-800'>
+                      <td className='px-4 py-2 text-xs text-slate-700'>{formatUnitLabel(p)}</td>
+                      <td className='px-4 py-2 text-xs text-slate-500'>
                         {new Date(p.dueDate).toLocaleDateString()}
                       </td>
-                      <td className='px-4 py-2 text-xs text-amber-900'>
+                      <td className='px-4 py-2 text-xs text-slate-700'>
                         {formatCurrency(rent)}
                       </td>
-                      <td className='px-4 py-2 text-xs text-amber-900'>
+                      <td className='px-4 py-2 text-xs text-slate-700'>
                         {formatCurrency(amt)}
                       </td>
-                      <td className='px-4 py-2 text-xs font-semibold text-amber-900'>
+                      <td className='px-4 py-2 text-xs font-semibold text-slate-700'>
                         {formatCurrency(remaining)}
                       </td>
                     </tr>
@@ -416,6 +503,38 @@ export default async function RentManagementPage() {
                 })}
               </tbody>
             </table>
+            </div>
+            <div className='md:hidden divide-y divide-slate-200'>
+              {partialPayments.length === 0 ? (
+                <p className='px-4 py-6 text-center text-sm text-slate-500'>No partial payments detected for this month.</p>
+              ) : (
+                partialPayments.map((p) => {
+                  const rent = Number(p.lease.rentAmount);
+                  const amt = Number(p.amount);
+                  const remaining = rent - amt;
+
+                  return (
+                    <div key={p.id} className='px-4 py-4 flex flex-col gap-3 bg-white'>
+                      <div className='flex items-start justify-between gap-3'>
+                        <div>
+                          <p className='text-base font-semibold text-slate-900'>{p.tenant?.name || 'Tenant'}</p>
+                          {p.tenant?.email && <p className='text-xs text-slate-500'>{p.tenant.email}</p>}
+                        </div>
+                        <span className='text-sm font-semibold text-slate-900'>{formatCurrency(amt)}</span>
+                      </div>
+
+                      <div className='grid gap-2'>
+                        <InfoRow label='Unit' value={formatUnitLabel(p)} />
+                        <InfoRow label='Due date' value={new Date(p.dueDate).toLocaleDateString()} />
+                        <div className='grid grid-cols-2 gap-2'>
+                          <InfoRow label='Rent' value={formatCurrency(rent)} />
+                          <InfoRow label='Remaining' value={formatCurrency(remaining)} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </section>

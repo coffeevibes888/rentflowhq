@@ -11,6 +11,13 @@ type RentAggregate = {
   year: number;
 };
 
+type PlatformRevenue = {
+  convenienceFees: RentAggregate;
+  cashoutFees: RentAggregate;
+  subscriptionRevenue: RentAggregate;
+  total: RentAggregate;
+};
+
 export async function getSuperAdminInsights() {
   try {
     await requireSuperAdmin();
@@ -32,6 +39,8 @@ export async function getSuperAdminInsights() {
       leases,
       propertyManagersCount,
       rentPayments,
+      platformFees,
+      subscriptionEvents,
     ] = await Promise.all([
       prisma.landlord.findMany({
         include: {
@@ -48,6 +57,7 @@ export async function getSuperAdminInsights() {
               },
             },
           },
+          subscription: true,
         },
         orderBy: { createdAt: 'asc' },
       }),
@@ -66,6 +76,15 @@ export async function getSuperAdminInsights() {
           },
         },
         orderBy: { dueDate: 'asc' },
+      }),
+      prisma.platformFee.findMany({
+        orderBy: { createdAt: 'asc' },
+      }),
+      prisma.subscriptionEvent.findMany({
+        where: {
+          eventType: 'renewed',
+        },
+        orderBy: { createdAt: 'asc' },
       }),
     ]);
 
@@ -100,6 +119,7 @@ export async function getSuperAdminInsights() {
         units: unitCount,
         tenants: tenantCount,
         rentCollected,
+        subscriptionTier: landlord.subscription?.tier || landlord.subscriptionTier || 'free',
       };
     });
 
@@ -116,16 +136,30 @@ export async function getSuperAdminInsights() {
       '61+': 0,
     };
 
+    const convenienceFees: RentAggregate = { day: 0, week: 0, month: 0, year: 0 };
+
     for (const payment of rentPayments) {
       const paidAt = payment.paidAt || payment.createdAt;
       const value = Number(payment.amount || 0);
+      const fee = Number(payment.convenienceFee || 0);
 
-      // Totals based on paidAt for revenue
       if (paidAt) {
-        if (paidAt >= startOfDay) rentTotals.day += value;
-        if (paidAt >= startOfWeek) rentTotals.week += value;
-        if (paidAt >= startOfMonth) rentTotals.month += value;
-        if (paidAt >= startOfYear) rentTotals.year += value;
+        if (paidAt >= startOfDay) {
+          rentTotals.day += value;
+          convenienceFees.day += fee;
+        }
+        if (paidAt >= startOfWeek) {
+          rentTotals.week += value;
+          convenienceFees.week += fee;
+        }
+        if (paidAt >= startOfMonth) {
+          rentTotals.month += value;
+          convenienceFees.month += fee;
+        }
+        if (paidAt >= startOfYear) {
+          rentTotals.year += value;
+          convenienceFees.year += fee;
+        }
 
         const key = `${paidAt.getFullYear()}-${String(paidAt.getMonth() + 1).padStart(2, '0')}`;
         revenueTimelineMap.set(key, (revenueTimelineMap.get(key) || 0) + value);
@@ -147,7 +181,6 @@ export async function getSuperAdminInsights() {
         }
       }
 
-      // Expected based on dueDate for collection metrics
       if (payment.dueDate) {
         const due = payment.dueDate;
         const isDueThisMonth =
@@ -158,7 +191,6 @@ export async function getSuperAdminInsights() {
         }
       }
 
-      // Delinquency buckets by due date
       if (payment.dueDate && payment.status !== 'paid') {
         const nowDate = new Date();
         const diffDays = Math.floor(
@@ -172,6 +204,40 @@ export async function getSuperAdminInsights() {
         }
       }
     }
+
+    const cashoutFees: RentAggregate = { day: 0, week: 0, month: 0, year: 0 };
+    for (const fee of platformFees) {
+      const createdAt = fee.createdAt;
+      const value = Number(fee.amount || 0);
+
+      if (createdAt >= startOfDay) cashoutFees.day += value;
+      if (createdAt >= startOfWeek) cashoutFees.week += value;
+      if (createdAt >= startOfMonth) cashoutFees.month += value;
+      if (createdAt >= startOfYear) cashoutFees.year += value;
+    }
+
+    const subscriptionRevenue: RentAggregate = { day: 0, week: 0, month: 0, year: 0 };
+    for (const event of subscriptionEvents) {
+      const createdAt = event.createdAt;
+      const value = Number(event.amount || 0);
+
+      if (createdAt >= startOfDay) subscriptionRevenue.day += value;
+      if (createdAt >= startOfWeek) subscriptionRevenue.week += value;
+      if (createdAt >= startOfMonth) subscriptionRevenue.month += value;
+      if (createdAt >= startOfYear) subscriptionRevenue.year += value;
+    }
+
+    const platformRevenue: PlatformRevenue = {
+      convenienceFees,
+      cashoutFees,
+      subscriptionRevenue,
+      total: {
+        day: convenienceFees.day + cashoutFees.day + subscriptionRevenue.day,
+        week: convenienceFees.week + cashoutFees.week + subscriptionRevenue.week,
+        month: convenienceFees.month + cashoutFees.month + subscriptionRevenue.month,
+        year: convenienceFees.year + cashoutFees.year + subscriptionRevenue.year,
+      },
+    };
 
     const revenueTimeline = Array.from(revenueTimelineMap.entries())
       .sort(([a], [b]) => (a > b ? 1 : -1))
@@ -195,6 +261,13 @@ export async function getSuperAdminInsights() {
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
+
+    const subscriptionBreakdown = {
+      free: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier || 'free') === 'free').length,
+      growth: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier) === 'growth').length,
+      professional: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier) === 'professional').length,
+      enterprise: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier) === 'enterprise').length,
+    };
 
     const collectionRate =
       expectedThisMonth > 0 ? Math.min(1, paidThisMonth / expectedThisMonth) : 0;
@@ -247,6 +320,8 @@ export async function getSuperAdminInsights() {
       lateRate,
       revenueTimeline,
       locations,
+      platformRevenue,
+      subscriptionBreakdown,
     };
   } catch (error) {
     console.error('Failed to load super admin insights', formatError(error));
@@ -271,6 +346,13 @@ export async function getSuperAdminInsights() {
       lateRate: 0,
       revenueTimeline: [],
       locations: { states: [], cities: [] },
+      platformRevenue: {
+        convenienceFees: { day: 0, week: 0, month: 0, year: 0 },
+        cashoutFees: { day: 0, week: 0, month: 0, year: 0 },
+        subscriptionRevenue: { day: 0, week: 0, month: 0, year: 0 },
+        total: { day: 0, week: 0, month: 0, year: 0 },
+      },
+      subscriptionBreakdown: { free: 0, growth: 0, professional: 0, enterprise: 0 },
     };
   }
 }

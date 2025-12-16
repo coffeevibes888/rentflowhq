@@ -58,13 +58,12 @@ const PayoutsOnboardingPage = async () => {
             {hasStripeAccount ? 'Payouts are almost ready' : 'Get ready to connect Stripe payouts'}
           </h2>
           <p className='text-sm md:text-base text-slate-600'>
-            Stripe Connect will handle rent payments from your tenants and route them directly to your
-            bank account. We&apos;ll guide you through the official Stripe onboarding in a separate window so
-            your information stays secure.
+            We partner with a regulated payments provider to securely route tenant rent payments to your
+            bank account. To receive payouts, you&apos;ll complete a secure verification flow inside this app.
           </p>
           <ul className='list-disc list-inside text-sm md:text-base text-slate-600 space-y-1'>
-            <li>You&apos;ll confirm your business or individual details with Stripe.</li>
-            <li>You&apos;ll add a bank account or debit card for payouts.</li>
+            <li>You&apos;ll confirm your business or individual details.</li>
+            <li>You&apos;ll add a bank account (standard payouts) and/or a debit card (instant cashouts).</li>
             <li>You can return here any time from Settings to review payout status.</li>
           </ul>
           <div className='pt-3 flex flex-wrap items-center gap-3 text-sm'>

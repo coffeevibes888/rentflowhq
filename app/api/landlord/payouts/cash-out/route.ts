@@ -4,6 +4,8 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 
+const PLATFORM_CASHOUT_FEE = 2.00;
+
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -71,17 +73,17 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const payoutType = body.type === 'instant' ? 'instant' : 'standard';
+    const payoutType: Stripe.PayoutCreateParams.Method =
+      body.type === 'instant' ? 'instant' : 'standard';
     
-    // Calculate fees based on payout type
-    // Instant: 1.5% (Stripe's instant payout fee, capped at $10)
-    // Standard: Free (arrives in 2-3 business days)
-    let fee = 0;
+    let stripeFee = 0;
     if (payoutType === 'instant') {
-      fee = Math.min(totalAmount * 0.015, 10); // 1.5% capped at $10
+      stripeFee = Math.min(totalAmount * 0.015, 10);
     }
     
-    const netAmount = totalAmount - fee;
+    const platformFee = PLATFORM_CASHOUT_FEE;
+    const totalFees = stripeFee + platformFee;
+    const netAmount = totalAmount - totalFees;
 
     if (!netAmount || netAmount <= 0) {
       return NextResponse.json(
@@ -106,20 +108,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const requiredExternalObject = payoutType === 'instant' ? 'card' : 'bank_account';
-    const externalAccounts = await stripe.accounts.listExternalAccounts(stripeAccountId, {
-      object: requiredExternalObject,
+    let externalAccounts = await stripe.accounts.listExternalAccounts(stripeAccountId, {
+      object: payoutType === 'instant' ? 'card' : 'bank_account',
       limit: 1,
     });
+
+    let actualPayoutMethod: Stripe.PayoutCreateParams.Method = payoutType;
+    
+    if (payoutType === 'instant' && !externalAccounts.data.length) {
+      externalAccounts = await stripe.accounts.listExternalAccounts(stripeAccountId, {
+        object: 'bank_account',
+        limit: 1,
+      });
+      
+      if (externalAccounts.data.length) {
+        actualPayoutMethod = 'standard';
+      } else {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'No debit card or bank account on file. Please add a payment method to receive payouts.',
+            needsOnboarding: true,
+          },
+          { status: 409 }
+        );
+      }
+    }
 
     if (!externalAccounts.data.length) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            payoutType === 'instant'
-              ? 'No debit card on file for instant payouts. Please add one to receive instant cashouts.'
-              : 'No bank account on file for payouts. Please add one to cash out.',
+          message: 'No bank account on file for payouts. Please add one to cash out.',
           needsOnboarding: true,
         },
         { status: 409 }
@@ -135,8 +155,10 @@ export async function POST(req: NextRequest) {
           metadata: {
             type: 'landlord_payout',
             landlordId: landlord.id,
-            method: payoutType,
-            fee,
+            method: actualPayoutMethod,
+            stripeFee,
+            platformFee,
+            totalFees,
             grossAmount: totalAmount,
           },
         },
@@ -147,12 +169,27 @@ export async function POST(req: NextRequest) {
         data: { payoutId: payout.id },
       });
 
-      if (fee > 0) {
+      await tx.platformFee.create({
+        data: {
+          payoutId: payout.id,
+          landlordId: landlord.id,
+          amount: platformFee,
+          type: 'cashout_platform_fee',
+          metadata: {
+            landlordId: landlord.id,
+            payoutId: payout.id,
+            stripeFee,
+            grossAmount: totalAmount,
+          },
+        },
+      });
+
+      if (stripeFee > 0) {
         await tx.platformFee.create({
           data: {
             payoutId: payout.id,
             landlordId: landlord.id,
-            amount: fee,
+            amount: stripeFee,
             type: 'instant_payout_fee',
             metadata: {
               landlordId: landlord.id,
@@ -165,14 +202,11 @@ export async function POST(req: NextRequest) {
       return payout;
     });
 
-    // Create Stripe payout to Connected Account
-    // For instant payouts, Stripe will attempt instant transfer to debit card
-    // For standard, it takes 2-3 business days
     const stripePayout = await stripe.payouts.create(
       {
         amount: Math.round(netAmount * 100),
         currency: 'usd',
-        method: payoutType, // 'instant' or 'standard'
+        method: actualPayoutMethod,
         metadata: {
           landlordId: landlord.id,
           payoutId: payoutRecord.id,
@@ -192,7 +226,17 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, payoutId: payoutRecord.id });
+    return NextResponse.json({ 
+      success: true, 
+      payoutId: payoutRecord.id,
+      method: actualPayoutMethod,
+      fees: {
+        platform: platformFee,
+        stripe: stripeFee,
+        total: totalFees,
+      },
+      netAmount,
+    });
   } catch (error) {
     console.error('Landlord cash-out error:', error);
     return NextResponse.json(

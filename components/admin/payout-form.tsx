@@ -9,15 +9,19 @@ interface PayoutFormProps {
   availableAmount: number;
 }
 
+const PLATFORM_FEE = 2.00;
+
 export default function PayoutForm({ availableAmount }: PayoutFormProps) {
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<'standard' | 'instant'>('standard');
   const router = useRouter();
   const { toast } = useToast();
 
-  // Calculate instant payout fee (1.5% capped at $10)
-  const instantFee = Math.min(availableAmount * 0.015, 10);
-  const instantNet = availableAmount - instantFee;
+  const instantStripeFee = Math.min(availableAmount * 0.015, 10);
+  const instantTotalFees = instantStripeFee + PLATFORM_FEE;
+  const instantNet = availableAmount - instantTotalFees;
+  
+  const standardNet = availableAmount - PLATFORM_FEE;
 
   const handleSubmit = async (type: 'standard' | 'instant') => {
     setLoading(true);
@@ -69,7 +73,7 @@ export default function PayoutForm({ availableAmount }: PayoutFormProps) {
       {/* Standard Payout */}
       <button
         onClick={() => handleSubmit('standard')}
-        disabled={availableAmount <= 0 || loading}
+        disabled={availableAmount <= PLATFORM_FEE || loading}
         className='group relative overflow-hidden rounded-2xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-white p-5 text-left transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.02]'
       >
         <div className='space-y-3'>
@@ -84,19 +88,19 @@ export default function PayoutForm({ availableAmount }: PayoutFormProps) {
               </div>
             </div>
             <div className='rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white'>
-              FREE
+              $2 FEE
             </div>
           </div>
           
           <div className='space-y-1'>
             <p className='text-2xl font-bold text-slate-900'>
-              ${availableAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${standardNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className='text-xs text-slate-500'>No fees • Full amount</p>
+            <p className='text-xs text-slate-500'>Platform fee: $2.00</p>
           </div>
 
           <div className='rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-800'>
-            ✓ Best for regular payouts • No rush
+            Best for regular payouts
           </div>
         </div>
       </button>
@@ -104,7 +108,7 @@ export default function PayoutForm({ availableAmount }: PayoutFormProps) {
       {/* Instant Payout */}
       <button
         onClick={() => handleSubmit('instant')}
-        disabled={availableAmount <= 0 || loading}
+        disabled={availableAmount <= instantTotalFees || loading}
         className='group relative overflow-hidden rounded-2xl border-2 border-violet-500 bg-gradient-to-br from-violet-50 to-white p-5 text-left transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.02]'
       >
         <div className='absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl -z-10' />
@@ -121,7 +125,7 @@ export default function PayoutForm({ availableAmount }: PayoutFormProps) {
               </div>
             </div>
             <div className='rounded-full bg-violet-600 px-3 py-1 text-xs font-bold text-white'>
-              1.5%
+              1.5% + $2
             </div>
           </div>
           
@@ -130,12 +134,12 @@ export default function PayoutForm({ availableAmount }: PayoutFormProps) {
               ${instantNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             <p className='text-xs text-slate-500'>
-              Fee: ${instantFee.toFixed(2)} (1.5%, max $10)
+              Fees: ${instantTotalFees.toFixed(2)} (${instantStripeFee.toFixed(2)} + $2.00)
             </p>
           </div>
 
           <div className='rounded-lg bg-violet-50 border border-violet-200 px-3 py-2 text-xs text-violet-800'>
-            ⚡ Get paid now • Requires debit card
+            Get paid now (debit card or bank)
           </div>
         </div>
       </button>
