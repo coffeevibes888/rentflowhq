@@ -1,18 +1,28 @@
 import { Metadata } from 'next';
 import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
-import { Building2, Users, FileText, Wrench } from 'lucide-react';
+import {
+  Building2,
+  FileText,
+  Wrench,
+  DollarSign,
+  Wallet,
+  MessageCircle,
+  TrendingUp,
+  Activity,
+} from 'lucide-react';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { adminNavLinks } from '@/lib/constants/admin-nav';
+import { formatCurrency } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Property Dashboard',
 };
 
 const AdminOverviewPage = async () => {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const landlordResult = await getOrCreateCurrentLandlord();
 
@@ -22,11 +32,31 @@ const AdminOverviewPage = async () => {
 
   const landlordId = landlordResult.landlord.id;
 
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+  const userId = session?.user?.id as string | undefined;
+  const role = session?.user?.role;
+  const isAdmin = role === 'admin' || role === 'superAdmin';
+
+  const prismaAny = prisma as any;
+
   const [
     propertiesCount,
     applicationsCount,
     tenantsCount,
     ticketsCount,
+    totalUnits,
+    occupiedUnits,
+    urgentTickets,
+    rentPaidThisMonth,
+    rentPaidYtd,
+    scheduledRent,
+    unpaidRent,
+    payoutsThisMonth,
+    openSupportThreads,
+    threadParticipants,
   ] = await Promise.all([
     prisma.property.count({ where: { landlordId } }),
     prisma.rentalApplication.count({
@@ -61,65 +91,314 @@ const AdminOverviewPage = async () => {
         },
       },
     }),
+    prisma.unit.count({
+      where: {
+        property: {
+          landlordId,
+        },
+      },
+    }),
+    prisma.lease.count({
+      where: {
+        status: 'active',
+        unit: {
+          property: {
+            landlordId,
+          },
+        },
+      },
+    }),
+    prisma.maintenanceTicket.count({
+      where: {
+        status: { in: ['open', 'in_progress'] },
+        priority: 'urgent',
+        unit: {
+          property: {
+            landlordId,
+          },
+        },
+      },
+    }),
+    prisma.rentPayment.aggregate({
+      _sum: { amount: true },
+      where: {
+        status: 'paid',
+        paidAt: { gte: startOfMonth },
+        lease: {
+          unit: {
+            property: {
+              landlordId,
+            },
+          },
+        },
+      },
+    }),
+    prisma.rentPayment.aggregate({
+      _sum: { amount: true },
+      where: {
+        status: 'paid',
+        paidAt: { gte: startOfYear },
+        lease: {
+          unit: {
+            property: {
+              landlordId,
+            },
+          },
+        },
+      },
+    }),
+    prisma.lease.aggregate({
+      _sum: { rentAmount: true },
+      where: {
+        status: 'active',
+        unit: {
+          property: {
+            landlordId,
+          },
+        },
+      },
+    }),
+    prisma.rentPayment.aggregate({
+      _sum: { amount: true },
+      where: {
+        status: 'paid',
+        payoutId: null,
+        lease: {
+          unit: {
+            property: {
+              landlordId,
+            },
+          },
+        },
+      },
+    }),
+    prisma.payout.aggregate({
+      _count: { id: true },
+      _sum: { amount: true },
+      where: {
+        landlordId,
+        initiatedAt: { gte: startOfMonth },
+      },
+    }),
+    isAdmin
+      ? prismaAny.thread.count({
+          where: {
+            type: { in: ['contact', 'support'] },
+            status: 'open',
+          },
+        })
+      : Promise.resolve(0),
+    userId
+      ? prismaAny.threadParticipant.findMany({
+          where: { userId },
+          include: {
+            thread: {
+              include: {
+                messages: {
+                  orderBy: { createdAt: 'desc' },
+                  take: 1,
+                },
+              },
+            },
+          },
+        })
+      : Promise.resolve([]),
   ]);
 
   if (propertiesCount === 0) {
     redirect('/admin/onboarding');
   }
 
+  const totalUnitsSafe = Number(totalUnits || 0);
+  const occupiedUnitsSafe = Number(occupiedUnits || 0);
+  const vacantUnits = Math.max(totalUnitsSafe - occupiedUnitsSafe, 0);
+
+  const rentCollectedThisMonth = Number(rentPaidThisMonth?._sum?.amount || 0);
+  const rentCollectedYtd = Number(rentPaidYtd?._sum?.amount || 0);
+  const scheduledRentMonthly = Number(scheduledRent?._sum?.rentAmount || 0);
+
+  const collectionRate = scheduledRentMonthly > 0 ? (rentCollectedThisMonth / scheduledRentMonthly) * 100 : 0;
+  const vacancyRate = totalUnitsSafe > 0 ? (vacantUnits / totalUnitsSafe) * 100 : 0;
+  const vacancyLossThisMonth = Math.max(scheduledRentMonthly - rentCollectedThisMonth, 0);
+
+  const availableBalance = Number(unpaidRent?._sum?.amount || 0);
+  const payoutsCountThisMonth = Number(payoutsThisMonth?._count?.id || 0);
+  const payoutsAmountThisMonth = Number(payoutsThisMonth?._sum?.amount || 0);
+
+  type ThreadParticipantWithThread = {
+    lastReadAt: Date | null;
+    thread: {
+      messages: { createdAt: Date }[];
+    };
+  };
+
+  const unreadThreads = Array.isArray(threadParticipants)
+    ? (threadParticipants as ThreadParticipantWithThread[]).filter((p) => {
+        const lastMessage = p.thread?.messages?.[0];
+        if (!lastMessage) return false;
+        if (!p.lastReadAt) return true;
+        return new Date(lastMessage.createdAt) > new Date(p.lastReadAt);
+      }).length
+    : 0;
+
+  const messagesCountToShow = isAdmin ? Number(openSupportThreads || 0) : unreadThreads;
+
+  const portfolioHealthScore = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(100 - vacancyRate * 0.6 - Number(urgentTickets || 0) * 5),
+    ),
+  );
+
   return (
     <div className='w-full px-4 py-8 md:px-0'>
-      <div className='max-w-6xl mx-auto space-y-8'>
+      <div className='max-w-7xl mx-auto space-y-8'>
         <div>
           <h1 className='text-3xl md:text-4xl font-semibold text-slate-50 mb-2'>Property Dashboard</h1>
           <p className='text-sm text-slate-300/80'>High-level snapshot of properties, tenants, and operations.</p>
         </div>
 
         {/* Stats Cards - Clickable on mobile */}
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <Link href='/admin/products' className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'>
-            <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center ring-1 ring-white/10'>
-              <Building2 className='h-4 w-4' />
+        <div className='relative rounded-3xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md'>
+          <div className='absolute inset-0 bg-blue-700' />
+          <div className='relative p-6'>
+            <div className='flex items-center justify-between mb-4'>
+              <h3 className='text-lg font-bold text-white'>Your Dashboard</h3>
+              <span className='text-xs text-violet-200/80 bg-white/5 px-2 py-1 rounded-full ring-1 ring-white/10'>Live</span>
             </div>
-            <div className='flex flex-col gap-1'>
-              <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Properties</span>
-              <span className='text-2xl font-semibold text-slate-50'>{propertiesCount}</span>
-              <span className='text-xs text-slate-300/80'>Active buildings and communities</span>
-            </div>
-          </Link>
 
-          <Link href='/admin/applications' className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'>
-            <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center ring-1 ring-white/10'>
-              <FileText className='h-4 w-4' />
-            </div>
-            <div className='flex flex-col gap-1'>
-              <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Applications</span>
-              <span className='text-2xl font-semibold text-slate-50'>{applicationsCount}</span>
-              <span className='text-xs text-slate-300/80'>Submitted rental applications</span>
-            </div>
-          </Link>
+            <div className='grid grid-cols-2 gap-3 lg:grid-cols-3'>
+              <Link
+                href='/admin/products'
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Total Units</div>
+                  <Building2 className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{totalUnitsSafe}</div>
+                <div className='text-[10px] text-red-200'>{vacantUnits} vacant</div>
+              </Link>
 
-          <Link href='/admin/users' className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'>
-            <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center ring-1 ring-white/10'>
-              <Users className='h-4 w-4' />
-            </div>
-            <div className='flex flex-col gap-1'>
-              <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Tenants</span>
-              <span className='text-2xl font-semibold text-slate-50'>{tenantsCount}</span>
-              <span className='text-xs text-slate-300/80'>Users with tenant access</span>
-            </div>
-          </Link>
+              <Link
+                href='/admin/revenue'
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Rent This Month</div>
+                  <DollarSign className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{formatCurrency(rentCollectedThisMonth)}</div>
+                <div className='text-[10px] text-yellow-100'>{collectionRate.toFixed(0)}% collected</div>
+              </Link>
 
-          <Link href='/admin/maintenance' className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'>
-            <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center ring-1 ring-white/10'>
-              <Wrench className='h-4 w-4' />
+              <Link
+                href='/admin/maintenance'
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Maintenance</div>
+                  <Wrench className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{ticketsCount}</div>
+                <div className='text-[10px] text-red-100'>{urgentTickets} urgent</div>
+              </Link>
+
+              <Link
+                href='/admin/applications'
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Applications</div>
+                  <FileText className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{applicationsCount}</div>
+                <div className='text-[10px] text-emerald-100'>Review now</div>
+              </Link>
+
+              <Link
+                href='/admin/payouts'
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Available Balance</div>
+                  <Wallet className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{formatCurrency(availableBalance)}</div>
+                <div className='text-[10px] text-white/90'>Ready to cash out</div>
+              </Link>
+
+              <Link
+                href='/admin/payouts'
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Payouts (Month)</div>
+                  <Wallet className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{payoutsCountThisMonth}</div>
+                <div className='text-[10px] text-white/90'>{formatCurrency(payoutsAmountThisMonth)} sent</div>
+              </Link>
+
+              <Link
+                href={isAdmin ? '/admin/messages' : '/admin/tenant-messages'}
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Messages</div>
+                  <MessageCircle className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{messagesCountToShow}</div>
+                <div className='text-[10px] text-white/90'>{isAdmin ? 'Open inbox threads' : 'Unread threads'}</div>
+              </Link>
+
+              <Link
+                href='/admin/analytics'
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Economic Occupancy</div>
+                  <TrendingUp className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{collectionRate.toFixed(0)}%</div>
+                <div className='text-[10px] text-white/90'>{formatCurrency(vacancyLossThisMonth)} vacancy loss</div>
+              </Link>
+
+              <Link
+                href='/admin/analytics'
+                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='text-xs text-black'>Portfolio Health</div>
+                  <Activity className='h-4 w-4 text-white/90' />
+                </div>
+                <div className='text-2xl font-bold text-white'>{portfolioHealthScore}</div>
+                <div className='text-[10px] text-white/90'>{vacancyRate.toFixed(1)}% vacancy</div>
+              </Link>
             </div>
-            <div className='flex flex-col gap-1'>
-              <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Maintenance</span>
-              <span className='text-2xl font-semibold text-slate-50'>{ticketsCount}</span>
-              <span className='text-xs text-slate-300/80'>Total work tickets logged</span>
+
+            <div className='mt-4 rounded-xl bg-slate-900/60 p-4 border border-white/10'>
+              <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
+                <div className='space-y-1'>
+                  <div className='text-[10px] text-slate-200/80 uppercase tracking-wide'>Occupied</div>
+                  <div className='text-sm font-semibold text-white'>{occupiedUnitsSafe}</div>
+                </div>
+                <div className='space-y-1'>
+                  <div className='text-[10px] text-slate-200/80 uppercase tracking-wide'>Tenants</div>
+                  <div className='text-sm font-semibold text-white'>{tenantsCount}</div>
+                </div>
+                <div className='space-y-1'>
+                  <div className='text-[10px] text-slate-200/80 uppercase tracking-wide'>Rent (YTD)</div>
+                  <div className='text-sm font-semibold text-white'>{formatCurrency(rentCollectedYtd)}</div>
+                </div>
+                <div className='space-y-1'>
+                  <div className='text-[10px] text-slate-200/80 uppercase tracking-wide'>Properties</div>
+                  <div className='text-sm font-semibold text-white'>{propertiesCount}</div>
+                </div>
+              </div>
             </div>
-          </Link>
+          </div>
         </div>
 
         {/* Mobile Navigation Cards - Show all sidebar links on mobile (excluding duplicates from stat cards) */}

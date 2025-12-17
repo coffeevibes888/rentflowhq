@@ -135,7 +135,7 @@ export default async function TenantDashboardPage() {
               {draftApplications.map((app) => (
                 <Link 
                   key={app.id}
-                  href={`/user/profile/application/${app.id}/complete`}
+                  href={`/user/onboarding?applicationId=${encodeURIComponent(app.id)}`}
                   className='flex items-center justify-between rounded-lg border border-white/10 bg-slate-900/60 p-4 hover:border-violet-400/50 hover:bg-slate-900/80 transition-all group'
                 >
                   <div>

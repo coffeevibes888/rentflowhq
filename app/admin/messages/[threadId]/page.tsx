@@ -40,15 +40,15 @@ export default async function AdminThreadPage({ params }: AdminThreadPageProps) 
   }
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] w-full bg-gradient-to-br from-slate-950 via-violet-800/60 to-slate-900 text-slate-50 flex items-center justify-center px-4 py-10">
+    <main className="min-h-[calc(100vh-4rem)] w-full flex items-center justify-center px-4 py-10">
       <div className="relative w-full max-w-4xl">
-        <div className="pointer-events-none absolute -inset-1 rounded-3xl bg-gradient-to-r from-violet-500/40 via-fuchsia-500/20 to-cyan-400/40 blur-3xl opacity-70" />
+        <div className="pointer-events-none absolute -inset-1 rounded-3xl" />
 
-        <div className="relative rounded-3xl border border-white/10 bg-slate-900/60 backdrop-blur-2xl shadow-[0_20px_70px_rgba(15,23,42,0.9)] overflow-hidden">
+        <div className="relative rounded-3xl border overflow-hidden">
           <div className="flex flex-col h-[70vh]">
-            <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+            <header className="flex items-center justify-between px-6 py-4 border-b ">
               <div>
-                <p className="inline-flex items-center rounded-full bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-violet-200/80 ring-1 ring-white/10">
+                <p className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium tracking-wide text-violet-200/80 ring-1 ring-white/10">
                   Admin Conversation
                 </p>
                 <h1 className="mt-2 text-xl sm:text-2xl font-semibold tracking-tight">
@@ -57,13 +57,13 @@ export default async function AdminThreadPage({ params }: AdminThreadPageProps) 
               </div>
               <Link
                 href="/admin/messages"
-                className="text-xs text-slate-300 hover:text-slate-100 underline-offset-2 hover:underline"
+                className="text-xs underline-offset-2 hover:underline"
               >
                 Back to inbox
               </Link>
             </header>
 
-            <div className="flex-1 flex flex-col px-6 py-4 gap-4 overflow-y-auto bg-gradient-to-b from-slate-900/60 to-slate-950/80">
+            <div className="flex-1 flex flex-col px-6 py-4 gap-4 overflow-y-auto">
               {thread.messages.length === 0 && (
                 <p className="text-sm text-slate-400/80">No messages in this thread yet.</p>
               )}
@@ -74,17 +74,17 @@ export default async function AdminThreadPage({ params }: AdminThreadPageProps) 
                 return (
                   <div
                     key={m.id}
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-xs sm:text-sm shadow border border-white/5 ${
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-xs sm:text-sm shadow border ${
                       isAdmin
-                        ? 'ml-auto bg-violet-600/80 text-slate-50'
-                        : 'mr-auto bg-slate-800/80 text-slate-50'
+                        ? 'ml-auto bg-violet-600/80'
+                        : 'mr-auto bg-slate-800/80'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3 mb-1">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-100/80">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.16em]">
                         {m.senderName || (isAdmin ? 'Admin' : 'User')}
                       </span>
-                      <span className="text-[9px] text-slate-200/70">{created}</span>
+                      <span className="text-[9px] ">{created}</span>
                     </div>
                     <p className="whitespace-pre-wrap leading-relaxed text-[11px] sm:text-[13px]">
                       {m.content}
@@ -94,7 +94,7 @@ export default async function AdminThreadPage({ params }: AdminThreadPageProps) 
               })}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/80">
+            <div className="px-6 py-4 border-t ">
               <form
                 action={async (formData: FormData) => {
                   'use server';
@@ -134,7 +134,7 @@ export default async function AdminThreadPage({ params }: AdminThreadPageProps) 
                 <textarea
                   name="content"
                   rows={2}
-                  className="flex-1 resize-none rounded-2xl border border-white/10 bg-slate-900/80 px-3 py-2 text-xs sm:text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/70"
+                  className="flex-1 resize-none rounded-2xl border px-3 py-2 text-xs sm:text-sm  focus:outline-none focus:ring-2 focus:ring-violet-500/70"
                   placeholder="Type a reply to this conversation..."
                 />
                 <button
@@ -144,10 +144,10 @@ export default async function AdminThreadPage({ params }: AdminThreadPageProps) 
                   Send
                 </button>
               </form>
-              <p className="mt-2 text-[10px] text-slate-400/80">
+              <p className="mt-2 text-[10px]">
                 Replies are visible to the visitor or user linked to this thread.
               </p>
-              <p className="mt-1 text-[10px] text-slate-400/80">
+              <p className="mt-1 text-[10px]">
                 Logged in as <span className="font-semibold">{session?.user?.email ?? 'Admin'}</span>.
               </p>
             </div>

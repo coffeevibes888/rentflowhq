@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getDecryptedSsn, formatSsn } from '@/lib/utils/ssn-utils';
+import { getSignedCloudinaryUrl } from '@/lib/cloudinary';
 
 interface AdminApplicationDetailPageProps {
   params: Promise<{ id: string }>;
@@ -41,6 +42,29 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const propertyName = application.unit?.property?.name;
   const unitLabel = propertyName && unitName ? `${propertyName} • ${unitName}` : propertyName || unitName || 'Unit';
 
+  type ApplicationDocumentRow = {
+    id: string;
+    applicationId: string;
+    category: string;
+    docType: string;
+    originalFileName: string;
+    status: string;
+  };
+
+  const prismaAny = prisma as any;
+  const applicationDocuments = (await prismaAny.applicationDocument.findMany({
+    where: { applicationId: application.id },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      applicationId: true,
+      category: true,
+      docType: true,
+      originalFileName: true,
+      status: true,
+    },
+  })) as ApplicationDocumentRow[];
+
   // Decrypt SSN for admin viewing (only admins can access this)
   const decryptedSsn = application.encryptedSsn ? await getDecryptedSsn(application.encryptedSsn) : null;
 
@@ -63,6 +87,38 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
 
     revalidatePath('/admin/applications');
     revalidatePath(`/admin/applications/${application.id}`);
+  };
+
+  const openApplicationDocument = async (formData: FormData) => {
+    'use server';
+
+    const documentId = formData.get('documentId');
+    if (typeof documentId !== 'string' || !documentId) {
+      return;
+    }
+
+    const prismaAny = prisma as any;
+    const doc = await prismaAny.applicationDocument.findUnique({
+      where: { id: documentId },
+      select: {
+        id: true,
+        applicationId: true,
+        cloudinaryPublicId: true,
+        cloudinaryResourceType: true,
+      },
+    });
+
+    if (!doc || doc.applicationId !== application.id) {
+      return;
+    }
+
+    const url = getSignedCloudinaryUrl({
+      publicId: doc.cloudinaryPublicId,
+      resourceType: doc.cloudinaryResourceType,
+      expiresInSeconds: 60 * 10,
+    });
+
+    redirect(url);
   };
 
   return (
@@ -136,6 +192,40 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                 <p className='whitespace-pre-wrap leading-relaxed'>{application.notes}</p>
               </div>
             )}
+
+            <div className='mt-4 space-y-2'>
+              <p className='font-semibold text-slate-900 text-sm'>Verification documents</p>
+              {applicationDocuments.length === 0 ? (
+                <p className='text-xs text-slate-500'>No documents uploaded yet.</p>
+              ) : (
+                <div className='space-y-2'>
+                  {applicationDocuments.map((doc: ApplicationDocumentRow) => (
+                    <div
+                      key={doc.id}
+                      className='flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2'
+                    >
+                      <div className='min-w-0'>
+                        <p className='text-xs font-medium text-slate-900 truncate'>{doc.originalFileName}</p>
+                        <p className='text-[11px] text-slate-500'>
+                          {String(doc.category).replace(/_/g, ' ')} • {String(doc.docType).replace(/_/g, ' ')} •{' '}
+                          {doc.status}
+                        </p>
+                      </div>
+
+                      <form action={openApplicationDocument}>
+                        <input type='hidden' name='documentId' value={doc.id} />
+                        <button
+                          type='submit'
+                          className='inline-flex items-center justify-center rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-slate-800'
+                        >
+                          View
+                        </button>
+                      </form>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
 
           <section className='space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm'>

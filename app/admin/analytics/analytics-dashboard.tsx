@@ -4,6 +4,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs/index';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   TrendingUp,
   TrendingDown,
@@ -19,7 +36,14 @@ import {
   BarChart3,
   ArrowUpRight,
   ArrowDownRight,
-  PenTool
+  PenTool,
+  Plus,
+  Wrench,
+  ShieldAlert,
+  Percent,
+  Activity,
+  LineChart,
+  Landmark,
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -34,6 +58,62 @@ interface AnalyticsData {
   totalTenants: number;
   monthlyRevenue: number[];
   monthlyExpenses: number[];
+
+  physicalOccupancy: number;
+  economicOccupancy: number;
+  rentPossibleThisMonth: number;
+  rentCollectedThisMonth: number;
+  vacancyLossThisMonth: number;
+
+  maintenanceCostsThisMonth: number;
+  platformFeesThisMonth: number;
+  otherExpensesThisMonth: number;
+  totalExpensesThisMonth: number;
+  expensesRecordedThisMonth: boolean;
+  netProfitThisMonth: number;
+  profitMarginThisMonth: number;
+  expenseBreakdownThisMonth: Array<{ category: string; amount: number }>;
+
+  tenantQuality: {
+    onTimePaymentPercent: number;
+    latePaymentFrequency: number;
+    avgDaysLate: number;
+    worstTenants: Array<{
+      tenantId: string;
+      onTimePercent: number;
+      latePaymentFrequency: number;
+      avgDaysLate: number;
+      maintenanceRequests: number;
+      violationCount: number;
+    }>;
+  };
+
+  maintenanceAnalytics: {
+    totalCost: number;
+    costPerUnit: number;
+    avgResolutionTimeDays: number;
+    emergencyRatio: number;
+    repeatIssues: Array<{ unitId: string; title: string; count: number }>;
+  };
+
+  vacancyAnalytics: {
+    avgDaysVacant: number;
+    vacancyCostYtd: number;
+    currentVacantUnits: Array<{ unitId: string; propertyId: string; daysVacant: number }>;
+  };
+
+  marketComparison: {
+    marketAverageRent: number | null;
+    delta: number | null;
+    source: string | null;
+    effectiveDate: string | null;
+  };
+
+  portfolioHealth: {
+    score: number;
+    trend: 'improving' | 'stable' | 'declining';
+  };
+
   propertyPerformance: Array<{
     id: string;
     name: string;
@@ -58,6 +138,22 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
   const [dsConnected, setDsConnected] = useState<boolean>(false);
   const [dsLoading, setDsLoading] = useState<boolean>(false);
 
+  const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
+  const [benchmarkDialogOpen, setBenchmarkDialogOpen] = useState(false);
+
+  const [expenseCategory, setExpenseCategory] = useState('maintenance');
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseIncurredAt, setExpenseIncurredAt] = useState('');
+  const [expenseDescription, setExpenseDescription] = useState('');
+  const [expenseIsRecurring, setExpenseIsRecurring] = useState(false);
+  const [expenseSubmitting, setExpenseSubmitting] = useState(false);
+
+  const [benchmarkAverageRent, setBenchmarkAverageRent] = useState('');
+  const [benchmarkEffectiveDate, setBenchmarkEffectiveDate] = useState('');
+  const [benchmarkSource, setBenchmarkSource] = useState('manual');
+  const [benchmarkZip, setBenchmarkZip] = useState('');
+  const [benchmarkSubmitting, setBenchmarkSubmitting] = useState(false);
+
   useEffect(() => {
     fetchAnalyticsData();
   }, [landlordId]);
@@ -79,6 +175,80 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       console.error('Failed to fetch analytics:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitExpense = async () => {
+    try {
+      setExpenseSubmitting(true);
+
+      const payload = {
+        landlordId,
+        category: expenseCategory,
+        amount: expenseAmount,
+        incurredAt: expenseIncurredAt || new Date().toISOString().slice(0, 10),
+        description: expenseDescription,
+        isRecurring: expenseIsRecurring,
+      };
+
+      const res = await fetch('/api/landlord/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        alert(json?.message || 'Failed to add expense');
+        return;
+      }
+
+      setExpenseAmount('');
+      setExpenseDescription('');
+      setExpenseIsRecurring(false);
+      setExpenseDialogOpen(false);
+      await fetchAnalyticsData();
+    } catch (e) {
+      console.error('Failed to add expense:', e);
+      alert('Failed to add expense');
+    } finally {
+      setExpenseSubmitting(false);
+    }
+  };
+
+  const submitBenchmark = async () => {
+    try {
+      setBenchmarkSubmitting(true);
+
+      const payload = {
+        landlordId,
+        averageRent: benchmarkAverageRent,
+        effectiveDate: benchmarkEffectiveDate || new Date().toISOString().slice(0, 10),
+        source: benchmarkSource,
+        zip: benchmarkZip || null,
+      };
+
+      const res = await fetch('/api/landlord/market-benchmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        alert(json?.message || 'Failed to set market benchmark');
+        return;
+      }
+
+      setBenchmarkAverageRent('');
+      setBenchmarkZip('');
+      setBenchmarkDialogOpen(false);
+      await fetchAnalyticsData();
+    } catch (e) {
+      console.error('Failed to set benchmark:', e);
+      alert('Failed to set market benchmark');
+    } finally {
+      setBenchmarkSubmitting(false);
     }
   };
 
@@ -233,65 +403,60 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
     );
   }
 
-  const profitMargin = data.totalRevenue > 0 ? ((data.netProfit / data.totalRevenue) * 100) : 0;
+  const formatMoney = (n: number) => `$${Math.round(n).toLocaleString()}`;
+  const formatPct = (n: number) => `${n.toFixed(1)}%`;
+  const healthColor =
+    data.portfolioHealth.score >= 80
+      ? 'text-emerald-300'
+      : data.portfolioHealth.score >= 65
+        ? 'text-amber-300'
+        : 'text-rose-300';
 
   return (
     <div className='space-y-6'>
       {/* Key Metrics */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
         <div className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex flex-col gap-3'>
           <div className='flex items-center justify-between'>
-            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Total Revenue</span>
+            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Rent Collected (Month)</span>
             <DollarSign className='h-4 w-4 text-violet-200/80' />
           </div>
-          <div>
-            <div className='text-2xl font-semibold text-slate-50'>${data.totalRevenue.toLocaleString()}</div>
-            <p className='text-xs text-slate-300/80 mt-1'>
-              <TrendingUp className='inline h-3 w-3 mr-1' />
-              +12.5% from last month
-            </p>
+          <div className='text-2xl font-semibold text-slate-50'>{formatMoney(data.rentCollectedThisMonth)}</div>
+          <div className='text-xs text-slate-300/80'>
+            Possible: {formatMoney(data.rentPossibleThisMonth)}
           </div>
         </div>
 
         <div className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex flex-col gap-3'>
           <div className='flex items-center justify-between'>
-            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Net Profit</span>
-            <TrendingUp className='h-4 w-4 text-violet-200/80' />
+            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Expenses (Month)</span>
+            <Wrench className='h-4 w-4 text-violet-200/80' />
           </div>
-          <div>
-            <div className='text-2xl font-semibold text-slate-50'>${data.netProfit.toLocaleString()}</div>
-            <p className='text-xs text-slate-300/80 mt-1'>
-              <ArrowUpRight className='inline h-3 w-3 mr-1 text-green-400' />
-              {profitMargin.toFixed(1)}% profit margin
-            </p>
+          <div className='text-2xl font-semibold text-slate-50'>{formatMoney(data.totalExpensesThisMonth)}</div>
+          <div className='text-xs text-slate-300/80'>
+            {data.expensesRecordedThisMonth ? 'Recorded expenses this period' : 'No expenses recorded this period'}
           </div>
         </div>
 
         <div className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex flex-col gap-3'>
           <div className='flex items-center justify-between'>
-            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Occupancy Rate</span>
-            <Home className='h-4 w-4 text-violet-200/80' />
+            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Net Cash Flow (Month)</span>
+            <LineChart className='h-4 w-4 text-violet-200/80' />
           </div>
-          <div>
-            <div className='text-2xl font-semibold text-slate-50'>{(100 - data.vacancyRate).toFixed(1)}%</div>
-            <p className='text-xs text-slate-300/80 mt-1'>
-              {data.occupiedUnits} of {data.totalUnits} units occupied
-            </p>
+          <div className='text-2xl font-semibold text-slate-50'>{formatMoney(data.netProfitThisMonth)}</div>
+          <div className='text-xs text-slate-300/80 flex items-center gap-1'>
+            <Percent className='h-3 w-3' />
+            {formatPct(data.profitMarginThisMonth)} margin
           </div>
         </div>
 
         <div className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex flex-col gap-3'>
           <div className='flex items-center justify-between'>
-            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Total Tenants</span>
-            <Users className='h-4 w-4 text-violet-200/80' />
+            <span className='text-xs font-medium text-slate-300/90 uppercase tracking-wide'>Portfolio Health</span>
+            <Activity className='h-4 w-4 text-violet-200/80' />
           </div>
-          <div>
-            <div className='text-2xl font-semibold text-slate-50'>{data.totalTenants}</div>
-            <p className='text-xs text-slate-300/80 mt-1'>
-              <ArrowUpRight className='inline h-3 w-3 mr-1 text-green-400' />
-              +2 new this month
-            </p>
-          </div>
+          <div className={`text-2xl font-semibold ${healthColor}`}>{data.portfolioHealth.score} / 100</div>
+          <div className='text-xs text-slate-300/80'>Trend: {data.portfolioHealth.trend}</div>
         </div>
       </div>
 
@@ -306,7 +471,15 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             <TabsTrigger triggerValue='integrations'>Integrations</TabsTrigger>
           </TabsList>
 
-          <div className='flex gap-2'>
+          <div className='flex flex-wrap gap-2 w-full sm:w-auto'>
+            <Button variant='outline' size='sm' onClick={() => setExpenseDialogOpen(true)}>
+              <Plus className='h-4 w-4 mr-2' />
+              Add Expense
+            </Button>
+            <Button variant='outline' size='sm' onClick={() => setBenchmarkDialogOpen(true)}>
+              <Landmark className='h-4 w-4 mr-2' />
+              Set Market Avg
+            </Button>
             <Button variant='outline' size='sm' onClick={() => downloadReport('csv')}>
               <Download className='h-4 w-4 mr-2' />
               CSV
@@ -319,44 +492,177 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
         </div>
 
         <TabsContent contentValue='overview' className='space-y-6'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue vs Expenses</CardTitle>
-                <CardDescription>Monthly financial performance</CardDescription>
+          <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
+            <Card className='border-white/10 bg-slate-900/60 text-slate-50'>
+              <CardHeader className='pb-2'>
+                <CardTitle className='text-base'>Occupancy</CardTitle>
+                <CardDescription className='text-slate-300/80'>Physical vs economic (this month)</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className='h-80 flex items-center justify-center text-slate-500'>
-                  <BarChart3 className='h-12 w-12 mr-2' />
-                  Chart visualization coming soon
+              <CardContent className='space-y-3'>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Physical</div>
+                    <div className='text-lg font-semibold'>{formatPct(data.physicalOccupancy)}</div>
+                  </div>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Economic</div>
+                    <div className='text-lg font-semibold'>{formatPct(data.economicOccupancy)}</div>
+                  </div>
+                </div>
+                <div className='rounded-lg border border-white/10 bg-white/5 p-3 flex items-start justify-between gap-3'>
+                  <div>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Vacancy Loss (Month)</div>
+                    <div className='text-lg font-semibold text-rose-200'>-{formatMoney(data.vacancyLossThisMonth).slice(1)}</div>
+                  </div>
+                  <ShieldAlert className='h-5 w-5 text-rose-200/80' />
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Profit & Loss Summary</CardTitle>
-                <CardDescription>Year-to-date financial overview</CardDescription>
+            <Card className='border-white/10 bg-slate-900/60 text-slate-50'>
+              <CardHeader className='pb-2'>
+                <CardTitle className='text-base'>Expenses</CardTitle>
+                <CardDescription className='text-slate-300/80'>Breakdown (this month)</CardDescription>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex justify-between'>
-                  <span>Total Revenue:</span>
-                  <span className='font-semibold text-green-600'>+${data.totalRevenue.toLocaleString()}</span>
+              <CardContent className='space-y-3'>
+                {!data.expensesRecordedThisMonth ? (
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-slate-200/90'>
+                    No expenses recorded this period
+                  </div>
+                ) : (
+                  <div className='space-y-2'>
+                    {data.expenseBreakdownThisMonth.slice(0, 6).map((row) => (
+                      <div key={row.category} className='flex items-center justify-between text-sm'>
+                        <span className='text-slate-200/90 capitalize'>{row.category.replace(/_/g, ' ')}</span>
+                        <span className='font-semibold text-slate-50'>{formatMoney(row.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className='grid grid-cols-2 gap-3 text-xs text-slate-300/80'>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='uppercase tracking-wide'>Maintenance</div>
+                    <div className='text-sm font-semibold text-slate-50'>{formatMoney(data.maintenanceCostsThisMonth)}</div>
+                  </div>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='uppercase tracking-wide'>Platform Fees</div>
+                    <div className='text-sm font-semibold text-slate-50'>{formatMoney(data.platformFeesThisMonth)}</div>
+                  </div>
                 </div>
-                <div className='flex justify-between'>
-                  <span>Total Expenses:</span>
-                  <span className='font-semibold text-red-600'>-${data.totalExpenses.toLocaleString()}</span>
+              </CardContent>
+            </Card>
+
+            <Card className='border-white/10 bg-slate-900/60 text-slate-50'>
+              <CardHeader className='pb-2'>
+                <CardTitle className='text-base'>Tenant Quality</CardTitle>
+                <CardDescription className='text-slate-300/80'>On-time & behavior signals</CardDescription>
+              </CardHeader>
+              <CardContent className='space-y-3'>
+                <div className='grid grid-cols-3 gap-3'>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>On-time</div>
+                    <div className='text-sm font-semibold text-slate-50'>{formatPct(data.tenantQuality.onTimePaymentPercent)}</div>
+                  </div>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Late freq</div>
+                    <div className='text-sm font-semibold text-slate-50'>{formatPct(data.tenantQuality.latePaymentFrequency)}</div>
+                  </div>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Avg days late</div>
+                    <div className='text-sm font-semibold text-slate-50'>{data.tenantQuality.avgDaysLate.toFixed(1)}</div>
+                  </div>
                 </div>
-                <div className='border-t pt-4 flex justify-between'>
-                  <span className='font-semibold'>Net Profit:</span>
-                  <span className={`font-bold ${data.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    ${data.netProfit.toLocaleString()}
-                  </span>
+
+                {data.tenantQuality.worstTenants.length > 0 && (
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80 mb-2'>Needs attention</div>
+                    <div className='space-y-2'>
+                      {data.tenantQuality.worstTenants.slice(0, 3).map((t) => (
+                        <div key={t.tenantId} className='flex items-center justify-between text-xs'>
+                          <span className='text-slate-200/90'>Tenant {t.tenantId.slice(-6)}</span>
+                          <span className='text-slate-300/80'>On-time {formatPct(t.onTimePercent)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+            <Card className='border-white/10 bg-slate-900/60 text-slate-50'>
+              <CardHeader className='pb-2'>
+                <CardTitle className='text-base'>Maintenance Analytics</CardTitle>
+                <CardDescription className='text-slate-300/80'>Costs + speed + repeat issues</CardDescription>
+              </CardHeader>
+              <CardContent className='space-y-3'>
+                <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Cost / unit</div>
+                    <div className='text-sm font-semibold text-slate-50'>{formatMoney(data.maintenanceAnalytics.costPerUnit)}</div>
+                  </div>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Total cost</div>
+                    <div className='text-sm font-semibold text-slate-50'>{formatMoney(data.maintenanceAnalytics.totalCost)}</div>
+                  </div>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Avg resolve</div>
+                    <div className='text-sm font-semibold text-slate-50'>{data.maintenanceAnalytics.avgResolutionTimeDays.toFixed(1)}d</div>
+                  </div>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Emergency</div>
+                    <div className='text-sm font-semibold text-slate-50'>{formatPct(data.maintenanceAnalytics.emergencyRatio)}</div>
+                  </div>
                 </div>
-                <div className='flex justify-between text-sm text-slate-600'>
-                  <span>Average Monthly Rent:</span>
-                  <span>${data.averageRent.toLocaleString()}</span>
+
+                {data.maintenanceAnalytics.repeatIssues.length > 0 && (
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80 mb-2'>Repeat issues</div>
+                    <div className='space-y-2'>
+                      {data.maintenanceAnalytics.repeatIssues.slice(0, 3).map((issue) => (
+                        <div key={`${issue.unitId}-${issue.title}`} className='flex items-center justify-between text-xs'>
+                          <span className='text-slate-200/90'>Unit {issue.unitId.slice(-4)} • {issue.title}</span>
+                          <span className='text-slate-300/80'>{issue.count}x</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className='border-white/10 bg-slate-900/60 text-slate-50'>
+              <CardHeader className='pb-2'>
+                <CardTitle className='text-base'>Vacancy Analytics</CardTitle>
+                <CardDescription className='text-slate-300/80'>Days vacant + cost impact</CardDescription>
+              </CardHeader>
+              <CardContent className='space-y-3'>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Avg days vacant</div>
+                    <div className='text-sm font-semibold text-slate-50'>{data.vacancyAnalytics.avgDaysVacant.toFixed(1)}</div>
+                  </div>
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80'>Vacancy cost (YTD)</div>
+                    <div className='text-sm font-semibold text-rose-200'>-{formatMoney(data.vacancyAnalytics.vacancyCostYtd).slice(1)}</div>
+                  </div>
                 </div>
+
+                {data.vacancyAnalytics.currentVacantUnits.length > 0 && (
+                  <div className='rounded-lg border border-white/10 bg-white/5 p-3'>
+                    <div className='text-[11px] uppercase tracking-wide text-slate-300/80 mb-2'>Currently vacant</div>
+                    <div className='space-y-2'>
+                      {data.vacancyAnalytics.currentVacantUnits.slice(0, 5).map((u) => (
+                        <div key={u.unitId} className='flex items-center justify-between text-xs'>
+                          <span className='text-slate-200/90'>Unit {u.unitId.slice(-4)}</span>
+                          <span className='text-slate-300/80'>{u.daysVacant} days</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -416,11 +722,11 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
                 <div className='space-y-4'>
                   <div>
                     <label className='text-sm font-medium'>Total Investment</label>
-                    <input type='number' className='w-full mt-1 p-2 border rounded' placeholder='100000' />
+                    <Input type='number' className='mt-1' placeholder='100000' />
                   </div>
                   <div>
                     <label className='text-sm font-medium'>Annual Net Income</label>
-                    <input type='number' className='w-full mt-1 p-2 border rounded' placeholder='12000' />
+                    <Input type='number' className='mt-1' placeholder='12000' />
                   </div>
                   <Button className='w-full'>
                     <Calculator className='h-4 w-4 mr-2' />
@@ -458,19 +764,25 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             <CardContent>
               <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                 <div className='text-center'>
-                  <div className='text-3xl font-bold text-blue-600'>$1,250</div>
-                  <div className='text-sm text-slate-600'>Your Average Rent</div>
-                  <div className='text-xs text-green-600 mt-1'>+5% vs market</div>
+                  <div className='text-3xl font-bold text-blue-600'>{formatMoney(data.averageRent)}</div>
+                  <div className='text-sm text-slate-600'>Your Avg Rent</div>
+                  {data.marketComparison.marketAverageRent != null && data.marketComparison.delta != null ? (
+                    <div className={`text-xs mt-1 ${data.marketComparison.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {data.marketComparison.delta >= 0 ? '▲' : '▼'} {formatMoney(Math.abs(data.marketComparison.delta))} vs market
+                    </div>
+                  ) : (
+                    <div className='text-xs text-slate-500 mt-1'>Set a market benchmark to compare</div>
+                  )}
                 </div>
                 <div className='text-center'>
-                  <div className='text-3xl font-bold text-green-600'>95%</div>
-                  <div className='text-sm text-slate-600'>Your Occupancy</div>
-                  <div className='text-xs text-green-600 mt-1'>+8% vs market</div>
+                  <div className='text-3xl font-bold text-green-600'>{formatPct(data.physicalOccupancy)}</div>
+                  <div className='text-sm text-slate-600'>Physical Occupancy</div>
+                  <div className='text-xs text-slate-500 mt-1'>Economic: {formatPct(data.economicOccupancy)}</div>
                 </div>
                 <div className='text-center'>
-                  <div className='text-3xl font-bold text-purple-600'>8.5%</div>
-                  <div className='text-sm text-slate-600'>Your ROI</div>
-                  <div className='text-xs text-green-600 mt-1'>+2% vs market</div>
+                  <div className='text-3xl font-bold text-purple-600'>{data.portfolioHealth.score}</div>
+                  <div className='text-sm text-slate-600'>Portfolio Health</div>
+                  <div className='text-xs text-slate-500 mt-1'>Trend: {data.portfolioHealth.trend}</div>
                 </div>
               </div>
             </CardContent>
@@ -560,6 +872,137 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
+        <DialogContent className='sm:max-w-lg'>
+          <DialogHeader>
+            <DialogTitle>Add Expense</DialogTitle>
+            <DialogDescription>
+              Record expenses for this period (maintenance, utilities, vacancy loss tracking, repairs, etc.).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='grid gap-4'>
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>Category</label>
+              <Select value={expenseCategory} onValueChange={setExpenseCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select category' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='maintenance'>Maintenance</SelectItem>
+                  <SelectItem value='platform_fees'>Platform fees</SelectItem>
+                  <SelectItem value='vacancy_loss'>Vacancy loss</SelectItem>
+                  <SelectItem value='owner_paid_utilities'>Owner-paid utilities</SelectItem>
+                  <SelectItem value='one_time_repairs'>One-time repairs</SelectItem>
+                  <SelectItem value='recurring_expenses'>Recurring expenses</SelectItem>
+                  <SelectItem value='other'>Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>Amount</label>
+              <Input
+                type='number'
+                value={expenseAmount}
+                onChange={(e) => setExpenseAmount(e.target.value)}
+                placeholder='0.00'
+              />
+            </div>
+
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>Incurred date</label>
+              <Input
+                type='date'
+                value={expenseIncurredAt}
+                onChange={(e) => setExpenseIncurredAt(e.target.value)}
+              />
+            </div>
+
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>Description (optional)</label>
+              <Textarea
+                value={expenseDescription}
+                onChange={(e) => setExpenseDescription(e.target.value)}
+                placeholder='e.g. HVAC service call'
+              />
+            </div>
+
+            <div className='flex items-center justify-between gap-3 rounded-md border border-input px-3 py-2'>
+              <div className='flex items-center gap-2 text-sm'>
+                <span className='font-medium'>Recurring</span>
+                <span className='text-slate-500'>Mark if this repeats monthly</span>
+              </div>
+              <input
+                type='checkbox'
+                checked={expenseIsRecurring}
+                onChange={(e) => setExpenseIsRecurring(e.target.checked)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setExpenseDialogOpen(false)} disabled={expenseSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={submitExpense} disabled={expenseSubmitting}>
+              {expenseSubmitting ? 'Saving…' : 'Save Expense'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={benchmarkDialogOpen} onOpenChange={setBenchmarkDialogOpen}>
+        <DialogContent className='sm:max-w-lg'>
+          <DialogHeader>
+            <DialogTitle>Set Market Benchmark</DialogTitle>
+            <DialogDescription>
+              Store a market average rent for comparison (manual input is fine).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='grid gap-4'>
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>Market average rent</label>
+              <Input
+                type='number'
+                value={benchmarkAverageRent}
+                onChange={(e) => setBenchmarkAverageRent(e.target.value)}
+                placeholder='2150'
+              />
+            </div>
+
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>Effective date</label>
+              <Input
+                type='date'
+                value={benchmarkEffectiveDate}
+                onChange={(e) => setBenchmarkEffectiveDate(e.target.value)}
+              />
+            </div>
+
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>ZIP (optional)</label>
+              <Input value={benchmarkZip} onChange={(e) => setBenchmarkZip(e.target.value)} placeholder='89101' />
+            </div>
+
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>Source</label>
+              <Input value={benchmarkSource} onChange={(e) => setBenchmarkSource(e.target.value)} placeholder='manual' />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setBenchmarkDialogOpen(false)} disabled={benchmarkSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={submitBenchmark} disabled={benchmarkSubmitting}>
+              {benchmarkSubmitting ? 'Saving…' : 'Save Benchmark'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

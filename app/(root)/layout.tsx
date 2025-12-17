@@ -10,7 +10,7 @@ export default function RootLayout({
 }>) {
   return (
     <SessionProvider>
-      <div className='flex min-h-screen flex-col bg-linear-to-r from-blue-900 to-indigo-600'>
+      <div className=' flex min-h-screen flex-col'>
         <Header />
         <main className='flex-1 wrapper'>{children}</main>
         <Footer />
@@ -18,3 +18,5 @@ export default function RootLayout({
     </SessionProvider>
   );
 }
+
+// bg-gradient-to-r from-teal-50 to-sky-500

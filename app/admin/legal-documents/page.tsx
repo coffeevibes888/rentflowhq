@@ -363,7 +363,7 @@ export default function LegalDocumentsPage() {
             <Scale className="h-6 w-6 text-violet-400" />
             Legal Documents
           </h1>
-          <p className="text-slate-300/80 mt-1">
+          <p className="text-black mt-1">
             Manage leases, disclosures, and legal templates
           </p>
         </div>
@@ -509,49 +509,49 @@ export default function LegalDocumentsPage() {
 
       {/* Leasing defaults + legal settings (moved from Settings) */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">
+        <Card className="border-white/10 bg-gradient-to-r from-indigo-500 to-sky-500 backdrop-blur-xl">
           <CardHeader>
             <CardTitle className="text-white">Leasing defaults</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-black">
               Set defaults you can reuse inside leases and templates.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-200/90">Default lease term (months)</Label>
-              <Input placeholder="12" className="bg-slate-800 border-slate-700" />
+              <Label className="text-black">Default lease term (months)</Label>
+              <Input placeholder="12" className="bg-transparent border-slate-700 hover:border-white" />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-200/90">Billing day of month</Label>
-              <Input placeholder="1" className="bg-slate-800 border-slate-700" />
+              <Label className="text-black">Billing day of month</Label>
+              <Input placeholder="1" className="bg-transparent border-slate-700 hover:border-white" />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-200/90">Late fee (%)</Label>
-              <Input placeholder="5" className="bg-slate-800 border-slate-700" />
+              <Label className="text-black">Late fee (%)</Label>
+              <Input placeholder="5" className="bg-transparent border-slate-700 hover:border-white" />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-200/90">Grace period (days)</Label>
-              <Input placeholder="3" className="bg-slate-800 border-slate-700" />
+              <Label className="text-black">Grace period (days)</Label>
+              <Input placeholder="3" className="bg-transparent border-slate-700 hover:border-white" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">
+        <Card className="border-white/10 bg-gradient-to-r from-indigo-500 to-sky-500 backdrop-blur-xl">
           <CardHeader>
             <CardTitle className="text-white">Legal & notices</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-black font-semibold">
               Defaults to reuse in notices and tenant communications.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
-              <Label className="text-slate-200/90">Primary state / jurisdiction</Label>
-              <Input placeholder="e.g. California" className="bg-slate-800 border-slate-700" />
+              <Label className="text-black font-semibold">Primary state / jurisdiction</Label>
+              <Input placeholder="e.g. California" className="bg-transparent border-slate-700 hover:border-white" />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-200/90">Default notice footer</Label>
+              <Label className="text-black font-semibold">Default notice footer</Label>
               <Textarea
-                className="bg-slate-800 border-slate-700 min-h-[96px]"
+                className="bg-transparent border-slate-700 min-h-[96px] hover:border-white"
                 placeholder="Standard legal disclaimer or footer text to append to notices and communications."
               />
             </div>

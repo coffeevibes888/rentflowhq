@@ -23,6 +23,25 @@ cloudinary.config({
   secure: true,
 });
 
+export { cloudinary };
+
+export function getSignedCloudinaryUrl(params: {
+  publicId: string;
+  resourceType?: 'image' | 'raw' | 'video';
+  expiresInSeconds?: number;
+}) {
+  const resourceType = params.resourceType || 'raw';
+  const expiresInSeconds = params.expiresInSeconds ?? 60 * 10;
+  const expiresAt = Math.floor(Date.now() / 1000) + expiresInSeconds;
+
+  return cloudinary.url(params.publicId, {
+    resource_type: resourceType,
+    type: 'authenticated',
+    sign_url: true,
+    expires_at: expiresAt,
+  });
+}
+
 export async function uploadToCloudinary(
   fileBuffer: Buffer,
   options: UploadApiOptions

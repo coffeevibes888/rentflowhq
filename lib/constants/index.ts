@@ -7,7 +7,7 @@ export const LATEST_PRODUCTS_LIMIT =
   Number(process.env.LATEST_PRODUCTS_LIMIT) || 4;
 
 
-export const NEXTAUTH_URL = process.env.NEXT_PUBLIC_NEXTAUTH_URL || 'https://www.rockenmyvibe.com';
+export const NEXTAUTH_URL = process.env.NEXT_PUBLIC_NEXTAUTH_URL || 'https://www.rooms4rentlv.com';
 // export const signInDefaultValues = {
 //   email: 'allenyoung1979@yahoo.com',
 //   password: 'NewLove2044$&@*',

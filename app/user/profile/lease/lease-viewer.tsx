@@ -25,19 +25,23 @@ export default function LeaseViewer({ leaseHtml, triggerLabel = 'View lease' }: 
           {triggerLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent className='max-w-5xl max-h-[85vh] overflow-hidden bg-slate-950 text-slate-50 border border-white/10'>
-        <DialogHeader>
-          <DialogTitle className='text-lg font-semibold'>Lease preview</DialogTitle>
+      <DialogContent className='max-w-6xl h-[90dvh] max-h-[900px] overflow-hidden border border-black/10 bg-[#fafaf9] p-0'>
+        <DialogHeader className='px-4 sm:px-6 py-3 sm:py-4 border-b border-black/10 bg-white'>
+          <DialogTitle className='text-lg sm:text-2xl font-semibold text-gray-900'>Lease preview</DialogTitle>
         </DialogHeader>
-        <div className='overflow-auto max-h-[70vh] rounded-lg border border-white/10 bg-slate-900/70 p-4'>
-          {leaseHtml ? (
-            <div
-              className='prose prose-invert max-w-none text-sm'
-              dangerouslySetInnerHTML={{ __html: leaseHtml }}
-            />
-          ) : (
-            <p className='text-sm text-slate-300'>Lease content is unavailable.</p>
-          )}
+
+        <div className='flex-1 min-h-0 overflow-auto p-4 sm:p-6 bg-white'>
+          <div className='rounded-xl border border-black/10 bg-white p-4 sm:p-6'>
+            {leaseHtml ? (
+              <div
+                className='prose prose-sm max-w-none text-gray-800'
+                style={{ fontSize: '14px', lineHeight: '1.6' }}
+                dangerouslySetInnerHTML={{ __html: leaseHtml }}
+              />
+            ) : (
+              <p className='text-sm text-gray-500'>Lease content is unavailable.</p>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

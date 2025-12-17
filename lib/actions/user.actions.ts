@@ -104,9 +104,12 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
 
     user.password = await hash(user.password);
 
+    const fromProperty = formData.get('fromProperty') === 'true' || Boolean(formData.get('propertySlug'));
+
     const rawRole = formData.get('role');
-    const roleValue =
-      rawRole === 'tenant' || rawRole === 'landlord' || rawRole === 'property_manager'
+    const roleValue = fromProperty
+      ? 'tenant'
+      : rawRole === 'tenant' || rawRole === 'landlord' || rawRole === 'property_manager'
         ? (rawRole as string)
         : 'tenant';
 
@@ -144,7 +147,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       });
 
       // Create a draft application so it's waiting for them in their dashboard
-      await prisma.rentalApplication.create({
+      const draft = await prisma.rentalApplication.create({
         data: {
           fullName: user.name,
           email: user.email,
@@ -155,8 +158,8 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
         },
       });
       
-      // Redirect directly to tenant dashboard where the application is waiting
-      redirect('/user/dashboard');
+      // Redirect into tenant onboarding first (verification + application)
+      redirect(`/user/onboarding?applicationId=${encodeURIComponent(draft.id)}`);
     }
 
     const rawCallbackUrl = formData.get('callbackUrl');

@@ -22,6 +22,7 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
 
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '';
+  const fromProperty = searchParams.get('fromProperty') === 'true' || Boolean(propertySlug);
 
   const SignUpButton = () => {
     const { pending } = useFormStatus();
@@ -37,50 +38,54 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
     <form action={action}>
       <input type='hidden' name='callbackUrl' value={callbackUrl} />
       {propertySlug && <input type='hidden' name='propertySlug' value={propertySlug} />}
+      {fromProperty && <input type='hidden' name='fromProperty' value='true' />}
+      {fromProperty && <input type='hidden' name='role' value='tenant' />}
       <div className='space-y-6'>
-        <div className='space-y-2'>
-          <p className='text-xs font-semibold uppercase tracking-[0.2em] text-slate-500'>
-            Tell us who you are
-          </p>
-          <div className='grid gap-3 sm:grid-cols-3 text-xs'>
-            <label className='cursor-pointer'>
-              <input
-                type='radio'
-                name='role'
-                value='tenant'
-                defaultChecked
-                className='sr-only peer'
-              />
-              <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
-                Tenant
-              </div>
-            </label>
+        {!fromProperty && (
+          <div className='space-y-2'>
+            <p className='text-xs font-semibold uppercase tracking-[0.2em] text-slate-500'>
+              Tell us who you are
+            </p>
+            <div className='grid gap-3 sm:grid-cols-3 text-xs'>
+              <label className='cursor-pointer'>
+                <input
+                  type='radio'
+                  name='role'
+                  value='tenant'
+                  defaultChecked
+                  className='sr-only peer'
+                />
+                <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
+                  Tenant
+                </div>
+              </label>
 
-            <label className='cursor-pointer'>
-              <input
-                type='radio'
-                name='role'
-                value='landlord'
-                className='sr-only peer'
-              />
-              <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
-                Landlord
-              </div>
-            </label>
+              <label className='cursor-pointer'>
+                <input
+                  type='radio'
+                  name='role'
+                  value='landlord'
+                  className='sr-only peer'
+                />
+                <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
+                  Landlord
+                </div>
+              </label>
 
-            <label className='cursor-pointer'>
-              <input
-                type='radio'
-                name='role'
-                value='property_manager'
-                className='sr-only peer'
-              />
-              <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
-                Property manager
-              </div>
-            </label>
+              <label className='cursor-pointer'>
+                <input
+                  type='radio'
+                  name='role'
+                  value='property_manager'
+                  className='sr-only peer'
+                />
+                <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
+                  Property manager
+                </div>
+              </label>
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <Label htmlFor='email'>Name</Label>

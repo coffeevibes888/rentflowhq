@@ -163,19 +163,19 @@ export default async function AdminCommunicationsPage() {
       </section>
 
       <div className="space-y-6">
-        <section className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-[0_20px_70px_rgba(15,23,42,0.35)] overflow-hidden">
-          <div className="border-b border-white/10 px-5 py-4">
+        <section className="rounded-2xl border shadow-[0_20px_70px_rgba(15,23,42,0.35)] overflow-hidden">
+          <div className="border-b px-5 py-4">
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300/80">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em]">
                 Contact Inbox
               </p>
-              <h2 className="text-lg font-semibold text-slate-50">Threads</h2>
+              <h2 className="text-lg font-semibold ">Threads</h2>
             </div>
           </div>
 
           <div className="max-h-[680px] overflow-y-auto p-4 space-y-2">
             {threads.length === 0 && (
-              <p className="text-sm text-slate-400/80">No messages yet.</p>
+              <p className="text-sm">No messages yet.</p>
             )}
             {threads.map((thread) => {
               const first = thread.messages[0];
@@ -211,8 +211,8 @@ export default async function AdminCommunicationsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-[0_20px_70px_rgba(15,23,42,0.35)] overflow-hidden">
-          <div className="border-b border-white/10 px-5 py-4">
+        <section className="rounded-2xl border shadow-[0_20px_70px_rgba(15,23,42,0.35)] overflow-hidden">
+          <div className="border-b px-5 py-4">
             <div className="space-y-1">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300/80">
                 Tenant Communications

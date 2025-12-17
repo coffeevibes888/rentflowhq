@@ -15,7 +15,7 @@ const MainNav = ({
   return (
     <nav
       className={cn(
-        'flex flex-col gap-2 text-base text-white',
+        'flex flex-col gap-2 text-base text-black font-medium',
         className
       )}
       {...props}
@@ -30,13 +30,13 @@ const MainNav = ({
             href={item.href}
             className={cn(
               'flex items-center gap-3 rounded-lg px-3 py-2',
-              isActive ? 'text-emerald-300' : 'text-white'
+              isActive ? 'text-white font-semibold' : 'text-black'
             )}
           >
             <Icon className='h-5 w-5 shrink-0' />
             <div className='flex flex-col'>
               <span className='font-medium text-sm'>{item.title}</span>
-              <span className='text-xs text-slate-200'>{item.description}</span>
+              <span className='text-xs text-emerald-300'>{item.description}</span>
             </div>
           </Link>
         );

@@ -6,17 +6,7 @@ import { prisma } from '@/db/prisma';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
-import {
-  CheckCircle2,
-  Clock,
-  DollarSign,
-  FileText,
-  MessageSquare,
-  Wrench,
-  Building2,
-  Users,
-  CreditCard,
-  Calendar,
+import { CheckCircle2, Clock, DollarSign, FileText, MessageSquare, Wrench, Building2, Users, CreditCard, Calendar,
   Shield,
   Zap,
   TrendingUp,
@@ -166,22 +156,22 @@ const Homepage = async () => {
       <main className='flex-1 w-full'>
         {/* Hero Section - Conversion Focused */}
         <section className='w-full pt-12 pb-16 md:pt-20 md:pb-24 px-4 relative overflow-hidden'>
-          <div className='absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10 animate-pulse' />
+          <div className='absolute inset-0  animate-pulse' />
           <div className='max-w-7xl mx-auto relative z-10'>
             <div className='grid gap-8 lg:grid-cols-2 items-center'>
               <div className='space-y-6 animate-in fade-in slide-in-from-left duration-700'>
-                <div className='inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-violet-200/80 text-xs font-medium border border-white/10 backdrop-blur-sm ring-1 ring-white/10'>
+                {/* <div className='inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-violet-200/80 text-xs font-medium border border-white/10 backdrop-blur-sm ring-1 ring-white/10'>
                   <Sparkles className='h-3 w-3' />
                   <span>100% Free Forever • No Credit Card Required</span>
-                </div>
+                </div> */}
                 
-                <h1 className='text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-white'>
-                  Stop Chasing Rent. Start Growing Your Portfolio.
-                </h1>
-                
-                <p className='text-base md:text-lg text-slate-200 max-w-xl leading-relaxed'>
-                  Tired of late payments, maintenance chaos, and spreadsheet nightmares? Join thousands of small landlords who manage everything—rent collection, leases, maintenance, and tenant communication—all in one place. <span className='text-violet-200/80 font-semibold'>Completely free.</span>
-                </p>
+                    <h1 className='text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-black'>
+                       Property Management, Finally Made Simple.
+                    </h1>
+                      <p className='text-base md:text-lg text-slate-700 max-w-xl leading-relaxed'>
+                          Manage rent, leases, maintenance, and tenant communication in one clear, organized system.
+                          No spreadsheets. No confusion. No learning curve.
+                    </p>
                 
                 <div className='flex flex-wrap items-center gap-4'>
                   <Link
@@ -200,23 +190,23 @@ const Homepage = async () => {
                 </div>
                 
                 <div className='flex flex-wrap items-center gap-6 pt-4 text-sm text-slate-300'>
-                  <div className='flex items-center gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-violet-300' />
+                  <div className='flex items-center gap-2 text-black'>
+                    <CheckCircle2 className='h-5 w-5' />
                     <span>No setup fees</span>
                   </div>
-                  <div className='flex items-center gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-violet-300' />
-                    <span>Up to 24 units free</span>
+                  <div className='flex items-center gap-2 text-black'>
+                    <CheckCircle2 className='h-5 w-5 text-black' />
+                    <span>Up to 99 units free</span>
                   </div>
-                  <div className='flex items-center gap-2'>
+                  {/* <div className='flex items-center gap-2'>
                     <CheckCircle2 className='h-5 w-5 text-violet-300' />
                     <span>Cancel anytime</span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
               
-              <div className='relative h-[500px] lg:h-[600px] rounded-3xl bg-slate-950/60 border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200'>
-                <div className='absolute inset-0 bg-gradient-to-br from-violet-500/5 to-cyan-500/5' />
+              <div className='relative h-[600px] lg:h-[600px] rounded-3xl  border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200'>
+                <div className='absolute inset-0 bg-blue-700' />
                 <div className='relative h-full p-6 flex flex-col justify-between'>
                   <div className='space-y-4'>
                     <div className='flex items-center justify-between'>
@@ -224,40 +214,50 @@ const Homepage = async () => {
                       <span className='text-xs text-violet-200/80 bg-white/5 px-2 py-1 rounded-full ring-1 ring-white/10'>Live Demo</span>
                     </div>
                     <div className='grid grid-cols-2 gap-3'>
-                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors'>
-                        <div className='text-xs text-slate-400'>Total Units</div>
+                      <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+                        <div className='text-xs text-black'>Total Units</div>
                         <div className='text-2xl font-bold text-white'>24</div>
-                        <div className='text-[10px] text-violet-200/80'>3 vacant</div>
+                        <div className='text-[10px] text-red-400'>3 vacant</div>
                       </div>
-                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors'>
-                        <div className='text-xs text-slate-400'>This Month</div>
+                      <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+                        <div className='text-xs text-black'>This Month</div>
                         <div className='text-2xl font-bold text-white'>$28,500</div>
-                        <div className='text-[10px] text-violet-200/80'>98% collected</div>
+                        <div className='text-[10px] text-yellow-800'>98% collected</div>
                       </div>
-                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors'>
-                        <div className='text-xs text-slate-400'>Maintenance</div>
+                      <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+                        <div className='text-xs text-black'>Maintenance</div>
                         <div className='text-2xl font-bold text-white'>2</div>
-                        <div className='text-[10px] text-amber-300'>1 urgent</div>
+                        <div className='text-[10px] text-red'>1 urgent</div>
                       </div>
-                      <div className='rounded-xl bg-slate-900/80 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors'>
-                        <div className='text-xs text-slate-400'>Applications</div>
+                      <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+                        <div className='text-xs text-black'>Applications</div>
                         <div className='text-2xl font-bold text-white'>5</div>
-                        <div className='text-[10px] text-blue-300'>3 pending</div>
+                        <div className='text-[10px] text-green-400'>3 pending</div>
+                      </div>
+                      <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+                        <div className='text-xs text-black'>Applications</div>
+                        <div className='text-2xl font-bold text-white'>5</div>
+                        <div className='text-[10px] text-green-400'>3 pending</div>
+                      </div>
+                      <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+                        <div className='text-xs text-black'>Applications</div>
+                        <div className='text-2xl font-bold text-white'>5</div>
+                        <div className='text-[10px] text-green-400'>3 pending</div>
                       </div>
                     </div>
                   </div>
                   <div className='space-y-3 bg-slate-900/60 rounded-xl p-4 border border-white/10'>
-                    <div className='flex items-center justify-between text-sm'>
+                    {/* <div className='flex items-center justify-between text-sm'>
                       <span className='font-semibold text-white'>Quick Actions</span>
-                    </div>
-                    <div className='grid grid-cols-2 gap-2'>
+                    </div> */}
+                    {/* <div className='grid grid-cols-2 gap-2'>
                       <button className='text-xs bg-violet-500/20 text-violet-200/80 px-3 py-2 rounded-lg border border-violet-400/40 hover:bg-violet-500/30 transition-colors ring-1 ring-violet-400/40'>
                         Collect Rent
                       </button>
                       <button className='text-xs bg-blue-500/20 text-blue-300 px-3 py-2 rounded-lg border border-blue-500/30 hover:bg-blue-500/30 transition-colors'>
                         New Lease
                       </button>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>
@@ -266,30 +266,30 @@ const Homepage = async () => {
         </section>
 
         {/* Pain Points → Solutions */}
-        <section className='w-full py-16 md:py-20 px-4 bg-gradient-to-b from-transparent to-slate-900/30'>
+        <section className='w-full py-16 md:py-20 px-4 '>
           <div className='max-w-6xl mx-auto space-y-12'>
             <div className='text-center space-y-3 animate-in fade-in duration-700'>
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
                 We Get It. Property Management is Exhausting.
               </h2>
-              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
+              <p className='text-lg text-black font-bold max-w-2xl mx-auto'>
                 You didn't become a landlord to spend hours on admin work. Here's how we solve your biggest headaches.
               </p>
             </div>
 
             <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
               {/* Pain Point 1 */}
-              <div className='group rounded-2xl border border-red-500/20 bg-slate-950/60 p-6 space-y-4 hover:border-red-500/40 hover:bg-slate-950/80 transition-all duration-300 animate-in fade-in slide-in-from-bottom'>
+              <div className='group rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-4'>
                   <div className='rounded-xl bg-red-500/20 p-3 border border-red-500/30'>
                     <Clock className='h-6 w-6 text-red-400' />
                   </div>
                   <div className='flex-1'>
                     <h3 className='text-lg font-bold text-white mb-2'>Late Rent Every Month</h3>
-                    <p className='text-sm text-slate-400 mb-3'>
+                    <p className='text-sm text-black font-semibold mb-3'>
                       Chasing tenants for payments, sending reminders, tracking who paid what...
                     </p>
-                    <div className='flex items-center gap-2 text-violet-200/80 text-sm font-semibold'>
+                    <div className='flex items-center gap-2 text-emerald-300  text-sm font-semibold'>
                       <ArrowRight className='h-4 w-4' />
                       <span>Solution: Automated online payments with Stripe</span>
                     </div>
@@ -298,14 +298,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 2 */}
-              <div className='group rounded-2xl border border-amber-500/20 bg-slate-950/60 p-6 space-y-4 hover:border-amber-500/40 hover:bg-slate-950/80 transition-all duration-300 animate-in fade-in slide-in-from-bottom delay-100'>
+              <div className='group rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-4'>
                   <div className='rounded-xl bg-amber-500/20 p-3 border border-amber-500/30'>
                     <MessageSquare className='h-6 w-6 text-amber-400' />
                   </div>
                   <div className='flex-1'>
                     <h3 className='text-lg font-bold text-white mb-2'>Maintenance Request Chaos</h3>
-                    <p className='text-sm text-slate-400 mb-3'>
+                    <p className='text-sm text-black mb-3'>
                       Texts, calls, emails scattered everywhere. No way to track what's urgent.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-sm font-semibold'>
@@ -317,14 +317,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 3 */}
-              <div className='group rounded-2xl border border-blue-500/20 bg-slate-950/60 p-6 space-y-4 hover:border-blue-500/40 hover:bg-slate-950/80 transition-all duration-300 animate-in fade-in slide-in-from-bottom delay-200'>
+              <div className='group rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-4'>
                   <div className='rounded-xl bg-blue-500/20 p-3 border border-blue-500/30'>
                     <FileText className='h-6 w-6 text-blue-400' />
                   </div>
                   <div className='flex-1'>
                     <h3 className='text-lg font-bold text-white mb-2'>Spreadsheet Nightmare</h3>
-                    <p className='text-sm text-slate-400 mb-3'>
+                    <p className='text-sm text-black mb-3'>
                       Properties, tenants, leases, payments—all in different files that never sync.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-sm font-semibold'>
@@ -336,14 +336,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 4 */}
-              <div className='group rounded-2xl border border-purple-500/20 bg-slate-950/60 p-6 space-y-4 hover:border-purple-500/40 hover:bg-slate-950/80 transition-all duration-300 animate-in fade-in slide-in-from-bottom delay-300'>
+              <div className='group rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-4'>
                   <div className='rounded-xl bg-purple-500/20 p-3 border border-purple-500/30'>
                     <Users className='h-6 w-6 text-purple-400' />
                   </div>
                   <div className='flex-1'>
                     <h3 className='text-lg font-bold text-white mb-2'>Application Management Chaos</h3>
-                    <p className='text-sm text-slate-400 mb-3'>
+                    <p className='text-sm text-black mb-3'>
                       Paper applications, lost emails, no way to track who applied when or compare applicants side-by-side.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-sm font-semibold'>
@@ -355,14 +355,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 5 */}
-              <div className='group rounded-2xl border border-cyan-500/20 bg-slate-950/60 p-6 space-y-4 hover:border-cyan-500/40 hover:bg-slate-950/80 transition-all duration-300 animate-in fade-in slide-in-from-bottom delay-400'>
+              <div className='group rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-4'>
                   <div className='rounded-xl bg-cyan-500/20 p-3 border border-cyan-500/30'>
                     <FileText className='h-6 w-6 text-cyan-400' />
                   </div>
                   <div className='flex-1'>
                     <h3 className='text-lg font-bold text-white mb-2'>Lease Management Mess</h3>
-                    <p className='text-sm text-slate-400 mb-3'>
+                    <p className='text-sm text-black 0 mb-3'>
                       Printing, signing, scanning, storing leases. Renewals slip through the cracks.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-sm font-semibold'>
@@ -374,14 +374,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 6 */}
-              <div className='group rounded-2xl border border-pink-500/20 bg-slate-950/60 p-6 space-y-4 hover:border-pink-500/40 hover:bg-slate-950/80 transition-all duration-300 animate-in fade-in slide-in-from-bottom delay-500'>
+              <div className='group rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-4'>
                   <div className='rounded-xl bg-pink-500/20 p-3 border border-pink-500/30'>
                     <DollarSign className='h-6 w-6 text-pink-400' />
                   </div>
                   <div className='flex-1'>
                     <h3 className='text-lg font-bold text-white mb-2'>Expensive Software</h3>
-                    <p className='text-sm text-slate-400 mb-3'>
+                    <p className='text-sm text-black mb-3'>
                       Most property management tools cost $50-200/month. Too much for small portfolios.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-sm font-semibold'>
@@ -405,7 +405,7 @@ const Homepage = async () => {
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
                 Get Started in Minutes, Not Days
               </h2>
-              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
+              <p className='text-lg text-black font-bold max-w-2xl mx-auto'>
                 No complicated setup. No training required. Just sign up and start managing.
               </p>
             </div>
@@ -472,13 +472,13 @@ const Homepage = async () => {
         </section>
 
         {/* Features Grid */}
-        <section className='w-full py-16 md:py-20 px-4 bg-gradient-to-b from-slate-900/30 to-transparent'>
+        <section className='w-full py-16 md:py-20 px-4'>
           <div className='max-w-6xl mx-auto space-y-12'>
             <div className='text-center space-y-3 animate-in fade-in duration-700'>
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
                 Everything You Need, Nothing You Don't
               </h2>
-              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
+              <p className='text-lg text-black font-bold max-w-2xl mx-auto'>
                 Powerful features designed specifically for small landlords and property managers.
               </p>
             </div>
@@ -499,7 +499,7 @@ const Homepage = async () => {
                 return (
                   <div
                     key={feature.title}
-                    className='rounded-xl border border-white/10 bg-slate-950/40 p-5 space-y-3 hover:border-violet-400/60 hover:bg-slate-950/60 transition-all duration-300 group animate-in fade-in slide-in-from-bottom'
+                    className='rounded-xl border border-white/10 bg-gradient-to-r from-blue-600 via-sky-500 to-sky-600 p-5 space-y-3 hover:border-violet-400/60 hover:bg-slate-950/60 transition-all duration-300 group animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className='flex items-center gap-3'>
@@ -508,7 +508,7 @@ const Homepage = async () => {
                       </div>
                       <h3 className='font-semibold text-white text-sm'>{feature.title}</h3>
                     </div>
-                    <p className='text-xs text-slate-400'>{feature.desc}</p>
+                    <p className='text-xs text-black font-bold'>{feature.desc}</p>
                   </div>
                 );
               })}
@@ -520,15 +520,11 @@ const Homepage = async () => {
         <section className='w-full py-16 md:py-20 px-4'>
           <div className='max-w-5xl mx-auto space-y-12'>
             <div className='text-center space-y-3 animate-in fade-in duration-700'>
-              <div className='inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-violet-200/80 text-xs font-medium border border-white/10 ring-1 ring-white/10'>
-                <Sparkles className='h-3 w-3' />
-                <span>No Credit Card Required</span>
-              </div>
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
-                Free Forever. Seriously.
+                Start Free. No Forced Subscriptions.
               </h2>
-              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
-                We believe property management software should be accessible to everyone. Start free with up to 24 units, then upgrade when you're ready to grow.
+              <p className='text-lg text-black font-bold max-w-2xl mx-auto'>
+                Powerful property management for up to 99 units — pay only when rent is collected.
               </p>
             </div>
 
@@ -548,27 +544,27 @@ const Homepage = async () => {
                 <ul className='space-y-3 text-sm text-white flex-1'>
                   <li className='flex items-start gap-2'>
                     <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
-                    <span>Up to 24 units</span>
+                    <span>Manage up to 99 units</span>
                   </li>
                   <li className='flex items-start gap-2'>
                     <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
-                    <span>Online rent payments (Stripe)</span>
+                    <span>Digital leases & legally binding e-signatures</span>
                   </li>
                   <li className='flex items-start gap-2'>
                     <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
-                    <span>Digital leases & e-signatures</span>
+                    <span>Maintenance request & ticket system</span>
                   </li>
                   <li className='flex items-start gap-2'>
                     <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
-                    <span>Maintenance ticket system</span>
+                    <span>enant applications</span>
                   </li>
                   <li className='flex items-start gap-2'>
                     <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
-                    <span>Tenant applications</span>
+                    <span>Income & expense tracking</span>
                   </li>
                   <li className='flex items-start gap-2'>
                     <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
-                    <span>Revenue tracking & reports</span>
+                    <span>Financial reports & rent history</span>
                   </li>
                   <li className='flex items-start gap-2'>
                     <CheckCircle2 className='h-5 w-5 text-violet-300 shrink-0 mt-0.5' />
@@ -594,8 +590,8 @@ const Homepage = async () => {
 
               <div className='rounded-2xl border border-white/10 bg-slate-950/40 p-8 flex flex-col gap-6'>
                 <div className='space-y-2'>
-                  <h3 className='text-2xl font-bold text-white'>Pro (Coming Soon)</h3>
-                  <p className='text-slate-300 text-sm'>For growing portfolios</p>
+                  <h3 className='text-2xl font-bold text-white'>Pro</h3>
+                  <p className='text-slate-300 text-sm'>For growing portfolios that want more control</p>
                 </div>
                 <div className='space-y-1'>
                   <div className='text-5xl font-bold text-white'>$29.99</div>

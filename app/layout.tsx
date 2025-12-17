@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className='bg-linear-to-r from-blue-900 to-indigo-600 text-white font-semibold flex flex-col min-h-screen overflow-x-hidden'>
+      <body className='bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-black font-semibold flex flex-col min-h-screen overflow-x-hidden'>
         <SessionProviderWrapper>
           <ThemeProvider attribute='class' defaultTheme='dark' enableSystem={false} disableTransitionOnChange>
             <PageViewTracker />

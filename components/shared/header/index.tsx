@@ -23,8 +23,8 @@ const Header = async () => {
   const isAuthenticated = Boolean(session?.user);
 
   return ( 
-    <header className="w-full bg-linear-to-r from-blue-600 via-blue-600 to-sky-900 text-white font-semibold">
-      <div className="wrapper flex items-center justify-between md:hidden h-16 relative">
+    <header className="w-full text-black font-semibold">
+      <div className="wrapper flex items-center justify-between md:hidden h-16 relative overflow-visible">
         {isAuthenticated && (
           <div className="flex items-center">
             <AdminMobileDrawer />
@@ -32,8 +32,14 @@ const Header = async () => {
         )}
 
         <Link href='/' className="absolute left-1/2 transform -translate-x-1/2 top-0 h-full flex items-center justify-center mt-2">
-          <div className="relative w-48 h-48">
-            <Image src={landlord?.logoUrl || '/images/logo.svg'} fill className="object-contain" alt={`${displayName} Logo`} priority={true} />
+          <div className="relative w-24 h-24">
+            <Image
+              src={landlord?.logoUrl || '/images/logo.svg'}
+              fill
+              className="object-contain scale-[2.8] origin-center mt-6"
+              alt={`${displayName} Logo`}
+              priority={true}
+            />
           </div>
         </Link>
 
@@ -42,30 +48,36 @@ const Header = async () => {
         </div>
       </div>
 
-      <div className="wrapper hidden md:flex items-center justify-between">
+      <div className="wrapper hidden md:flex items-center justify-between h-16 overflow-visible">
         <div className="flex items-center">
           <Link href='/' className="flex items-center">
-            <div className="relative w-48 h-48">
-              <Image src={landlord?.logoUrl || '/images/logo.svg'} fill className="object-contain" alt={`${displayName} Logo`} priority={true}/>
+            <div className="relative w-24 h-24">
+              <Image
+                src={landlord?.logoUrl || '/images/logo.svg'}
+                fill
+                className="object-contain scale-[2.8] origin-left mt-4"
+                alt={`${displayName} Logo`}
+                priority={true}
+              />
             </div>
           </Link>
         </div>
 
-        <div className="flex items-center justify-center text-white text-sm font-medium">
-          <Link href='/' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Home</Link>
-          <Link href='/search?category=all' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Listings</Link>
-          <Link href='/about' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">About</Link>
-          <Link href='/contact' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Contact</Link>
+        <div className="flex items-center justify-center text-sm font-medium">
+          <Link href='/' className="m-2.5 px-1 text-black hover:underline ">Home</Link>
+          <Link href='/search?category=all' className="m-2.5 px-1 text-black hover:underline">Listings</Link>
+          <Link href='/about' className="m-2.5 px-1 text-black hover:underline ">About</Link>
+          <Link href='/contact' className="m-2.5 px-1 text-black hover:underline ">Contact</Link>
 
           <div className="relative m-2.5 group">
             {categories.length > 0 && (
-              <div className="absolute left-0 top-full mt-1 hidden group-hover:flex bg-slate-900/95 backdrop-blur-2xl border border-white/10 text-slate-50 rounded-md shadow-lg z-50 min-w-[520px]">
-                <div className="w-52 border-r border-white/10 py-3">
+              <div className="absolute left-0 top-full mt-1 hidden group-hover:flex border rounded-md shadow-lg z-50 min-w-[520px]">
+                <div className="w-52 border-r  py-3">
                   {categories.map((cat) => (
                     <Link
                       key={cat.category}
                       href={`/search?category=${encodeURIComponent(cat.category)}`}
-                      className="flex items-center justify-between px-4 py-1.5 text-sm hover:bg-slate-900/60 transition-colors text-slate-200/90"
+                      className="flex items-center justify-between px-4 py-1.5 text-sm "
                     >
                       <span>{cat.category}</span>
                       <span className="text-xs text-slate-400">{cat.count}</span>
@@ -76,13 +88,13 @@ const Header = async () => {
                   {categories.map((cat) => (
                     cat.subCategories.length > 0 && (
                       <div key={cat.category} className="space-y-1">
-                        <p className="text-xs font-semibold uppercase text-slate-400">{cat.category}</p>
+                        <p className="text-xs font-semibold uppercase ">{cat.category}</p>
                         <div className="flex flex-col space-y-0.5">
                           {cat.subCategories.map((sub) => (
                             <Link
                               key={`${cat.category}-${sub}`}
                               href={`/search?category=${encodeURIComponent(cat.category)}&subCategory=${encodeURIComponent(sub)}`}
-                              className="text-sm text-slate-200 hover:text-white hover:underline transition-colors">
+                              className="text-sm hover:underline ">
                               {sub}
                             </Link>
                           ))}

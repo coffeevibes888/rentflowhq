@@ -41,7 +41,7 @@ export default async function AdminMessagesPage() {
       <div className="relative w-full max-w-6xl">
         <div className="pointer-events-none absolute -inset-1 rounded-3xl bg-gradient-to-r from-violet-500/40 via-fuchsia-500/20 to-cyan-400/40 blur-3xl opacity-70" />
 
-        <div className="relative rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-[0_20px_70px_rgba(15,23,42,0.9)] overflow-hidden">
+        <div className="relative rounded-3xl border shadow-[0_20px_70px_rgba(15,23,42,0.9)] overflow-hidden">
           <div className="grid gap-8 md:grid-cols-[minmax(0,2.2fr)_minmax(0,3fr)] p-6 sm:p-8 lg:p-10">
             <section className="space-y-4">
               <header className="space-y-2">

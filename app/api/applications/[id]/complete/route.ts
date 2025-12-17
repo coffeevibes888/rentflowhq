@@ -37,6 +37,24 @@ export async function POST(
       );
     }
 
+    const prismaAny = prisma as any;
+    const idDocsCount = await prismaAny.applicationDocument.count({
+      where: {
+        applicationId: existingApplication.id,
+        category: 'id_verification',
+      },
+    });
+
+    if (!idDocsCount || Number(idDocsCount) < 1) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Please upload a government-issued ID before submitting your application.',
+        },
+        { status: 400 }
+      );
+    }
+
     const body = await req.json().catch(() => null);
     if (!body) {
       return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });

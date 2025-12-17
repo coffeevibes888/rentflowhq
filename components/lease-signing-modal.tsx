@@ -376,6 +376,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
+            pointer-events: auto;
             white-space: nowrap;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
           "
@@ -426,7 +427,11 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
       }
       toast({ title: 'Signed', description: 'Your signature was recorded.' });
       onClose();
-      router.refresh();
+      if (session.role === 'tenant') {
+        router.push('/user/profile/rent-receipts');
+      } else {
+        router.refresh();
+      }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Failed to sign' });
     } finally {
@@ -447,13 +452,16 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   };
 
   const handleLeaseClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    const tabId = target.getAttribute('data-tab-id');
-    if (tabId) {
-      const index = tabs.findIndex(t => t.id === tabId);
-      if (index !== -1) {
-        handleTabClick(index);
-      }
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+
+    const elWithId = target.closest('[data-tab-id]') as HTMLElement | null;
+    const tabId = elWithId?.getAttribute('data-tab-id');
+    if (!tabId) return;
+
+    const index = tabs.findIndex((t) => t.id === tabId);
+    if (index !== -1) {
+      handleTabClick(index);
     }
   };
 
@@ -463,39 +471,33 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   const previewSrc = activeTab?.type === 'signature' ? currentSignature : currentInitials;
 
   const modalContent = (
-    <div 
-      className="fixed inset-0 z-[9999] overflow-hidden"
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="absolute inset-0 z-0 bg-black/30" onClick={onClose} />
+
       <div 
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
-      
-      <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-4 pointer-events-none">
+        className="pointer-events-auto relative z-10 w-full max-w-6xl h-[95dvh] sm:h-[90dvh] max-h-[900px] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        style={{ background: '#fafaf9' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div 
-          className="pointer-events-auto w-full max-w-6xl h-[95vh] sm:h-[90vh] max-h-[900px] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-          style={{ background: '#fafaf9' }}
+          className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b"
+          style={{ borderColor: '#e5e5e5', background: '#ffffff' }}
         >
-          <div 
-            className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b"
-            style={{ borderColor: '#e5e5e5', background: '#ffffff' }}
-          >
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-2xl font-semibold text-gray-900 truncate">Sign Lease</h2>
-              {session && (
-                <p className="text-xs sm:text-sm text-gray-500 mt-0.5 truncate">
-                  {session.role === 'tenant' ? 'Tenant' : 'Landlord'} • {session.recipientEmail}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={onClose}
-              className="ml-2 rounded-full p-2 hover:bg-gray-100 transition-colors flex-shrink-0"
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </button>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-2xl font-semibold text-gray-900 truncate">Sign Lease</h2>
+            {session && (
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 truncate">
+                {session.role === 'tenant' ? 'Tenant' : 'Landlord'} • {session.recipientEmail}
+              </p>
+            )}
           </div>
+          <button
+            onClick={onClose}
+            className="ml-2 rounded-full p-2 hover:bg-gray-100 transition-colors flex-shrink-0"
+          >
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
 
           {loading && (
             <div className="flex-1 flex items-center justify-center">
@@ -516,7 +518,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
           )}
 
           {session && !loading && (
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+            <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
               <div 
                 className="flex-1 flex flex-col min-h-0 lg:border-r"
                 style={{ borderColor: '#e5e5e5' }}
@@ -552,15 +554,14 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                       <button
                         key={tab.id}
                         onClick={() => handleTabClick(index)}
-                        className={`
-                          flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
-                          ${activeTabIndex === index 
-                            ? 'bg-violet-600 text-white shadow-md' 
-                            : tab.completed 
-                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' 
-                              : 'bg-white text-gray-700 border border-gray-300 hover:border-violet-400'
-                          }
-                        `}
+                        className={
+                          'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ' +
+                          (activeTabIndex === index
+                            ? 'bg-violet-600 text-white shadow-md'
+                            : tab.completed
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                              : 'bg-white text-gray-700 border border-gray-300 hover:border-violet-400')
+                        }
                       >
                         {tab.completed && <Check className="h-4 w-4" />}
                         <span className="whitespace-nowrap">
@@ -573,7 +574,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
               </div>
 
               <div 
-                className="w-full lg:w-96 flex flex-col flex-shrink-0 min-h-0"
+                className="w-full lg:w-96 flex flex-col flex-shrink-0 min-h-0 overflow-hidden"
                 style={{ background: '#fafaf9' }}
               >
                 {activeTab ? (
@@ -725,7 +726,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                     </div>
                   </>
                 ) : (
-                  <div className="flex-1 flex flex-col p-4 sm:p-6 space-y-4">
+                  <div className="flex-1 overflow-auto p-4 sm:p-6 space-y-4 min-h-0">
                     <div 
                       className="flex-1 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center"
                       style={{ borderColor: '#d4d4d4', background: '#ffffff' }}
@@ -748,7 +749,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                 )}
 
                 <div 
-                  className="px-4 sm:px-6 py-4 border-t space-y-4 flex-shrink-0"
+                  className="px-4 sm:px-6 py-4 border-t space-y-4 flex-shrink-0 pb-[calc(env(safe-area-inset-bottom)+16px)]"
                   style={{ borderColor: '#e5e5e5', background: '#ffffff' }}
                 >
                   <div 
@@ -779,7 +780,6 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
           )}
         </div>
       </div>
-    </div>
   );
 
   return createPortal(modalContent, document.body);
