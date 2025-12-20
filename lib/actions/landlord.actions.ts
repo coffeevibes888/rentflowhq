@@ -41,11 +41,17 @@ async function saveFiles(
       .join('/');
     const publicId = `${landlordId}-${randomUUID()}`;
 
-    const result = await uploadToCloudinary(buffer, {
-      folder,
-      public_id: publicId,
-      resource_type: 'image',
-    });
+    let result;
+    try {
+      result = await uploadToCloudinary(buffer, {
+        folder,
+        public_id: publicId,
+        resource_type: 'image',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Cloudinary upload failed';
+      throw new Error(message);
+    }
 
     stored.push(result.secure_url);
   }
@@ -254,11 +260,17 @@ export async function uploadLandlordLogo(formData: FormData) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const result = await uploadToCloudinary(buffer, {
-      folder: ['rooms4rentlv', 'landlords', landlord.id, 'branding', 'logo'].join('/'),
-      public_id: `${landlord.id}-logo-${randomUUID()}`,
-      resource_type: 'image',
-    });
+    let result;
+    try {
+      result = await uploadToCloudinary(buffer, {
+        folder: ['rooms4rentlv', 'landlords', landlord.id, 'branding', 'logo'].join('/'),
+        public_id: `${landlord.id}-logo-${randomUUID()}`,
+        resource_type: 'image',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Cloudinary upload failed';
+      return { success: false, message };
+    }
 
     const logoUrl = result.secure_url;
     await prisma.landlord.update({

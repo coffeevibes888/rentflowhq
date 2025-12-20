@@ -1,13 +1,22 @@
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Rooms For Rent LV';
 export const APP_DESCRIPTION = process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
   'Helping You Manage Your Dreams One Property at a Time';
-export const SERVER_URL =
-  process.env.NEXT_PUBLIC_SERVER_URL || 'https://www.rooms4rentlv.com';
+const rawServerUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+export const SERVER_URL = rawServerUrl
+  ? rawServerUrl.startsWith('http')
+    ? rawServerUrl
+    : `https://${rawServerUrl}`
+  : 'https://www.rooms4rentlv.com';
 export const LATEST_PRODUCTS_LIMIT =
   Number(process.env.LATEST_PRODUCTS_LIMIT) || 4;
 
 
-export const NEXTAUTH_URL = process.env.NEXT_PUBLIC_NEXTAUTH_URL || 'https://www.rooms4rentlv.com';
+const rawNextAuthUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL;
+export const NEXTAUTH_URL = rawNextAuthUrl
+  ? rawNextAuthUrl.startsWith('http')
+    ? rawNextAuthUrl
+    : `https://${rawNextAuthUrl}`
+  : 'https://www.rooms4rentlv.com';
 // export const signInDefaultValues = {
 //   email: 'allenyoung1979@yahoo.com',
 //   password: 'NewLove2044$&@*',

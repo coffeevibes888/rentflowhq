@@ -7,13 +7,20 @@ import PageViewTracker from '@/components/analytics/page-view-tracker';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { ThemeProvider } from 'next-themes';
 
+let resolvedMetadataBase: URL;
+try {
+  resolvedMetadataBase = new URL(SERVER_URL);
+} catch {
+  resolvedMetadataBase = new URL('https://www.rooms4rentlv.com');
+}
+
 export const metadata: Metadata = {
   title: {
     template: `%s | Rooms For Rent LV`,
     default: APP_NAME,
   },
   description: APP_DESCRIPTION,
-  metadataBase: new URL(SERVER_URL),
+  metadataBase: resolvedMetadataBase,
 };
 
 export default function RootLayout({

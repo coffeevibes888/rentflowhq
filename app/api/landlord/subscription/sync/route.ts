@@ -22,16 +22,34 @@ export async function POST(req: NextRequest) {
 
     const landlord = landlordResult.landlord;
 
-    if (!landlord.stripeCustomerId) {
-      return NextResponse.json({ success: false, message: 'No Stripe customer found' }, { status: 400 });
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      return NextResponse.json({ success: false, message: 'Stripe is not configured on the server (missing STRIPE_SECRET_KEY).' }, { status: 500 });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+    const stripe = new Stripe(stripeSecretKey);
+
+    let customerId = landlord.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: session.user.email || undefined,
+        name: landlord.name,
+        metadata: {
+          landlordId: landlord.id,
+        },
+      });
+      customerId = customer.id;
+
+      await prisma.landlord.update({
+        where: { id: landlord.id },
+        data: { stripeCustomerId: customerId },
+      });
+    }
 
     // Get all subscriptions for this customer
     const subscriptions = await stripe.subscriptions.list({
-      customer: landlord.stripeCustomerId,
-      status: 'active',
+      customer: customerId,
+      status: 'all',
       limit: 1,
     });
 
@@ -48,7 +66,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'No active subscription found. Set to free tier.',
+        message: 'No subscription found for this Stripe customer. Set to free tier.',
         tier: 'free',
       });
     }
@@ -75,7 +93,7 @@ export async function POST(req: NextRequest) {
         landlordId: landlord.id,
         tier,
         stripeSubscriptionId: subscription.id,
-        stripeCustomerId: landlord.stripeCustomerId,
+        stripeCustomerId: customerId,
         stripePriceId: priceId,
         status: subscription.status,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),

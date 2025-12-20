@@ -17,13 +17,19 @@ export const metadata: Metadata = {
   title: 'Branding & Domain',
 };
 
-const AdminBrandingPage = async () => {
+const AdminBrandingPage = async (props: {
+  searchParams?: Promise<{ error?: string; success?: string }>;
+}) => {
   await requireAdmin();
+
+  const resolvedSearchParams = (await props.searchParams) || {};
+  const errorMessage = resolvedSearchParams.error ? decodeURIComponent(resolvedSearchParams.error) : null;
+  const successMessage = resolvedSearchParams.success ? decodeURIComponent(resolvedSearchParams.success) : null;
 
   const landlordResult = await getOrCreateCurrentLandlord();
 
   if (!landlordResult.success) {
-    throw new Error(landlordResult.message || 'Unable to determine landlord');
+    redirect(`/admin?error=${encodeURIComponent(landlordResult.message || 'Unable to determine landlord')}`);
   }
 
   const landlord = landlordResult.landlord as typeof landlordResult.landlord & {
@@ -53,28 +59,27 @@ const AdminBrandingPage = async () => {
     'use server';
     const result = await uploadLandlordLogo(formData);
     if (!result.success) {
-      throw new Error(result.message || 'Failed to upload logo');
+      redirect(`/admin/branding?error=${encodeURIComponent(result.message || 'Failed to upload logo')}`);
     }
-    // Redirect to refresh the page with new logo
-    redirect('/admin/branding');
+    redirect('/admin/branding?success=Logo%20updated');
   };
 
   const handleHeroImagesUpload = async (formData: FormData) => {
     'use server';
     const result = await uploadLandlordHeroImages(formData);
     if (!result.success) {
-      throw new Error(result.message || 'Failed to upload hero images');
+      redirect(`/admin/branding?error=${encodeURIComponent(result.message || 'Failed to upload hero images')}`);
     }
-    redirect('/admin/branding');
+    redirect('/admin/branding?success=Hero%20images%20updated');
   };
 
   const handleAboutMediaUpload = async (formData: FormData) => {
     'use server';
     const result = await uploadLandlordAboutMedia(formData);
     if (!result.success) {
-      throw new Error(result.message || 'Failed to upload about media');
+      redirect(`/admin/branding?error=${encodeURIComponent(result.message || 'Failed to upload about media')}`);
     }
-    redirect('/admin/branding');
+    redirect('/admin/branding?success=About%20media%20updated');
   };
 
   const themeOptions: { value: string; label: string; swatch: string }[] = [
@@ -89,24 +94,34 @@ const AdminBrandingPage = async () => {
     'use server';
     const result = await updateCustomDomain(formData);
     if (!result.success) {
-      throw new Error(result.message || 'Failed to update custom domain');
+      redirect(`/admin/branding?error=${encodeURIComponent(result.message || 'Failed to update custom domain')}`);
     }
-    // Redirect to refresh the page
-    redirect('/admin/branding');
+    redirect('/admin/branding?success=Domain%20updated');
   };
 
   const handleBrandingProfileUpdate = async (formData: FormData) => {
     'use server';
     const result = await updateLandlordBrandingProfile(formData);
     if (!result.success) {
-      throw new Error(result.message || 'Failed to update branding profile');
+      redirect(`/admin/branding?error=${encodeURIComponent(result.message || 'Failed to update branding profile')}`);
     }
-    redirect('/admin/branding');
+    redirect('/admin/branding?success=Profile%20updated');
   };
 
   return (
     <main className='w-full px-4 py-8 md:px-0'>
       <div className='max-w-6xl mx-auto space-y-8'>
+        {(errorMessage || successMessage) && (
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm font-medium ${
+              errorMessage
+                ? 'border-red-500/30 bg-red-500/10 text-red-200'
+                : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
+            }`}
+          >
+            {errorMessage || successMessage}
+          </div>
+        )}
         <div>
           <h1 className='text-3xl md:text-4xl font-bold font-large text-white mb-2'>Branding & Domain</h1>
           <p className='text-sm text-black font-bold'>

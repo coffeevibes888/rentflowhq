@@ -38,7 +38,13 @@ export async function POST(req: NextRequest) {
           contactRequired: true,
         }, { status: 400 });
       }
-      return NextResponse.json({ success: false, message: 'This tier is not available for purchase' }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'This tier is not available for purchase. Stripe price is not configured (missing STRIPE_PRICE_PRO).',
+        },
+        { status: 400 }
+      );
     }
 
     const landlordResult = await getOrCreateCurrentLandlord();
@@ -58,12 +64,16 @@ export async function POST(req: NextRequest) {
     const stripe = new Stripe(stripeSecretKey);
     try {
       await stripe.prices.retrieve(tierConfig.priceId);
-    } catch {
+    } catch (error) {
+      const stripeMessage =
+        error && typeof error === 'object' && 'message' in error ? String((error as any).message) : 'Unknown Stripe error';
       return NextResponse.json(
         {
           success: false,
           message:
             'This plan is not purchasable right now. Stripe could not find the configured price for this tier. Check STRIPE_PRICE_PRO / environment mode (test vs live).',
+          details: stripeMessage,
+          configuredPriceId: tierConfig.priceId,
         },
         { status: 500 }
       );
@@ -87,7 +97,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SERVER_URL || 'http://localhost:3000';
 
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
