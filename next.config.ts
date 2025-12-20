@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    unoptimized: true, // Disable Vercel image optimization to avoid hitting limits
     remotePatterns: [
       {
         protocol: 'https',

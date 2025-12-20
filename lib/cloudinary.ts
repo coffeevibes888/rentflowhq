@@ -80,3 +80,47 @@ export async function uploadUrlToCloudinary(
   const result = await cloudinary.uploader.upload(fileUrl, options);
   return result;
 }
+
+/**
+ * Generate an optimized Cloudinary URL with transformations
+ * This allows Cloudinary to handle optimization instead of Vercel
+ */
+export function getOptimizedCloudinaryUrl(
+  publicId: string,
+  options?: {
+    width?: number;
+    height?: number;
+    crop?: 'fill' | 'fit' | 'scale' | 'limit';
+    quality?: 'auto' | number;
+    format?: 'auto' | 'webp' | 'jpg' | 'png';
+  }
+): string {
+  requireCloudinaryConfig();
+  
+  return cloudinary.url(publicId, {
+    transformation: [
+      {
+        width: options?.width,
+        height: options?.height,
+        crop: options?.crop || 'fill',
+        quality: options?.quality || 'auto',
+        fetch_format: options?.format || 'auto',
+      },
+    ],
+    secure: true,
+  });
+}
+
+/**
+ * Extract public ID from a Cloudinary URL
+ * Example: https://res.cloudinary.com/cloud/image/upload/v123/folder/image.jpg
+ * Returns: folder/image
+ */
+export function extractPublicIdFromUrl(cloudinaryUrl: string): string | null {
+  try {
+    const match = cloudinaryUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
