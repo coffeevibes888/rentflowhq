@@ -34,6 +34,16 @@ const nextConfig: NextConfig = {
         hostname: 'files.cdn.printful.com',
         port: '',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+      },
+      {
+        protocol: 'https',
+        hostname: 'uploadthing.com',
+        port: '',
+      },
     ],
   },
 };

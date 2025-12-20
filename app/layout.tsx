@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang='en' suppressHydrationWarning>
       <body className='bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-black font-semibold flex flex-col min-h-screen overflow-x-hidden'>
         <SessionProviderWrapper>
-          <ThemeProvider attribute='class' defaultTheme='dark' enableSystem={false} disableTransitionOnChange>
+          <ThemeProvider attribute='class' defaultTheme='light' enableSystem={false} disableTransitionOnChange>
             <PageViewTracker />
             <div
               className='w-full text-sm md:text-sm font-medium tracking-tight flex items-center overflow-hidden bg-linear-to-r from-slate-950 via-slate-900 to-emerald-500 shadow-sm' style={{ height: '24px' }}>

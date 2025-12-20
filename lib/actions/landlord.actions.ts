@@ -5,10 +5,9 @@ import { auth } from '@/auth';
 import { formatError } from '../utils';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { randomUUID } from 'crypto';
 import Stripe from 'stripe';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 const brandingSchema = z.object({
   companyName: z.string().trim().min(1).max(120).optional(),
@@ -25,9 +24,6 @@ async function saveFiles(
   maxCount: number,
   landlordId: string,
 ) {
-  const uploadsDir = join(process.cwd(), 'public', ...dirParts);
-  await mkdir(uploadsDir, { recursive: true });
-
   const stored: string[] = [];
   const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp'];
 
@@ -38,12 +34,20 @@ async function saveFiles(
     if (file.size > 5 * 1024 * 1024) {
       throw new Error('File too large. Maximum size is 5MB');
     }
-    const ext = file.name.split('.').pop() || 'png';
-    const fileName = `${landlordId}-${randomUUID()}.${ext}`;
-    const filePath = join(uploadsDir, fileName);
+
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filePath, buffer);
-    stored.push(`/${dirParts.join('/')}/${fileName}`);
+    const folder = ['rooms4rentlv', 'landlords', landlordId, ...dirParts]
+      .filter(Boolean)
+      .join('/');
+    const publicId = `${landlordId}-${randomUUID()}`;
+
+    const result = await uploadToCloudinary(buffer, {
+      folder,
+      public_id: publicId,
+      resource_type: 'image',
+    });
+
+    stored.push(result.secure_url);
   }
 
   return stored;
@@ -233,26 +237,14 @@ export async function uploadLandlordLogo(formData: FormData) {
       throw new Error('File too large. Maximum size is 5MB');
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'logos');
-    try {
-      await mkdir(uploadsDir, { recursive: true });
-    } catch (error) {
-      // Directory might already exist
-    }
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const result = await uploadToCloudinary(buffer, {
+      folder: ['rooms4rentlv', 'landlords', landlord.id, 'branding', 'logo'].join('/'),
+      public_id: `${landlord.id}-logo-${randomUUID()}`,
+      resource_type: 'image',
+    });
 
-    // Generate unique filename
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${landlord.id}-${randomUUID()}.${fileExtension}`;
-    const filePath = join(uploadsDir, fileName);
-
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
-
-    // Update landlord with new logo URL
-    const logoUrl = `/uploads/logos/${fileName}`;
+    const logoUrl = result.secure_url;
     await prisma.landlord.update({
       where: { id: landlord.id },
       data: { logoUrl },
@@ -289,7 +281,7 @@ export async function uploadLandlordHeroImages(formData: FormData) {
       throw new Error('No files provided');
     }
 
-    const stored = await saveFiles(heroFiles, ['uploads', 'hero'], 3, landlord.id);
+    const stored = await saveFiles(heroFiles, ['branding', 'hero'], 3, landlord.id);
 
     await prisma.landlord.update({
       where: { id: landlord.id },
@@ -327,12 +319,12 @@ export async function uploadLandlordAboutMedia(formData: FormData) {
     const updates: any = {};
 
     if (aboutPhoto) {
-      const [photoUrl] = await saveFiles([aboutPhoto], ['uploads', 'about'], 1, landlord.id);
+      const [photoUrl] = await saveFiles([aboutPhoto], ['branding', 'about'], 1, landlord.id);
       updates.aboutPhoto = photoUrl;
     }
 
     if (galleryFiles.length) {
-      const galleryUrls = await saveFiles(galleryFiles, ['uploads', 'about', 'gallery'], 6, landlord.id);
+      const galleryUrls = await saveFiles(galleryFiles, ['branding', 'about', 'gallery'], 6, landlord.id);
       updates.aboutGallery = galleryUrls;
     }
 

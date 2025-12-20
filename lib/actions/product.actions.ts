@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { canAddUnits } from './subscription.actions';
+import { uploadUrlToCloudinary } from '@/lib/cloudinary';
 // Printful sync disabled: imports removed
 
 // Type for variant creation
@@ -19,6 +20,31 @@ type VariantInput = {
   stock: number;
   images: string[];
 };
+
+async function migrateImagesToCloudinary(images: string[], landlordId: string) {
+  const normalized = (images || []).filter(Boolean);
+  const migrated: string[] = [];
+
+  for (const url of normalized) {
+    if (typeof url === 'string' && url.includes('res.cloudinary.com')) {
+      migrated.push(url);
+      continue;
+    }
+
+    try {
+      const result = await uploadUrlToCloudinary(url, {
+        folder: ['rooms4rentlv', 'landlords', landlordId, 'properties', 'photos'].join('/'),
+        resource_type: 'image',
+      });
+      migrated.push(result.secure_url);
+    } catch {
+      // If the remote host blocks Cloudinary fetch, keep the original URL as a fallback.
+      migrated.push(url);
+    }
+  }
+
+  return migrated;
+}
 
 // Get latest products
 export async function getLatestProducts(limit = LATEST_PRODUCTS_LIMIT) {
@@ -316,6 +342,13 @@ export async function createProduct(data: z.infer<typeof insertProductSchema>) {
       throw new Error(landlordResult.message || 'Unable to determine landlord');
     }
 
+    const migratedImages = await migrateImagesToCloudinary(
+      (productData as any).images || [],
+      landlordResult.landlord.id
+    );
+
+    (productData as any).images = migratedImages;
+
     const property = await prisma.property.create({
       data: {
         name: product.name,
@@ -342,7 +375,7 @@ export async function createProduct(data: z.infer<typeof insertProductSchema>) {
         sizeSqFt: product.sizeSqFt ? Number(product.sizeSqFt) : null,
         rentAmount: Number(product.price),
         isAvailable: true,
-        images: product.images || [],
+        images: migratedImages,
       });
     }
     
@@ -384,6 +417,15 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
       // Extract only Product model fields, excluding sizeIds and colorIds (variant metadata)
       const { sizeIds, colorIds, ...productData } = product;
       void colorIds;
+
+      // Migrate incoming images to Cloudinary for persistence.
+      const landlordResult = await getOrCreateCurrentLandlord();
+      if (landlordResult.success) {
+        (productData as any).images = await migrateImagesToCloudinary(
+          (productData as any).images || [],
+          landlordResult.landlord.id
+        );
+      }
       
       const updatedProduct = await tx.product.update({ where: { id: product.id }, data: productData });
 
@@ -413,7 +455,7 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
             bathrooms: product.bathrooms ? Number(product.bathrooms) : null,
             sizeSqFt: product.sizeSqFt ? Number(product.sizeSqFt) : null,
             rentAmount: Number(product.price),
-            images: product.images || [],
+            images: (productData as any).images || [],
           },
         });
       }
