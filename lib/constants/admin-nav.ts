@@ -1,4 +1,4 @@
-import { Building2, FileText, Wrench, CreditCard, Settings2, Wallet, Palette, TrendingUp, MessageCircle, Scale, ScanText, Users, MessageSquare, LucideIcon } from 'lucide-react';
+import { Building2, FileText, Wrench, CreditCard, Settings2, Wallet, Palette, TrendingUp, MessageCircle, Scale, ScanText, Users, LucideIcon } from 'lucide-react';
 
 export interface AdminNavLink {
   title: string;
@@ -73,12 +73,6 @@ export const adminNavLinks: AdminNavLink[] = [
     description: 'Invite & manage team members',
     href: '/admin/team',
     icon: Users,
-  },
-  {
-    title: 'Team Chat',
-    description: 'Slack-like team messaging',
-    href: '/admin/team/chat',
-    icon: MessageSquare,
   },
 ];
 

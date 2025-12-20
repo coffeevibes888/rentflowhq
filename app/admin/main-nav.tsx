@@ -5,12 +5,35 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { adminNavLinks } from '@/lib/constants/admin-nav';
+import { useEffect, useState } from 'react';
+import { Settings2 } from 'lucide-react';
 
 const MainNav = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLElement>) => {
   const pathname = usePathname();
+  const [showManageSubscription, setShowManageSubscription] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/landlord/subscription', { cache: 'no-store' });
+        const data = await res.json();
+        const tier = data?.subscription?.tier;
+        if (!cancelled) {
+          setShowManageSubscription(Boolean(tier && tier !== 'free'));
+        }
+      } catch {
+        if (!cancelled) setShowManageSubscription(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <nav
@@ -41,6 +64,22 @@ const MainNav = ({
           </Link>
         );
       })}
+
+      {showManageSubscription && (
+        <Link
+          href='/admin/settings/subscription'
+          className={cn(
+            'flex items-center gap-3 rounded-lg px-3 py-2',
+            pathname.startsWith('/admin/settings/subscription') ? 'text-white font-semibold' : 'text-black'
+          )}
+        >
+          <Settings2 className='h-5 w-5 shrink-0' />
+          <div className='flex flex-col'>
+            <span className='font-medium text-sm'>Manage Subscription</span>
+            <span className='text-xs text-emerald-300'>Billing portal & usage</span>
+          </div>
+        </Link>
+      )}
     </nav>
   );
 };

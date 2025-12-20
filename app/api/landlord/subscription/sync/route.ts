@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: 'all',
-      limit: 1,
+      limit: 10,
     });
 
     if (subscriptions.data.length === 0) {
@@ -71,7 +71,26 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const subscription = subscriptions.data[0];
+    const preferredStatuses = ['active', 'trialing', 'past_due', 'unpaid'];
+    const subscription =
+      subscriptions.data.find((s) => preferredStatuses.includes(s.status)) || subscriptions.data[0];
+
+    if (!subscription || subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+      await prisma.landlord.update({
+        where: { id: landlord.id },
+        data: {
+          subscriptionTier: 'free',
+          subscriptionStatus: subscription?.status || 'canceled',
+          stripeSubscriptionId: null,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'No active subscription found. Set to free tier.',
+        tier: 'free',
+      });
+    }
     const priceId = subscription.items.data[0]?.price?.id;
 
     // Determine tier from price ID

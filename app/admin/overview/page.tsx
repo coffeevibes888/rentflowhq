@@ -16,13 +16,43 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { adminNavLinks } from '@/lib/constants/admin-nav';
 import { formatCurrency } from '@/lib/utils';
+import { cookies } from 'next/headers';
+import { SERVER_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Property Dashboard',
 };
 
-const AdminOverviewPage = async () => {
+const AdminOverviewPage = async (props: {
+  searchParams?: Promise<{ subscription?: string; tier?: string }>;
+}) => {
   const session = await requireAdmin();
+
+  const resolvedSearchParams = (await props.searchParams) || {};
+  if (resolvedSearchParams.subscription === 'success') {
+    try {
+      const cookieStore = await cookies();
+      const cookieHeader = cookieStore
+        .getAll()
+        .map((c) => `${c.name}=${c.value}`)
+        .join('; ');
+
+      let origin = SERVER_URL;
+      try {
+        origin = new URL(SERVER_URL).origin;
+      } catch {}
+
+      await fetch(`${origin}/api/landlord/subscription/sync`, {
+        method: 'POST',
+        headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+        cache: 'no-store',
+      });
+    } catch {
+      // ignore
+    }
+
+    redirect('/admin/overview');
+  }
 
   const landlordResult = await getOrCreateCurrentLandlord();
 

@@ -4,7 +4,10 @@ import { getTeamMembers } from '@/lib/actions/team.actions';
 import { getCurrentLandlordSubscription } from '@/lib/actions/subscription.actions';
 import { TeamDashboard } from './team-dashboard';
 import Link from 'next/link';
-import { Lock, Zap, MessageSquare } from 'lucide-react';
+import { Lock, Zap } from 'lucide-react';
+import { auth } from '@/auth';
+import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { TeamChat } from '@/components/team/team-chat';
 
 export const metadata: Metadata = {
   title: 'Team Management',
@@ -12,9 +15,12 @@ export const metadata: Metadata = {
 
 export default async function TeamPage() {
   await requireAdmin();
+
+  const session = await auth();
   
   const subscriptionData = await getCurrentLandlordSubscription();
   const teamData = await getTeamMembers();
+  const landlordResult = await getOrCreateCurrentLandlord();
 
   // Check if team feature is locked
   const hasTeamAccess = subscriptionData.success && 
@@ -54,21 +60,30 @@ export default async function TeamPage() {
               Invite team members to help manage your properties.
             </p>
           </div>
-          
-          {subscriptionData.features?.teamCommunications && (
-            <Link
-              href="/admin/team/chat"
-              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Open Team Chat
-            </Link>
-          )}
         </div>
 
         <TeamDashboard 
           members={teamData.success && teamData.members ? teamData.members : []} 
         />
+
+        {subscriptionData.features?.teamCommunications && (
+          <div className="rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl p-4">
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-white">Team Chat</h2>
+              <p className="text-sm text-slate-400">Communicate with your team in real-time</p>
+            </div>
+            <TeamChat
+              currentUser={{
+                id: session?.user?.id || '',
+                name: session?.user?.name || 'User',
+                email: session?.user?.email || '',
+                image: session?.user?.image || undefined,
+              }}
+              landlordId={landlordResult.success ? landlordResult.landlord.id : ''}
+              isFullPage={false}
+            />
+          </div>
+        )}
       </div>
     </main>
   );

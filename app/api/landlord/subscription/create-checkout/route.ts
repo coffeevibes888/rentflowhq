@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-tiers';
+import { SERVER_URL } from '@/lib/constants';
 
 export async function POST(req: NextRequest) {
   try {
@@ -97,7 +98,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SERVER_URL || 'http://localhost:3000';
+    let baseUrl = SERVER_URL;
+    try {
+      baseUrl = new URL(SERVER_URL).origin;
+    } catch {}
 
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -108,7 +112,7 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/admin/settings?subscription=success&tier=${targetTier}`,
+      success_url: `${baseUrl}/admin/overview?subscription=success&tier=${targetTier}`,
       cancel_url: `${baseUrl}/admin/settings?subscription=canceled`,
       metadata: {
         landlordId: landlord.id,
