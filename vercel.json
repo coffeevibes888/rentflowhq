@@ -1,12 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/rent-reminders",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/lease-signing-reminders",
-      "schedule": "0 10 * * *"
-    }
-  ]
-}
+{}
