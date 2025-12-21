@@ -12,7 +12,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "email": "cp .env ./node_modules/react-email && email dev --dir email --port 3001",
-    "zoho:sync": "ts-node scripts/zoho-sync.ts"
+    "zoho:sync": "ts-node scripts/zoho-sync.ts",
+    "seed": "ts-node db/seed-property-management.ts"
   },
   "dependencies": {
     "@auth/core": "0.41.1",
@@ -38,6 +39,7 @@
     "@stripe/stripe-js": "^5.2.0",
     "@types/tesseract.js": "^0.0.2",
     "@uploadthing/react": "^7.1.2",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.0",
     "cloudinary": "^2.8.0",
     "clsx": "^2.1.1",
@@ -81,6 +83,7 @@
   "devDependencies": {
     "@prisma/client": "^7.0.0",
     "@tailwindcss/postcss": "^4.1.17",
+    "@types/bcryptjs": "^2.4.6",
     "@types/imap": "^0.8.42",
     "@types/jest": "^29.5.14",
     "@types/mailparser": "^3.4.6",
