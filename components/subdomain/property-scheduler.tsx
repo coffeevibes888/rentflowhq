@@ -149,9 +149,9 @@ export default function PropertyScheduler({ propertyId, propertyName }: Property
 
   if (isLoading) {
     return (
-      <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">
+      <Card className="border-slate-200 bg-white/90 backdrop-blur-xl shadow-lg">
         <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
         </CardContent>
       </Card>
     );
@@ -159,24 +159,24 @@ export default function PropertyScheduler({ propertyId, propertyName }: Property
 
   if (!schedule || !schedule.schedule) {
     return (
-      <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">
+      <Card className="border-slate-200 bg-white/90 backdrop-blur-xl shadow-lg">
         <CardContent className="py-8 text-center">
           <Clock className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-          <p className="text-slate-300">Viewing schedule not yet available for this property.</p>
-          <p className="text-sm text-slate-400 mt-2">Please contact us directly to schedule a viewing.</p>
+          <p className="text-slate-700">Viewing schedule not yet available for this property.</p>
+          <p className="text-sm text-slate-500 mt-2">Please contact us directly to schedule a viewing.</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">
+    <Card className="border-slate-200 bg-white/90 backdrop-blur-xl shadow-lg">
       <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-violet-400" />
+        <CardTitle className="text-slate-900 flex items-center gap-2">
+          <CalendarIcon className="h-5 w-5 text-violet-500" />
           Schedule a Viewing
         </CardTitle>
-        <CardDescription className="text-slate-300">
+        <CardDescription className="text-slate-600">
           Book a time to tour {propertyName}
         </CardDescription>
       </CardHeader>
@@ -190,22 +190,31 @@ export default function PropertyScheduler({ propertyId, propertyName }: Property
                   selected={date}
                   onSelect={setDate}
                   disabled={(date) => date < new Date() || date > addDays(new Date(), 60)}
-                  className="rounded-lg border border-white/10 bg-slate-800/50"
+                  className="rounded-lg border border-slate-200 bg-white"
+                  classNames={{
+                    caption_label: "text-sm font-medium text-slate-900",
+                    head_cell: "text-slate-500 rounded-md w-9 font-normal text-[0.8rem]",
+                    day: "h-9 w-9 p-0 font-normal text-slate-900 hover:bg-slate-100 rounded-md",
+                    day_selected: "bg-violet-500 text-white hover:bg-violet-600 hover:text-white focus:bg-violet-500 focus:text-white",
+                    day_today: "bg-slate-100 text-slate-900",
+                    day_outside: "text-slate-400 opacity-50",
+                    day_disabled: "text-slate-300 opacity-50",
+                  }}
                 />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-white mb-3">
+                <h3 className="text-sm font-semibold text-slate-900 mb-3">
                   Available Times - {date ? format(date, 'MMMM d, yyyy') : 'Select a date'}
                 </h3>
                 {availableSlots.length === 0 ? (
-                  <p className="text-sm text-slate-400">No available slots for this date.</p>
+                  <p className="text-sm text-slate-500">No available slots for this date.</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto">
                     {availableSlots.map((slot, index) => (
                       <Button
                         key={index}
                         variant="outline"
-                        className="border-white/20 hover:border-violet-400 hover:bg-violet-500/20 text-white"
+                        className="border-slate-300 hover:border-violet-400 hover:bg-violet-50 text-slate-700"
                         onClick={() => handleSlotSelect(slot)}
                       >
                         <Clock className="h-4 w-4 mr-2" />
@@ -219,52 +228,52 @@ export default function PropertyScheduler({ propertyId, propertyName }: Property
           </>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="rounded-lg border border-violet-400/30 bg-violet-500/10 p-4">
-              <p className="text-sm text-violet-200">
+            <div className="rounded-lg border border-violet-200 bg-violet-50 p-4">
+              <p className="text-sm text-violet-700">
                 <strong>Selected Time:</strong> {date && format(date, 'MMMM d, yyyy')} at {selectedSlot?.start}
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-slate-200">Full Name</Label>
+              <Label htmlFor="name" className="text-slate-700">Full Name</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="bg-slate-800/50 border-white/10 text-white"
+                className="bg-white border-slate-300 text-slate-900"
                 placeholder="John Doe"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-200">Email</Label>
+              <Label htmlFor="email" className="text-slate-700">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="bg-slate-800/50 border-white/10 text-white"
+                className="bg-white border-slate-300 text-slate-900"
                 placeholder="john@example.com"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-slate-200">Phone Number</Label>
+              <Label htmlFor="phone" className="text-slate-700">Phone Number</Label>
               <Input
                 id="phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="bg-slate-800/50 border-white/10 text-white"
+                className="bg-white border-slate-300 text-slate-900"
                 placeholder="(555) 123-4567"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes" className="text-slate-200">Additional Notes (Optional)</Label>
+              <Label htmlFor="notes" className="text-slate-700">Additional Notes (Optional)</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="bg-slate-800/50 border-white/10 text-white"
+                className="bg-white border-slate-300 text-slate-900"
                 placeholder="Any special requests or questions..."
                 rows={3}
               />
@@ -277,14 +286,14 @@ export default function PropertyScheduler({ propertyId, propertyName }: Property
                   setShowForm(false);
                   setSelectedSlot(null);
                 }}
-                className="flex-1 text-white"
+                className="flex-1 text-slate-700 border-slate-300"
               >
                 Back
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-violet-500 hover:bg-violet-600"
+                className="flex-1 bg-violet-500 hover:bg-violet-600 text-white"
               >
                 {isSubmitting ? (
                   <>

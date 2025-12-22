@@ -23,7 +23,10 @@ export async function setPropertySchedule(
 ) {
   try {
     const session = await auth();
-    if (!session?.user?.id || session.user.role !== 'admin') {
+    const role = session?.user?.role;
+    const isAllowed = role === 'admin' || role === 'superAdmin' || role === 'landlord' || role === 'property_manager';
+    
+    if (!session?.user?.id || !isAllowed) {
       return { success: false, message: 'Unauthorized' };
     }
 

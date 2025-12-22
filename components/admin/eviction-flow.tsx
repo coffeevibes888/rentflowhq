@@ -20,7 +20,12 @@ type TenantOption = {
   phone: string;
   unitName: string;
   status: string;
+  startDate: string;
+  endDate?: string;
+  rentAmount: number;
   needsLandlordSignature?: boolean;
+  tenantSignedAt?: string;
+  landlordSignedAt?: string;
 };
 
 export default function EvictionFlow({

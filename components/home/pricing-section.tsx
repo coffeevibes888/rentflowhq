@@ -26,21 +26,22 @@ const tiers = [
     id: 'free',
     name: 'Free',
     price: 0,
-    description: 'Perfect for getting started with up to 24 units',
-    unitLimit: '24 units',
+    description: 'Perfect for small landlords. Stop using spreadsheets.',
+    unitLimit: 'Up to 24 units',
     icon: Building2,
     popular: false,
     features: [
       { name: 'Up to 24 units', included: true },
-      { name: 'Online rent collection', included: true },
-      { name: 'Tenant portal', included: true },
-      { name: 'Maintenance tickets', included: true },
+      { name: 'Online rent collection ($2/payment)', included: true },
+      { name: 'Your own branded tenant portal', included: true },
+      { name: 'Custom subdomain (yourname.rentflowhq.com)', included: true },
+      { name: 'Maintenance ticket system', included: true },
       { name: 'Digital lease storage', included: true },
+      { name: 'Tenant applications', included: true },
+      { name: 'Zillow neighborhood comps', included: true },
       { name: 'Basic reporting', included: true },
-      { name: 'Automatic rent reminders', included: false },
-      { name: 'Auto late fees', included: false },
-      { name: 'Team management', included: false },
-      { name: 'Employment verification', included: false },
+      { name: 'QuickBooks & TurboTax integration', included: false },
+      { name: 'Team management & chat', included: false },
     ],
     cta: 'Start Free',
     iconBg: 'bg-slate-500/20',
@@ -50,21 +51,21 @@ const tiers = [
     id: 'pro',
     name: 'Pro',
     price: 29.99,
-    description: 'Everything you need for serious property management',
-    unitLimit: '250 units',
+    description: 'For growing landlords. The only tool that scales with you.',
+    unitLimit: 'Up to 250 units',
     icon: Zap,
     popular: true,
     features: [
       { name: 'Up to 250 units', included: true },
       { name: 'Everything in Free', included: true },
+      { name: 'QuickBooks & TurboTax integration', included: true },
       { name: 'Automatic rent reminders', included: true },
       { name: 'Auto late fee charges', included: true },
-      { name: 'Team management', included: true },
-      { name: 'Team communications', included: true },
-      { name: 'Unlimited employment verifications', included: true },
+      { name: 'Team management & Slack-like chat', included: true },
+      { name: 'ID & paystub verification', included: true },
       { name: 'No platform cashout fees', included: true },
       { name: 'Priority support', included: true },
-      { name: 'Advanced reporting', included: true },
+      { name: 'Advanced analytics & reporting', included: true },
     ],
     cta: 'Get Started',
     iconBg: 'bg-violet-500/20',
@@ -74,21 +75,21 @@ const tiers = [
     id: 'enterprise',
     name: 'Enterprise',
     price: null,
-    description: 'Custom solutions for large portfolios',
-    unitLimit: 'Unlimited',
+    description: 'Custom solutions for property management companies.',
+    unitLimit: 'Unlimited units',
     icon: Crown,
     popular: false,
     features: [
       { name: 'Unlimited units', included: true },
       { name: 'Everything in Pro', included: true },
-      { name: 'Advanced reporting', included: true },
-      { name: 'Custom branding', included: true },
-      { name: 'White-label tenant portal', included: true },
+      { name: 'Custom branding & white-label', included: true },
+      { name: 'Custom domain support', included: true },
       { name: 'API access', included: true },
       { name: 'Webhooks', included: true },
       { name: 'Dedicated account manager', included: true },
       { name: 'Custom integrations', included: true },
       { name: 'SLA guarantee', included: true },
+      { name: 'Onboarding & training', included: true },
     ],
     cta: 'Contact Sales',
     iconBg: 'bg-amber-500/20',
@@ -107,6 +108,7 @@ export default function PricingSection() {
     // Enterprise tier - go to contact
     if (tierId === 'enterprise') {
       router.push('/contact?subject=Enterprise%20Plan');
+      setLoadingTier(null);
       return;
     }
 
@@ -114,20 +116,23 @@ export default function PricingSection() {
     if (status === 'authenticated' && session?.user) {
       // Check if user is a landlord/admin
       if (session.user.role === 'admin' || session.user.role === 'landlord') {
-        // Already an admin, go to subscription page
+        // Already an admin, go to subscription checkout or dashboard
         if (tierId === 'free') {
-          router.push('/admin');
+          router.push('/admin/overview');
         } else {
+          // Redirect to subscription checkout page
           router.push(`/admin/settings/subscription?upgrade=${tierId}`);
         }
       } else {
-        // User exists but not a landlord - go to onboarding
-        router.push(`/onboarding?plan=${tierId}`);
+        // User exists but not a landlord - redirect to sign-up to create landlord account
+        router.push(`/sign-up?plan=${tierId}&role=landlord`);
       }
     } else {
       // Not logged in - go to sign up with plan parameter
-      router.push(`/sign-up?plan=${tierId}`);
+      router.push(`/sign-up?plan=${tierId}&role=landlord`);
     }
+    
+    setLoadingTier(null);
   };
 
   return (
@@ -144,10 +149,10 @@ export default function PricingSection() {
             Simple, Transparent Pricing
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white">
-            Choose Your Plan
+            Free for Small Landlords. Scales as You Grow.
           </h2>
           <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-            Start free and upgrade as you grow. No hidden fees, no surprises.
+            No percentage fees. Just $2 flat per rent payment. Free up to 24 units.
           </p>
         </div>
 
@@ -266,6 +271,110 @@ export default function PricingSection() {
               Talk to our team
             </a>
           </p>
+        </div>
+
+        {/* Competitor Comparison Table */}
+        <div className="mt-20 animate-in fade-in duration-700">
+          <div className="text-center space-y-4 mb-10">
+            <h3 className="text-2xl md:text-3xl font-bold text-white">
+              How We Compare to Competitors
+            </h3>
+            <p className="text-slate-400 max-w-xl mx-auto">
+              See why landlords are switching to Rent Flow HQ
+            </p>
+          </div>
+          
+          <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left p-4 font-semibold text-white">Feature</th>
+                  <th className="p-4 font-semibold text-violet-300 bg-violet-500/10">Rent Flow HQ</th>
+                  <th className="p-4 font-semibold text-slate-300">Buildium<br/><span className="text-xs font-normal text-slate-500">$55-183/mo</span></th>
+                  <th className="p-4 font-semibold text-slate-300">AppFolio<br/><span className="text-xs font-normal text-slate-500">$1.40/unit</span></th>
+                  <th className="p-4 font-semibold text-slate-300">TurboTenant<br/><span className="text-xs font-normal text-slate-500">Free</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Online Rent Collection</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Maintenance Tickets</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Digital Leases</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center text-amber-400 text-xs">Limited</td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">White-label Tenant Portal</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Team Chat</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Custom Subdomain</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">ID & Paystub Verification</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
+                  <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Zillow Neighborhood Comps</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">QuickBooks & TurboTax</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Pro)</span></td>
+                  <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="hover:bg-white/5">
+                  <td className="p-4 text-slate-200 font-semibold">Price (24 units)</td>
+                  <td className="p-4 text-center bg-violet-500/5 font-bold text-emerald-400">Free</td>
+                  <td className="p-4 text-center text-slate-300">$55/mo</td>
+                  <td className="p-4 text-center text-slate-300">$33.60/mo</td>
+                  <td className="p-4 text-center text-slate-300">Free</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <p className="text-xs text-slate-500">
+              Comparison based on publicly available pricing as of December 2024. Features may vary by plan.
+            </p>
+          </div>
         </div>
       </div>
     </section>

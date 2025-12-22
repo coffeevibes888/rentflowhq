@@ -155,18 +155,18 @@ const Homepage = async () => {
           <div className='max-w-7xl mx-auto relative z-10'>
             <div className='grid gap-8 lg:grid-cols-2 items-center'>
               <div className='space-y-6 animate-in fade-in slide-in-from-left duration-700'>
-                {/* <div className='inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-violet-200/80 text-xs font-medium border border-white/10 backdrop-blur-sm ring-1 ring-white/10'>
+                <div className='inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-1.5 text-emerald-400 text-xs font-medium border border-emerald-500/20 backdrop-blur-sm'>
                   <Sparkles className='h-3 w-3' />
-                  <span>100% Free Forever • No Credit Card Required</span>
-                </div> */}
+                  <span>Free for up to 24 units • No credit card required</span>
+                </div>
                 
-                    <h1 className='text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-black'>
-                       Property Management, Finally Made Simple.
-                    </h1>
-                      <p className='text-base md:text-lg text-slate-700 max-w-xl leading-relaxed'>
-                          Manage rent, leases, maintenance, and tenant communication in one clear, organized system.
-                          No spreadsheets. No confusion. No learning curve.
-                    </p>
+                <h1 className='text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-black'>
+                  Collect Rent, Track Maintenance, Sign Leases — All in One Place.
+                </h1>
+                <p className='text-base md:text-lg text-slate-700 max-w-xl leading-relaxed'>
+                  Stop using spreadsheets. Get your own branded tenant portal, team collaboration, and automated rent collection. 
+                  <span className='font-semibold'> Just $2 flat fee per payment — not a percentage of rent.</span>
+                </p>
                 
                 <div className='flex flex-wrap items-center gap-4'>
                   <Link
@@ -178,25 +178,25 @@ const Homepage = async () => {
                   </Link>
                   <Link
                     href='#pricing'
-                    className='inline-flex items-center justify-center rounded-full border-2 border-white/30 text-white px-6 py-3.5 text-sm font-semibold hover:bg-white/10 hover:border-white/50 transition-all duration-300'
+                    className='inline-flex items-center justify-center rounded-full border-2 border-slate-300 text-slate-700 px-6 py-3.5 text-sm font-semibold hover:bg-slate-100 hover:border-slate-400 transition-all duration-300'
                   >
                     View Pricing
                   </Link>
                 </div>
                 
-                <div className='flex flex-wrap items-center gap-6 pt-4 text-sm text-slate-300'>
+                <div className='flex flex-wrap items-center gap-6 pt-4 text-sm'>
                   <div className='flex items-center gap-2 text-black'>
-                    <CheckCircle2 className='h-5 w-5' />
-                    <span>7 Day Free Trial</span>
+                    <CheckCircle2 className='h-5 w-5 text-emerald-500' />
+                    <span>Free up to 24 units</span>
                   </div>
                   <div className='flex items-center gap-2 text-black'>
-                    <CheckCircle2 className='h-5 w-5 text-black' />
-                    <span>Unlimted Units.</span>
+                    <CheckCircle2 className='h-5 w-5 text-emerald-500' />
+                    <span>Your own branded portal</span>
                   </div>
-                  {/* <div className='flex items-center gap-2'>
-                    <CheckCircle2 className='h-5 w-5 text-violet-300' />
-                    <span>Cancel anytime</span>
-                  </div> */}
+                  <div className='flex items-center gap-2 text-black'>
+                    <CheckCircle2 className='h-5 w-5 text-emerald-500' />
+                    <span>$2 flat fee, not %</span>
+                  </div>
                 </div>
               </div>
               
@@ -260,7 +260,7 @@ const Homepage = async () => {
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
                 We Get It. Property Management is Exhausting.
               </h2>
-              <p className='text-lg text-black font-bold max-w-2xl mx-auto'>
+              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
                 You didn't become a landlord to spend hours on admin work. Here's how we solve your biggest headaches.
               </p>
             </div>
@@ -374,7 +374,7 @@ const Homepage = async () => {
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-sm font-semibold'>
                       <ArrowRight className='h-4 w-4' />
-                      <span>Solution: 100% free forever. No hidden fees.</span>
+                      <span>Solution: Free up to 24 units. $2 flat fee per payment.</span>
                     </div>
                   </div>
                 </div>
@@ -393,7 +393,7 @@ const Homepage = async () => {
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
                 Get Started in Minutes, Not Days
               </h2>
-              <p className='text-lg text-black font-bold max-w-2xl mx-auto'>
+              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
                 No complicated setup. No training required. Just sign up and start managing.
               </p>
             </div>
@@ -464,24 +464,24 @@ const Homepage = async () => {
           <div className='max-w-6xl mx-auto space-y-12'>
             <div className='text-center space-y-3 animate-in fade-in duration-700'>
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
-                Everything You Need, Nothing You Don't
+                Everything You Need. Nothing You Don't.
               </h2>
-              <p className='text-lg text-black font-bold max-w-2xl mx-auto'>
-                Powerful features designed specifically for small landlords and property managers.
+              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
+                Whether you have 3 units or 200, get the tools that enterprise property managers use — without the enterprise price tag.
               </p>
             </div>
 
             <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
               {[
-                { icon: DollarSign, title: 'Online Rent Collection', desc: 'Stripe-powered payments with automatic reminders ($2 per transaction)' },
-                { icon: FileText, title: 'Digital Leases', desc: 'E-signatures, storage, and renewal tracking' },
+                { icon: DollarSign, title: 'Online Rent Collection', desc: '$2 flat fee per payment — not a percentage of your rent' },
+                { icon: Building2, title: 'Your Own Branded Portal', desc: 'Custom subdomain (yourname.rentflowhq.com) for your tenants' },
+                { icon: MessageSquare, title: 'Team Chat Built-In', desc: 'Slack-like communication for your property management team' },
+                { icon: FileText, title: 'Digital Leases', desc: 'E-signatures, storage, and automatic renewal reminders' },
                 { icon: Wrench, title: 'Maintenance Tickets', desc: 'Priority-based system with tenant communication' },
                 { icon: Users, title: 'Tenant Applications', desc: 'Digital forms with organized approval workflow' },
                 { icon: TrendingUp, title: 'Revenue Tracking', desc: 'See income, late payments, and trends at a glance' },
-                { icon: MessageSquare, title: 'Tenant Communication', desc: 'Built-in messaging for quick responses' },
                 { icon: Calendar, title: 'Lease Renewals', desc: 'Automated reminders before lease expiration' },
                 { icon: Shield, title: 'Secure & Compliant', desc: 'Bank-level encryption for all sensitive data' },
-                { icon: Zap, title: 'Mobile Friendly', desc: 'Manage everything from your phone or tablet' },
               ].map((feature, index) => {
                 const Icon = feature.icon;
                 return (
@@ -511,7 +511,7 @@ const Homepage = async () => {
               Ready to Stop Chasing Rent?
             </h2>
             <p className='text-xl text-slate-200 max-w-2xl mx-auto'>
-              Join thousands of landlords who've simplified their property management. Sign up free in 30 seconds.
+              Free for up to 24 units. Get your own branded tenant portal, team chat, and automated rent collection in minutes.
             </p>
             <div className='flex flex-wrap items-center justify-center gap-4'>
               <Link
@@ -529,7 +529,7 @@ const Homepage = async () => {
               </Link>
             </div>
             <p className='text-sm text-slate-400'>
-              No credit card required • Setup in minutes • Cancel anytime
+              No credit card required • Free up to 24 units • $2 flat fee per payment
             </p>
           </div>
         </section>

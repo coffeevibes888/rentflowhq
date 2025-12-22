@@ -22,10 +22,7 @@ export default function AdminLayout({
         <div className='flex flex-1 text-black'>
           {/* Sidebar - Mobile Responsive */}
           <aside className='hidden md:flex flex-col w-64 border-r border-white/10 glass-effect-dark px-4 py-6 gap-6 tablet-inspection-mode'>
-            <Link
-              href='/'
-              className='flex items-center gap-3 px-2 hover:bg-white/5 rounded-lg p-2 transition-colors'
-            >
+            <div className='flex items-center gap-3 px-2 p-2'>
               <div className='relative h-10 w-10 rounded-lg overflow-hidden flex items-center justify-center bg-white/10'>
                 <Image
                   src='/images/logo.svg'
@@ -38,7 +35,7 @@ export default function AdminLayout({
               <div className='flex flex-col'>
                 <span className='text-sm text-black'>Properties, tenants & rent</span>
               </div>
-            </Link>
+            </div>
 
             <MainNav className='flex-1' />
 

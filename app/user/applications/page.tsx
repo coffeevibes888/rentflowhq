@@ -1,64 +1,63 @@
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { redirect } from 'next/navigation';
+import { ApplicationsClient } from './applications-client';
 
 export default async function UserApplicationsPage() {
   const session = await auth();
 
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     redirect('/login');
   }
 
-  const email = session.user.email as string;
+  const userId = session.user.id as string;
 
   const applications = await prisma.rentalApplication.findMany({
-    where: { email },
+    where: { applicantId: userId },
     orderBy: { createdAt: 'desc' },
+    include: {
+      unit: {
+        include: {
+          property: {
+            select: {
+              name: true,
+              address: true,
+            },
+          },
+        },
+      },
+      verification: {
+        select: {
+          identityStatus: true,
+          employmentStatus: true,
+          overallStatus: true,
+        },
+      },
+    },
   });
 
-  return (
-    <main className="w-full px-4 py-8 md:px-0">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-1">My rental applications</h1>
-          <p className="text-sm text-slate-600">
-            Track the status of applications you have submitted.
-          </p>
-        </div>
+  // Serialize for client component - convert Dates and Decimals to plain values
+  const serializedApplications = applications.map(app => ({
+    id: app.id,
+    fullName: app.fullName,
+    email: app.email,
+    phone: app.phone,
+    status: app.status,
+    propertySlug: app.propertySlug,
+    createdAt: app.createdAt.toISOString(),
+    unit: app.unit ? {
+      name: app.unit.name,
+      property: app.unit.property ? {
+        name: app.unit.property.name,
+        address: app.unit.property.address,
+      } : null,
+    } : null,
+    verification: app.verification ? {
+      identityStatus: app.verification.identityStatus,
+      employmentStatus: app.verification.employmentStatus,
+      overallStatus: app.verification.overallStatus,
+    } : null,
+  }));
 
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          {applications.length === 0 ? (
-            <div className="px-4 py-6 text-center text-sm text-slate-500">
-              You have not submitted any applications yet.
-            </div>
-          ) : (
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-4 py-2 text-left font-medium text-slate-500">Submitted</th>
-                  <th className="px-4 py-2 text-left font-medium text-slate-500">Status</th>
-                  <th className="px-4 py-2 text-left font-medium text-slate-500">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.map((app) => (
-                  <tr key={app.id} className="border-t border-slate-100">
-                    <td className="px-4 py-2 align-top text-xs text-slate-600">
-                      {new Date(app.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-2 align-top text-xs capitalize text-slate-700">
-                      {app.status}
-                    </td>
-                    <td className="px-4 py-2 align-top text-xs text-slate-600 whitespace-pre-wrap">
-                      {app.notes || '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-    </main>
-  );
+  return <ApplicationsClient applications={serializedApplications} />;
 }

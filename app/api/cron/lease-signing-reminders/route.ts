@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
             where: {
               userId: landlord.owner.id,
               type: 'reminder',
-              actionUrl: { contains: `/admin/leases/${lease.id}` },
+              actionUrl: { contains: `/admin/products/${lease.unit.propertyId}/details` },
               createdAt: { gte: today },
             },
           });
@@ -78,8 +78,8 @@ export async function GET(req: NextRequest) {
             type: 'reminder',
             title: 'Lease Awaiting Your Signature',
             message: `${tenantName} has signed the lease for ${propertyName} - ${unitName}. Please review and sign to complete the agreement.`,
-            actionUrl: `/admin/leases/${lease.id}`,
-            metadata: { leaseId: lease.id },
+            actionUrl: `/admin/products/${lease.unit.propertyId}/details`,
+            metadata: { leaseId: lease.id, propertyId: lease.unit.propertyId },
             landlordId,
           });
 

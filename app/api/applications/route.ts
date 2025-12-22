@@ -107,6 +107,16 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Create verification record for the application
+    await prisma.applicationVerification.create({
+      data: {
+        applicationId: application.id,
+        identityStatus: 'pending',
+        employmentStatus: 'pending',
+        overallStatus: 'incomplete',
+      },
+    });
+
     // Notify landlord about new application
     if (property && property.landlordId) {
       const landlord = await prisma.landlord.findUnique({
@@ -133,7 +143,11 @@ export async function POST(req: NextRequest) {
 
     revalidatePath("/admin/applications");
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true, 
+      applicationId: application.id,
+      message: 'Application created successfully'
+    });
   } catch (error) {
     // Log error without exposing sensitive details
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

@@ -225,17 +225,17 @@ export function TeamChatBox({ onClose }: TeamChatBoxProps) {
 
   return (
     <div className="flex h-full flex-col bg-slate-950 text-slate-50 rounded-lg shadow-xl overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-3 flex items-center justify-between text-xs sm:text-sm">
-        <div className="flex flex-col">
-          <span className="font-semibold tracking-wide">Property Management Support</span>
-          <span className="text-[11px] text-blue-100/90">
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between text-xs sm:text-sm flex-shrink-0">
+        <div className="flex flex-col min-w-0">
+          <span className="font-semibold tracking-wide truncate">Property Management Support</span>
+          <span className="text-[10px] sm:text-[11px] text-blue-100/90 truncate">
             Chat with our team about rent, maintenance, tours, and more.
           </span>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-white/15 transition-colors"
+            className="p-1.5 rounded-full hover:bg-white/15 transition-colors flex-shrink-0 ml-2"
             aria-label="Close chat"
           >
             <X className="w-4 h-4" />
@@ -243,7 +243,7 @@ export function TeamChatBox({ onClose }: TeamChatBoxProps) {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 bg-slate-950/95">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-3 py-2 sm:py-3 space-y-2 sm:space-y-3 bg-slate-950/95">
         {messages.map((m) => {
           const mine = m.sender === "user";
           return (
@@ -252,18 +252,18 @@ export function TeamChatBox({ onClose }: TeamChatBoxProps) {
               className={`flex ${mine ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-3 py-2 text-[11px] sm:text-[13px] shadow border border-white/5 ${
+                className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-[13px] shadow border border-white/5 ${
                   mine
                     ? "ml-auto bg-blue-600 text-slate-50"
                     : "mr-auto bg-slate-800 text-slate-50"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-0.5">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-100/80">
+                  <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-100/80">
                     {mine ? "You" : m.senderName || "Property Manager"}
                   </span>
                   {!m.isTyping && (
-                    <span className="text-[9px] text-slate-300/80">
+                    <span className="text-[8px] sm:text-[9px] text-slate-300/80">
                       {m.timestamp.toLocaleTimeString("en-US", {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -281,20 +281,20 @@ export function TeamChatBox({ onClose }: TeamChatBoxProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-slate-800 bg-slate-950 px-3 py-2">
-        <form onSubmit={handleSend} className="flex items-end gap-2">
+      <div className="border-t border-slate-800 bg-slate-950 px-2 sm:px-3 py-2 flex-shrink-0">
+        <form onSubmit={handleSend} className="flex items-end gap-1.5 sm:gap-2">
           <Input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about rent, maintenance, tours, or applications..."
-            className="flex-1 rounded-lg bg-slate-900 border-slate-700 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Ask about rent, maintenance..."
+            className="flex-1 rounded-lg bg-slate-900 border-slate-700 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-9 sm:h-10"
             disabled={isSending || isEnding}
           />
           <Button
             type="submit"
             disabled={!input.trim() || isSending || isEnding}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center gap-1 text-xs sm:text-sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-2.5 sm:px-3 py-2 flex items-center gap-1 text-xs sm:text-sm h-9 sm:h-10"
           >
             {isSending ? (
               <Loader className="w-4 h-4 animate-spin" />
@@ -305,16 +305,16 @@ export function TeamChatBox({ onClose }: TeamChatBoxProps) {
           </Button>
         </form>
         <div className="mt-1 flex items-center justify-between">
-          <p className="text-[10px] text-slate-500">
+          <p className="text-[9px] sm:text-[10px] text-slate-500 hidden sm:block">
             Our team is here to help with all your property management needs.
           </p>
           <button
             type="button"
             onClick={handleEndConversation}
             disabled={isEnding}
-            className="text-[10px] text-blue-300 hover:text-blue-100 underline-offset-2 hover:underline disabled:opacity-60"
+            className="text-[9px] sm:text-[10px] text-blue-300 hover:text-blue-100 underline-offset-2 hover:underline disabled:opacity-60 ml-auto"
           >
-            {isEnding ? "Ending..." : "End Conversation"}
+            {isEnding ? "Ending..." : "End Chat"}
           </button>
         </div>
       </div>

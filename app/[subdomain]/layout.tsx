@@ -29,7 +29,7 @@ export default async function SubdomainLayout({
 
   return (
     <SessionProviderWrapper>
-      <div className="min-h-screen bg-gradient-to-r from-blue-900 to-indigo-600 text-white">
+      <div className="min-h-screen bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-black">
         <SubdomainHeader landlord={landlord} />
         {children}
       </div>

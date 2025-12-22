@@ -339,15 +339,15 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
 
   const containerClass = isFullPage
     ? 'relative flex h-full w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl overflow-hidden'
-    : 'relative flex h-full bg-slate-900 rounded-xl overflow-hidden border border-white/10 shadow-2xl';
+    : 'relative flex flex-col sm:flex-row h-full bg-slate-900 rounded-xl overflow-hidden border border-white/10 shadow-2xl';
 
   const sidebarClass = isFullPage
     ? `${isMobileMenuOpen ? 'flex' : 'hidden'} absolute inset-y-0 left-0 z-20 w-72 bg-slate-950/90 backdrop-blur-xl border-r border-white/10 flex-col`
-    : `${isMobileMenuOpen ? 'flex' : 'hidden'} md:flex flex-col w-56 bg-slate-950 border-r border-white/10`;
+    : `${isMobileMenuOpen ? 'flex' : 'hidden'} sm:flex flex-col w-full sm:w-48 md:w-56 bg-slate-950 border-b sm:border-b-0 sm:border-r border-white/10 max-h-48 sm:max-h-none overflow-y-auto`;
 
   const membersSidebarClass = isFullPage
     ? 'hidden xl:block w-56 border-l border-white/10 bg-slate-900/50 overflow-y-auto'
-    : 'hidden lg:block w-48 border-l border-white/10 bg-slate-900/50 overflow-y-auto';
+    : 'hidden md:block w-40 lg:w-48 border-l border-white/10 bg-slate-900/50 overflow-y-auto';
 
   return (
     <div className={containerClass}>
@@ -472,31 +472,31 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Channel Header */}
-        <header className="h-14 px-4 flex items-center justify-between border-b border-white/10 bg-slate-900/50">
-          <div className="flex items-center gap-3">
+        <header className="h-12 sm:h-14 px-2 sm:px-4 flex items-center justify-between border-b border-white/10 bg-slate-900/50 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button 
-              className={isFullPage ? 'p-1.5 hover:bg-white/10 rounded-lg' : 'md:hidden p-1.5 hover:bg-white/10 rounded-lg'}
+              className="p-1.5 hover:bg-white/10 rounded-lg flex-shrink-0"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              <MessageSquare className="h-5 w-5 text-slate-400" />
+              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
             </button>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <Hash className="h-4 w-4 text-slate-500" />
-                <span className="font-semibold text-white">{activeChannel?.name || 'Select a channel'}</span>
+                <Hash className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
+                <span className="font-semibold text-white text-sm sm:text-base truncate">{activeChannel?.name || 'Select a channel'}</span>
               </div>
               {activeChannel?.description && (
-                <p className="text-xs text-slate-400 truncate max-w-[200px]">{activeChannel.description}</p>
+                <p className="text-[10px] sm:text-xs text-slate-400 truncate max-w-[120px] sm:max-w-[200px]">{activeChannel.description}</p>
               )}
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
-                  <UserPlus className="h-4 w-4 mr-1" />
-                  Invite
+                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white px-1.5 sm:px-3 h-8">
+                  <UserPlus className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1">Invite</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-slate-800 border-white/10">
@@ -509,16 +509,16 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
-                  <Users className="h-4 w-4 mr-1" />
-                  Team ({activeMembers.length})
+                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white px-1.5 sm:px-3 h-8">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1">Team ({activeMembers.length})</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-slate-800 border-white/10 w-80 max-h-96 overflow-y-auto">
+              <DropdownMenuContent className="bg-slate-800 border-white/10 w-64 sm:w-80 max-h-96 overflow-y-auto">
                 <div className="px-2 py-1.5 text-xs font-semibold text-slate-400 uppercase">Active Members</div>
                 {activeMembers.map(m => (
                   <DropdownMenuItem key={m.id} className="text-slate-200 flex items-center gap-2">
-                    <div className="h-6 w-6 rounded bg-slate-700 flex items-center justify-center text-xs">
+                    <div className="h-6 w-6 rounded bg-slate-700 flex items-center justify-center text-xs flex-shrink-0">
                       {m.user?.image ? <img src={m.user.image} alt="" className="h-6 w-6 rounded" /> : (m.user?.name || m.invitedEmail || '?')[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -533,7 +533,7 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
                     <div className="px-2 py-1.5 text-xs font-semibold text-amber-400 uppercase">Pending</div>
                     {pendingMembers.map(m => (
                       <DropdownMenuItem key={m.id} className="text-slate-200 flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-amber-400" />
+                        <Mail className="h-4 w-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm truncate">{m.invitedEmail}</span>
                       </DropdownMenuItem>
                     ))}
@@ -544,12 +544,12 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
             
             <button 
               onClick={() => setShowMembers(!showMembers)}
-              className={`p-2 rounded-lg transition-colors ${showMembers ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5'}`}
+              className={`hidden md:block p-2 rounded-lg transition-colors ${showMembers ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5'}`}
             >
               <Users className="h-4 w-4" />
             </button>
             {onClose && (
-              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg text-slate-400">
+              <button onClick={onClose} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg text-slate-400">
                 <X className="h-4 w-4" />
               </button>
             )}
@@ -625,10 +625,10 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t border-white/10">
+            <div className="p-2 sm:p-4 border-t border-white/10 flex-shrink-0">
               <form onSubmit={handleSendMessage}>
-                <div className="flex items-end gap-2 bg-slate-800 rounded-xl p-2">
-                  <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-slate-400">
+                <div className="flex items-end gap-1 sm:gap-2 bg-slate-800 rounded-xl p-1.5 sm:p-2">
+                  <button type="button" className="hidden sm:block p-2 hover:bg-white/10 rounded-lg text-slate-400">
                     <Plus className="h-5 w-5" />
                   </button>
                   <Input
@@ -636,21 +636,21 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={`Message #${activeChannel?.name || 'channel'}`}
-                    className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-white placeholder:text-slate-500"
+                    className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-white placeholder:text-slate-500 text-sm"
                     disabled={!activeChannel}
                   />
-                  <div className="flex items-center gap-1">
-                    <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-slate-400">
+                  <div className="flex items-center gap-0.5 sm:gap-1">
+                    <button type="button" className="hidden sm:block p-2 hover:bg-white/10 rounded-lg text-slate-400">
                       <AtSign className="h-5 w-5" />
                     </button>
-                    <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-slate-400">
+                    <button type="button" className="hidden sm:block p-2 hover:bg-white/10 rounded-lg text-slate-400">
                       <Smile className="h-5 w-5" />
                     </button>
                     <Button
                       type="submit"
                       disabled={!input.trim() || isLoading || !activeChannel}
                       size="sm"
-                      className="bg-violet-600 hover:bg-violet-500 text-white"
+                      className="bg-violet-600 hover:bg-violet-500 text-white h-8 w-8 sm:h-auto sm:w-auto p-1.5 sm:px-3"
                     >
                       <Send className="h-4 w-4" />
                     </Button>

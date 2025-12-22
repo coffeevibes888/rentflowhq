@@ -11,8 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CheckCircle2, ArrowRight, Shield, Zap, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, ArrowRight, Shield, Zap, Eye, EyeOff, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { VerificationWizard } from "@/components/tenant/verification-wizard";
 
 const applicationSchema = z.object({
   fullName: z.string().min(3, "Name is required"),
@@ -56,6 +57,9 @@ export default function SubdomainApplicationPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSsn, setShowSsn] = useState(false);
+  const [draftApplicationId, setDraftApplicationId] = useState<string | null>(null);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationComplete, setVerificationComplete] = useState(false);
 
   // Redirect to sign-up if not authenticated or not a tenant
   useEffect(() => {
@@ -83,11 +87,16 @@ export default function SubdomainApplicationPage() {
 
     setIsSubmitting(true);
     try {
+      console.log('[APPLICATION] Submitting application with data:', { ...values, propertySlug });
+      
+      // First, create a draft application
       const res = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...values, propertySlug }),
       });
+
+      console.log('[APPLICATION] Response status:', res.status);
 
       if (res.status === 401) {
         const signUpUrl = propertySlug
@@ -99,18 +108,55 @@ export default function SubdomainApplicationPage() {
 
       if (!res.ok) {
         const error = await res.json();
+        console.error('[APPLICATION] Error response:', error);
         alert(error.message || "Failed to submit application. Please try again.");
         return;
       }
 
-      // Redirect to tenant dashboard after successful submission
-      router.push("/user/dashboard");
-      setSubmitted(true);
+      const data = await res.json();
+      console.log('[APPLICATION] Success response:', data);
+      
+      // Use the returned application ID
+      if (data.applicationId) {
+        console.log('[APPLICATION] Setting draft application ID:', data.applicationId);
+        setDraftApplicationId(data.applicationId);
+        setShowVerification(true);
+      } else {
+        console.warn('[APPLICATION] No applicationId in response, fetching applications...');
+        // Fallback: fetch the latest application
+        const appsRes = await fetch('/api/user/applications');
+        if (appsRes.ok) {
+          const apps = await appsRes.json();
+          console.log('[APPLICATION] Fetched applications:', apps);
+          const latestApp = apps.applications?.[0];
+          if (latestApp) {
+            console.log('[APPLICATION] Using latest application:', latestApp.id);
+            setDraftApplicationId(latestApp.id);
+            setShowVerification(true);
+          } else {
+            console.error('[APPLICATION] No applications found');
+            alert("Application created but unable to proceed to verification. Please check your dashboard.");
+          }
+        } else {
+          console.error('[APPLICATION] Failed to fetch applications:', appsRes.status);
+          alert("Application created but unable to proceed to verification. Please check your dashboard.");
+        }
+      }
     } catch (error) {
+      console.error('[APPLICATION] Exception:', error);
       alert("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleVerificationComplete = () => {
+    setVerificationComplete(true);
+    setSubmitted(true);
+    // Redirect to tenant dashboard after successful verification
+    setTimeout(() => {
+      router.push("/user/dashboard");
+    }, 3000);
   };
 
   if (status === "loading" || status === "unauthenticated" || (status === "authenticated" && session?.user?.role !== "tenant")) {
@@ -120,6 +166,16 @@ export default function SubdomainApplicationPage() {
           <p className="text-slate-200">Redirecting to sign up...</p>
         </div>
       </main>
+    );
+  }
+
+  // Show verification wizard after form submission
+  if (showVerification && draftApplicationId) {
+    return (
+      <VerificationWizard
+        applicationId={draftApplicationId}
+        onComplete={handleVerificationComplete}
+      />
     );
   }
 
@@ -201,6 +257,27 @@ export default function SubdomainApplicationPage() {
             <div className="flex items-center gap-2 text-emerald-200">
               <Shield className="h-5 w-5" />
               <span className="font-medium">Secure & Encrypted</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Verification Required Notice */}
+        <div className="rounded-xl border border-blue-400/30 bg-blue-500/10 p-6 mb-8">
+          <div className="flex items-start gap-4">
+            <AlertCircle className="h-6 w-6 text-blue-300 flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <h3 className="font-semibold text-blue-200 text-lg">Verification Required</h3>
+              <p className="text-sm text-blue-200/80">
+                After submitting your application details, you'll need to verify your identity and income by uploading:
+              </p>
+              <ul className="text-sm text-blue-200/80 space-y-1 ml-4 list-disc">
+                <li>Government-issued ID (driver's license or state ID)</li>
+                <li>3 recent pay stubs, bank statements, or tax documents</li>
+              </ul>
+              <p className="text-xs text-blue-200/70 mt-3">
+                <Shield className="h-4 w-4 inline mr-1" />
+                Your documents are encrypted and stored securely. The landlord can view them for application and lease management purposes.
+              </p>
             </div>
           </div>
         </div>
@@ -466,11 +543,15 @@ export default function SubdomainApplicationPage() {
                     "Submitting..."
                   ) : (
                     <>
-                      Submit Application - No Fees
+                      Continue to Verification
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </>
                   )}
                 </Button>
+                
+                <p className="text-xs text-center text-slate-400">
+                  Next step: Upload ID and income documents for verification
+                </p>
               </form>
             </Form>
           </CardContent>

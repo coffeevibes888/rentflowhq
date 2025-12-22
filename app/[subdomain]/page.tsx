@@ -130,18 +130,18 @@ export default async function SubdomainRootPage({
         <section id="properties" className="w-full py-14 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
                 Available Properties
               </h2>
-              <p className="text-lg text-slate-200/80">
+              <p className="text-lg text-slate-700">
                 Browse our available units and find your perfect home
               </p>
             </div>
 
             {properties.length === 0 ? (
-              <div className="rounded-xl border border-white/10 bg-slate-900/60 backdrop-blur-sm px-4 py-12 text-center">
-                <p className="text-slate-200/90 mb-4">No properties are currently available.</p>
-                <p className="text-sm text-slate-300/80">
+              <div className="rounded-xl border border-slate-200 bg-white/90 backdrop-blur-sm px-4 py-12 text-center shadow-lg">
+                <p className="text-slate-700 mb-4">No properties are currently available.</p>
+                <p className="text-sm text-slate-500">
                   Please check back soon or contact us for more information.
                 </p>
               </div>
@@ -154,9 +154,9 @@ export default async function SubdomainRootPage({
                     <Link
                       key={property.id}
                       href={`/${subdomain}/properties/${property.slug}`}
-                      className="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden flex flex-col hover:border-violet-400/50 transition-all hover:scale-[1.02]"
+                      className="rounded-2xl border border-slate-200 bg-white/90 backdrop-blur-xl shadow-lg overflow-hidden flex flex-col hover:border-violet-400 transition-all hover:scale-[1.02]"
                     >
-                      <div className="relative h-56 w-full bg-slate-900/80">
+                      <div className="relative h-56 w-full bg-slate-100">
                         {firstUnit?.images?.[0] ? (
                           <Image
                             src={firstUnit.images[0]}
@@ -165,24 +165,24 @@ export default async function SubdomainRootPage({
                             className="object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400 bg-gradient-to-br from-slate-800 to-slate-900">
+                          <div className="w-full h-full flex items-center justify-center text-slate-400 bg-gradient-to-br from-slate-100 to-slate-200">
                             <Building2 className="h-16 w-16" />
                           </div>
                         )}
                       </div>
                       <div className="p-6 space-y-4 flex-1 flex flex-col">
                         <div>
-                          <h3 className="font-bold text-white text-xl mb-2">{property.name}</h3>
+                          <h3 className="font-bold text-slate-900 text-xl mb-2">{property.name}</h3>
                           {property.address && 
                            typeof property.address === 'object' && 
                            !Array.isArray(property.address) &&
                            'street' in property.address && (
-                            <p className="text-sm text-slate-300/80">
+                            <p className="text-sm text-slate-600">
                               {String((property.address as { street?: string }).street || '')}
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-300/80">
+                        <div className="flex items-center gap-4 text-sm text-slate-600">
                           {firstUnit && (
                             <>
                               {firstUnit.bedrooms && Number(firstUnit.bedrooms) > 0 && (
@@ -195,18 +195,18 @@ export default async function SubdomainRootPage({
                           )}
                         </div>
                         {firstUnit?.rentAmount && (
-                          <div className="text-2xl font-bold text-violet-300">
+                          <div className="text-2xl font-bold text-violet-600">
                             {formatCurrency(Number(firstUnit.rentAmount))}
-                            <span className="text-sm font-normal text-slate-300/80">/month</span>
+                            <span className="text-sm font-normal text-slate-500">/month</span>
                           </div>
                         )}
                         {unitCount > 1 && (
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-slate-500">
                             {unitCount} unit{unitCount !== 1 ? 's' : ''} available
                           </p>
                         )}
                         <div className="mt-auto">
-                          <span className="text-violet-300 text-sm font-medium hover:underline">
+                          <span className="text-violet-600 text-sm font-medium hover:underline">
                             View Details & Schedule Tour →
                           </span>
                         </div>

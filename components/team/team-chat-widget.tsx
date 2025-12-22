@@ -63,7 +63,7 @@ export function TeamChatWidget({ currentUser, landlordId, isTeamMember }: TeamCh
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setIsOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setIsOpen(false)} />
       )}
 
       <div className={`fixed bottom-4 right-4 z-50 flex flex-col gap-2 items-end justify-end`}>
@@ -90,7 +90,7 @@ export function TeamChatWidget({ currentUser, landlordId, isTeamMember }: TeamCh
         )}
 
         {isOpen && (
-          <div className="w-full sm:w-[800px] h-96 sm:h-[600px] md:w-[900px] md:h-[700px] max-h-[calc(100vh-100px)] rounded-lg shadow-2xl overflow-hidden order-3 mb-2">
+          <div className="fixed inset-4 sm:inset-auto sm:relative sm:w-[380px] md:w-[600px] lg:w-[800px] h-[calc(100vh-32px)] sm:h-[500px] md:h-[600px] lg:h-[700px] sm:max-h-[calc(100vh-100px)] rounded-lg shadow-2xl overflow-hidden order-3 mb-2 z-50">
             <TeamChat
               currentUser={currentUser}
               landlordId={landlordId}

@@ -14,6 +14,7 @@ const MainNav = ({
 }: React.HTMLAttributes<HTMLElement>) => {
   const pathname = usePathname();
   const [showManageSubscription, setShowManageSubscription] = useState(false);
+  const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -24,9 +25,13 @@ const MainNav = ({
         const tier = data?.subscription?.tier;
         if (!cancelled) {
           setShowManageSubscription(Boolean(tier && tier !== 'free'));
+          setIsPro(tier === 'pro' || tier === 'enterprise');
         }
       } catch {
-        if (!cancelled) setShowManageSubscription(false);
+        if (!cancelled) {
+          setShowManageSubscription(false);
+          setIsPro(false);
+        }
       }
     };
     load();
@@ -34,6 +39,9 @@ const MainNav = ({
       cancelled = true;
     };
   }, []);
+
+  // Filter out proOnly links for free tier users
+  const visibleLinks = adminNavLinks.filter(item => !item.proOnly || isPro);
 
   return (
     <nav
@@ -43,7 +51,7 @@ const MainNav = ({
       )}
       {...props}
     >
-      {adminNavLinks.map((item) => {
+      {visibleLinks.map((item) => {
         const Icon = item.icon;
         const isActive = pathname.startsWith(item.href);
 

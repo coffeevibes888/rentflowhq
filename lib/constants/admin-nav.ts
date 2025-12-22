@@ -5,6 +5,7 @@ export interface AdminNavLink {
   description: string;
   href: string;
   icon: LucideIcon;
+  proOnly?: boolean;
 }
 
 export const adminNavLinks: AdminNavLink[] = [
@@ -33,8 +34,8 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: Wrench,
   },
   {
-    title: 'Rents & Evictions',
-    description: 'Monthly rent status and notices',
+    title: 'Rents',
+    description: 'Monthly rent status',
     href: '/admin/revenue',
     icon: CreditCard,
   },
@@ -49,6 +50,7 @@ export const adminNavLinks: AdminNavLink[] = [
     description: 'Financial reports & insights',
     href: '/admin/analytics',
     icon: TrendingUp,
+    proOnly: true,
   },
   {
     title: 'Communications',

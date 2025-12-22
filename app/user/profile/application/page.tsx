@@ -5,15 +5,34 @@ import { redirect } from 'next/navigation';
 export default async function UserProfileApplicationPage() {
   const session = await auth();
 
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     redirect('/login');
   }
 
-  const email = session.user.email as string;
+  const userId = session.user.id as string;
 
   const applications = await prisma.rentalApplication.findMany({
-    where: { email },
+    where: { applicantId: userId },
     orderBy: { createdAt: 'desc' },
+    include: {
+      unit: {
+        include: {
+          property: {
+            select: {
+              name: true,
+              address: true,
+            },
+          },
+        },
+      },
+      verification: {
+        select: {
+          identityStatus: true,
+          employmentStatus: true,
+          overallStatus: true,
+        },
+      },
+    },
   });
 
   return (
@@ -33,20 +52,57 @@ export default async function UserProfileApplicationPage() {
             <table className='min-w-full text-sm'>
               <thead className='bg-slate-50'>
                 <tr>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Property</th>
                   <th className='px-4 py-2 text-left font-medium text-slate-500'>Submitted</th>
                   <th className='px-4 py-2 text-left font-medium text-slate-500'>Status</th>
-                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Notes</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Verification</th>
                 </tr>
               </thead>
               <tbody>
                 {applications.map((app) => (
                   <tr key={app.id} className='border-t border-slate-100'>
+                    <td className='px-4 py-2 align-top text-xs text-slate-700'>
+                      {app.unit?.property?.name || app.propertySlug || 'N/A'}
+                      {app.unit?.property?.address && typeof app.unit.property.address === 'object' && (
+                        <div className='text-slate-500'>
+                          {(app.unit.property.address as any).city}, {(app.unit.property.address as any).state}
+                        </div>
+                      )}
+                    </td>
                     <td className='px-4 py-2 align-top text-xs text-slate-600'>
                       {new Date(app.createdAt).toLocaleString()}
                     </td>
-                    <td className='px-4 py-2 align-top text-xs capitalize text-slate-700'>{app.status}</td>
-                    <td className='px-4 py-2 align-top text-xs text-slate-600 whitespace-pre-wrap'>
-                      {app.notes || '—'}
+                    <td className='px-4 py-2 align-top text-xs capitalize text-slate-700'>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        app.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                        app.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {app.status}
+                      </span>
+                    </td>
+                    <td className='px-4 py-2 align-top text-xs'>
+                      {app.verification ? (
+                        <div className='space-y-1'>
+                          <div className={`${
+                            app.verification.identityStatus === 'verified' ? 'text-green-600' :
+                            app.verification.identityStatus === 'rejected' ? 'text-red-600' :
+                            'text-yellow-600'
+                          }`}>
+                            ID: {app.verification.identityStatus}
+                          </div>
+                          <div className={`${
+                            app.verification.employmentStatus === 'verified' ? 'text-green-600' :
+                            app.verification.employmentStatus === 'rejected' ? 'text-red-600' :
+                            'text-yellow-600'
+                          }`}>
+                            Income: {app.verification.employmentStatus}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className='text-slate-500'>Not started</span>
+                      )}
                     </td>
                   </tr>
                 ))}

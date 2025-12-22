@@ -143,31 +143,31 @@ export default function TenantComms({
 
   const messagesList = () => (
     <Card className="!border-white/10 !bg-slate-900/40 text-slate-50 lg:col-span-2">
-      <CardHeader className="border-b border-white/10 p-4 sm:p-6">
-        <CardTitle className="flex items-center gap-2 text-slate-50 text-lg">
-          <Users className="h-5 w-5" />
+      <CardHeader className="border-b border-white/10 p-3 sm:p-4 md:p-6">
+        <CardTitle className="flex items-center gap-2 text-slate-50 text-base sm:text-lg">
+          <Users className="h-4 w-4 sm:h-5 sm:w-5" />
           Tenant Messages
         </CardTitle>
-        <CardDescription className="text-slate-300/80">
+        <CardDescription className="text-slate-300/80 text-xs sm:text-sm">
           Direct communications with your tenants
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-4 pt-4 sm:p-6 sm:pt-4">
-        <ScrollArea className="h-[320px] sm:h-[420px] lg:h-[480px] pr-4">
+      <CardContent className="p-3 pt-3 sm:p-4 sm:pt-4 md:p-6 md:pt-4">
+        <ScrollArea className="h-[280px] sm:h-[320px] md:h-[420px] lg:h-[480px] pr-2 sm:pr-4">
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <div className="text-sm text-slate-300/80">Loading messages...</div>
             </div>
           ) : filteredMessages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 text-center">
-              <MessageCircle className="h-12 w-12 text-slate-400/80 mb-4" />
-              <div className="text-sm text-slate-300/80">
+              <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 text-slate-400/80 mb-3 sm:mb-4" />
+              <div className="text-xs sm:text-sm text-slate-300/80">
                 {searchTerm ? 'No messages found matching your search' : 'No tenant messages yet'}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-2 !border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70"
+                className="mt-2 !border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70 text-xs"
                 onClick={() => {
                   setShowCompose(true);
                   setMobileTab('panel');
@@ -182,7 +182,7 @@ export default function TenantComms({
                 return (
                   <div
                     key={message.id}
-                    className={`p-3 sm:p-4 rounded-xl border border-white/10 bg-slate-900/60 cursor-pointer transition-colors hover:border-violet-400/60 hover:bg-slate-900/90 ${
+                    className={`p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 cursor-pointer transition-colors hover:border-violet-400/60 hover:bg-slate-900/90 ${
                       selectedThread?.id === message.id
                         ? 'border-violet-400/60 bg-slate-900/90'
                         : ''
@@ -197,19 +197,19 @@ export default function TenantComms({
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm truncate text-slate-100/90">
+                          <span className="font-medium text-xs sm:text-sm truncate text-slate-100/90">
                             {message.title || 'No Subject'}
                           </span>
                           {!message.isRead && (
-                            <Badge className="text-xs bg-white/5 text-slate-200 border border-white/10">
+                            <Badge className="text-[10px] sm:text-xs bg-white/5 text-slate-200 border border-white/10">
                               New
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-slate-300/80 truncate mb-2">
+                        <p className="text-xs sm:text-sm text-slate-300/80 truncate mb-1.5 sm:mb-2">
                           {message.message || 'No content'}
                         </p>
-                        <div className="flex items-center gap-2 text-xs text-slate-400/90">
+                        <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-400/90">
                           <span>
                             {message.createdAt
                               ? formatDistanceToNow(message.createdAt, { addSuffix: true })
@@ -229,18 +229,18 @@ export default function TenantComms({
   );
 
   const panel = () => (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {showCompose ? (
         <Card className="!border-white/10 !bg-slate-900/40 text-slate-50">
-          <CardHeader className="border-b border-white/10 p-4 sm:p-6">
-            <CardTitle className="text-slate-50 text-lg">Compose Message</CardTitle>
-            <CardDescription className="text-slate-300/80">
+          <CardHeader className="border-b border-white/10 p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-slate-50 text-base sm:text-lg">Compose Message</CardTitle>
+            <CardDescription className="text-slate-300/80 text-xs sm:text-sm">
               Send a direct message to a tenant
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 p-4 pt-4 sm:p-6 sm:pt-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 pt-3 sm:p-4 sm:pt-4 md:p-6 md:pt-4">
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-200">Recipient</label>
+              <label className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block text-slate-200">Recipient</label>
               {tenants.length > 0 ? (
                 <select
                   value={newMessage.recipientId}
@@ -251,7 +251,7 @@ export default function TenantComms({
                       recipientId: e.target.value,
                     }));
                   }}
-                  className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/70"
+                  className="w-full rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/70"
                 >
                   <option value="">Select a tenant...</option>
                   {tenants.map((t) => (
@@ -272,12 +272,12 @@ export default function TenantComms({
                       recipientId: e.target.value,
                     }))
                   }
-                  className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70"
+                  className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70 text-xs sm:text-sm"
                 />
               )}
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-200">Subject</label>
+              <label className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block text-slate-200">Subject</label>
               <Input
                 placeholder="Message subject"
                 value={newMessage.subject}
@@ -287,11 +287,11 @@ export default function TenantComms({
                     subject: e.target.value,
                   }))
                 }
-                className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70"
+                className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70 text-xs sm:text-sm"
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-200">Message</label>
+              <label className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block text-slate-200">Message</label>
               <Textarea
                 placeholder="Type your message here..."
                 value={newMessage.content}
@@ -301,16 +301,16 @@ export default function TenantComms({
                     content: e.target.value,
                   }))
                 }
-                rows={4}
-                className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70"
+                rows={3}
+                className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70 text-xs sm:text-sm"
               />
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={handleSendMessage}
-                className="flex-1 bg-violet-500 hover:bg-violet-400 text-white"
+                className="flex-1 bg-violet-500 hover:bg-violet-400 text-white text-xs sm:text-sm"
               >
-                <Send className="mr-2 h-4 w-4" />
+                <Send className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Send
               </Button>
               <Button
@@ -319,7 +319,7 @@ export default function TenantComms({
                   setShowCompose(false);
                   setMobileTab('inbox');
                 }}
-                className="!border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70"
+                className="!border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70 text-xs sm:text-sm"
               >
                 Cancel
               </Button>
@@ -328,18 +328,18 @@ export default function TenantComms({
         </Card>
       ) : showBulk ? (
         <Card className="!border-white/10 !bg-slate-900/40 text-slate-50">
-          <CardHeader className="border-b border-white/10 p-4 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-slate-50 text-lg">
-              <Megaphone className="h-5 w-5" />
+          <CardHeader className="border-b border-white/10 p-3 sm:p-4 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-slate-50 text-base sm:text-lg">
+              <Megaphone className="h-4 w-4 sm:h-5 sm:w-5" />
               Bulk Message
             </CardTitle>
-            <CardDescription className="text-slate-300/80">
+            <CardDescription className="text-slate-300/80 text-xs sm:text-sm">
               Send a message to all tenants
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 p-4 pt-4 sm:p-6 sm:pt-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 pt-3 sm:p-4 sm:pt-4 md:p-6 md:pt-4">
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-200">Message Type</label>
+              <label className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block text-slate-200">Message Type</label>
               <select
                 value={bulkMessage.type}
                 onChange={(e) =>
@@ -348,7 +348,7 @@ export default function TenantComms({
                     type: e.target.value as any,
                   }))
                 }
-                className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/70"
+                className="w-full rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/70"
               >
                 <option value="reminder">Reminder</option>
                 <option value="payment">Payment Notice</option>
@@ -357,7 +357,7 @@ export default function TenantComms({
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-200">Subject</label>
+              <label className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block text-slate-200">Subject</label>
               <Input
                 placeholder="e.g., Important Building Notice"
                 value={bulkMessage.title}
@@ -367,11 +367,11 @@ export default function TenantComms({
                     title: e.target.value,
                   }))
                 }
-                className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70"
+                className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70 text-xs sm:text-sm"
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-200">Message</label>
+              <label className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block text-slate-200">Message</label>
               <Textarea
                 placeholder="Type your message to all tenants here..."
                 value={bulkMessage.message}
@@ -381,21 +381,21 @@ export default function TenantComms({
                     message: e.target.value,
                   }))
                 }
-                rows={4}
-                className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70"
+                rows={3}
+                className="!border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70 text-xs sm:text-sm"
               />
             </div>
-            <div className="bg-white/5 p-3 rounded-xl border border-white/10">
-              <p className="text-sm text-slate-200/90">
+            <div className="bg-white/5 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-white/10">
+              <p className="text-[10px] sm:text-sm text-slate-200/90">
                 <strong>Note:</strong> This will be sent to all active tenants and they will receive email notifications.
               </p>
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={handleSendBulk}
-                className="flex-1 bg-violet-500 hover:bg-violet-400 text-white"
+                className="flex-1 bg-violet-500 hover:bg-violet-400 text-white text-xs sm:text-sm"
               >
-                <Send className="mr-2 h-4 w-4" />
+                <Send className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Send
               </Button>
               <Button
@@ -404,7 +404,7 @@ export default function TenantComms({
                   setShowBulk(false);
                   setMobileTab('inbox');
                 }}
-                className="!border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70"
+                className="!border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70 text-xs sm:text-sm"
               >
                 Cancel
               </Button>
@@ -413,29 +413,29 @@ export default function TenantComms({
         </Card>
       ) : selectedThread ? (
         <Card className="!border-white/10 !bg-slate-900/40 text-slate-50">
-          <CardHeader className="border-b border-white/10 p-4 sm:p-6">
-            <CardTitle className="truncate text-slate-50 text-lg">
+          <CardHeader className="border-b border-white/10 p-3 sm:p-4 md:p-6">
+            <CardTitle className="truncate text-slate-50 text-base sm:text-lg">
               {selectedThread.title || 'No Subject'}
             </CardTitle>
-            <CardDescription className="text-slate-300/80">
+            <CardDescription className="text-slate-300/80 text-xs sm:text-sm">
               {selectedThread.createdAt
                 ? formatDistanceToNow(selectedThread.createdAt, { addSuffix: true })
                 : 'Unknown time'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 pt-4 sm:p-6 sm:pt-4">
-            <div className="space-y-4">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                <p className="text-sm text-slate-200/90">{selectedThread.message || 'No content'}</p>
+          <CardContent className="p-3 pt-3 sm:p-4 sm:pt-4 md:p-6 md:pt-4">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-white/5 border border-white/10">
+                <p className="text-xs sm:text-sm text-slate-200/90">{selectedThread.message || 'No content'}</p>
               </div>
 
-              <div className="pt-4 border-t border-white/10">
-                <p className="text-sm text-slate-300/80 mb-2">Reply functionality coming soon...</p>
+              <div className="pt-3 sm:pt-4 border-t border-white/10">
+                <p className="text-xs sm:text-sm text-slate-300/80 mb-2">Reply functionality coming soon...</p>
                 <Button
                   variant="outline"
                   size="sm"
                   disabled
-                  className="!border-white/10 !bg-slate-900/40 text-slate-100"
+                  className="!border-white/10 !bg-slate-900/40 text-slate-100 text-xs sm:text-sm"
                 >
                   Reply to Message
                 </Button>
@@ -445,10 +445,10 @@ export default function TenantComms({
         </Card>
       ) : (
         <Card className="!border-white/10 !bg-slate-900/40 text-slate-50">
-          <CardContent className="flex flex-col items-center justify-center h-44 sm:h-56 text-center pt-6">
-            <MessageCircle className="h-12 w-12 text-slate-400/80 mb-4" />
-            <h3 className="font-medium mb-2">Communications Center</h3>
-            <p className="text-sm text-slate-300/80 mb-4">
+          <CardContent className="flex flex-col items-center justify-center h-36 sm:h-44 md:h-56 text-center pt-4 sm:pt-6">
+            <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 text-slate-400/80 mb-3 sm:mb-4" />
+            <h3 className="font-medium mb-1.5 sm:mb-2 text-sm sm:text-base">Communications Center</h3>
+            <p className="text-xs sm:text-sm text-slate-300/80 mb-3 sm:mb-4">
               Send direct messages or bulk announcements to tenants
             </p>
             <div className="flex gap-2">
@@ -459,9 +459,9 @@ export default function TenantComms({
                   setShowCompose(true);
                   setMobileTab('panel');
                 }}
-                className="!border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70"
+                className="!border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70 text-xs sm:text-sm"
               >
-                <MessageCircle className="mr-2 h-4 w-4" />
+                <MessageCircle className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Direct
               </Button>
               <Button
@@ -471,9 +471,9 @@ export default function TenantComms({
                   setShowBulk(true);
                   setMobileTab('panel');
                 }}
-                className="!border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70"
+                className="!border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70 text-xs sm:text-sm"
               >
-                <Megaphone className="mr-2 h-4 w-4" />
+                <Megaphone className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Bulk
               </Button>
             </div>
@@ -482,22 +482,22 @@ export default function TenantComms({
       )}
 
       <Card className="!border-white/10 !bg-slate-900/40 text-slate-50">
-        <CardHeader className="border-b border-white/10 p-4 sm:p-6">
-          <CardTitle className="text-lg text-slate-50">Communication Stats</CardTitle>
+        <CardHeader className="border-b border-white/10 p-3 sm:p-4 md:p-6">
+          <CardTitle className="text-base sm:text-lg text-slate-50">Communication Stats</CardTitle>
         </CardHeader>
-        <CardContent className="p-4 pt-4 sm:p-6 sm:pt-4">
+        <CardContent className="p-3 pt-3 sm:p-4 sm:pt-4 md:p-6 md:pt-4">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-300/80">Total Messages</span>
-              <span className="font-medium">{messages.length}</span>
+              <span className="text-xs sm:text-sm text-slate-300/80">Total Messages</span>
+              <span className="font-medium text-sm">{messages.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-300/80">Active Conversations</span>
-              <span className="font-medium">{filteredMessages.length}</span>
+              <span className="text-xs sm:text-sm text-slate-300/80">Active Conversations</span>
+              <span className="font-medium text-sm">{filteredMessages.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-300/80">This Week</span>
-              <span className="font-medium">
+              <span className="text-xs sm:text-sm text-slate-300/80">This Week</span>
+              <span className="font-medium text-sm">
                 {
                   messages.filter((m) => {
                     const messageDate = new Date(m.createdAt);
@@ -512,9 +512,9 @@ export default function TenantComms({
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full !border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70"
+                className="w-full !border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70 text-xs sm:text-sm"
               >
-                <Bell className="mr-2 h-4 w-4" />
+                <Bell className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 View Notification Settings
               </Button>
             </div>
@@ -525,14 +525,14 @@ export default function TenantComms({
   );
 
   return (
-    <div className="space-y-4 text-slate-50">
+    <div className="space-y-3 sm:space-y-4 text-slate-50">
       {!hideHeader && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+        <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-0.5 sm:space-y-1">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">
               Tenant Communications
             </h2>
-            <p className="text-sm text-slate-300/80">
+            <p className="text-xs sm:text-sm text-slate-300/80">
               Direct messages and announcements to tenants.
             </p>
           </div>
@@ -542,18 +542,18 @@ export default function TenantComms({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="w-full sm:max-w-md space-y-2">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400/90" />
+            <Search className="absolute left-2.5 sm:left-3 top-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400/90" />
             <Input
               placeholder="Search messages..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 w-full !border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70"
+              className="pl-8 sm:pl-9 w-full !border-white/10 !bg-slate-900/60 text-slate-50 placeholder:text-slate-500 focus-visible:ring-violet-500/70 text-xs sm:text-sm h-9 sm:h-10"
             />
           </div>
 
           {tenants.length > 0 && (
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300/80">
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-slate-300/80">
                 Send to tenant
               </p>
               <select
@@ -569,7 +569,7 @@ export default function TenantComms({
                     setMobileTab('panel');
                   }
                 }}
-                className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/70"
+                className="w-full rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/70"
               >
                 <option value="">Select a tenant...</option>
                 {tenants.map((t) => (
@@ -593,9 +593,9 @@ export default function TenantComms({
               setMobileTab('panel');
             }}
             variant="outline"
-            className="flex-1 sm:flex-none !border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70"
+            className="flex-1 sm:flex-none !border-white/10 !bg-slate-900/40 text-slate-100 hover:!bg-slate-900/70 text-xs sm:text-sm h-9 sm:h-10"
           >
-            <Megaphone className="mr-2 h-4 w-4" />
+            <Megaphone className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Bulk
           </Button>
           <Button
@@ -605,9 +605,9 @@ export default function TenantComms({
               setSelectedThread(null);
               setMobileTab('panel');
             }}
-            className="flex-1 sm:flex-none bg-violet-500 hover:bg-violet-400 text-white"
+            className="flex-1 sm:flex-none bg-violet-500 hover:bg-violet-400 text-white text-xs sm:text-sm h-9 sm:h-10"
           >
-            <MessageCircle className="mr-2 h-4 w-4" />
+            <MessageCircle className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Compose
           </Button>
         </div>
@@ -615,18 +615,18 @@ export default function TenantComms({
 
       <div className="lg:hidden">
         <Tabs value={mobileTab} onValueChange={(v) => setMobileTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-2 !bg-slate-900/40 !text-slate-200">
-            <TabsTrigger value="inbox" className="!bg-transparent data-[state=active]:!bg-slate-900/80 data-[state=active]:!text-slate-50">
+          <TabsList className="grid w-full grid-cols-2 !bg-slate-900/40 !text-slate-200 h-9 sm:h-10">
+            <TabsTrigger value="inbox" className="!bg-transparent data-[state=active]:!bg-slate-900/80 data-[state=active]:!text-slate-50 text-xs sm:text-sm">
               Inbox
             </TabsTrigger>
-            <TabsTrigger value="panel" className="!bg-transparent data-[state=active]:!bg-slate-900/80 data-[state=active]:!text-slate-50">
+            <TabsTrigger value="panel" className="!bg-transparent data-[state=active]:!bg-slate-900/80 data-[state=active]:!text-slate-50 text-xs sm:text-sm">
               Actions
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="inbox" className="mt-3">
+          <TabsContent value="inbox" className="mt-2 sm:mt-3">
             {messagesList()}
           </TabsContent>
-          <TabsContent value="panel" className="mt-3">
+          <TabsContent value="panel" className="mt-2 sm:mt-3">
             {panel()}
           </TabsContent>
         </Tabs>

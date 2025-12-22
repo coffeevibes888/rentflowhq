@@ -51,9 +51,9 @@ const MainNav = ({
       icon: User,
     },
     {
-      title: 'Application',
-      description: 'View your rental application',
-      href: '/user/profile/application',
+      title: 'Applications',
+      description: 'View and complete your applications',
+      href: '/user/applications',
       icon: FileText,
     },
     {

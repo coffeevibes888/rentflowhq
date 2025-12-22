@@ -63,8 +63,8 @@ export async function POST(req: NextRequest) {
           type: 'reminder',
           title: 'Lease Signed by Tenant',
           message: `${lease.tenant?.name || 'A tenant'} has signed their lease. Please review and sign to complete the agreement.`,
-          actionUrl: `/admin/leases/${lease.id}`,
-          metadata: { leaseId: lease.id },
+          actionUrl: `/admin/products/${lease.unit.propertyId}/details`,
+          metadata: { leaseId: lease.id, propertyId: lease.unit.propertyId },
           landlordId,
         });
       }

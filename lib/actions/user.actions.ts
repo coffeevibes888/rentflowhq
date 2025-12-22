@@ -144,6 +144,18 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       redirect(`/application?property=${encodeURIComponent(propertySlug.trim())}`);
     }
 
+    // Check if user came from pricing page with a plan
+    const planParam = formData.get('plan');
+    if ((roleValue === 'landlord' || roleValue === 'property_manager') && planParam && typeof planParam === 'string') {
+      // If they selected a paid plan, redirect to subscription checkout
+      if (planParam !== 'free') {
+        redirect(`/admin/settings/subscription?upgrade=${planParam}`);
+      } else {
+        // Free plan - go to admin dashboard
+        redirect('/admin/overview');
+      }
+    }
+
     const rawCallbackUrl = formData.get('callbackUrl');
     if (rawCallbackUrl && typeof rawCallbackUrl === 'string' && rawCallbackUrl.trim().length > 0) {
       redirect(rawCallbackUrl);

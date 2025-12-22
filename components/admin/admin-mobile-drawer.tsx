@@ -18,11 +18,11 @@ export default function AdminMobileDrawer() {
           <MenuIcon className='h-5 w-5' />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className='h-full max-w-sm bg-gradient-to-r from-blue-900 to-indigo-600 text-white'>
+      <DrawerContent className='h-full max-w-[85vw] sm:max-w-sm bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-black'>
         <DrawerHeader>
-          <DrawerTitle className='text-white text-lg'>Admin Dashboard</DrawerTitle>
+          <DrawerTitle className='text-black text-lg'>Admin Dashboard</DrawerTitle>
         </DrawerHeader>
-        <div className='px-4 py-2 space-y-1 overflow-y-auto'>
+        <div className='px-3 sm:px-4 py-2 space-y-1 overflow-y-auto'>
           {adminNavLinks.map((item) => {
             const Icon = item.icon;
             const isActive = pathname.startsWith(item.href);
@@ -34,14 +34,14 @@ export default function AdminMobileDrawer() {
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-3 transition-colors',
                     isActive 
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' 
-                      : 'text-white hover:bg-white/10'
+                      ? 'bg-white/30 text-black border border-white/40' 
+                      : 'text-black hover:bg-white/20'
                   )}
                 >
                   <Icon className='h-5 w-5 shrink-0' />
-                  <div className='flex flex-col'>
-                    <span className='font-medium text-sm'>{item.title}</span>
-                    <span className='text-xs text-slate-300/80'>{item.description}</span>
+                  <div className='flex flex-col min-w-0'>
+                    <span className='font-medium text-sm truncate'>{item.title}</span>
+                    <span className='text-xs text-black/70 truncate'>{item.description}</span>
                   </div>
                 </Link>
               </DrawerClose>

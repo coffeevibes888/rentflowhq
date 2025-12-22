@@ -31,7 +31,7 @@ export async function POST(
     type: 'reminder',
     title: 'Lease ready for your signature',
     message: `${lease.tenant?.name || 'Tenant'} has signed. Please sign to complete.`,
-    actionUrl: `/admin/leases/${lease.id}`,
+    actionUrl: `/admin/products/${lease.unit.propertyId}/details`,
     landlordId: lease.unit.property.landlordId || undefined,
   });
 

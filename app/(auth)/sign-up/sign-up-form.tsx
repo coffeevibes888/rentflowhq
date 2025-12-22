@@ -23,6 +23,11 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '';
   const fromProperty = searchParams.get('fromProperty') === 'true' || Boolean(propertySlug);
+  const planParam = searchParams.get('plan');
+  const roleParam = searchParams.get('role');
+  
+  // If coming from pricing page with a plan, default to landlord role
+  const defaultRole = fromProperty ? 'tenant' : (roleParam || (planParam ? 'landlord' : 'tenant'));
 
   const SignUpButton = () => {
     const { pending } = useFormStatus();
@@ -39,7 +44,7 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
       <input type='hidden' name='callbackUrl' value={callbackUrl} />
       {propertySlug && <input type='hidden' name='propertySlug' value={propertySlug} />}
       {fromProperty && <input type='hidden' name='fromProperty' value='true' />}
-      {fromProperty && <input type='hidden' name='role' value='tenant' />}
+      {planParam && <input type='hidden' name='plan' value={planParam} />}
       <div className='space-y-6'>
         {!fromProperty && (
           <div className='space-y-2'>
@@ -52,7 +57,7 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
                   type='radio'
                   name='role'
                   value='tenant'
-                  defaultChecked
+                  defaultChecked={defaultRole === 'tenant'}
                   className='sr-only peer'
                 />
                 <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
@@ -65,6 +70,7 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
                   type='radio'
                   name='role'
                   value='landlord'
+                  defaultChecked={defaultRole === 'landlord'}
                   className='sr-only peer'
                 />
                 <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
@@ -77,6 +83,7 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
                   type='radio'
                   name='role'
                   value='property_manager'
+                  defaultChecked={defaultRole === 'property_manager'}
                   className='sr-only peer'
                 />
                 <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
@@ -86,6 +93,7 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
             </div>
           </div>
         )}
+        {fromProperty && <input type='hidden' name='role' value='tenant' />}
 
         <div>
           <Label htmlFor='email'>Name</Label>

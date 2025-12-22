@@ -44,7 +44,11 @@ import {
   Activity,
   LineChart,
   Landmark,
+  Lock,
+  Sparkles,
 } from 'lucide-react';
+import { useSubscriptionTier } from '@/hooks/use-subscription-tier';
+import Link from 'next/link';
 
 interface AnalyticsData {
   totalRevenue: number;
@@ -153,6 +157,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
   const [benchmarkSource, setBenchmarkSource] = useState('manual');
   const [benchmarkZip, setBenchmarkZip] = useState('');
   const [benchmarkSubmitting, setBenchmarkSubmitting] = useState(false);
+
+  // Subscription tier for feature gating
+  const { hasFeature, isPro, tierName } = useSubscriptionTier(landlordId);
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -466,9 +473,15 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           <TabsList className='grid w-full sm:w-auto grid-cols-2 lg:grid-cols-5'>
             <TabsTrigger triggerValue='overview'>Overview</TabsTrigger>
             <TabsTrigger triggerValue='properties'>Properties</TabsTrigger>
-            <TabsTrigger triggerValue='roi'>ROI Analysis</TabsTrigger>
+            <TabsTrigger triggerValue='roi' className='relative'>
+              ROI Analysis
+              {!isPro && <Lock className='h-3 w-3 ml-1 text-violet-400' />}
+            </TabsTrigger>
             <TabsTrigger triggerValue='market'>Market</TabsTrigger>
-            <TabsTrigger triggerValue='integrations'>Integrations</TabsTrigger>
+            <TabsTrigger triggerValue='integrations' className='relative'>
+              Integrations
+              {!isPro && <Lock className='h-3 w-3 ml-1 text-violet-400' />}
+            </TabsTrigger>
           </TabsList>
 
           <div className='flex flex-wrap gap-2 w-full sm:w-auto'>
@@ -712,47 +725,89 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
         </TabsContent>
 
         <TabsContent contentValue='roi' className='space-y-6'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            <Card>
-              <CardHeader>
-                <CardTitle>ROI Calculator</CardTitle>
-                <CardDescription>Calculate return on investment</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className='space-y-4'>
-                  <div>
-                    <label className='text-sm font-medium'>Total Investment</label>
-                    <Input type='number' className='mt-1' placeholder='100000' />
+          {isPro ? (
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+              <Card>
+                <CardHeader>
+                  <CardTitle>ROI Calculator</CardTitle>
+                  <CardDescription>Calculate return on investment</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className='space-y-4'>
+                    <div>
+                      <label className='text-sm font-medium'>Total Investment</label>
+                      <Input type='number' className='mt-1' placeholder='100000' />
+                    </div>
+                    <div>
+                      <label className='text-sm font-medium'>Annual Net Income</label>
+                      <Input type='number' className='mt-1' placeholder='12000' />
+                    </div>
+                    <Button className='w-full'>
+                      <Calculator className='h-4 w-4 mr-2' />
+                      Calculate ROI
+                    </Button>
+                    <div className='p-4 bg-slate-50 rounded'>
+                      <div className='text-2xl font-bold text-green-600'>12.0%</div>
+                      <div className='text-sm text-slate-600'>Annual ROI</div>
+                    </div>
                   </div>
-                  <div>
-                    <label className='text-sm font-medium'>Annual Net Income</label>
-                    <Input type='number' className='mt-1' placeholder='12000' />
-                  </div>
-                  <Button className='w-full'>
-                    <Calculator className='h-4 w-4 mr-2' />
-                    Calculate ROI
-                  </Button>
-                  <div className='p-4 bg-slate-50 rounded'>
-                    <div className='text-2xl font-bold text-green-600'>12.0%</div>
-                    <div className='text-sm text-slate-600'>Annual ROI</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Investment Projections</CardTitle>
-                <CardDescription>5-year growth forecast</CardDescription>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Investment Projections</CardTitle>
+                  <CardDescription>5-year growth forecast</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className='h-64 flex items-center justify-center text-slate-500'>
+                    <TrendingUp className='h-12 w-12 mr-2' />
+                    Projection chart coming soon
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card className="border-violet-500/30 bg-gradient-to-br from-violet-950/40 to-slate-900/60">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-violet-400" />
+                  <CardTitle className="text-lg text-slate-100">
+                    Advanced ROI Analysis
+                  </CardTitle>
+                </div>
+                <CardDescription className="text-slate-300/80">
+                  ROI calculators and investment projections are available on Pro and Enterprise plans
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className='h-64 flex items-center justify-center text-slate-500'>
-                  <TrendingUp className='h-12 w-12 mr-2' />
-                  Projection chart coming soon
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <Calculator className="h-6 w-6 text-violet-400 mb-2" />
+                    <h4 className="font-medium text-slate-100 mb-1">ROI Calculator</h4>
+                    <p className="text-xs text-slate-300/70">Calculate returns on your investments</p>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <TrendingUp className="h-6 w-6 text-violet-400 mb-2" />
+                    <h4 className="font-medium text-slate-100 mb-1">5-Year Projections</h4>
+                    <p className="text-xs text-slate-300/70">Forecast your portfolio growth</p>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="flex-1 text-sm text-slate-300/70">
+                    You&apos;re currently on the <span className="font-medium text-slate-200">{tierName}</span> plan.
+                    Upgrade to unlock advanced analytics and grow smarter.
+                  </div>
+                  <Button asChild className="bg-violet-600 hover:bg-violet-500">
+                    <Link href="/admin/settings/subscription">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Upgrade to Pro
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          )}
         </TabsContent>
 
         <TabsContent contentValue='market' className='space-y-6'>
@@ -790,86 +845,133 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
         </TabsContent>
 
         <TabsContent contentValue='integrations' className='space-y-6'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            <Card>
-              <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Building className='h-5 w-5' />
-                  QuickBooks Integration
-                </CardTitle>
-                <CardDescription>Sync your financial data with QuickBooks</CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex items-center justify-between'>
-                  <span className='text-sm'>Connection Status:</span>
-                  <Badge variant='outline'>
-                    {qbConnected ? `Connected${qbCompanyName ? ` (${qbCompanyName})` : ''}` : 'Not Connected'}
-                  </Badge>
-                </div>
-                <div className='space-y-2 text-sm text-slate-600'>
-                  <p>• Sync rent payments and expenses</p>
-                  <p>• Automatic categorization</p>
-                  <p>• Real-time financial tracking</p>
-                </div>
-                <Button className='w-full' onClick={syncWithQuickBooks} disabled={qbLoading}>
-                  <CreditCard className='h-4 w-4 mr-2' />
-                  {qbConnected ? 'Verify Connection' : 'Connect QuickBooks'}
-                </Button>
-              </CardContent>
-            </Card>
+          {isPro ? (
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+              <Card>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2'>
+                    <Building className='h-5 w-5' />
+                    QuickBooks Integration
+                  </CardTitle>
+                  <CardDescription>Sync your financial data with QuickBooks</CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-sm'>Connection Status:</span>
+                    <Badge variant='outline'>
+                      {qbConnected ? `Connected${qbCompanyName ? ` (${qbCompanyName})` : ''}` : 'Not Connected'}
+                    </Badge>
+                  </div>
+                  <div className='space-y-2 text-sm text-slate-600'>
+                    <p>• Sync rent payments and expenses</p>
+                    <p>• Automatic categorization</p>
+                    <p>• Real-time financial tracking</p>
+                  </div>
+                  <Button className='w-full' onClick={syncWithQuickBooks} disabled={qbLoading}>
+                    <CreditCard className='h-4 w-4 mr-2' />
+                    {qbConnected ? 'Verify Connection' : 'Connect QuickBooks'}
+                  </Button>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <PenTool className='h-5 w-5' />
-                  DocuSign Integration
-                </CardTitle>
-                <CardDescription>Send and sign lease agreements electronically</CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex items-center justify-between'>
-                  <span className='text-sm'>Connection Status:</span>
-                  <Badge variant='outline'>
-                    {dsConnected ? 'Connected' : 'Not Connected'}
-                  </Badge>
-                </div>
-                <div className='space-y-2 text-sm text-slate-600'>
-                  <p>• Send lease agreements for electronic signature</p>
-                  <p>• Track signing status and completion</p>
-                  <p>• Legal compliance and audit trails</p>
-                </div>
-                <Button className='w-full' onClick={connectDocuSign} disabled={dsLoading}>
-                  <PenTool className='h-4 w-4 mr-2' />
-                  {dsConnected ? 'Verify Connection' : 'Connect DocuSign'}
-                </Button>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2'>
+                    <PenTool className='h-5 w-5' />
+                    DocuSign Integration
+                  </CardTitle>
+                  <CardDescription>Send and sign lease agreements electronically</CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-sm'>Connection Status:</span>
+                    <Badge variant='outline'>
+                      {dsConnected ? 'Connected' : 'Not Connected'}
+                    </Badge>
+                  </div>
+                  <div className='space-y-2 text-sm text-slate-600'>
+                    <p>• Send lease agreements for electronic signature</p>
+                    <p>• Track signing status and completion</p>
+                    <p>• Legal compliance and audit trails</p>
+                  </div>
+                  <Button className='w-full' onClick={connectDocuSign} disabled={dsLoading}>
+                    <PenTool className='h-4 w-4 mr-2' />
+                    {dsConnected ? 'Verify Connection' : 'Connect DocuSign'}
+                  </Button>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <FileText className='h-5 w-5' />
-                  TurboTax Integration
-                </CardTitle>
-                <CardDescription>Prepare tax data for easy filing</CardDescription>
+              <Card>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2'>
+                    <FileText className='h-5 w-5' />
+                    TurboTax Integration
+                  </CardTitle>
+                  <CardDescription>Prepare tax data for easy filing</CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-sm'>Tax Year:</span>
+                    <Badge variant='outline'>2024</Badge>
+                  </div>
+                  <div className='space-y-2 text-sm text-slate-600'>
+                    <p>• Schedule E preparation</p>
+                    <p>• Depreciation calculations</p>
+                    <p>• Expense categorization</p>
+                  </div>
+                  <Button className='w-full' onClick={syncWithTurboTax}>
+                    <FileText className='h-4 w-4 mr-2' />
+                    Prepare Tax Data
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card className="border-violet-500/30 bg-gradient-to-br from-violet-950/40 to-slate-900/60">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-violet-400" />
+                  <CardTitle className="text-lg text-slate-100">
+                    Pro Integrations
+                  </CardTitle>
+                </div>
+                <CardDescription className="text-slate-300/80">
+                  QuickBooks and TurboTax integrations are available on Pro and Enterprise plans
+                </CardDescription>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex items-center justify-between'>
-                  <span className='text-sm'>Tax Year:</span>
-                  <Badge variant='outline'>2024</Badge>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <Building className="h-6 w-6 text-violet-400 mb-2" />
+                    <h4 className="font-medium text-slate-100 mb-1">QuickBooks</h4>
+                    <p className="text-xs text-slate-300/70">Sync payments & expenses automatically</p>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <FileText className="h-6 w-6 text-violet-400 mb-2" />
+                    <h4 className="font-medium text-slate-100 mb-1">TurboTax</h4>
+                    <p className="text-xs text-slate-300/70">Schedule E & depreciation prep</p>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <PenTool className="h-6 w-6 text-violet-400 mb-2" />
+                    <h4 className="font-medium text-slate-100 mb-1">DocuSign</h4>
+                    <p className="text-xs text-slate-300/70">Electronic lease signing</p>
+                  </div>
                 </div>
-                <div className='space-y-2 text-sm text-slate-600'>
-                  <p>• Schedule E preparation</p>
-                  <p>• Depreciation calculations</p>
-                  <p>• Expense categorization</p>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="flex-1 text-sm text-slate-300/70">
+                    You&apos;re currently on the <span className="font-medium text-slate-200">{tierName}</span> plan.
+                    Upgrade to unlock integrations and streamline your workflow.
+                  </div>
+                  <Button asChild className="bg-violet-600 hover:bg-violet-500">
+                    <Link href="/admin/settings/subscription">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Upgrade to Pro
+                    </Link>
+                  </Button>
                 </div>
-                <Button className='w-full' onClick={syncWithTurboTax}>
-                  <FileText className='h-4 w-4 mr-2' />
-                  Prepare Tax Data
-                </Button>
               </CardContent>
             </Card>
-          </div>
+          )}
         </TabsContent>
       </Tabs>
 

@@ -68,6 +68,7 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
           switch (userRole) {
             case 'landlord':
             case 'property_manager':
+            case 'admin':
               return '/admin/overview';
             case 'tenant':
               // Tenant stays on main domain dashboard (simpler than path-based tenant routes)
@@ -77,18 +78,25 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
           }
         } else {
           // User doesn't belong to this landlord's portal
+          // But if they're a landlord/admin, still send them to admin
+          if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
+            return '/admin/overview';
+          }
           return '/';
         }
       } else {
-        // Landlord slug doesn't exist
+        // Landlord slug doesn't exist, redirect based on role
+        if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
+          return '/admin/overview';
+        }
         return '/';
       }
     }
 
     // Not on a landlord portal path, redirect based on role
     switch (userRole) {
+      case 'admin':
       case 'landlord':
-        return '/admin/overview';
       case 'property_manager':
         return '/admin/overview';
       case 'tenant': {
@@ -101,6 +109,12 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
     }
   } catch (error) {
     console.error('Error determining redirect:', error);
+    // Fallback based on role even if there's an error
+    if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
+      return '/admin/overview';
+    } else if (userRole === 'tenant') {
+      return '/user/dashboard';
+    }
     return '/';
   }
 }
