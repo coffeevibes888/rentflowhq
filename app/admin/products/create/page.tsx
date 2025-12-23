@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import ProductForm from '@/components/admin/product-form';
 import { requireAdmin } from '@/lib/auth-guard';
+import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { normalizeTier } from '@/lib/config/subscription-tiers';
 
 export const metadata: Metadata = {
   title: 'Add Property',
@@ -8,6 +10,13 @@ export const metadata: Metadata = {
 
 const CreateProductPage = async () => {
   await requireAdmin();
+  
+  // Get landlord subscription tier
+  const landlordResult = await getOrCreateCurrentLandlord();
+  const landlordTier = landlordResult.success 
+    ? normalizeTier(landlordResult.landlord.subscriptionTier) 
+    : 'free';
+  const isPro = landlordTier === 'pro' || landlordTier === 'enterprise';
 
   const currentStep = 2;
   const totalSteps = 4;
@@ -57,7 +66,7 @@ const CreateProductPage = async () => {
             tenants, and connect rent payments.
           </p>
           <div className='my-4'>
-            <ProductForm type='Create' />
+            <ProductForm type='Create' isPro={isPro} />
           </div>
         </section>
       </div>

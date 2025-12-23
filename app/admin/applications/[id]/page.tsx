@@ -5,9 +5,26 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getDecryptedSsn, formatSsn } from '@/lib/utils/ssn-utils';
 import { getSignedCloudinaryUrl } from '@/lib/cloudinary';
+import { DocumentService } from '@/lib/services/document.service';
 
 interface AdminApplicationDetailPageProps {
   params: Promise<{ id: string }>;
+}
+
+// Helper to calculate age from date of birth
+function calculateAge(dateOfBirth: string): number | null {
+  try {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age;
+  } catch {
+    return null;
+  }
 }
 
 export default async function AdminApplicationDetailPage({ params }: AdminApplicationDetailPageProps) {
@@ -27,6 +44,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
       applicant: {
         select: { id: true, name: true, email: true },
       },
+      verification: true,
     },
   });
 
@@ -64,6 +82,41 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
       status: true,
     },
   })) as ApplicationDocumentRow[];
+
+  // Get verification documents with extracted data
+  const verificationDocuments = await prisma.verificationDocument.findMany({
+    where: { applicationId: application.id },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      category: true,
+      docType: true,
+      originalFileName: true,
+      verificationStatus: true,
+      extractedData: true,
+      ocrConfidence: true,
+      cloudinaryPublicId: true,
+      cloudinarySecureUrl: true,
+    },
+  });
+
+  // Extract identity data (from ID documents)
+  const identityDoc = verificationDocuments.find(d => d.category === 'identity' && d.extractedData);
+  const identityData = identityDoc?.extractedData as any;
+  const age = identityData?.dateOfBirth ? calculateAge(identityData.dateOfBirth) : null;
+
+  // Extract income data (from employment documents)
+  const employmentDocs = verificationDocuments.filter(d => d.category === 'employment' && d.extractedData);
+  const incomeData = employmentDocs.map(d => d.extractedData as any).filter(Boolean);
+  
+  // Calculate total monthly income from pay stubs
+  const payStubData = incomeData.filter(d => d.grossPay);
+  const avgGrossPay = payStubData.length > 0 
+    ? payStubData.reduce((sum: number, d: any) => sum + (d.grossPay || 0), 0) / payStubData.length
+    : null;
+  
+  // Get employer name from first pay stub
+  const employerName = incomeData.find(d => d.employerName)?.employerName;
 
   // Decrypt SSN for admin viewing (only admins can access this)
   const decryptedSsn = application.encryptedSsn ? await getDecryptedSsn(application.encryptedSsn) : null;
@@ -119,6 +172,23 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
     });
 
     redirect(url);
+  };
+
+  const openVerificationDocument = async (formData: FormData) => {
+    'use server';
+
+    const documentId = formData.get('documentId');
+    if (typeof documentId !== 'string' || !documentId) {
+      return;
+    }
+
+    try {
+      const url = await DocumentService.getSecureUrl(documentId, 600); // 10 minutes
+      redirect(url);
+    } catch (error) {
+      console.error('Failed to get secure URL:', error);
+      return;
+    }
   };
 
   return (
@@ -186,6 +256,68 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               )}
             </div>
 
+            {/* Verified Identity & Income Data */}
+            {(identityData || incomeData.length > 0) && (
+              <div className='mt-4 p-4 rounded-lg border border-blue-200 bg-blue-50'>
+                <p className='font-semibold text-blue-900 text-sm mb-3 flex items-center gap-2'>
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
+                  </svg>
+                  Verified Information (from uploaded documents)
+                </p>
+                <div className='grid grid-cols-2 gap-3 text-sm'>
+                  {identityData?.fullName && (
+                    <div>
+                      <span className='text-blue-700 font-medium'>Name on ID: </span>
+                      <span className='text-blue-900'>{identityData.fullName}</span>
+                    </div>
+                  )}
+                  {age !== null && (
+                    <div>
+                      <span className='text-blue-700 font-medium'>Age: </span>
+                      <span className='text-blue-900'>{age} years old</span>
+                    </div>
+                  )}
+                  {identityData?.dateOfBirth && (
+                    <div>
+                      <span className='text-blue-700 font-medium'>DOB: </span>
+                      <span className='text-blue-900'>{identityData.dateOfBirth}</span>
+                    </div>
+                  )}
+                  {identityData?.issuingState && (
+                    <div>
+                      <span className='text-blue-700 font-medium'>ID State: </span>
+                      <span className='text-blue-900'>{identityData.issuingState}</span>
+                    </div>
+                  )}
+                  {identityData?.expirationDate && (
+                    <div>
+                      <span className='text-blue-700 font-medium'>ID Expires: </span>
+                      <span className='text-blue-900'>{identityData.expirationDate}</span>
+                    </div>
+                  )}
+                  {employerName && (
+                    <div>
+                      <span className='text-blue-700 font-medium'>Employer: </span>
+                      <span className='text-blue-900'>{employerName}</span>
+                    </div>
+                  )}
+                  {avgGrossPay && (
+                    <div>
+                      <span className='text-blue-700 font-medium'>Avg Gross Pay: </span>
+                      <span className='text-blue-900'>${avgGrossPay.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  {application.verification?.monthlyIncome && (
+                    <div>
+                      <span className='text-blue-700 font-medium'>Est. Monthly Income: </span>
+                      <span className='text-blue-900 font-semibold'>${Number(application.verification.monthlyIncome).toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {application.notes && (
               <div className='mt-4 space-y-1 text-sm text-slate-700'>
                 <p className='font-semibold text-slate-900'>Applicant notes</p>
@@ -193,10 +325,56 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               </div>
             )}
 
+            {/* Verification Documents (ID & Income) */}
+            {verificationDocuments.length > 0 && (
+              <div className='mt-4 space-y-2'>
+                <p className='font-semibold text-slate-900 text-sm'>ID & Income Documents</p>
+                <div className='space-y-2'>
+                  {verificationDocuments.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
+                        doc.verificationStatus === 'verified' 
+                          ? 'border-green-200 bg-green-50' 
+                          : doc.verificationStatus === 'rejected'
+                          ? 'border-red-200 bg-red-50'
+                          : 'border-slate-200 bg-slate-50'
+                      }`}
+                    >
+                      <div className='min-w-0'>
+                        <p className='text-xs font-medium text-slate-900 truncate'>{doc.originalFileName}</p>
+                        <p className='text-[11px] text-slate-500'>
+                          {doc.category === 'identity' ? '🪪 ID' : '💰 Income'} • {String(doc.docType).replace(/_/g, ' ')} • 
+                          <span className={
+                            doc.verificationStatus === 'verified' ? 'text-green-600 font-medium' :
+                            doc.verificationStatus === 'rejected' ? 'text-red-600 font-medium' :
+                            'text-amber-600'
+                          }>
+                            {' '}{doc.verificationStatus}
+                          </span>
+                          {doc.ocrConfidence && ` • ${Number(doc.ocrConfidence).toFixed(0)}% confidence`}
+                        </p>
+                      </div>
+
+                      <form action={openVerificationDocument}>
+                        <input type='hidden' name='documentId' value={doc.id} />
+                        <button
+                          type='submit'
+                          className='inline-flex items-center justify-center rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-blue-700'
+                        >
+                          View
+                        </button>
+                      </form>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className='mt-4 space-y-2'>
-              <p className='font-semibold text-slate-900 text-sm'>Verification documents</p>
+              <p className='font-semibold text-slate-900 text-sm'>Other documents</p>
               {applicationDocuments.length === 0 ? (
-                <p className='text-xs text-slate-500'>No documents uploaded yet.</p>
+                <p className='text-xs text-slate-500'>No additional documents uploaded.</p>
               ) : (
                 <div className='space-y-2'>
                   {applicationDocuments.map((doc: ApplicationDocumentRow) => (

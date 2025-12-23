@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, File, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -22,10 +22,19 @@ export function DocumentUploadWidget({
 }: DocumentUploadWidgetProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [uploadedCount, setUploadedCount] = useState(0);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Clear success message after 3 seconds to encourage more uploads
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => setShowSuccess(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -90,6 +99,9 @@ export function DocumentUploadWidget({
 
     setUploading(true);
     setError(null);
+    setShowSuccess(false);
+
+    let successCount = 0;
 
     try {
       for (const file of files) {
@@ -109,11 +121,18 @@ export function DocumentUploadWidget({
           throw new Error(data.error || 'Upload failed');
         }
 
-        setUploadedFiles(prev => [...prev, data.documentId]);
+        successCount++;
       }
 
       // Clear files after successful upload
       setFiles([]);
+      setUploadedCount(prev => prev + successCount);
+      setShowSuccess(true);
+      
+      // Reset file input to allow re-selecting same files
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       
       // Notify parent component
       if (onUploadComplete) {
@@ -236,15 +255,19 @@ export function DocumentUploadWidget({
         </div>
       )}
 
-      {/* Uploaded Files */}
-      {uploadedFiles.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-green-600 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
-            Successfully Uploaded:
-          </p>
-          <div className="text-sm text-muted-foreground">
-            {uploadedFiles.length} {uploadedFiles.length === 1 ? 'document' : 'documents'} uploaded and processing
+      {/* Uploaded Files - Success Message */}
+      {showSuccess && (
+        <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-green-700 dark:text-green-300">
+              Document uploaded successfully!
+            </p>
+            {multiple && (
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                {uploadedCount} total uploaded this session. You can continue uploading more documents.
+              </p>
+            )}
           </div>
         </div>
       )}

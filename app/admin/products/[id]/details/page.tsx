@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { PropertyDetailsTabs } from './property-details-tabs';
+import { normalizeTier } from '@/lib/config/subscription-tiers';
 
 export default async function PropertyDetailsPage(props: {
   params: Promise<{ id: string }>;
@@ -37,6 +38,22 @@ export default async function PropertyDetailsPage(props: {
                   phoneNumber: true,
                   image: true,
                   createdAt: true,
+                  // Get the tenant's rental applications for this property
+                  rentalApplications: {
+                    where: { status: { in: ['approved', 'pending'] } },
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                    select: {
+                      id: true,
+                      verification: {
+                        select: {
+                          identityStatus: true,
+                          employmentStatus: true,
+                          monthlyIncome: true,
+                        },
+                      },
+                    },
+                  },
                 } 
               },
               signatureRequests: {
@@ -142,6 +159,14 @@ export default async function PropertyDetailsPage(props: {
           phoneNumber: lease.tenant.phoneNumber,
           image: lease.tenant.image,
           createdAt: lease.tenant.createdAt.toISOString(),
+          applicationId: lease.tenant.rentalApplications?.[0]?.id || null,
+          verification: lease.tenant.rentalApplications?.[0]?.verification ? {
+            identityStatus: lease.tenant.rentalApplications[0].verification.identityStatus,
+            employmentStatus: lease.tenant.rentalApplications[0].verification.employmentStatus,
+            monthlyIncome: lease.tenant.rentalApplications[0].verification.monthlyIncome 
+              ? Number(lease.tenant.rentalApplications[0].verification.monthlyIncome) 
+              : null,
+          } : null,
         } : null,
         signatureRequests: lease.signatureRequests,
         rentPayments: lease.rentPayments.map(payment => ({
@@ -200,11 +225,16 @@ export default async function PropertyDetailsPage(props: {
     unitName: payment.lease?.unit?.name || 'Unknown',
   }));
 
+  // Check if landlord has Pro tier
+  const landlordTier = normalizeTier(landlordResult.landlord.subscriptionTier);
+  const isPro = landlordTier === 'pro' || landlordTier === 'enterprise';
+
   return (
     <PropertyDetailsTabs 
       property={serializedProperty} 
       rentPayments={serializedRentPayments}
       landlordId={landlordResult.landlord.id}
+      isPro={isPro}
     />
   );
 }

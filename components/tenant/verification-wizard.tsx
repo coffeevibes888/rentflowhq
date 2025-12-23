@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Shield, Upload, FileCheck, CheckCircle2, Lock, Eye, AlertCircle, ArrowLeft, ArrowRight, Loader2, XCircle } from 'lucide-react';
+import { Shield, Upload, FileCheck, CheckCircle2, Lock, Eye, AlertCircle, ArrowLeft, ArrowRight, Loader2, XCircle, FileText, Building2, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -25,12 +25,14 @@ interface VerificationStatus {
 }
 
 type Step = 'welcome' | 'identity' | 'employment' | 'complete';
+type IncomeDocType = 'pay_stubs' | 'bank_statements' | 'tax_documents' | null;
 
 export function VerificationWizard({ applicationId, onComplete }: VerificationWizardProps) {
   const [currentStep, setCurrentStep] = useState<Step>('welcome');
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [selectedIncomeDocType, setSelectedIncomeDocType] = useState<IncomeDocType>(null);
 
   // Fetch verification status
   const fetchStatus = useCallback(async () => {
@@ -370,41 +372,116 @@ export function VerificationWizard({ applicationId, onComplete }: VerificationWi
                 </h2>
                 
                 <p className="text-muted-foreground mb-4">
-                  Upload 3 documents to verify your income
+                  Landlords require proof that you can afford 3x the monthly rent
                 </p>
 
                 {/* Progress indicator */}
-                <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium">
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+                  (verificationStatus?.requiredDocuments.employment.count || 0) >= 3
+                    ? 'bg-green-100 dark:bg-green-950/20 text-green-700 dark:text-green-300'
+                    : (verificationStatus?.requiredDocuments.employment.count || 0) >= 1
+                    ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300'
+                    : 'bg-muted text-muted-foreground'
+                }`}>
                   <FileCheck className="w-4 h-4" />
-                  {verificationStatus?.requiredDocuments.employment.count || 0} of 3 documents uploaded
+                  {verificationStatus?.requiredDocuments.employment.count || 0} document{(verificationStatus?.requiredDocuments.employment.count || 0) !== 1 ? 's' : ''} uploaded
                 </div>
               </div>
 
-              {/* Document Options */}
-              <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="font-semibold mb-3">Choose ONE of these options:</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-background">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">1</div>
+              {/* Warning if less than 3 documents */}
+              {(verificationStatus?.requiredDocuments.employment.count || 0) >= 1 && 
+               (verificationStatus?.requiredDocuments.employment.count || 0) < 3 && (
+                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium">3 Recent Pay Stubs</p>
-                      <p className="text-muted-foreground text-xs">From the last 90 days, showing employer and gross pay</p>
+                      <p className="font-medium text-amber-800 dark:text-amber-200">
+                        Recommended: Upload 3 documents
+                      </p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                        Landlords prefer 3 recent pay stubs or equivalent to verify income. 
+                        You can proceed with fewer documents, but your application may be less competitive.
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-background">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">2</div>
-                    <div>
-                      <p className="font-medium">3 Bank Statements</p>
-                      <p className="text-muted-foreground text-xs">Consecutive months showing regular income deposits</p>
+                </div>
+              )}
+
+              {/* Document Type Selection */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-center">Select document type to upload:</h3>
+                <div className="grid gap-3">
+                  {/* Pay Stubs Option */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIncomeDocType('pay_stubs')}
+                    className={`flex items-start gap-4 p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedIncomeDocType === 'pay_stubs'
+                        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                        : 'border-muted hover:border-primary/50 bg-background'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      selectedIncomeDocType === 'pay_stubs' ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                    }`}>
+                      <Receipt className="w-5 h-5" />
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-background">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">3</div>
-                    <div>
-                      <p className="font-medium">Tax Documents</p>
-                      <p className="text-muted-foreground text-xs">W-2, 1099, or tax return (first 2 pages)</p>
+                    <div className="flex-1">
+                      <p className="font-semibold">Pay Stubs</p>
+                      <p className="text-sm text-muted-foreground">3 recent pay stubs from the last 90 days showing employer and gross pay</p>
                     </div>
-                  </div>
+                    {selectedIncomeDocType === 'pay_stubs' && (
+                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                    )}
+                  </button>
+
+                  {/* Bank Statements Option */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIncomeDocType('bank_statements')}
+                    className={`flex items-start gap-4 p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedIncomeDocType === 'bank_statements'
+                        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                        : 'border-muted hover:border-primary/50 bg-background'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      selectedIncomeDocType === 'bank_statements' ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                    }`}>
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold">Bank Statements</p>
+                      <p className="text-sm text-muted-foreground">3 consecutive months showing regular income deposits</p>
+                    </div>
+                    {selectedIncomeDocType === 'bank_statements' && (
+                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                    )}
+                  </button>
+
+                  {/* Tax Documents Option */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIncomeDocType('tax_documents')}
+                    className={`flex items-start gap-4 p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedIncomeDocType === 'tax_documents'
+                        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                        : 'border-muted hover:border-primary/50 bg-background'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      selectedIncomeDocType === 'tax_documents' ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                    }`}>
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold">Tax Documents</p>
+                      <p className="text-sm text-muted-foreground">W-2, 1099, or tax return (first 2 pages)</p>
+                    </div>
+                    {selectedIncomeDocType === 'tax_documents' && (
+                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -416,14 +493,27 @@ export function VerificationWizard({ applicationId, onComplete }: VerificationWi
                 </div>
               )}
 
-              {/* Upload Widget */}
-              <DocumentUploadWidget
-                applicationId={applicationId}
-                category="employment"
-                docType="income_document"
-                onUploadComplete={handleDocumentUploaded}
-                multiple
-              />
+              {/* Upload Widget - Only show when document type is selected */}
+              {selectedIncomeDocType ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-center text-muted-foreground">
+                    Uploading: {selectedIncomeDocType === 'pay_stubs' ? 'Pay Stubs' : 
+                               selectedIncomeDocType === 'bank_statements' ? 'Bank Statements' : 'Tax Documents'}
+                  </p>
+                  <DocumentUploadWidget
+                    applicationId={applicationId}
+                    category="employment"
+                    docType={selectedIncomeDocType}
+                    onUploadComplete={handleDocumentUploaded}
+                    multiple
+                  />
+                </div>
+              ) : (
+                <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
+                  <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">Select a document type above to start uploading</p>
+                </div>
+              )}
 
               {/* Navigation */}
               <div className="flex justify-between pt-4">
@@ -432,9 +522,15 @@ export function VerificationWizard({ applicationId, onComplete }: VerificationWi
                   Back to ID
                 </Button>
                 
-                {(verificationStatus?.requiredDocuments.employment.count ?? 0) >= 3 && (
-                  <Button onClick={() => setCurrentStep('complete')}>
-                    Complete Verification
+                {/* Allow proceeding with 1+ documents */}
+                {(verificationStatus?.requiredDocuments.employment.count ?? 0) >= 1 && (
+                  <Button 
+                    onClick={() => setCurrentStep('complete')}
+                    variant={(verificationStatus?.requiredDocuments.employment.count ?? 0) >= 3 ? 'default' : 'outline'}
+                  >
+                    {(verificationStatus?.requiredDocuments.employment.count ?? 0) >= 3 
+                      ? 'Complete Verification' 
+                      : 'Continue Anyway'}
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 )}

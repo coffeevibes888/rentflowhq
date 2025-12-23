@@ -19,15 +19,18 @@ import Image from 'next/image';
 import { z } from 'zod';
 import { useSubscriptionContext } from '@/components/subscription/subscription-provider';
 import { SubscriptionTier } from '@/lib/config/subscription-tiers';
+import { ZillowPropertyLookup } from './zillow-property-lookup';
 
 const ProductForm = ({
   type,
   product,
   productId,
+  isPro = false,
 }: {
   type: 'Create' | 'Update';
   product?: Product;
   productId?: string;
+  isPro?: boolean;
 }) => {
   const router = useRouter();
   const { toast } = useToast();
@@ -90,9 +93,68 @@ const ProductForm = ({
     })();
   }, []);
 
+  // Handle Zillow property data auto-fill
+  const handleZillowPropertyFound = (data: {
+    address: { street: string; city: string; state: string; zipCode: string };
+    bedrooms: number;
+    bathrooms: number;
+    sizeSqFt: number;
+    yearBuilt: number;
+    propertyType: string;
+    description: string;
+    images: string[];
+    zestimate: number;
+    rentZestimate: number;
+    zpid: string;
+  }) => {
+    // Auto-fill form fields with Zillow data
+    const fullAddress = `${data.address.street}, ${data.address.city}, ${data.address.state} ${data.address.zipCode}`;
+    form.setValue('streetAddress', fullAddress);
+    form.setValue('bedrooms', String(data.bedrooms));
+    form.setValue('bathrooms', String(data.bathrooms));
+    form.setValue('sizeSqFt', String(data.sizeSqFt));
+    form.setValue('category', data.propertyType);
+    
+    // Set suggested rent based on Zillow rent estimate
+    if (data.rentZestimate) {
+      form.setValue('price', String(data.rentZestimate));
+    }
+    
+    // Set description if empty
+    if (!form.getValues('description') && data.description) {
+      form.setValue('description', data.description);
+    }
+    
+    // Add Zillow images if available
+    if (data.images && data.images.length > 0) {
+      const currentImages = form.getValues('images') || [];
+      const currentColors = form.getValues('imageColors') || [];
+      
+      // Add up to 5 Zillow images
+      const newImages = data.images.slice(0, 5);
+      const newColors = newImages.map((_, i) => i === 0 ? 'Exterior' : `Photo ${i + 1}`);
+      
+      form.setValue('images', [...currentImages, ...newImages]);
+      form.setValue('imageColors', [...currentColors, ...newColors]);
+    }
+    
+    // Generate slug from address
+    const slugBase = `${data.address.street}`.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+    form.setValue('slug', slugify(slugBase, { lower: true }));
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {/* Zillow Auto-Fill (Pro Feature) */}
+        {type === 'Create' && (
+          <ZillowPropertyLookup 
+            onPropertyFound={handleZillowPropertyFound}
+            disabled={form.formState.isSubmitting}
+            isPro={isPro}
+          />
+        )}
+
         {/* -------------------- Property Name & Slug -------------------- */}
         <div className="flex flex-col md:flex-row gap-5">
           <FormField

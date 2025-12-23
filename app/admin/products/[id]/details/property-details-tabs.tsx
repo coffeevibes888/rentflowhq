@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { 
   Building2, Users, FileText, Wrench, DollarSign, Download, 
   ChevronRight, Phone, Mail, Calendar, AlertCircle,
-  Clock, Home, FileSignature, BarChart3, X, Bell, Plus, Receipt
+  Clock, Home, FileSignature, BarChart3, X, Bell, Plus, Receipt, TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,14 +37,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { PropertyZillowData } from '@/components/admin/property-zillow-data';
 
 interface PropertyDetailsTabsProps {
   property: any;
   rentPayments: any[];
   landlordId: string;
+  isPro?: boolean;
 }
 
-export function PropertyDetailsTabs({ property, rentPayments, landlordId }: PropertyDetailsTabsProps) {
+export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro = false }: PropertyDetailsTabsProps) {
   const router = useRouter();
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -129,7 +131,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId }: Prop
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-violet-200/70">Property Management</p>
-            <h1 className="text-3xl md:text-4xl font-semibold text-white">{property.name}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-white">{property.name}</h1>
             <p className="text-slate-300/80 text-sm">
               {property.type} • {property.address && typeof property.address === 'object'
                 ? `${(property.address as any).street ?? ''} ${(property.address as any).city ?? ''}`.trim()
@@ -141,18 +143,18 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId }: Prop
             {property.units.length === 1 ? (
               <Button 
                 variant="outline" 
-                className="border-white/10 text-black"
+                className="border-white/10 text-black text-xs sm:text-sm"
                 onClick={() => handleCreateInvoice(property.units[0].id)}
               >
-                <Receipt className="w-4 h-4 mr-2" />
-                Create Invoice
+                <Receipt className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Create</span> Invoice
               </Button>
             ) : property.units.length > 1 ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="border-white/10 text-black">
-                    <Receipt className="w-4 h-4 mr-2" />
-                    Create Invoice
+                  <Button variant="outline" className="border-white/10 text-black text-xs sm:text-sm">
+                    <Receipt className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Create</span> Invoice
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -181,33 +183,41 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId }: Prop
               </DropdownMenu>
             ) : null}
             
-            <Button variant="outline" className="border-white/10 text-black" onClick={() => setExpenseDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Expense
+            <Button variant="outline" className="border-white/10 text-black text-xs sm:text-sm" onClick={() => setExpenseDialogOpen(true)}>
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Add</span> Expense
             </Button>
-            <Button asChild variant="outline" className="border-white/10 text-black">
-              <Link href={`/admin/products/${property.id}`}>Edit Property</Link>
+            <Button asChild variant="outline" className="border-white/10 text-black text-xs sm:text-sm">
+              <Link href={`/admin/products/${property.id}`}>
+                <span className="hidden sm:inline">Edit Property</span>
+                <span className="sm:hidden">Edit</span>
+              </Link>
             </Button>
           </div>
         </div>
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full justify-start bg-slate-900/60 border border-white/10 p-1 rounded-xl">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-4">
-              <Building2 className="w-4 h-4 mr-2" />
-              Overview
+          <TabsList className="w-full flex flex-wrap gap-1 bg-slate-900/60 border border-white/10 p-1 rounded-xl h-auto">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
+              <Building2 className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-4">
-              <Users className="w-4 h-4 mr-2" />
-              Tenants
+            <TabsTrigger value="property-data" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
+              <TrendingUp className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Property Data</span>
+              {isPro && <Badge className="ml-1 sm:ml-2 bg-blue-500/20 text-blue-300 text-[10px] sm:text-xs">Pro</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
+              <Users className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Tenants</span>
               {activeLeases.length > 0 && (
-                <Badge className="ml-2 bg-emerald-500/20 text-emerald-300 text-xs">{activeLeases.length}</Badge>
+                <Badge className="ml-1 sm:ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs">{activeLeases.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-4">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Financial History
+            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
+              <BarChart3 className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Financials</span>
             </TabsTrigger>
           </TabsList>
 
@@ -338,6 +348,34 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId }: Prop
             </div>
           </TabsContent>
 
+          {/* PROPERTY DATA TAB */}
+          <TabsContent value="property-data" className="mt-6">
+            <PropertyZillowData 
+              propertyAddress={{
+                street: property.address && typeof property.address === 'object' 
+                  ? (property.address as any).street 
+                  : undefined,
+                city: property.address && typeof property.address === 'object' 
+                  ? (property.address as any).city 
+                  : undefined,
+                state: property.address && typeof property.address === 'object' 
+                  ? (property.address as any).state 
+                  : undefined,
+                zipCode: property.address && typeof property.address === 'object' 
+                  ? (property.address as any).zipCode 
+                  : undefined,
+              }}
+              propertyInfo={{
+                bedrooms: property.units[0]?.bedrooms,
+                bathrooms: property.units[0]?.bathrooms,
+                sizeSqFt: property.units[0]?.sizeSqFt,
+                propertyType: property.type,
+                rentAmount: property.units[0]?.rentAmount,
+              }}
+              isPro={isPro}
+            />
+          </TabsContent>
+
           {/* TENANTS TAB */}
           <TabsContent value="tenants" className="mt-6 space-y-6">
             {/* Current Tenants */}
@@ -406,35 +444,37 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId }: Prop
           {/* FINANCIALS TAB */}
           <TabsContent value="financials" className="mt-6">
             <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
-              {/* Year Selector */}
+              {/* Year Selector - Horizontal scroll on mobile, vertical on desktop */}
               <Card className="border-white/10 bg-slate-900/60 h-fit">
-                <CardHeader>
+                <CardHeader className="pb-2 lg:pb-4">
                   <CardTitle className="text-white text-lg">Tax Years</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  {years.map(year => (
-                    <button
-                      key={year}
-                      onClick={() => setSelectedYear(year)}
-                      className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                        selectedYear === year 
-                          ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white' 
-                          : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{year}</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </button>
-                  ))}
+                <CardContent className="p-2 lg:p-4">
+                  <div className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 lg:overflow-visible">
+                    {years.map(year => (
+                      <button
+                        key={year}
+                        onClick={() => setSelectedYear(year)}
+                        className={`flex-shrink-0 text-left px-4 py-2 lg:py-3 rounded-lg transition-colors ${
+                          selectedYear === year 
+                            ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white' 
+                            : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium">{year}</span>
+                          <ChevronRight className="w-4 h-4 hidden lg:block" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
               {/* Financial Summary */}
               <div className="space-y-6">
                 <Card className="border-white/10 bg-slate-900/60">
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <CardTitle className="text-white">{selectedYear} Financial Summary</CardTitle>
                       <CardDescription className="text-slate-400">
@@ -442,13 +482,13 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId }: Prop
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="border-white/10 bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90">
-                        <Download className="w-4 h-4 mr-2" />
-                        Export PDF
+                      <Button variant="outline" size="sm" className="border-white/10 bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm">
+                        <Download className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Export</span> PDF
                       </Button>
-                      <Button variant="outline" size="sm" className="border-white/10 bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90">
-                        <Download className="w-4 h-4 mr-2" />
-                        Export CSV
+                      <Button variant="outline" size="sm" className="border-white/10 bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm">
+                        <Download className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Export</span> CSV
                       </Button>
                     </div>
                   </CardHeader>
@@ -615,29 +655,29 @@ function TenantCard({ lease, isExpanded, onToggle, propertyId, onViewLease }: {
       {/* Header - Always visible */}
       <button 
         onClick={onToggle}
-        className="w-full p-4 flex items-center justify-between hover:bg-slate-800/80 transition-colors"
+        className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-slate-800/80 transition-colors"
       >
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 flex items-center justify-center">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 flex items-center justify-center flex-shrink-0">
             {tenant?.image ? (
               <Image src={tenant.image} alt={tenant.name} width={48} height={48} className="rounded-full" />
             ) : (
-              <Users className="w-6 h-6 text-white" />
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             )}
           </div>
-          <div className="text-left">
-            <p className="font-semibold text-white">{tenant?.name || 'Unknown Tenant'}</p>
+          <div className="text-left min-w-0">
+            <p className="font-semibold text-white truncate">{tenant?.name || 'Unknown Tenant'}</p>
             <p className="text-xs text-slate-400">Unit {lease.unitName} • {formatCurrency(lease.rentAmount)}/mo</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 ml-2">
           {overduePayments.length > 0 && (
-            <Badge className="bg-red-500/20 text-red-300 border-red-400/30">
-              {formatCurrency(totalOwed)} overdue
+            <Badge className="bg-red-500/20 text-red-300 border-red-400/30 text-[10px] sm:text-xs whitespace-nowrap">
+              {formatCurrency(totalOwed)} <span className="hidden sm:inline">overdue</span>
             </Badge>
           )}
           {needsLandlordSignature && (
-            <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/30">
+            <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/30 text-[10px] sm:text-xs hidden sm:flex">
               Needs signature
             </Badge>
           )}
@@ -648,47 +688,75 @@ function TenantCard({ lease, isExpanded, onToggle, propertyId, onViewLease }: {
       {/* Expanded Content */}
       {isExpanded && (
         <div className="border-t border-white/10 p-4 space-y-4">
+          {/* Verification Status */}
+          {tenant?.verification && (
+            <div className="rounded-lg border border-blue-400/30 bg-blue-500/10 p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Verified Tenant</p>
+                    <p className="text-xs text-slate-400">
+                      ID: {tenant.verification.identityStatus === 'verified' ? '✓' : '○'} • 
+                      Income: {tenant.verification.employmentStatus === 'verified' ? '✓' : '○'}
+                    </p>
+                  </div>
+                </div>
+                {tenant.verification.monthlyIncome && (
+                  <div className="text-right">
+                    <p className="text-xs text-slate-400">Verified Income</p>
+                    <p className="text-lg font-bold text-emerald-400">
+                      ${tenant.verification.monthlyIncome.toLocaleString()}/mo
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Contact Info */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex items-center gap-2 text-sm">
-              <Mail className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-300">{tenant?.email || 'No email'}</span>
+              <Mail className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              <span className="text-slate-300 truncate">{tenant?.email || 'No email'}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <Phone className="w-4 h-4 text-slate-400" />
+              <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
               <span className="text-slate-300">{tenant?.phoneNumber || 'No phone'}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-slate-400" />
+              <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
               <span className="text-slate-300">Move-in: {new Date(lease.startDate).toLocaleDateString()}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-300">Lease ends: {lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'Month-to-month'}</span>
+              <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              <span className="text-slate-300">Ends: {lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'Month-to-month'}</span>
             </div>
           </div>
 
           {/* Payment History */}
-          <div className="rounded-lg border border-white/10 bg-slate-900/40 p-4">
+          <div className="rounded-lg border border-white/10 bg-slate-900/40 p-3 sm:p-4">
             <h4 className="text-sm font-medium text-white mb-3">Payment History</h4>
-            <div className="grid grid-cols-3 gap-4 text-center mb-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center mb-4">
               <div>
-                <p className="text-2xl font-bold text-emerald-400">{paidPayments.length}</p>
-                <p className="text-xs text-slate-400">On Time</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-400">{paidPayments.length}</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">On Time</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-red-400">{overduePayments.length}</p>
-                <p className="text-xs text-slate-400">Late/Overdue</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-400">{overduePayments.length}</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">Late</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{formatCurrency(totalOwed)}</p>
-                <p className="text-xs text-slate-400">Balance Due</p>
+                <p className="text-xl sm:text-2xl font-bold text-white">{formatCurrency(totalOwed)}</p>
+                <p className="text-[10px] sm:text-xs text-slate-400">Balance</p>
               </div>
             </div>
             {payments.length > 0 && (
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {payments.slice(0, 6).map((payment: any) => (
-                  <div key={payment.id} className="flex items-center justify-between text-sm">
+                  <div key={payment.id} className="flex items-center justify-between text-xs sm:text-sm gap-2">
                     <span className="text-slate-400">{new Date(payment.dueDate).toLocaleDateString()}</span>
                     <span className="text-slate-300">{formatCurrency(payment.amount)}</span>
                     <StatusBadge status={payment.status} />
@@ -703,22 +771,33 @@ function TenantCard({ lease, isExpanded, onToggle, propertyId, onViewLease }: {
             <Button 
               size="sm" 
               onClick={onViewLease}
-              className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90"
+              className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm"
             >
-              <FileSignature className="w-4 h-4 mr-2" />
-              {needsLandlordSignature ? 'Sign Lease' : 'View Lease'}
+              <FileSignature className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{needsLandlordSignature ? 'Sign Lease' : 'View Lease'}</span>
+              <span className="sm:hidden">Lease</span>
             </Button>
-            <Link href={`/admin/applications/${tenant?.id}`}>
-              <Button size="sm" variant="outline" className="border-white/10 text-black">
-                <FileText className="w-4 h-4 mr-2" />
-                View ID & Documents
+            {tenant?.applicationId ? (
+              <Link href={`/admin/applications/${tenant.applicationId}`}>
+                <Button size="sm" variant="outline" className="border-white/10 text-black text-xs sm:text-sm">
+                  <FileText className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">View ID & Documents</span>
+                  <span className="sm:hidden">Docs</span>
+                </Button>
+              </Link>
+            ) : (
+              <Button size="sm" variant="outline" className="border-white/10 text-black opacity-50 text-xs sm:text-sm" disabled>
+                <FileText className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">No Documents</span>
+                <span className="sm:hidden">N/A</span>
               </Button>
-            </Link>
+            )}
             {totalOwed > 0 && (
               <Link href={`/admin/evictions?tenantId=${tenant?.id}&propertyId=${propertyId}`}>
-                <Button size="sm" variant="outline" className="border-red-400/30 text-red-300 hover:bg-red-500/10">
-                  <AlertCircle className="w-4 h-4 mr-2" />
-                  Start Eviction
+                <Button size="sm" variant="outline" className="border-red-400/30 text-red-300 hover:bg-red-500/10 text-xs sm:text-sm">
+                  <AlertCircle className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Start Eviction</span>
+                  <span className="sm:hidden">Evict</span>
                 </Button>
               </Link>
             )}

@@ -73,10 +73,10 @@ export class VerificationService {
     const uploadedEmploymentDocs = employmentDocs.filter(d => d.verificationStatus !== 'rejected');
 
     // Determine if application can be submitted
+    // Allow submission with at least 1 identity doc and 1 employment doc
     const canSubmit = 
-      appVerification.identityStatus === 'verified' &&
-      appVerification.employmentStatus === 'verified' &&
-      appVerification.overallStatus === 'complete';
+      uploadedIdentityDocs.length > 0 &&
+      uploadedEmploymentDocs.length > 0;
 
     return {
       identityStatus: appVerification.identityStatus,

@@ -50,8 +50,7 @@ const AdminProductsPage = async (props: {
       where,
       include: {
         units: {
-          where: { isAvailable: true },
-          select: { id: true, rentAmount: true, images: true },
+          select: { id: true, rentAmount: true, images: true, isAvailable: true },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -95,8 +94,12 @@ const AdminProductsPage = async (props: {
             </div>
           ) : (
             properties.map((property) => {
-              const firstImage = property.units[0]?.images?.[0];
-              const lowestRent = property.units.length > 0
+              // Get first image from any unit (not just available ones)
+              const firstImage = property.units.find(u => u.images?.length > 0)?.images?.[0];
+              const availableUnits = property.units.filter(u => u.isAvailable);
+              const lowestRent = availableUnits.length > 0
+                ? Math.min(...availableUnits.map(u => Number(u.rentAmount)))
+                : property.units.length > 0
                 ? Math.min(...property.units.map(u => Number(u.rentAmount)))
                 : 0;
               return (
@@ -133,7 +136,7 @@ const AdminProductsPage = async (props: {
                           </div>
                           <div className='flex items-center justify-between'>
                             <span className='text-sm text-slate-300/90'>Available Units:</span>
-                            <span className='text-sm text-slate-200'>{property.units.length}</span>
+                            <span className='text-sm text-slate-200'>{availableUnits.length}</span>
                           </div>
                         </div>
                       </div>
@@ -176,8 +179,12 @@ const AdminProductsPage = async (props: {
                 </TableRow>
               )}
               {properties.map((property) => {
-                const firstImage = property.units[0]?.images?.[0];
-                const lowestRent = property.units.length > 0
+                // Get first image from any unit (not just available ones)
+                const firstImage = property.units.find(u => u.images?.length > 0)?.images?.[0];
+                const availableUnits = property.units.filter(u => u.isAvailable);
+                const lowestRent = availableUnits.length > 0
+                  ? Math.min(...availableUnits.map(u => Number(u.rentAmount)))
+                  : property.units.length > 0
                   ? Math.min(...property.units.map(u => Number(u.rentAmount)))
                   : 0;
                 return (
@@ -219,7 +226,7 @@ const AdminProductsPage = async (props: {
                     </TableCell>
                     <TableCell className='text-slate-300'>
                       <Link href={`/admin/products/${property.id}/details`} className='block hover:text-violet-400 transition-colors'>
-                        {property.units.length}
+                        {availableUnits.length}
                       </Link>
                     </TableCell>
                     <TableCell>
