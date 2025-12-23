@@ -108,10 +108,23 @@ export async function GET(req: NextRequest) {
       component,
       clientSecret: accountSession.client_secret,
     });
-  } catch (error) {
-    console.error('Error creating Stripe Connect onboarding link:', error);
+  } catch (error: any) {
+    console.error('Error creating payout onboarding link:', error);
+    
+    // Provide more specific error messages
+    let message = 'Failed to start verification. Please try again.';
+    
+    if (error?.type === 'StripeInvalidRequestError') {
+      message = error?.message || message;
+      
+      // If the account is invalid, it might be a test account with live keys
+      if (error?.code === 'account_invalid') {
+        message = 'Your payout account needs to be reconnected. Please try again.';
+      }
+    }
+    
     return NextResponse.json(
-      { success: false, message: 'Failed to start secure payout verification.' },
+      { success: false, message },
       { status: 500 }
     );
   }

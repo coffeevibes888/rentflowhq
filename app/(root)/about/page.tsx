@@ -10,11 +10,10 @@ const AboutPage = () => {
         <header className="space-y-2 mb-10 text-center">
           <p className="text-xs tracking-[0.3em] uppercase text-violet-300">About</p>
           <h1 className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-[0_0_35px_rgba(139,92,246,0.4)]">
-            Rocken My Vibe
+            Rooms For Rent LV
           </h1>
           <p className="max-w-2xl mx-auto text-sm md:text-base text-gray-200/90">
-            Faith, humor, and real-life stories stitched into every design. This is where the heart behind
-            Rocken My Vibe lives.
+            Built by a property manager, for property managers. This is the story behind the platform.
           </p>
         </header>
 
@@ -23,33 +22,34 @@ const AboutPage = () => {
             <div className="rounded-3xl border border-violet-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-violet-950/70 p-6 md:p-8 shadow-[0_0_60px_rgba(124,58,237,0.35)]">
               <p className="text-xs font-semibold tracking-[0.2em] text-violet-200 uppercase mb-2">The Story</p>
               <p className="text-sm md:text-base text-gray-100 leading-relaxed">
-                Hey, I&apos;m Allen — the creator, designer, and soul behind Rocken My Vibe. I didn&apos;t start this brand from a
-                perfect place… actually, it came from surviving some of the hardest chapters of my life. From near-death
-                experiences to spiritual awakenings, from rebuilding my faith to rebuilding my confidence — every step
-                shaped who I am and what this brand stands for.
+                Before Rooms For Rent LV was software, it was real life.
               </p>
               <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
-                I&apos;m a person who lives in two worlds at once: the spiritual one that speaks in signs, visions, and
-                synchronicities… and the everyday physical world where bills, jobs, and real-life struggles don&apos;t
-                magically disappear. Rocken My Vibe is the bridge I built between those worlds.
+                For years, I worked as a property manager doing things the old-school way — collecting rent in cash, tracking payments on green sheets, and spending long nights manually uploading reports into QuickBooks. No automation. No dashboards. Just paperwork, spreadsheets, and constant follow-ups.
               </p>
               <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
-                After years of feeling like I didn&apos;t fit in, I realized something powerful: your vibe isn&apos;t supposed to
-                match the room — it&apos;s supposed to shift it. So I turned my experiences, my connection with God, my sense
-                of humor, and even my scars into something creative. I stopped hiding, stopped playing small, and decided
-                to design clothes that carry a message — sometimes bold, sometimes funny, sometimes spiritual, but always
-                real.
+                I knew the job inside and out because I lived it. The late rent reminders. The missing payments. The stress of keeping everything organized while trying to manage people, properties, and time — all at once.
               </p>
               <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
-                This brand is for the people who&apos;ve been through things… the ones who feel energy deeply, who&apos;ve survived
-                storms, who&apos;ve seen darkness but still choose light. It&apos;s for anyone who&apos;s ever felt &quot;different&quot; in the
-                best (and hardest) ways. Rocken My Vibe is my reminder — and yours — that faith can be stylish, healing
-                can be loud, and your story is worth wearing.
+                Eventually, I saw the problem clearly: property managers were being forced to work harder than necessary with outdated tools that weren&apos;t built for how we actually operate.
               </p>
               <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
-                If you&apos;re here, welcome. Whether you came for the graphics, the message, or just curiosity — I&apos;m glad
-                you&apos;re part of this journey. Let&apos;s walk it together. With courage. With humor. With God. And most
-                importantly… let&apos;s rock our vibe.
+                So I did something about it.
+              </p>
+              <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
+                I became a web developer and started building the system I always wished I had.
+              </p>
+              <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
+                Rooms For Rent LV was created by a property manager, for property managers — designed to simplify rent collection, automate reminders, track payments cleanly, and eliminate the chaos of manual reporting. Every feature is rooted in real-world experience, not theory.
+              </p>
+              <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
+                This platform isn&apos;t bloated. It&apos;s practical, affordable, and built to help landlords and property managers save time, reduce stress, and stay organized — without needing a tech background.
+              </p>
+              <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
+                If you&apos;ve ever chased rent, sorted paperwork late at night, or wished there was an easier way — this was built for you.
+              </p>
+              <p className="mt-4 text-sm md:text-base text-gray-200 leading-relaxed">
+                Welcome to Rooms For Rent LV. 🏠✨
               </p>
             </div>
           </div>
@@ -87,7 +87,7 @@ const AboutPage = () => {
                       />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 pb-2 pt-4 text-[11px] text-gray-100 flex items-center justify-between">
                         <span className="uppercase tracking-[0.15em] text-gray-300">{photo.label}</span>
-                        <span className="text-[10px] text-violet-300">Rocken My Vibe</span>
+                        <span className="text-[10px] text-violet-300">Rooms For Rent LV</span>
                       </div>
                     </div>
                   ))}

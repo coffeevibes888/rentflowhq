@@ -3,7 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import PayoutsConnectEmbedded from '@/components/admin/payouts-connect-button';
+import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 type StripeStatusResponse =
   | {
@@ -19,11 +27,35 @@ type StripeStatusResponse =
       message: string;
     };
 
-function getActionLabel(status: Extract<StripeStatusResponse, { success: true }>) {
-  if (!status.connected) return 'Connect payout account';
-  if (!status.payoutsEnabled) return 'Complete payout verification';
+function getStatusMessage(status: Extract<StripeStatusResponse, { success: true }>) {
+  if (!status.connected) return 'Connect your payout account to get started';
+  if (!status.payoutsEnabled) return 'Complete verification to enable payouts';
   if (!status.hasBankAccount && !status.hasCard) return 'Add a bank account or debit card';
-  return 'Payouts are ready';
+  return 'Your payout account is ready';
+}
+
+function getActionLabel(status: Extract<StripeStatusResponse, { success: true }>) {
+  if (!status.connected) return 'Start verification';
+  if (!status.payoutsEnabled) return 'Continue verification';
+  if (!status.hasBankAccount && !status.hasCard) return 'Add payout method';
+  return 'Manage payout settings';
+}
+
+function getPendingItems(status: Extract<StripeStatusResponse, { success: true }>) {
+  const items: string[] = [];
+  if (status.requirements?.currently_due?.length) {
+    const due = status.requirements.currently_due as string[];
+    if (due.some((r: string) => r.includes('business_type'))) items.push('Business type');
+    if (due.some((r: string) => r.includes('external_account'))) items.push('Bank account');
+    if (due.some((r: string) => r.includes('tos_acceptance'))) items.push('Terms acceptance');
+    if (due.some((r: string) => r.includes('individual') || r.includes('representative'))) items.push('Identity verification');
+    if (due.some((r: string) => r.includes('address'))) items.push('Address');
+    // Add generic items if we haven't captured specific ones
+    if (items.length === 0 && due.length > 0) {
+      items.push('Additional information required');
+    }
+  }
+  return items;
 }
 
 export default function PayoutsVerificationPanel() {
@@ -32,6 +64,8 @@ export default function PayoutsVerificationPanel() {
   const [status, setStatus] = useState<StripeStatusResponse | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+
   const isReady = useMemo(() => {
     if (!status || !status.success) return false;
     return status.payoutsEnabled && (status.hasBankAccount || status.hasCard);
@@ -58,83 +92,128 @@ export default function PayoutsVerificationPanel() {
         if (!res.ok || !data || data.success === false) {
           setStatus(null);
           setStatusError(
-            (data as any)?.message || 'Unable to check payout verification status. Please refresh and try again.'
+            (data as any)?.message || 'Unable to check verification status. Please refresh and try again.'
           );
           return;
         }
 
         setStatus(data);
-
-        // no-op
       } catch {
         if (!mounted) return;
-        setStatusError('Unable to check payout verification status. Please refresh and try again.');
+        setStatusError('Unable to check verification status. Please refresh and try again.');
       } finally {
         if (mounted) setChecking(false);
       }
     };
 
     void fetchStatus();
-    interval = setInterval(fetchStatus, 2500);
+    interval = setInterval(fetchStatus, 3000);
 
     return () => {
       mounted = false;
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const pendingItems = status?.success ? getPendingItems(status) : [];
 
   return (
     <div className='space-y-4'>
-      <div className='rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs md:text-sm text-slate-700 space-y-2'>
+      {/* Status Card */}
+      <div className='rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3'>
         <div className='flex items-center justify-between gap-3'>
-          <p className='font-semibold text-slate-900'>Payout verification status</p>
-          <p className='text-[11px] text-slate-500'>
-            {checking ? 'Checking…' : isReady ? 'Verified' : 'Not ready yet'}
-          </p>
+          <div className='flex items-center gap-2'>
+            {checking ? (
+              <Loader2 className='h-4 w-4 animate-spin text-slate-400' />
+            ) : isReady ? (
+              <CheckCircle2 className='h-4 w-4 text-blue-500' />
+            ) : (
+              <AlertCircle className='h-4 w-4 text-amber-500' />
+            )}
+            <p className='font-semibold text-slate-900 text-sm'>Verification status</p>
+          </div>
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+            checking 
+              ? 'bg-slate-200 text-slate-600' 
+              : isReady 
+                ? 'bg-blue-100 text-blue-700' 
+                : 'bg-amber-100 text-amber-700'
+          }`}>
+            {checking ? 'Checking...' : isReady ? 'Verified' : 'Pending'}
+          </span>
         </div>
 
         {statusError ? (
-          <p className='text-red-700'>{statusError}</p>
+          <p className='text-sm text-red-600'>{statusError}</p>
         ) : status?.success ? (
-          <div className='space-y-1'>
-            <p className='text-[11px] text-slate-600'>
-              {getActionLabel(status)}
-            </p>
-            {!status.payoutsEnabled && status.requirements?.currently_due?.length ? (
-              <p className='text-[11px] text-slate-500'>
-                Stripe still needs: {status.requirements.currently_due.slice(0, 3).join(', ')}
-                {status.requirements.currently_due.length > 3 ? '…' : ''}
-              </p>
-            ) : null}
+          <div className='space-y-2'>
+            <p className='text-sm text-slate-600'>{getStatusMessage(status)}</p>
+            
+            {pendingItems.length > 0 && !isReady && (
+              <div className='flex flex-wrap gap-1.5'>
+                {pendingItems.map((item, i) => (
+                  <span key={i} className='text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded'>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
-          <p className='text-[11px] text-slate-600'>Starting verification…</p>
+          <p className='text-sm text-slate-600'>Loading verification status...</p>
         )}
 
         {isReady && (
-          <div className='rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-900'>
-            Verified. You can cash out now.
+          <div className='rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-blue-800'>
+            ✓ Your account is verified and ready to receive payouts.
           </div>
         )}
       </div>
 
+      {/* Action Buttons */}
       <div className='flex items-center justify-between gap-3 flex-wrap'>
         <Button variant='outline' onClick={() => router.push('/admin/payouts')}>
           Back to payouts
         </Button>
-        <Button onClick={() => { router.refresh(); }}>
-          Refresh status
-        </Button>
+        <div className='flex items-center gap-2'>
+          <Button variant='ghost' size='sm' onClick={() => router.refresh()}>
+            Refresh
+          </Button>
+          {status?.success && (
+            <Button 
+              onClick={() => setModalOpen(true)}
+              className='bg-blue-600 hover:bg-blue-500 text-white'
+            >
+              {getActionLabel(status)}
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className='rounded-3xl border border-slate-200 bg-white shadow-sm px-4 py-5 md:px-6 md:py-6 space-y-3'>
-        <h3 className='text-sm md:text-base font-semibold text-slate-900'>Secure verification</h3>
-        <p className='text-xs md:text-sm text-slate-600'>
-          Complete the steps below to enable payouts and add your bank account/debit card.
-        </p>
-        <PayoutsConnectEmbedded component={connectComponent} />
-      </div>
+      {/* Verification Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className='max-w-xl max-h-[85vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle>
+              {isReady ? 'Payout settings' : 'Complete verification'}
+            </DialogTitle>
+            <DialogDescription>
+              {isReady 
+                ? 'Manage your bank account and payout preferences.'
+                : 'Securely verify your identity and add your payout details.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className='mt-2'>
+            <PayoutsConnectEmbedded 
+              component={connectComponent} 
+              onComplete={() => {
+                setModalOpen(false);
+                router.refresh();
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

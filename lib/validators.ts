@@ -36,6 +36,15 @@ const baseProductSchema = z.object({
   onSale: z.boolean().optional().default(false),
   salePercent: z.coerce.number().min(1).max(90).optional(),
   saleUntil: z.string().datetime().nullable().optional(),
+  // Property fee settings
+  cleaningFee: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
+    z.number().min(0).optional()
+  ),
+  petDepositAnnual: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
+    z.number().min(0).optional()
+  ),
 });
 
 // Schema for inserting products
@@ -296,4 +305,26 @@ export const rentalApplicationSchema = z.object({
   petCount: z.string().optional(),
   notes: z.string().optional(),
   propertySlug: z.string().optional(),
+});
+
+// Schema for tenant invoice creation
+export const tenantInvoiceSchema = z.object({
+  propertyId: z.string().min(1, 'Property is required'),
+  tenantId: z.string().min(1, 'Tenant is required'),
+  leaseId: z.string().optional(),
+  amount: z.coerce.number().positive('Amount must be greater than 0'),
+  reason: z.string().min(3, 'Reason must be at least 3 characters'),
+  description: z.string().optional(),
+  dueDate: z.string().datetime('Invalid due date'),
+});
+
+// Schema for property bank account
+export const propertyBankAccountSchema = z.object({
+  propertyId: z.string().min(1, 'Property is required'),
+  stripePaymentMethodId: z.string().min(1, 'Stripe payment method ID is required'),
+  accountHolderName: z.string().min(2, 'Account holder name must be at least 2 characters'),
+  last4: z.string().length(4, 'Last 4 digits must be exactly 4 characters'),
+  bankName: z.string().optional(),
+  accountType: z.enum(['checking', 'savings']).optional(),
+  routingNumber: z.string().optional(),
 });

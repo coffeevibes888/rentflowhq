@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { 
   Building2, Users, FileText, Wrench, DollarSign, Download, 
   ChevronRight, Phone, Mail, Calendar, AlertCircle,
-  Clock, Home, FileSignature, BarChart3, X, Bell, Plus
+  Clock, Home, FileSignature, BarChart3, X, Bell, Plus, Receipt
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -38,6 +45,7 @@ interface PropertyDetailsTabsProps {
 }
 
 export function PropertyDetailsTabs({ property, rentPayments, landlordId }: PropertyDetailsTabsProps) {
+  const router = useRouter();
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [viewingLease, setViewingLease] = useState<any | null>(null);
@@ -64,6 +72,15 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId }: Prop
   // Calculate financial summary
   const currentYear = new Date().getFullYear();
   const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3, currentYear - 4];
+
+  // Get units with active leases for invoice creation
+  const unitsWithTenants = property.units.filter((unit: any) => 
+    unit.leases?.some((lease: any) => lease.status === 'active')
+  );
+
+  const handleCreateInvoice = (unitId: string) => {
+    router.push(`/admin/invoices?unitId=${unitId}&propertyId=${property.id}`);
+  };
 
   const submitExpense = async () => {
     try {
@@ -119,7 +136,51 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId }: Prop
                 : ''}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {/* Create Invoice Button */}
+            {property.units.length === 1 ? (
+              <Button 
+                variant="outline" 
+                className="border-white/10 text-black"
+                onClick={() => handleCreateInvoice(property.units[0].id)}
+              >
+                <Receipt className="w-4 h-4 mr-2" />
+                Create Invoice
+              </Button>
+            ) : property.units.length > 1 ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="border-white/10 text-black">
+                    <Receipt className="w-4 h-4 mr-2" />
+                    Create Invoice
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {property.units.map((unit: any) => {
+                    const activeLease = unit.leases?.find((l: any) => l.status === 'active');
+                    const tenantName = activeLease?.tenant?.name;
+                    return (
+                      <DropdownMenuItem 
+                        key={unit.id}
+                        onClick={() => handleCreateInvoice(unit.id)}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">{unit.name}</span>
+                          {tenantName && (
+                            <span className="text-xs text-muted-foreground">{tenantName}</span>
+                          )}
+                          {!activeLease && (
+                            <span className="text-xs text-amber-500">No active tenant</span>
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
+            
             <Button variant="outline" className="border-white/10 text-black" onClick={() => setExpenseDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Expense

@@ -18,6 +18,7 @@ import { adminNavLinks } from '@/lib/constants/admin-nav';
 import { formatCurrency } from '@/lib/utils';
 import { cookies } from 'next/headers';
 import { SERVER_URL } from '@/lib/constants';
+import ShareListingCard from '@/components/admin/share-listing-card';
 
 export const metadata: Metadata = {
   title: 'Property Dashboard',
@@ -61,6 +62,14 @@ const AdminOverviewPage = async (props: {
   }
 
   const landlordId = landlordResult.landlord.id;
+  const landlordSubdomain = landlordResult.landlord.subdomain;
+  const landlordName = landlordResult.landlord.companyName || landlordResult.landlord.name;
+
+  // Build the listing URL for sharing
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'rooms4rentlv.com';
+  const isLocalhost = rootDomain.includes('localhost');
+  const protocol = isLocalhost ? 'http' : 'https';
+  const listingUrl = landlordSubdomain ? `${protocol}://${rootDomain}/${landlordSubdomain}` : '';
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -299,6 +308,11 @@ const AdminOverviewPage = async (props: {
             </div>
 
             <div className='grid grid-cols-2 gap-3 lg:grid-cols-3'>
+              {/* Share Listing Card - Prominent position */}
+              {listingUrl && (
+                <ShareListingCard listingUrl={listingUrl} landlordName={landlordName} />
+              )}
+
               <Link
                 href='/admin/products'
                 className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'

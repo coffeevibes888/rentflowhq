@@ -292,8 +292,8 @@ export async function createProduct(data: z.infer<typeof insertProductSchema>) {
   try {
     const product = insertProductSchema.parse(data);
     
-    // Extract only Product model fields, excluding sizeIds and colorIds (variant metadata)
-    const { sizeIds, colorIds, ...productData } = product;
+    // Extract only Product model fields, excluding sizeIds, colorIds, and property-specific fields
+    const { sizeIds, colorIds, cleaningFee, petDepositAnnual, ...productData } = product;
     void colorIds; // suppress unused variable warning
 
     // Check subscription limits before creating units
@@ -360,6 +360,12 @@ export async function createProduct(data: z.infer<typeof insertProductSchema>) {
         },
         type: propertyType,
         landlordId: landlordResult.landlord.id,
+        cleaningFee: product.cleaningFee !== undefined && product.cleaningFee !== null 
+          ? product.cleaningFee 
+          : null,
+        petDepositAnnual: product.petDepositAnnual !== undefined && product.petDepositAnnual !== null 
+          ? product.petDepositAnnual 
+          : null,
       },
     });
 
@@ -414,8 +420,8 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
 
     // Update product, property, and units to stay in sync
     await prisma.$transaction(async (tx) => {
-      // Extract only Product model fields, excluding sizeIds and colorIds (variant metadata)
-      const { sizeIds, colorIds, ...productData } = product;
+      // Extract only Product model fields, excluding sizeIds, colorIds, and property-specific fields
+      const { sizeIds, colorIds, cleaningFee, petDepositAnnual, ...productData } = product;
       void colorIds;
 
       // Migrate incoming images to Cloudinary for persistence.
@@ -441,6 +447,8 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
             street: product.streetAddress || '',
             unit: product.unitNumber || '',
           },
+          cleaningFee: cleaningFee !== undefined && cleaningFee !== null ? cleaningFee : null,
+          petDepositAnnual: petDepositAnnual !== undefined && petDepositAnnual !== null ? petDepositAnnual : null,
         },
       });
 

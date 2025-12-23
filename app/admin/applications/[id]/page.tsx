@@ -328,6 +328,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
 
                     const unit = await tx.unit.findUnique({
                       where: { id: unitId },
+                      include: { property: true },
                     });
 
                     if (!unit) {
@@ -359,8 +360,15 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                     const firstMonthDue = startDate;
                     const lastMonthDue = startDate;
 
-                    await tx.rentPayment.createMany({
-                      data: [
+                    // Check if tenant has pets (from application notes)
+                    const hasPets = freshApp.notes?.toLowerCase().includes('has pets: yes') || 
+                                   freshApp.notes?.toLowerCase().includes('has pets: y');
+                    const petDepositAmount = hasPets && unit.property?.petDepositAnnual 
+                      ? Number(unit.property.petDepositAnnual) 
+                      : 0;
+
+                    // Build the rent payments array
+                    const rentPaymentsData = [
                         {
                           leaseId: lease.id,
                           tenantId: lease.tenantId,
@@ -391,7 +399,24 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                             type: 'security_deposit',
                           },
                         },
-                      ],
+                      ];
+
+                    // Add pet deposit if tenant has pets
+                    if (petDepositAmount > 0) {
+                      rentPaymentsData.push({
+                        leaseId: lease.id,
+                        tenantId: lease.tenantId,
+                        dueDate: firstMonthDue,
+                        amount: petDepositAmount as any,
+                        status: 'pending',
+                        metadata: {
+                          type: 'pet_deposit_annual',
+                        },
+                      });
+                    }
+
+                    await tx.rentPayment.createMany({
+                      data: rentPaymentsData,
                     });
 
                     await tx.unit.update({

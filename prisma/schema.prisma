@@ -86,6 +86,7 @@ model User {
   reviewedVerificationDocs VerificationDocument[] @relation("ReviewedVerificationDocs")
 
   leaseViolations      LeaseViolation[]
+  tenantInvoices       TenantInvoice[]
 }
 
 model Account {
@@ -647,6 +648,10 @@ model Property {
 
   landlordId String?   @db.Uuid
 
+  // Fee settings for this property
+  cleaningFee       Decimal? @db.Decimal(12, 2) // One-time cleaning fee
+  petDepositAnnual  Decimal? @db.Decimal(12, 2) // Annual pet deposit fee
+
   landlord Landlord? @relation(fields: [landlordId], references: [id], onDelete: SetNull)
 
   units       Unit[]
@@ -658,6 +663,8 @@ model Property {
   finance PropertyFinance?
   expenses Expense[]
   marketBenchmarks MarketBenchmark[]
+  bankAccount PropertyBankAccount?
+  invoices TenantInvoice[]
 }
 
 model Unit {
@@ -1479,4 +1486,51 @@ model DocumentAccessLog {
   @@index([verificationDocumentId])
   @@index([userId])
   @@index([createdAt])
+}
+
+
+// Property-specific bank account for separate cashouts per property
+model PropertyBankAccount {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId            String   @unique @db.Uuid
+  stripePaymentMethodId String   @unique
+  accountHolderName     String
+  last4                 String
+  bankName              String?
+  accountType           String?  // 'checking' or 'savings'
+  routingNumber         String?
+  isVerified            Boolean  @default(false)
+  createdAt             DateTime @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+// Tenant invoices for custom charges (repairs, violations, etc.)
+model TenantInvoice {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId  String   @db.Uuid
+  tenantId    String   @db.Uuid
+  leaseId     String?  @db.Uuid
+  amount      Decimal  @db.Decimal(12, 2)
+  reason      String   // e.g. "Repair charge", "Late fee", "Pet violation", etc.
+  description String?  // Detailed description
+  dueDate     DateTime @db.Timestamp(6)
+  status      String   @default("pending") // pending, paid, overdue, cancelled
+  paidAt      DateTime? @db.Timestamp(6)
+  stripePaymentIntentId String?
+  paymentMethod String?
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenant   User     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([tenantId])
+  @@index([leaseId])
+  @@index([status])
+  @@index([dueDate])
 }

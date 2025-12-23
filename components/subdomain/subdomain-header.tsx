@@ -42,7 +42,7 @@ export default function SubdomainHeader({ landlord }: SubdomainHeaderProps) {
   const basePath = `/${landlord.subdomain}`;
 
   return (
-    <header className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-500 text-white border-b border-white/10 sticky top-0 z-50">
+    <header className="w-full bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-6">
           {/* Logo and Company Name */}

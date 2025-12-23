@@ -102,7 +102,7 @@ const AdminPayoutsPage = async () => {
                 <strong>Instant:</strong> 1.5% fee (max $10), arrives within minutes to your debit card.
               </p>
               <p className='text-xs text-slate-500 mt-2'>
-                Banking details are encrypted and processed by Stripe. We never store full card or account numbers.
+                Your banking details are encrypted and securely processed. We never store full card or account numbers.
               </p>
             </div>
           </div>
@@ -118,7 +118,7 @@ const AdminPayoutsPage = async () => {
                 </p>
               </div>
               <Link href='/admin/onboarding/payouts'>
-                <Button className='rounded-full bg-emerald-600 text-white px-6 py-2.5 text-sm font-semibold shadow hover:bg-emerald-500 transition'>
+                <Button className='rounded-full bg-blue-600 text-white px-6 py-2.5 text-sm font-semibold shadow hover:bg-blue-500 transition'>
                   Verify payout account
                 </Button>
               </Link>

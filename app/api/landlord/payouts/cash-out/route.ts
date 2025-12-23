@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     if (!stripeSecretKey) {
       return NextResponse.json(
-        { success: false, message: 'Stripe configuration is missing on the server.' },
+        { success: false, message: 'Payout configuration is missing on the server.' },
         { status: 500 }
       );
     }
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Payouts are not enabled yet. Please complete payout verification first.',
+          message: 'Payouts are not enabled yet. Please complete verification first.',
           needsOnboarding: true,
         },
         { status: 409 }

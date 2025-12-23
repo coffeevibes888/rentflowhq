@@ -65,6 +65,8 @@ export const productDefaultValues = {
   onSale: false,
   salePercent: undefined as number | undefined,
   saleUntil: null as string | null,
+  cleaningFee: undefined as number | undefined,
+  petDepositAnnual: undefined as number | undefined,
 };
 
 export const USER_ROLES = process.env.USER_ROLES

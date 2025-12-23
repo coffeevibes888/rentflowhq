@@ -23,7 +23,7 @@ const PayoutsOnboardingPage = async () => {
       <div className='max-w-4xl mx-auto space-y-8'>
         <section className='space-y-4'>
           <div className='space-y-2'>
-            <p className='text-xs font-semibold tracking-wide text-emerald-600 uppercase'>
+            <p className='text-xs font-semibold tracking-wide text-blue-600 uppercase'>
               Setup progress
             </p>
             <div className='flex items-center justify-between gap-4'>
@@ -35,13 +35,12 @@ const PayoutsOnboardingPage = async () => {
               </span>
             </div>
             <p className='text-sm md:text-base text-slate-600 max-w-2xl'>
-              Link your bank account using Stripe so rent payments can flow directly to you. This keeps
-              tenant payments secure and separates your payouts from our platform.
+              Link your bank account so rent payments flow directly to you. Your banking details are encrypted and securely processed.
             </p>
           </div>
           <div className='w-full rounded-full bg-slate-200 h-3 overflow-hidden'>
             <div
-              className='h-3 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all'
+              className='h-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all'
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -49,22 +48,21 @@ const PayoutsOnboardingPage = async () => {
             <span>Profile</span>
             <span>Property</span>
             <span>Tenants</span>
-            <span className='font-semibold text-emerald-600'>Payouts</span>
+            <span className='font-semibold text-blue-600'>Payouts</span>
           </div>
         </section>
 
         <section className='rounded-3xl border border-slate-200 bg-white shadow-sm px-4 py-5 md:px-6 md:py-6 space-y-4'>
           <h2 className='text-lg md:text-xl font-semibold text-slate-900'>
-            {hasStripeAccount ? 'Payouts are almost ready' : 'Get ready to connect Stripe payouts'}
+            {hasStripeAccount ? 'Almost there' : 'Set up your payout account'}
           </h2>
           <p className='text-sm md:text-base text-slate-600'>
-            We partner with a regulated payments provider to securely route tenant rent payments to your
-            bank account. To receive payouts, you&apos;ll complete a secure verification flow inside this app.
+            Complete a quick verification to start receiving rent payments directly to your bank account.
           </p>
           <ul className='list-disc list-inside text-sm md:text-base text-slate-600 space-y-1'>
-            <li>You&apos;ll confirm your business or individual details.</li>
-            <li>You&apos;ll add a bank account (standard payouts) and/or a debit card (instant cashouts).</li>
-            <li>You can return here any time from Settings to review payout status.</li>
+            <li>Confirm your business or personal details</li>
+            <li>Add a bank account for standard payouts</li>
+            <li>Optionally add a debit card for instant cashouts</li>
           </ul>
           <div className='pt-3'>
             <PayoutsVerificationPanel />

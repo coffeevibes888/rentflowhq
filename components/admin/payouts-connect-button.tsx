@@ -3,17 +3,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { loadConnect } from '@stripe/connect-js';
+import { Loader2 } from 'lucide-react';
 
 const PayoutsConnectEmbedded = ({
   component = 'account_onboarding',
+  onComplete,
 }: {
   component?: 'account_onboarding' | 'payouts';
+  onComplete?: () => void;
 }) => {
   const { toast } = useToast();
   const [stripeError, setStripeError] = useState<string | null>(null);
 
   return (
-    <div className='space-y-3'>
+    <div>
       {stripeError ? (
         <div className='rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700'>
           {stripeError}
@@ -23,7 +26,8 @@ const PayoutsConnectEmbedded = ({
           component={component}
           onError={(message) => setStripeError(message)}
           onExit={() => {
-            toast({ description: 'Verification closed. You can reopen it any time.' });
+            toast({ description: 'You can continue verification any time.' });
+            onComplete?.();
           }}
         />
       )}
@@ -71,7 +75,7 @@ function EmbeddedStripeOnboarding({
           const data = await res.json();
 
           if (!res.ok || !data?.success || !data?.clientSecret) {
-            const message = data?.message || 'Unable to start secure payout verification.';
+            const message = data?.message || 'Unable to start verification. Please try again.';
             throw new Error(message);
           }
 
@@ -82,7 +86,7 @@ function EmbeddedStripeOnboarding({
         try {
           clientSecret = await fetchClientSecret();
         } catch (e) {
-          onError(e instanceof Error ? e.message : 'Unable to start secure payout verification.');
+          onError(e instanceof Error ? e.message : 'Unable to start verification. Please try again.');
           return;
         }
 
@@ -91,6 +95,18 @@ function EmbeddedStripeOnboarding({
           publishableKey,
           clientSecret,
           refreshClientSecret: fetchClientSecret,
+          appearance: {
+            overlays: 'dialog',
+            variables: {
+              colorPrimary: '#3b82f6', // Blue-500 to match site primary
+              colorBackground: '#ffffff',
+              colorText: '#1e293b',
+              colorDanger: '#dc2626',
+              fontSizeBase: '14px',
+              spacingUnit: '4px',
+              borderRadius: '8px',
+            },
+          },
         });
 
         const elementName = component === 'payouts' ? 'payouts' : 'account-onboarding';
@@ -100,7 +116,7 @@ function EmbeddedStripeOnboarding({
         ) as AccountOnboardingElement | null;
 
         if (!accountOnboarding) {
-          onError('Unable to render payouts setup. Please refresh and try again.');
+          onError('Unable to load verification form. Please refresh and try again.');
           return;
         }
 
@@ -108,15 +124,15 @@ function EmbeddedStripeOnboarding({
 
         const container = containerRef.current;
         if (!container) {
-          onError('Unable to render payouts setup. Please refresh and try again.');
+          onError('Unable to load verification form. Please refresh and try again.');
           return;
         }
 
         container.innerHTML = '';
         container.appendChild(accountOnboarding);
       } catch (err) {
-        console.error('Stripe embedded onboarding error', err);
-        onError('Unable to load secure payout verification. Please try again.');
+        console.error('Embedded onboarding error', err);
+        onError('Unable to load verification. Please try again.');
       } finally {
         if (!canceled) setIsInitializing(false);
       }
@@ -128,10 +144,11 @@ function EmbeddedStripeOnboarding({
   }, [component, onError, onExit]);
 
   return (
-    <div className='min-h-[520px] max-h-[70vh] overflow-y-auto'>
+    <div className='min-h-[300px] max-h-[60vh] overflow-y-auto'>
       {isInitializing && (
-        <div className='py-10 text-sm text-slate-600'>
-          Loading secure payout verification…
+        <div className='flex items-center justify-center gap-2 py-12 text-sm text-slate-500'>
+          <Loader2 className='h-4 w-4 animate-spin' />
+          <span>Loading verification form...</span>
         </div>
       )}
       <div ref={containerRef} id='stripe-connect-onboarding-container' />

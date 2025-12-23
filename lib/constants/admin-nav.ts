@@ -1,4 +1,4 @@
-import { Building2, FileText, Wrench, CreditCard, Settings2, Wallet, Palette, TrendingUp, MessageCircle, Scale, ScanText, Users, LucideIcon } from 'lucide-react';
+import { Building2, FileText, Wrench, CreditCard, Settings2, Wallet, Palette, TrendingUp, MessageCircle, Scale, ScanText, Users, LucideIcon, Receipt } from 'lucide-react';
 
 export interface AdminNavLink {
   title: string;
@@ -38,6 +38,12 @@ export const adminNavLinks: AdminNavLink[] = [
     description: 'Monthly rent status',
     href: '/admin/revenue',
     icon: CreditCard,
+  },
+  {
+    title: 'Invoices',
+    description: 'Custom tenant charges',
+    href: '/admin/invoices',
+    icon: Receipt,
   },
   {
     title: 'Payouts',
