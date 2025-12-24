@@ -99,7 +99,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Only fetch landlords that have valid owner accounts
     const landlords = await prisma.landlord.findMany({
+      where: {
+        owner: {
+          isNot: null, // Only landlords with valid owner accounts
+        },
+      },
       include: {
         subscription: true,
         owner: { select: { email: true, name: true } },
@@ -118,7 +124,7 @@ export async function GET(request: NextRequest) {
       landlords: landlords.map(l => ({
         id: l.id,
         name: l.name,
-        email: l.owner?.email,
+        email: l.owner?.email || 'No email',
         currentTier: l.subscription?.tier || l.subscriptionTier || 'free',
         status: l.subscription?.status || l.subscriptionStatus || 'active',
         propertyCount: l._count.properties,

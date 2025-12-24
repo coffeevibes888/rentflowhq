@@ -514,11 +514,11 @@ export default function DocumentsClient({
               </p>
               <div className="flex items-center gap-2">
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-[140px] bg-slate-900 border-slate-700">
+                  <SelectTrigger className="w-[140px] bg-slate-900 border-slate-700 text-slate-200">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Filter" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-700">
+                  <SelectContent className="bg-slate-900 border-slate-700 text-slate-200">
                     <SelectItem value="all">All Types</SelectItem>
                     {SCANNED_CATEGORIES.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
@@ -611,10 +611,10 @@ export default function DocumentsClient({
                       value={uploadForm.type}
                       onValueChange={(value) => setUploadForm((prev) => ({ ...prev, type: value }))}
                     >
-                      <SelectTrigger className="bg-slate-800 border-slate-700">
+                      <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-200">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
                         {DOCUMENT_TYPES.map((type) => (
                           <SelectItem key={type.value} value={type.value}>
                             {type.label}
@@ -660,10 +660,10 @@ export default function DocumentsClient({
                     value={uploadForm.type}
                     onValueChange={(value) => setUploadForm((prev) => ({ ...prev, type: value }))}
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-700">
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-200">
                       <SelectValue placeholder="Auto-detect" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
                       {SCANNED_CATEGORIES.map((cat) => (
                         <SelectItem key={cat.value} value={cat.value}>
                           {cat.label}
@@ -680,10 +680,10 @@ export default function DocumentsClient({
                   value={uploadForm.propertyId || 'none'}
                   onValueChange={(value) => setUploadForm((prev) => ({ ...prev, propertyId: value === 'none' ? '' : value }))}
                 >
-                  <SelectTrigger className="bg-slate-800 border-slate-700">
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-200">
                     <SelectValue placeholder="Select property..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
                     <SelectItem value="none">No property</SelectItem>
                     {properties.map((prop) => (
                       <SelectItem key={prop.id} value={prop.id}>
@@ -729,10 +729,10 @@ export default function DocumentsClient({
               <div className="space-y-2">
                 <Label>Select Property</Label>
                 <Select value={assignPropertyId} onValueChange={setAssignPropertyId}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700">
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-200">
                     <SelectValue placeholder="Choose property..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
                     {properties.map((prop) => (
                       <SelectItem key={prop.id} value={prop.id}>
                         <div className="flex items-center gap-2">
@@ -847,17 +847,17 @@ function DocumentGrid({
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800">
+                  <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200">
                     {doc.fileUrl && (
                       <>
                         <DropdownMenuItem
                           onClick={() => window.open(doc.fileUrl!, '_blank')}
-                          className="cursor-pointer"
+                          className="cursor-pointer text-slate-200 focus:text-white focus:bg-slate-800"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer">
+                        <DropdownMenuItem asChild className="cursor-pointer text-slate-200 focus:text-white focus:bg-slate-800">
                           <a href={doc.fileUrl} download>
                             <Download className="h-4 w-4 mr-2" />
                             Download
@@ -866,14 +866,14 @@ function DocumentGrid({
                       </>
                     )}
                     {doc.type === 'lease' && (
-                      <DropdownMenuItem onClick={() => onAssign(doc)} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => onAssign(doc)} className="cursor-pointer text-slate-200 focus:text-white focus:bg-slate-800">
                         <Star className="h-4 w-4 mr-2" />
                         Set as Default
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem
                       onClick={() => onDelete(doc.id)}
-                      className="cursor-pointer text-red-400 focus:text-red-400"
+                      className="cursor-pointer text-red-400 focus:text-red-300 focus:bg-slate-800"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete
@@ -1007,15 +1007,15 @@ function ScannedDocumentGrid({
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800">
+                  <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200">
                     <DropdownMenuItem
                       onClick={() => window.open(doc.fileUrl, '_blank')}
-                      className="cursor-pointer"
+                      className="cursor-pointer text-slate-200 focus:text-white focus:bg-slate-800"
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer">
+                    <DropdownMenuItem asChild className="cursor-pointer text-slate-200 focus:text-white focus:bg-slate-800">
                       <a href={doc.fileUrl} download>
                         <Download className="h-4 w-4 mr-2" />
                         Download
@@ -1023,7 +1023,7 @@ function ScannedDocumentGrid({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onDelete(doc.id)}
-                      className="cursor-pointer text-red-400 focus:text-red-400"
+                      className="cursor-pointer text-red-400 focus:text-red-300 focus:bg-slate-800"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete

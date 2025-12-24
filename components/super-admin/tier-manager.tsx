@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -12,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Check, Loader2, Crown, Zap, Building2, DollarSign, X, Gift, Calendar } from 'lucide-react';
+import { Check, Loader2, Crown, Building2, DollarSign, X, Gift, Calendar, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Landlord {
@@ -49,10 +50,16 @@ export default function TierManager() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [revoking, setRevoking] = useState<string | null>(null);
-  const [selectedTiers, setSelectedTiers] = useState<Record<string, string>>({});
-  const [selectedDurations, setSelectedDurations] = useState<Record<string, string>>({});
   const [currentUserLandlordId, setCurrentUserLandlordId] = useState<string | null>(null);
   const [currentUserTier, setCurrentUserTier] = useState<string>('free');
+  
+  // Search and selection state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLandlordId, setSelectedLandlordId] = useState<string>('');
+  const [selectedTier, setSelectedTier] = useState<string>('pro');
+  const [selectedDuration, setSelectedDuration] = useState<string>('30');
+  const [showDropdown, setShowDropdown] = useState(false);
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -68,14 +75,6 @@ export default function TierManager() {
         setTiers(data.availableTiers);
         setCurrentUserLandlordId(data.currentUserLandlordId);
         setCurrentUserTier(data.currentUserTier);
-        const initial: Record<string, string> = {};
-        const initialDurations: Record<string, string> = {};
-        data.landlords.forEach((l: Landlord) => {
-          initial[l.id] = l.currentTier;
-          initialDurations[l.id] = '30';
-        });
-        setSelectedTiers(initial);
-        setSelectedDurations(initialDurations);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -85,24 +84,41 @@ export default function TierManager() {
     }
   };
 
-  const grantTier = async (landlordId: string) => {
-    const newTier = selectedTiers[landlordId];
-    const duration = parseInt(selectedDurations[landlordId] || '30');
-    const landlord = landlords.find(l => l.id === landlordId);
-    
-    if (!newTier) {
-      toast({ title: 'Info', description: 'Please select a tier' });
+  const selectedLandlord = useMemo(() => 
+    landlords.find(l => l.id === selectedLandlordId),
+    [landlords, selectedLandlordId]
+  );
+
+  const filteredLandlords = useMemo(() => {
+    if (!searchQuery.trim()) return landlords.slice(0, 10);
+    const query = searchQuery.toLowerCase();
+    return landlords.filter(l => 
+      l.name.toLowerCase().includes(query) || 
+      l.email.toLowerCase().includes(query)
+    ).slice(0, 10);
+  }, [landlords, searchQuery]);
+
+  const grantedLandlords = useMemo(() => 
+    landlords.filter(l => l.isGranted || (l.currentTier !== 'free' && !l.isCurrentUser)),
+    [landlords]
+  );
+
+  const grantTier = async () => {
+    if (!selectedLandlordId || !selectedTier) {
+      toast({ title: 'Error', description: 'Please select a landlord and tier' });
       return;
     }
 
-    setUpdating(landlordId);
+    const duration = parseInt(selectedDuration || '30');
+
+    setUpdating(selectedLandlordId);
     try {
       const res = await fetch('/api/super-admin/set-tier', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          landlordId, 
-          tier: newTier,
+          landlordId: selectedLandlordId, 
+          tier: selectedTier,
           durationDays: duration,
           isGrant: true,
         }),
@@ -117,14 +133,17 @@ export default function TierManager() {
         });
         setLandlords(prev =>
           prev.map(l =>
-            l.id === landlordId 
-              ? { ...l, currentTier: newTier, isGranted: true, periodEnd: data.periodEnd } 
+            l.id === selectedLandlordId 
+              ? { ...l, currentTier: selectedTier, isGranted: true, periodEnd: data.periodEnd } 
               : l
           )
         );
-        if (landlordId === currentUserLandlordId) {
-          setCurrentUserTier(newTier);
+        if (selectedLandlordId === currentUserLandlordId) {
+          setCurrentUserTier(selectedTier);
         }
+        // Reset selection
+        setSelectedLandlordId('');
+        setSearchQuery('');
       } else {
         toast({ title: 'Error', description: data.error || 'Failed to grant tier', variant: 'destructive' });
       }
@@ -160,7 +179,6 @@ export default function TierManager() {
               : l
           )
         );
-        setSelectedTiers(prev => ({ ...prev, [landlordId]: 'free' }));
         if (landlordId === currentUserLandlordId) {
           setCurrentUserTier('free');
         }
@@ -186,9 +204,6 @@ export default function TierManager() {
     if (isCurrentlyPro) {
       await revokeTier(currentUserLandlordId);
     } else {
-      setSelectedTiers(prev => ({ ...prev, [currentUserLandlordId]: 'enterprise' }));
-      setSelectedDurations(prev => ({ ...prev, [currentUserLandlordId]: '36500' }));
-      
       setUpdating(currentUserLandlordId);
       try {
         const res = await fetch('/api/super-admin/set-tier', {
@@ -309,162 +324,185 @@ export default function TierManager() {
         </CardContent>
       </Card>
 
-      {/* Landlord Tier Manager */}
+      {/* Grant Pro Access - Searchable */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Gift className="h-5 w-5 text-violet-500" />
-            Grant Pro Access to Landlords
+            Grant Pro Access
           </CardTitle>
           <CardDescription>
-            Assign Pro or Enterprise tiers to any landlord. Set duration and revoke anytime.
+            Search for a landlord and grant them Pro or Enterprise access.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {/* Tier Legend */}
-          <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
-            <h4 className="text-sm font-medium mb-3">Available Tiers</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {tiers.map((tier) => (
-                <div key={tier.id} className="flex items-center gap-2 text-sm">
-                  {getTierIcon(tier.id)}
-                  <span className="font-medium">{tier.name}</span>
-                  <span className="text-muted-foreground">
-                    {tier.price === null ? 'Custom' : tier.price === 0 ? 'Free' : `$${tier.price}/mo`}
-                  </span>
+        <CardContent className="space-y-4">
+          {/* Landlord Search */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Search Landlord</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                className="pl-10"
+              />
+              {showDropdown && (searchQuery || !selectedLandlordId) && (
+                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                  {filteredLandlords.length === 0 ? (
+                    <div className="p-3 text-sm text-muted-foreground">No landlords found</div>
+                  ) : (
+                    filteredLandlords.map((landlord) => (
+                      <button
+                        key={landlord.id}
+                        type="button"
+                        className="w-full px-3 py-2 text-left hover:bg-slate-100 flex items-center justify-between"
+                        onClick={() => {
+                          setSelectedLandlordId(landlord.id);
+                          setSearchQuery(landlord.name);
+                          setShowDropdown(false);
+                        }}
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{landlord.name}</p>
+                          <p className="text-xs text-muted-foreground">{landlord.email}</p>
+                        </div>
+                        <Badge variant="outline" className={`text-xs ${getTierBadgeColor(landlord.currentTier)}`}>
+                          {landlord.currentTier}
+                        </Badge>
+                      </button>
+                    ))
+                  )}
                 </div>
-              ))}
+              )}
+            </div>
+            {selectedLandlord && (
+              <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-md">
+                <Check className="h-4 w-4 text-emerald-500" />
+                <span className="text-sm">Selected: <strong>{selectedLandlord.name}</strong></span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 ml-auto"
+                  onClick={() => {
+                    setSelectedLandlordId('');
+                    setSearchQuery('');
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Tier and Duration Selection */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tier</label>
+              <Select value={selectedTier} onValueChange={setSelectedTier}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiers.filter(t => t.id !== 'free').map((tier) => (
+                    <SelectItem key={tier.id} value={tier.id}>
+                      <div className="flex items-center gap-2">
+                        {getTierIcon(tier.id)}
+                        {tier.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Duration</label>
+              <Select value={selectedDuration} onValueChange={setSelectedDuration}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DURATION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          {/* Landlords List */}
-          {landlords.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              No landlords found in the system.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {landlords.map((landlord) => (
+          <Button
+            onClick={grantTier}
+            disabled={!selectedLandlordId || updating === selectedLandlordId}
+            className="w-full bg-emerald-600 hover:bg-emerald-700"
+          >
+            {updating === selectedLandlordId ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Gift className="h-4 w-4 mr-2" />
+            )}
+            Grant {selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Access
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Active Granted Subscriptions */}
+      {grantedLandlords.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Active Granted Subscriptions</CardTitle>
+            <CardDescription>
+              Landlords with manually granted Pro/Enterprise access.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {grantedLandlords.map((landlord) => (
                 <div
                   key={landlord.id}
-                  className={`flex flex-col gap-3 p-4 border rounded-lg ${
-                    landlord.isCurrentUser ? 'border-amber-300 bg-amber-50/50' : ''
-                  }`}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-slate-50"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">{landlord.name}</span>
-                        {landlord.isCurrentUser && (
-                          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                            You
-                          </Badge>
-                        )}
-                        <Badge variant="outline" className={getTierBadgeColor(landlord.currentTier)}>
-                          {getTierIcon(landlord.currentTier)}
-                          <span className="ml-1">{landlord.currentTier}</span>
-                        </Badge>
-                        {landlord.isGranted && (
-                          <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs">
-                            <Gift className="h-3 w-3 mr-1" />
-                            Granted
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">{landlord.email}</p>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                        <span>{landlord.propertyCount} {landlord.propertyCount === 1 ? 'property' : 'properties'}</span>
-                        {landlord.periodEnd && (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Expires: {new Date(landlord.periodEnd).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="font-medium text-sm">{landlord.name}</p>
+                      <p className="text-xs text-muted-foreground">{landlord.email}</p>
                     </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                      value={selectedTiers[landlord.id] || landlord.currentTier}
-                      onValueChange={(value) =>
-                        setSelectedTiers((prev) => ({ ...prev, [landlord.id]: value }))
-                      }
-                    >
-                      <SelectTrigger className="w-[130px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {tiers.map((tier) => (
-                          <SelectItem key={tier.id} value={tier.id}>
-                            <div className="flex items-center gap-2">
-                              {getTierIcon(tier.id)}
-                              {tier.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select
-                      value={selectedDurations[landlord.id] || '30'}
-                      onValueChange={(value) =>
-                        setSelectedDurations((prev) => ({ ...prev, [landlord.id]: value }))
-                      }
-                    >
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DURATION_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Button
-                      size="sm"
-                      onClick={() => grantTier(landlord.id)}
-                      disabled={updating === landlord.id}
-                      className="bg-emerald-600 hover:bg-emerald-700"
-                    >
-                      {updating === landlord.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Gift className="h-4 w-4 mr-1" />
-                          Grant
-                        </>
-                      )}
-                    </Button>
-
-                    {(landlord.isGranted || landlord.currentTier !== 'free') && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => revokeTier(landlord.id)}
-                        disabled={revoking === landlord.id}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        {revoking === landlord.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <X className="h-4 w-4 mr-1" />
-                            Revoke
-                          </>
-                        )}
-                      </Button>
+                    <Badge variant="outline" className={getTierBadgeColor(landlord.currentTier)}>
+                      {getTierIcon(landlord.currentTier)}
+                      <span className="ml-1">{landlord.currentTier}</span>
+                    </Badge>
+                    {landlord.periodEnd && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(landlord.periodEnd).toLocaleDateString()}
+                      </span>
                     )}
                   </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => revokeTier(landlord.id)}
+                    disabled={revoking === landlord.id}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    {revoking === landlord.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <X className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Feature Reference */}
       <Card>
@@ -502,22 +540,10 @@ export default function TierManager() {
                   <td className="text-center py-2 px-2">✅</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-2 pr-4">Auto Late Fees</td>
-                  <td className="text-center py-2 px-2">❌</td>
-                  <td className="text-center py-2 px-2">✅</td>
-                  <td className="text-center py-2 px-2">✅</td>
-                </tr>
-                <tr className="border-b">
                   <td className="py-2 pr-4">Team Management</td>
                   <td className="text-center py-2 px-2">❌</td>
                   <td className="text-center py-2 px-2">✅</td>
                   <td className="text-center py-2 px-2">✅</td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 pr-4">Employment Verifications</td>
-                  <td className="text-center py-2 px-2">❌</td>
-                  <td className="text-center py-2 px-2">Unlimited</td>
-                  <td className="text-center py-2 px-2">Unlimited</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-2 pr-4">Custom Branding</td>
@@ -525,14 +551,8 @@ export default function TierManager() {
                   <td className="text-center py-2 px-2">❌</td>
                   <td className="text-center py-2 px-2">✅</td>
                 </tr>
-                <tr className="border-b">
-                  <td className="py-2 pr-4">API Access</td>
-                  <td className="text-center py-2 px-2">❌</td>
-                  <td className="text-center py-2 px-2">❌</td>
-                  <td className="text-center py-2 px-2">✅</td>
-                </tr>
                 <tr>
-                  <td className="py-2 pr-4">Webhooks</td>
+                  <td className="py-2 pr-4">API Access</td>
                   <td className="text-center py-2 px-2">❌</td>
                   <td className="text-center py-2 px-2">❌</td>
                   <td className="text-center py-2 px-2">✅</td>
