@@ -40,6 +40,14 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [justCompletedVerification, setJustCompletedVerification] = useState(false);
 
+  // Handle verification completion - refresh data from server
+  const handleVerificationComplete = () => {
+    setSelectedAppId(null);
+    setJustCompletedVerification(true);
+    // Refresh the page data from the server to get updated verification status
+    router.refresh();
+  };
+
   // Check if any application has documents uploaded (even if not verified yet)
   const hasUploadedDocuments = (app: Application) => {
     if (!app.verification) return false;
@@ -83,10 +91,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
         </Button>
         <VerificationWizard
           applicationId={selectedAppId}
-          onComplete={() => {
-            setSelectedAppId(null);
-            setJustCompletedVerification(true);
-          }}
+          onComplete={handleVerificationComplete}
         />
       </div>
     );
@@ -150,7 +155,10 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
                 </div>
 
                 <Button 
-                  onClick={() => setJustCompletedVerification(false)}
+                  onClick={() => {
+                    setJustCompletedVerification(false);
+                    router.refresh(); // Ensure fresh data is loaded
+                  }}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   View My Applications

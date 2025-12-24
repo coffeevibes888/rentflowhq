@@ -1,5 +1,6 @@
 import { uploadToCloudinary, getSignedCloudinaryUrl, cloudinary } from '@/lib/cloudinary';
 import { prisma as db } from '@/db/prisma';
+import { VerificationService } from './verification.service';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -109,6 +110,9 @@ export class DocumentService {
           dataRetentionExpiresAt,
         },
       });
+
+      // Update the ApplicationVerification status after document upload
+      await VerificationService.updateVerificationStatus(params.applicationId);
 
       return {
         id: document.id,
