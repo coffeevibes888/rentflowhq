@@ -677,14 +677,14 @@ export default function DocumentsClient({
               <div className="space-y-2">
                 <Label>Assign to Property (Optional)</Label>
                 <Select
-                  value={uploadForm.propertyId}
-                  onValueChange={(value) => setUploadForm((prev) => ({ ...prev, propertyId: value }))}
+                  value={uploadForm.propertyId || 'none'}
+                  onValueChange={(value) => setUploadForm((prev) => ({ ...prev, propertyId: value === 'none' ? '' : value }))}
                 >
                   <SelectTrigger className="bg-slate-800 border-slate-700">
                     <SelectValue placeholder="Select property..." />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="">No property</SelectItem>
+                    <SelectItem value="none">No property</SelectItem>
                     {properties.map((prop) => (
                       <SelectItem key={prop.id} value={prop.id}>
                         {prop.name}

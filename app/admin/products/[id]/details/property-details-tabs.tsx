@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation';
 import { 
   Building2, Users, FileText, Wrench, DollarSign, Download, 
   ChevronRight, Phone, Mail, Calendar, AlertCircle,
-  Clock, Home, FileSignature, BarChart3, X, Bell, Plus, Receipt, TrendingUp
+  Clock, Home, FileSignature, BarChart3, X, Bell, Plus, Receipt, TrendingUp,
+  FileSpreadsheet, Loader2, PieChart
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,13 +34,15 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { PropertyZillowData } from '@/components/admin/property-zillow-data';
 import CashoutDialog from '@/components/admin/cashout-dialog';
-import { ArrowDownToLine, Wallet } from 'lucide-react';
+import { ArrowDownToLine } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface CashoutInfo {
   canCashOut: boolean;
@@ -63,10 +66,17 @@ interface PropertyDetailsTabsProps {
 
 export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro = false, cashoutInfo }: PropertyDetailsTabsProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedQuarter, setSelectedQuarter] = useState<number | null>(null);
   const [viewingLease, setViewingLease] = useState<any | null>(null);
   const [showCashoutDialog, setShowCashoutDialog] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
+  const [showInvestorReport, setShowInvestorReport] = useState(false);
+  const [investorReportData, setInvestorReportData] = useState<any>(null);
+  const [loadingReport, setLoadingReport] = useState(false);
   
   // Expense dialog state
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
@@ -76,6 +86,105 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
   const [expenseDescription, setExpenseDescription] = useState('');
   const [expenseIsRecurring, setExpenseIsRecurring] = useState(false);
   const [expenseSubmitting, setExpenseSubmitting] = useState(false);
+
+  // Export handlers
+  const handleExportCSV = async () => {
+    setExportingCsv(true);
+    try {
+      const params = new URLSearchParams({
+        propertyId: property.id,
+        year: selectedYear.toString(),
+        period: selectedQuarter ? 'quarterly' : 'yearly',
+        format: 'csv',
+      });
+      if (selectedQuarter) params.append('quarter', selectedQuarter.toString());
+
+      const res = await fetch(`/api/reports/financial?${params}`);
+      if (!res.ok) throw new Error('Export failed');
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `financial-report-${selectedYear}${selectedQuarter ? `-Q${selectedQuarter}` : ''}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({ title: 'CSV exported successfully' });
+    } catch (error) {
+      toast({ title: 'Export failed', variant: 'destructive' });
+    } finally {
+      setExportingCsv(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setExportingPdf(true);
+    try {
+      // First get the investor report data
+      const params = new URLSearchParams({
+        propertyId: property.id,
+        year: selectedYear.toString(),
+        period: selectedQuarter ? 'quarterly' : 'yearly',
+      });
+      if (selectedQuarter) params.append('quarter', selectedQuarter.toString());
+
+      const dataRes = await fetch(`/api/reports/investor?${params}`);
+      if (!dataRes.ok) throw new Error('Failed to get report data');
+      const reportData = await dataRes.json();
+
+      // Then generate PDF
+      const pdfRes = await fetch('/api/reports/investor/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportData, format: 'pdf' }),
+      });
+
+      if (!pdfRes.ok) throw new Error('PDF generation failed');
+      
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `investor-report-${selectedYear}${selectedQuarter ? `-Q${selectedQuarter}` : ''}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({ title: 'PDF exported successfully' });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({ title: 'Export failed', variant: 'destructive' });
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const handleViewInvestorReport = async (period: 'quarterly' | 'yearly', quarter?: number) => {
+    setLoadingReport(true);
+    try {
+      const params = new URLSearchParams({
+        propertyId: property.id,
+        year: selectedYear.toString(),
+        period,
+      });
+      if (quarter) params.append('quarter', quarter.toString());
+
+      const res = await fetch(`/api/reports/investor?${params}`);
+      if (!res.ok) throw new Error('Failed to load report');
+      
+      const data = await res.json();
+      setInvestorReportData(data);
+      setShowInvestorReport(true);
+    } catch (error) {
+      toast({ title: 'Failed to load report', variant: 'destructive' });
+    } finally {
+      setLoadingReport(false);
+    }
+  };
 
   // Aggregate data
   const allTickets = property.units.flatMap((u: any) => u.tickets);
@@ -472,57 +581,149 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
           {/* FINANCIALS TAB */}
           <TabsContent value="financials" className="mt-6">
             <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
-              {/* Year Selector - Horizontal scroll on mobile, vertical on desktop */}
-              <Card className="border-white/10 bg-slate-900/60 h-fit">
-                <CardHeader className="pb-2 lg:pb-4">
-                  <CardTitle className="text-white text-lg">Tax Years</CardTitle>
-                </CardHeader>
-                <CardContent className="p-2 lg:p-4">
-                  <div className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 lg:overflow-visible">
-                    {years.map(year => (
-                      <button
-                        key={year}
-                        onClick={() => setSelectedYear(year)}
-                        className={`flex-shrink-0 text-left px-4 py-2 lg:py-3 rounded-lg transition-colors ${
-                          selectedYear === year 
-                            ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white' 
-                            : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-                        }`}
+              {/* Year & Quarter Selector */}
+              <div className="space-y-4">
+                <Card className="border-white/10 bg-slate-900/60 h-fit">
+                  <CardHeader className="pb-2 lg:pb-4">
+                    <CardTitle className="text-white text-lg">Tax Years</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2 lg:p-4">
+                    <div className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 lg:overflow-visible">
+                      {years.map(year => (
+                        <button
+                          key={year}
+                          onClick={() => { setSelectedYear(year); setSelectedQuarter(null); }}
+                          className={`flex-shrink-0 text-left px-4 py-2 lg:py-3 rounded-lg transition-colors ${
+                            selectedYear === year && !selectedQuarter
+                              ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white' 
+                              : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium">{year}</span>
+                            <ChevronRight className="w-4 h-4 hidden lg:block" />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Quarterly Reports */}
+                <Card className="border-white/10 bg-slate-900/60 h-fit">
+                  <CardHeader className="pb-2 lg:pb-4">
+                    <CardTitle className="text-white text-lg flex items-center gap-2">
+                      <PieChart className="w-4 h-4" />
+                      Quarterly
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2 lg:p-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                      {[1, 2, 3, 4].map(q => (
+                        <button
+                          key={q}
+                          onClick={() => setSelectedQuarter(q)}
+                          className={`text-left px-3 py-2 rounded-lg transition-colors text-sm ${
+                            selectedQuarter === q
+                              ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' 
+                              : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+                          }`}
+                        >
+                          Q{q} {selectedYear}
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Investor Reports */}
+                <Card className="border-violet-500/30 bg-gradient-to-br from-violet-900/40 to-purple-900/40 h-fit">
+                  <CardHeader className="pb-2 lg:pb-4">
+                    <CardTitle className="text-white text-lg flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-violet-400" />
+                      Investor Reports
+                    </CardTitle>
+                    <CardDescription className="text-violet-200/70 text-xs">
+                      Professional reports with charts
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-2 lg:p-4 space-y-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-violet-400/30 text-violet-200 hover:bg-violet-500/20 justify-start"
+                      onClick={() => handleViewInvestorReport('yearly')}
+                      disabled={loadingReport}
+                    >
+                      {loadingReport ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+                      {selectedYear} Annual Report
+                    </Button>
+                    {selectedQuarter && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-violet-400/30 text-violet-200 hover:bg-violet-500/20 justify-start"
+                        onClick={() => handleViewInvestorReport('quarterly', selectedQuarter)}
+                        disabled={loadingReport}
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium">{year}</span>
-                          <ChevronRight className="w-4 h-4 hidden lg:block" />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                        {loadingReport ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+                        Q{selectedQuarter} {selectedYear} Report
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
 
               {/* Financial Summary */}
               <div className="space-y-6">
                 <Card className="border-white/10 bg-slate-900/60">
                   <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <CardTitle className="text-white">{selectedYear} Financial Summary</CardTitle>
+                      <CardTitle className="text-white">
+                        {selectedQuarter ? `Q${selectedQuarter} ` : ''}{selectedYear} Financial Summary
+                      </CardTitle>
                       <CardDescription className="text-slate-400">
-                        Income and expenses for tax reporting
+                        Income and expenses for {selectedQuarter ? 'quarterly' : 'tax'} reporting
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="border-white/10 bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm">
-                        <Download className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Export</span> PDF
-                      </Button>
-                      <Button variant="outline" size="sm" className="border-white/10 bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm">
-                        <Download className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Export</span> CSV
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="border-white/10 bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm">
+                            {exportingPdf || exportingCsv ? (
+                              <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
+                            ) : (
+                              <Download className="w-4 h-4 sm:mr-2" />
+                            )}
+                            <span className="hidden sm:inline">Export</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700">
+                          <DropdownMenuItem onClick={handleExportPDF} disabled={exportingPdf} className="cursor-pointer">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Export as PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleExportCSV} disabled={exportingCsv} className="cursor-pointer">
+                            <FileSpreadsheet className="w-4 h-4 mr-2" />
+                            Export as CSV
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleViewInvestorReport(selectedQuarter ? 'quarterly' : 'yearly', selectedQuarter || undefined)} 
+                            disabled={loadingReport}
+                            className="cursor-pointer"
+                          >
+                            <PieChart className="w-4 h-4 mr-2" />
+                            View Investor Report
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <FinancialSummary 
                       year={selectedYear} 
+                      quarter={selectedQuarter}
                       rentPayments={rentPayments} 
                       expenses={property.expenses}
                     />
@@ -532,11 +733,14 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                 {/* Monthly Breakdown */}
                 <Card className="border-white/10 bg-slate-900/60">
                   <CardHeader>
-                    <CardTitle className="text-white">Monthly Breakdown - {selectedYear}</CardTitle>
+                    <CardTitle className="text-white">
+                      Monthly Breakdown - {selectedQuarter ? `Q${selectedQuarter} ` : ''}{selectedYear}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <MonthlyBreakdown 
-                      year={selectedYear} 
+                      year={selectedYear}
+                      quarter={selectedQuarter}
                       rentPayments={rentPayments}
                       expenses={property.expenses}
                     />
@@ -547,6 +751,18 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Investor Report Modal */}
+      {showInvestorReport && investorReportData && (
+        <InvestorReportModal
+          data={investorReportData}
+          onClose={() => { setShowInvestorReport(false); setInvestorReportData(null); }}
+          onExportPdf={handleExportPDF}
+          onExportCsv={handleExportCSV}
+          exportingPdf={exportingPdf}
+          exportingCsv={exportingCsv}
+        />
+      )}
 
       {/* Lease Viewer Modal */}
       {viewingLease && (
@@ -1028,27 +1244,42 @@ function LeaseViewerModal({ lease, onClose }: { lease: any; onClose: () => void 
 
 // Financial Summary Component
 function FinancialSummary({ 
-  year, 
+  year,
+  quarter,
   rentPayments, 
   expenses 
 }: { 
-  year: number; 
+  year: number;
+  quarter?: number | null;
   rentPayments: any[]; 
   expenses: any[];
 }) {
-  const yearPayments = rentPayments.filter(p => new Date(p.dueDate).getFullYear() === year);
-  const yearExpenses = expenses.filter((e: any) => new Date(e.date).getFullYear() === year);
+  // Filter by year and optionally by quarter
+  const filterByPeriod = (date: Date) => {
+    if (date.getFullYear() !== year) return false;
+    if (quarter) {
+      const month = date.getMonth();
+      const quarterStart = (quarter - 1) * 3;
+      const quarterEnd = quarterStart + 2;
+      return month >= quarterStart && month <= quarterEnd;
+    }
+    return true;
+  };
+
+  const periodPayments = rentPayments.filter(p => filterByPeriod(new Date(p.dueDate)));
+  const periodExpenses = expenses.filter((e: any) => filterByPeriod(new Date(e.incurredAt || e.date || e.createdAt)));
   
-  const totalIncome = yearPayments
+  const totalIncome = periodPayments
     .filter(p => p.status === 'paid')
-    .reduce((sum, p) => sum + p.amount, 0);
+    .reduce((sum, p) => sum + Number(p.amount), 0);
   
-  const totalExpenses = yearExpenses.reduce((sum: number, e: any) => sum + e.amount, 0);
+  const totalExpenses = periodExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
   const netIncome = totalIncome - totalExpenses;
 
   // Group expenses by category
-  const expensesByCategory = yearExpenses.reduce((acc: Record<string, number>, e: any) => {
-    acc[e.category] = (acc[e.category] || 0) + e.amount;
+  const expensesByCategory = periodExpenses.reduce((acc: Record<string, number>, e: any) => {
+    const cat = e.category || 'other';
+    acc[cat] = (acc[cat] || 0) + Number(e.amount);
     return acc;
   }, {});
 
@@ -1059,12 +1290,12 @@ function FinancialSummary({
         <div className="rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 p-4">
           <p className="text-xs text-emerald-100 uppercase tracking-wide">Total Income</p>
           <p className="text-2xl font-bold text-white">{formatCurrency(totalIncome)}</p>
-          <p className="text-xs text-emerald-100">{yearPayments.filter(p => p.status === 'paid').length} payments received</p>
+          <p className="text-xs text-emerald-100">{periodPayments.filter(p => p.status === 'paid').length} payments received</p>
         </div>
         <div className="rounded-xl bg-gradient-to-r from-red-600 to-red-500 p-4">
           <p className="text-xs text-red-100 uppercase tracking-wide">Total Expenses</p>
           <p className="text-2xl font-bold text-white">{formatCurrency(totalExpenses)}</p>
-          <p className="text-xs text-red-100">{yearExpenses.length} expenses recorded</p>
+          <p className="text-xs text-red-100">{periodExpenses.length} expenses recorded</p>
         </div>
         <div className={`rounded-xl p-4 ${netIncome >= 0 ? 'bg-gradient-to-r from-blue-600 to-cyan-500' : 'bg-gradient-to-r from-amber-600 to-orange-500'}`}>
           <p className="text-xs text-white/80 uppercase tracking-wide">Net Income</p>
@@ -1093,35 +1324,43 @@ function FinancialSummary({
 
 // Monthly Breakdown Component
 function MonthlyBreakdown({ 
-  year, 
+  year,
+  quarter,
   rentPayments, 
   expenses 
 }: { 
-  year: number; 
+  year: number;
+  quarter?: number | null;
   rentPayments: any[]; 
   expenses: any[];
 }) {
-  const months = [
+  const allMonths = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const monthlyData = months.map((month, index) => {
+  // Filter months based on quarter
+  const startMonth = quarter ? (quarter - 1) * 3 : 0;
+  const endMonth = quarter ? startMonth + 2 : 11;
+  const months = allMonths.slice(startMonth, endMonth + 1);
+
+  const monthlyData = months.map((month, idx) => {
+    const index = startMonth + idx;
     const monthPayments = rentPayments.filter(p => {
       const date = new Date(p.dueDate);
       return date.getFullYear() === year && date.getMonth() === index;
     });
     
     const monthExpenses = expenses.filter((e: any) => {
-      const date = new Date(e.date);
+      const date = new Date(e.incurredAt || e.date || e.createdAt);
       return date.getFullYear() === year && date.getMonth() === index;
     });
 
     const income = monthPayments
       .filter(p => p.status === 'paid')
-      .reduce((sum, p) => sum + p.amount, 0);
+      .reduce((sum, p) => sum + Number(p.amount), 0);
     
-    const expenseTotal = monthExpenses.reduce((sum: number, e: any) => sum + e.amount, 0);
+    const expenseTotal = monthExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
 
     return {
       month,
@@ -1176,6 +1415,332 @@ function MonthlyBreakdown({
           </tr>
         </tfoot>
       </table>
+    </div>
+  );
+}
+
+
+// Investor Report Modal Component
+function InvestorReportModal({ 
+  data, 
+  onClose, 
+  onExportPdf, 
+  onExportCsv,
+  exportingPdf,
+  exportingCsv
+}: { 
+  data: any; 
+  onClose: () => void;
+  onExportPdf: () => void;
+  onExportCsv: () => void;
+  exportingPdf: boolean;
+  exportingCsv: boolean;
+}) {
+  const { executiveSummary, portfolio, propertyPerformance, charts, collectionSummary, leaseSummary } = data;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-violet-500/30 bg-slate-900 shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-white/10 bg-gradient-to-r from-violet-900 to-purple-900">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Investor Report</h2>
+            <p className="text-sm text-violet-200">{data.periodLabel}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExportCsv}
+              disabled={exportingCsv}
+              className="border-violet-400/30 text-violet-200 hover:bg-violet-500/20"
+            >
+              {exportingCsv ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
+              CSV
+            </Button>
+            <Button
+              onClick={onExportPdf}
+              disabled={exportingPdf}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:opacity-90"
+            >
+              {exportingPdf ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+              Download PDF
+            </Button>
+            <button 
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Executive Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-5">
+              <p className="text-xs text-emerald-100 uppercase tracking-wide mb-1">Total Income</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(executiveSummary.totalIncome)}</p>
+              <p className={`text-sm mt-2 ${parseFloat(executiveSummary.incomeGrowth) >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>
+                {parseFloat(executiveSummary.incomeGrowth) >= 0 ? '▲' : '▼'} {executiveSummary.incomeGrowth}% vs prior period
+              </p>
+            </div>
+            <div className="rounded-xl bg-gradient-to-br from-red-600 to-red-700 p-5">
+              <p className="text-xs text-red-100 uppercase tracking-wide mb-1">Total Expenses</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(executiveSummary.totalExpenses)}</p>
+              <p className={`text-sm mt-2 ${parseFloat(executiveSummary.expenseGrowth) <= 0 ? 'text-emerald-200' : 'text-red-200'}`}>
+                {parseFloat(executiveSummary.expenseGrowth) >= 0 ? '▲' : '▼'} {executiveSummary.expenseGrowth}% vs prior period
+              </p>
+            </div>
+            <div className="rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 p-5">
+              <p className="text-xs text-violet-100 uppercase tracking-wide mb-1">Net Operating Income</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(executiveSummary.netOperatingIncome)}</p>
+              <p className={`text-sm mt-2 ${parseFloat(executiveSummary.netGrowth) >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>
+                {parseFloat(executiveSummary.netGrowth) >= 0 ? '▲' : '▼'} {executiveSummary.netGrowth}% vs prior period
+              </p>
+            </div>
+          </div>
+
+          {/* Portfolio Overview */}
+          <Card className="border-white/10 bg-slate-800/60">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-violet-400" />
+                Portfolio Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 rounded-lg bg-slate-900/60">
+                  <p className="text-3xl font-bold text-white">{portfolio.propertyCount}</p>
+                  <p className="text-xs text-slate-400 uppercase">Properties</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-slate-900/60">
+                  <p className="text-3xl font-bold text-white">{portfolio.totalUnits}</p>
+                  <p className="text-xs text-slate-400 uppercase">Total Units</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-slate-900/60">
+                  <p className="text-3xl font-bold text-emerald-400">{portfolio.occupancyRate}%</p>
+                  <p className="text-xs text-slate-400 uppercase">Occupancy</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-slate-900/60">
+                  <p className="text-3xl font-bold text-cyan-400">{formatCurrency(portfolio.avgRentPerUnit)}</p>
+                  <p className="text-xs text-slate-400 uppercase">Avg Rent/Unit</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Monthly Trend Chart */}
+          <Card className="border-white/10 bg-slate-800/60">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-violet-400" />
+                Monthly Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-48 flex items-end gap-2">
+                {charts.monthlyTrend.map((m: any, i: number) => {
+                  const maxVal = Math.max(...charts.monthlyTrend.map((x: any) => Math.max(x.income, x.expenses)), 1);
+                  const incomeHeight = (m.income / maxVal) * 100;
+                  const expenseHeight = (m.expenses / maxVal) * 100;
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="flex gap-1 items-end h-36 w-full justify-center">
+                        <div 
+                          className="w-3 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t"
+                          style={{ height: `${incomeHeight}%`, minHeight: m.income > 0 ? '4px' : '0' }}
+                          title={`Income: ${formatCurrency(m.income)}`}
+                        />
+                        <div 
+                          className="w-3 bg-gradient-to-t from-red-600 to-red-400 rounded-t"
+                          style={{ height: `${expenseHeight}%`, minHeight: m.expenses > 0 ? '4px' : '0' }}
+                          title={`Expenses: ${formatCurrency(m.expenses)}`}
+                        />
+                      </div>
+                      <span className="text-[10px] text-slate-400">{m.month}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex justify-center gap-6 mt-4 text-xs">
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-emerald-500" />
+                  Income
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-red-500" />
+                  Expenses
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Collection & Lease Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Collection Summary */}
+            <Card className="border-white/10 bg-slate-800/60">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-emerald-400" />
+                  Rent Collection
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Total Due</span>
+                  <span className="text-white font-medium">{formatCurrency(collectionSummary.totalDue)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Collected</span>
+                  <span className="text-emerald-400 font-medium">{formatCurrency(collectionSummary.collected)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Outstanding</span>
+                  <span className="text-red-400 font-medium">{formatCurrency(collectionSummary.outstanding)}</span>
+                </div>
+                <div className="pt-2">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-slate-400">Collection Rate</span>
+                    <span className="text-white">{collectionSummary.collectionRate}%</span>
+                  </div>
+                  <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all"
+                      style={{ width: `${collectionSummary.collectionRate}%` }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Lease Summary */}
+            <Card className="border-white/10 bg-slate-800/60">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <FileSignature className="w-5 h-5 text-violet-400" />
+                  Lease Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-sm">Active Leases</span>
+                  <Badge className="bg-emerald-500/20 text-emerald-300">{leaseSummary.activeLeases}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-sm">Expiring in 30 days</span>
+                  <Badge className={leaseSummary.expiringIn30Days > 0 ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-500/20 text-slate-300'}>
+                    {leaseSummary.expiringIn30Days}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-sm">Expiring in 90 days</span>
+                  <Badge className="bg-blue-500/20 text-blue-300">{leaseSummary.expiringIn90Days}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-sm">Month-to-Month</span>
+                  <Badge className="bg-violet-500/20 text-violet-300">{leaseSummary.monthToMonth}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Expense Breakdown */}
+          {charts.expenseBreakdown && charts.expenseBreakdown.length > 0 && (
+            <Card className="border-white/10 bg-slate-800/60">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <PieChart className="w-5 h-5 text-violet-400" />
+                  Expense Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {charts.expenseBreakdown.map((e: any, i: number) => {
+                    const colors = ['bg-violet-500', 'bg-purple-500', 'bg-pink-500', 'bg-amber-500', 'bg-emerald-500', 'bg-blue-500', 'bg-red-500', 'bg-slate-500'];
+                    return (
+                      <div key={i} className="p-3 rounded-lg bg-slate-900/60 flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded ${colors[i % colors.length]}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-white font-medium truncate">{e.category}</p>
+                          <p className="text-xs text-slate-400">{formatCurrency(e.amount)} ({e.percentage}%)</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Property Performance Table */}
+          <Card className="border-white/10 bg-slate-800/60">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-violet-400" />
+                Property Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-2 text-slate-400 font-medium">Property</th>
+                      <th className="text-center py-3 px-2 text-slate-400 font-medium">Units</th>
+                      <th className="text-center py-3 px-2 text-slate-400 font-medium">Occupancy</th>
+                      <th className="text-right py-3 px-2 text-slate-400 font-medium">Income</th>
+                      <th className="text-right py-3 px-2 text-slate-400 font-medium">Expenses</th>
+                      <th className="text-right py-3 px-2 text-slate-400 font-medium">NOI</th>
+                      <th className="text-center py-3 px-2 text-slate-400 font-medium">Collection</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {propertyPerformance.map((p: any) => (
+                      <tr key={p.id} className="border-b border-white/5 hover:bg-white/5">
+                        <td className="py-3 px-2">
+                          <p className="text-white font-medium">{p.name}</p>
+                          <p className="text-xs text-slate-500">{p.address}</p>
+                        </td>
+                        <td className="py-3 px-2 text-center text-white">{p.units}</td>
+                        <td className="py-3 px-2 text-center">
+                          <Badge className={p.occupancyRate >= 90 ? 'bg-emerald-500/20 text-emerald-300' : p.occupancyRate >= 70 ? 'bg-amber-500/20 text-amber-300' : 'bg-red-500/20 text-red-300'}>
+                            {p.occupancyRate}%
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-2 text-right text-emerald-400">{formatCurrency(p.income)}</td>
+                        <td className="py-3 px-2 text-right text-red-400">{formatCurrency(p.expenses)}</td>
+                        <td className={`py-3 px-2 text-right font-medium ${p.noi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {formatCurrency(p.noi)}
+                        </td>
+                        <td className="py-3 px-2 text-center">
+                          <Badge className={p.collectionRate >= 95 ? 'bg-emerald-500/20 text-emerald-300' : p.collectionRate >= 80 ? 'bg-amber-500/20 text-amber-300' : 'bg-red-500/20 text-red-300'}>
+                            {p.collectionRate}%
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Footer */}
+          <div className="text-center text-xs text-slate-500 pt-4 border-t border-white/10">
+            <p>Report generated on {new Date(data.generatedAt).toLocaleString()}</p>
+            <p>Prepared by {data.preparedBy} • Confidential</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

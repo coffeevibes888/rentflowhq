@@ -80,7 +80,7 @@ export async function GET(
 
   if (hasCustomDocument) {
     // Return info for custom PDF signing
-    const fields = (legalDoc.signatureFields as SignatureFieldPosition[]) || [];
+    const fields = (legalDoc.signatureFields as unknown as SignatureFieldPosition[]) || [];
     const roleFields = fields.filter(f => f.role === sig.role);
 
     return NextResponse.json({
@@ -234,7 +234,7 @@ export async function POST(
     console.log('Using custom PDF document for signing');
     try {
       const pdfBuffer = await fetchPdfBuffer(legalDoc.fileUrl!);
-      const fields = (legalDoc.signatureFields as SignatureFieldPosition[]) || [];
+      const fields = (legalDoc.signatureFields as unknown as SignatureFieldPosition[]) || [];
 
       stamped = await applySignaturesToPdf({
         pdfBuffer,
