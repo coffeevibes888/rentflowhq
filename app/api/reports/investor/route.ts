@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const landlord = await prisma.landlord.findFirst({
       where: { ownerUserId: session.user.id },
       include: {
-        user: {
+        owner: {
           select: {
             name: true,
             email: true,
@@ -58,6 +58,68 @@ export async function GET(req: NextRequest) {
         expenses: true,
       },
     });
+
+    if (properties.length === 0) {
+      // Return empty report structure instead of error
+      return NextResponse.json({
+        reportType: 'investor',
+        period,
+        periodLabel: quarter ? `Q${quarter} ${year}` : `${year}`,
+        quarter,
+        year,
+        generatedAt: new Date().toISOString(),
+        preparedBy: landlord.owner?.name || landlord.name || 'Property Manager',
+        executiveSummary: {
+          totalIncome: 0,
+          totalExpenses: 0,
+          netOperatingIncome: 0,
+          incomeGrowth: '0',
+          expenseGrowth: '0',
+          netGrowth: '0',
+          previousPeriodIncome: 0,
+          previousPeriodExpenses: 0,
+          previousPeriodNet: 0,
+        },
+        portfolio: {
+          propertyCount: 0,
+          totalUnits: 0,
+          occupiedUnits: 0,
+          vacantUnits: 0,
+          occupancyRate: '0',
+          avgRentPerUnit: 0,
+        },
+        metrics: {
+          grossYield: '0',
+          operatingExpenseRatio: '0',
+          cashOnCashReturn: 'N/A',
+          capRate: 'N/A',
+        },
+        propertyPerformance: [],
+        topProperties: [],
+        charts: {
+          monthlyTrend: [],
+          expenseBreakdown: [],
+          incomeVsExpenses: [],
+          occupancyTrend: [],
+        },
+        collectionSummary: {
+          totalDue: 0,
+          collected: 0,
+          outstanding: 0,
+          collectionRate: 100,
+        },
+        leaseSummary: {
+          activeLeases: 0,
+          expiringIn30Days: 0,
+          expiringIn90Days: 0,
+          monthToMonth: 0,
+        },
+        transactions: {
+          incomeCount: 0,
+          expenseCount: 0,
+        },
+      });
+    }
 
     // Calculate date ranges
     let startDate: Date, endDate: Date, periodLabel: string;
@@ -199,7 +261,7 @@ function generateInvestorReport(
     quarter,
     year: startDate.getFullYear(),
     generatedAt: new Date().toISOString(),
-    preparedBy: landlord.user?.name || 'Property Manager',
+    preparedBy: landlord.owner?.name || landlord.name || 'Property Manager',
     
     // Executive Summary
     executiveSummary: {

@@ -21,22 +21,27 @@ export async function POST(req: NextRequest) {
       return new NextResponse(csv, {
         headers: {
           'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="investor-report-${reportData.periodLabel.replace(/\s+/g, '-')}.csv"`,
+          'Content-Disposition': `attachment; filename="investor-report-${(reportData.periodLabel || 'report').replace(/\s+/g, '-')}.csv"`,
         },
       });
     }
 
     // Generate PDF
+    console.log('Generating investor report PDF...');
     const pdfBuffer = await generateInvestorReportPdf(reportData);
+    console.log('PDF generated, size:', pdfBuffer.length, 'bytes');
 
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="investor-report-${reportData.periodLabel.replace(/\s+/g, '-')}.pdf"`,
+        'Content-Disposition': `attachment; filename="investor-report-${(reportData.periodLabel || 'report').replace(/\s+/g, '-')}.pdf"`,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('PDF generation error:', error);
-    return NextResponse.json({ message: 'Failed to generate PDF' }, { status: 500 });
+    return NextResponse.json({ 
+      message: error?.message || 'Failed to generate PDF',
+      details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+    }, { status: 500 });
   }
 }

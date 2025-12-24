@@ -698,20 +698,20 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                             <span className="hidden sm:inline">Export</span>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700">
-                          <DropdownMenuItem onClick={handleExportPDF} disabled={exportingPdf} className="cursor-pointer">
+                        <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-white">
+                          <DropdownMenuItem onClick={handleExportPDF} disabled={exportingPdf} className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white">
                             <FileText className="w-4 h-4 mr-2" />
                             Export as PDF
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleExportCSV} disabled={exportingCsv} className="cursor-pointer">
+                          <DropdownMenuItem onClick={handleExportCSV} disabled={exportingCsv} className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white">
                             <FileSpreadsheet className="w-4 h-4 mr-2" />
                             Export as CSV
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                          <DropdownMenuSeparator className="bg-slate-700" />
                           <DropdownMenuItem 
                             onClick={() => handleViewInvestorReport(selectedQuarter ? 'quarterly' : 'yearly', selectedQuarter || undefined)} 
                             disabled={loadingReport}
-                            className="cursor-pointer"
+                            className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
                           >
                             <PieChart className="w-4 h-4 mr-2" />
                             View Investor Report

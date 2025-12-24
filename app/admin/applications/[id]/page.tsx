@@ -548,12 +548,43 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                             signatureFields: true,
                           },
                         },
+                        landlord: {
+                          select: { id: true },
+                        },
                       },
                     });
 
-                    const legalDocumentId = propertyWithLease?.defaultLeaseDocument?.isFieldsConfigured
-                      ? propertyWithLease.defaultLeaseDocument.id
-                      : null;
+                    // First try property's default lease, then fall back to any configured lease from landlord
+                    let legalDocumentId: string | null = null;
+                    let leaseDocument: { id: string; name: string; isFieldsConfigured: boolean; signatureFields: any } | null = null;
+
+                    if (propertyWithLease?.defaultLeaseDocument?.isFieldsConfigured) {
+                      // Use property's default lease
+                      legalDocumentId = propertyWithLease.defaultLeaseDocument.id;
+                      leaseDocument = propertyWithLease.defaultLeaseDocument;
+                    } else if (propertyWithLease?.landlord?.id) {
+                      // Fall back to any configured lease document from the landlord
+                      const fallbackLease = await tx.legalDocument.findFirst({
+                        where: {
+                          landlordId: propertyWithLease.landlord.id,
+                          type: 'lease',
+                          isFieldsConfigured: true,
+                          isActive: true,
+                        },
+                        select: {
+                          id: true,
+                          name: true,
+                          isFieldsConfigured: true,
+                          signatureFields: true,
+                        },
+                        orderBy: { createdAt: 'desc' }, // Use most recent
+                      });
+
+                      if (fallbackLease) {
+                        legalDocumentId = fallbackLease.id;
+                        leaseDocument = fallbackLease;
+                      }
+                    }
 
                     const lease = await tx.lease.create({
                       data: {
@@ -569,7 +600,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                     });
 
                     // Create signature request for tenant if we have a configured lease document
-                    if (legalDocumentId && propertyWithLease?.defaultLeaseDocument) {
+                    if (legalDocumentId && leaseDocument) {
                       const crypto = await import('crypto');
                       const tenantToken = crypto.randomBytes(24).toString('hex');
                       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
