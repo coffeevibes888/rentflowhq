@@ -32,6 +32,12 @@ export async function getSuperAdminInsights() {
     const startOfMonth = new Date(startOfDay.getFullYear(), startOfDay.getMonth(), 1);
     const startOfYear = new Date(startOfDay.getFullYear(), 0, 1);
 
+    // Calculate 7 days ago and 30 days ago for recent signups
+    const sevenDaysAgo = new Date(startOfDay);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const thirtyDaysAgo = new Date(startOfDay);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const [
       landlords,
       properties,
@@ -41,6 +47,15 @@ export async function getSuperAdminInsights() {
       rentPayments,
       platformFees,
       subscriptionEvents,
+      // New queries for enhanced dashboard
+      recentPayouts,
+      maintenanceTickets,
+      activeSubscriptions,
+      newUsersThisWeek,
+      newUsersThisMonth,
+      newLandlordsThisWeek,
+      newLandlordsThisMonth,
+      failedPaymentsCount,
     ] = await Promise.all([
       prisma.landlord.findMany({
         include: {
@@ -85,6 +100,59 @@ export async function getSuperAdminInsights() {
           eventType: 'renewed',
         },
         orderBy: { createdAt: 'asc' },
+      }),
+      // Recent payouts across all landlords (last 20)
+      prisma.payout.findMany({
+        orderBy: { initiatedAt: 'desc' },
+        take: 20,
+        include: {
+          landlord: {
+            select: { name: true, subdomain: true },
+          },
+        },
+      }),
+      // Maintenance tickets
+      prisma.maintenanceTicket.findMany({
+        select: {
+          id: true,
+          status: true,
+          priority: true,
+          createdAt: true,
+        },
+      }),
+      // Active subscriptions for MRR
+      prisma.landlordSubscription.findMany({
+        where: {
+          status: { in: ['active', 'trialing'] },
+          tier: { not: 'free' },
+        },
+        select: {
+          tier: true,
+          stripePriceId: true,
+        },
+      }),
+      // New users this week
+      prisma.user.count({
+        where: { createdAt: { gte: sevenDaysAgo } },
+      }),
+      // New users this month
+      prisma.user.count({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+      }),
+      // New landlords this week
+      prisma.landlord.count({
+        where: { createdAt: { gte: sevenDaysAgo } },
+      }),
+      // New landlords this month
+      prisma.landlord.count({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+      }),
+      // Failed payments in last 30 days
+      prisma.rentPayment.count({
+        where: {
+          status: 'failed',
+          updatedAt: { gte: thirtyDaysAgo },
+        },
       }),
     ]);
 
@@ -301,6 +369,63 @@ export async function getSuperAdminInsights() {
         .slice(0, 10),
     };
 
+    // Stripe Connect onboarding status breakdown
+    const stripeConnectStatus = {
+      completed: landlords.filter(l => l.stripeOnboardingStatus === 'active').length,
+      pendingVerification: landlords.filter(l => l.stripeOnboardingStatus === 'pending_verification').length,
+      pending: landlords.filter(l => l.stripeOnboardingStatus === 'pending').length,
+      notStarted: landlords.filter(l => !l.stripeOnboardingStatus || l.stripeOnboardingStatus === null).length,
+    };
+
+    // Maintenance ticket summary
+    const maintenanceSummary = {
+      open: maintenanceTickets.filter(t => t.status === 'open').length,
+      inProgress: maintenanceTickets.filter(t => t.status === 'in_progress').length,
+      resolved: maintenanceTickets.filter(t => t.status === 'resolved').length,
+      closed: maintenanceTickets.filter(t => t.status === 'closed').length,
+      urgent: maintenanceTickets.filter(t => t.priority === 'urgent' && t.status !== 'closed' && t.status !== 'resolved').length,
+      high: maintenanceTickets.filter(t => t.priority === 'high' && t.status !== 'closed' && t.status !== 'resolved').length,
+      total: maintenanceTickets.length,
+    };
+
+    // MRR calculation based on tier pricing
+    // Pricing: pro = $29/mo, enterprise = $99/mo (adjust as needed)
+    const tierPricing: Record<string, number> = {
+      free: 0,
+      pro: 29,
+      growth: 49, // legacy
+      professional: 79, // legacy
+      enterprise: 99,
+    };
+    const mrr = activeSubscriptions.reduce((sum, sub) => {
+      return sum + (tierPricing[sub.tier] || 0);
+    }, 0);
+
+    // Recent signups
+    const recentSignups = {
+      usersThisWeek: newUsersThisWeek,
+      usersThisMonth: newUsersThisMonth,
+      landlordsThisWeek: newLandlordsThisWeek,
+      landlordsThisMonth: newLandlordsThisMonth,
+    };
+
+    // System health
+    const systemHealth = {
+      failedPaymentsLast30Days: failedPaymentsCount,
+      overduePayments: overdueCount,
+    };
+
+    // Format recent payouts for display
+    const recentPayoutsFormatted = recentPayouts.map(p => ({
+      id: p.id,
+      amount: Number(p.amount),
+      status: p.status,
+      initiatedAt: p.initiatedAt.toISOString(),
+      paidAt: p.paidAt?.toISOString() || null,
+      landlordName: p.landlord.name,
+      landlordSubdomain: p.landlord.subdomain,
+    }));
+
     return {
       landlordsCount,
       propertyManagersCount,
@@ -324,6 +449,13 @@ export async function getSuperAdminInsights() {
       locations,
       platformRevenue,
       subscriptionBreakdown,
+      // New enhanced data
+      stripeConnectStatus,
+      maintenanceSummary,
+      mrr,
+      recentSignups,
+      systemHealth,
+      recentPayouts: recentPayoutsFormatted,
     };
   } catch (error) {
     console.error('Failed to load super admin insights', formatError(error));
@@ -354,7 +486,14 @@ export async function getSuperAdminInsights() {
         subscriptionRevenue: { day: 0, week: 0, month: 0, year: 0 },
         total: { day: 0, week: 0, month: 0, year: 0 },
       },
-      subscriptionBreakdown: { free: 0, growth: 0, professional: 0, enterprise: 0 },
+      subscriptionBreakdown: { free: 0, pro: 0, growth: 0, professional: 0, enterprise: 0 },
+      // New enhanced data defaults
+      stripeConnectStatus: { completed: 0, pendingVerification: 0, pending: 0, notStarted: 0 },
+      maintenanceSummary: { open: 0, inProgress: 0, resolved: 0, closed: 0, urgent: 0, high: 0, total: 0 },
+      mrr: 0,
+      recentSignups: { usersThisWeek: 0, usersThisMonth: 0, landlordsThisWeek: 0, landlordsThisMonth: 0 },
+      systemHealth: { failedPaymentsLast30Days: 0, overduePayments: 0 },
+      recentPayouts: [],
     };
   }
 }

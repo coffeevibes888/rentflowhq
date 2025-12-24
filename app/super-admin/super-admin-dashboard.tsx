@@ -26,6 +26,7 @@ import TierManager from "@/components/super-admin/tier-manager";
 
 const views = [
   { id: "overview", label: "Overview" },
+  { id: "health", label: "System Health" },
   { id: "traffic", label: "Traffic" },
   { id: "engagement", label: "Engagement" },
   { id: "users", label: "Users & Sessions" },
@@ -83,6 +84,13 @@ type PlatformRevenue = {
 };
 type SubscriptionBreakdown = { free: number; pro: number; growth: number; professional: number; enterprise: number };
 
+// New types for enhanced dashboard
+type StripeConnectStatus = { completed: number; pendingVerification: number; pending: number; notStarted: number };
+type MaintenanceSummary = { open: number; inProgress: number; resolved: number; closed: number; urgent: number; high: number; total: number };
+type RecentSignups = { usersThisWeek: number; usersThisMonth: number; landlordsThisWeek: number; landlordsThisMonth: number };
+type SystemHealth = { failedPaymentsLast30Days: number; overduePayments: number };
+type RecentPayout = { id: string; amount: number; status: string; initiatedAt: string; paidAt: string | null; landlordName: string; landlordSubdomain: string };
+
 type SuperAdminInsights = {
   landlordsCount: number;
   propertyManagersCount: number;
@@ -106,6 +114,13 @@ type SuperAdminInsights = {
   locations: { states: LocationBreakdown[]; cities: LocationBreakdown[] };
   platformRevenue?: PlatformRevenue;
   subscriptionBreakdown?: SubscriptionBreakdown;
+  // New enhanced data
+  stripeConnectStatus?: StripeConnectStatus;
+  maintenanceSummary?: MaintenanceSummary;
+  mrr?: number;
+  recentSignups?: RecentSignups;
+  systemHealth?: SystemHealth;
+  recentPayouts?: RecentPayout[];
 };
 
 type LandlordRow = { id: string; name: string; ownerUserId: string };
@@ -1236,6 +1251,278 @@ const SuperAdminDashboard = ({
     </div>
   );
 
+  const healthContent = (
+    <div className="space-y-8">
+      <section className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">System Health & Insights</h1>
+        <p className="text-sm text-muted-foreground">
+          Monitor platform health, Stripe Connect status, maintenance tickets, and recent activity.
+        </p>
+      </section>
+
+      {/* MRR & Revenue Quick Stats */}
+      {insights && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Revenue Metrics</h2>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card className="bg-emerald-950/30 border-emerald-800/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-emerald-400 mb-1">Monthly Recurring Revenue</p>
+                <p className="text-2xl font-semibold text-emerald-300">{formatCurrency(insights.mrr || 0)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Platform Revenue (Month)</p>
+                <p className="text-2xl font-semibold">{formatCurrency(insights.platformRevenue?.total.month || 0)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Convenience Fees (Month)</p>
+                <p className="text-2xl font-semibold">{formatCurrency(insights.platformRevenue?.convenienceFees.month || 0)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Cashout Fees (Month)</p>
+                <p className="text-2xl font-semibold">{formatCurrency(insights.platformRevenue?.cashoutFees.month || 0)}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
+
+      {/* Recent Signups */}
+      {insights?.recentSignups && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Recent Signups</h2>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">New Users (7 days)</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.recentSignups.usersThisWeek)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">New Users (30 days)</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.recentSignups.usersThisMonth)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-violet-950/30 border-violet-800/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-violet-400 mb-1">New Landlords (7 days)</p>
+                <p className="text-2xl font-semibold text-violet-300">{formatNumber(insights.recentSignups.landlordsThisWeek)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-violet-950/30 border-violet-800/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-violet-400 mb-1">New Landlords (30 days)</p>
+                <p className="text-2xl font-semibold text-violet-300">{formatNumber(insights.recentSignups.landlordsThisMonth)}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
+
+      {/* Stripe Connect Onboarding Status */}
+      {insights?.stripeConnectStatus && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Stripe Connect Onboarding</h2>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card className="bg-emerald-950/30 border-emerald-800/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-emerald-400 mb-1">Completed</p>
+                <p className="text-2xl font-semibold text-emerald-300">{formatNumber(insights.stripeConnectStatus.completed)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-amber-950/30 border-amber-800/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-amber-400 mb-1">Pending Verification</p>
+                <p className="text-2xl font-semibold text-amber-300">{formatNumber(insights.stripeConnectStatus.pendingVerification)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-blue-950/30 border-blue-800/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-blue-400 mb-1">In Progress</p>
+                <p className="text-2xl font-semibold text-blue-300">{formatNumber(insights.stripeConnectStatus.pending)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-slate-800/50 border-slate-700/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-slate-400 mb-1">Not Started</p>
+                <p className="text-2xl font-semibold text-slate-300">{formatNumber(insights.stripeConnectStatus.notStarted)}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
+
+      {/* System Health */}
+      {insights?.systemHealth && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Payment Health</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className={insights.systemHealth.failedPaymentsLast30Days > 0 ? "bg-red-950/30 border-red-800/50" : ""}>
+              <CardContent className="pt-4">
+                <p className={`text-xs mb-1 ${insights.systemHealth.failedPaymentsLast30Days > 0 ? "text-red-400" : "text-muted-foreground"}`}>Failed Payments (30 days)</p>
+                <p className={`text-2xl font-semibold ${insights.systemHealth.failedPaymentsLast30Days > 0 ? "text-red-300" : ""}`}>{formatNumber(insights.systemHealth.failedPaymentsLast30Days)}</p>
+              </CardContent>
+            </Card>
+            <Card className={insights.systemHealth.overduePayments > 0 ? "bg-amber-950/30 border-amber-800/50" : ""}>
+              <CardContent className="pt-4">
+                <p className={`text-xs mb-1 ${insights.systemHealth.overduePayments > 0 ? "text-amber-400" : "text-muted-foreground"}`}>Overdue Payments</p>
+                <p className={`text-2xl font-semibold ${insights.systemHealth.overduePayments > 0 ? "text-amber-300" : ""}`}>{formatNumber(insights.systemHealth.overduePayments)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Collection Rate</p>
+                <p className="text-2xl font-semibold">{(insights.collectionRate * 100).toFixed(1)}%</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
+
+      {/* Maintenance Tickets Summary */}
+      {insights?.maintenanceSummary && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Maintenance Tickets</h2>
+          <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
+            <Card className={insights.maintenanceSummary.urgent > 0 ? "bg-red-950/30 border-red-800/50" : ""}>
+              <CardContent className="pt-4">
+                <p className={`text-xs mb-1 ${insights.maintenanceSummary.urgent > 0 ? "text-red-400" : "text-muted-foreground"}`}>Urgent</p>
+                <p className={`text-2xl font-semibold ${insights.maintenanceSummary.urgent > 0 ? "text-red-300" : ""}`}>{formatNumber(insights.maintenanceSummary.urgent)}</p>
+              </CardContent>
+            </Card>
+            <Card className={insights.maintenanceSummary.high > 0 ? "bg-amber-950/30 border-amber-800/50" : ""}>
+              <CardContent className="pt-4">
+                <p className={`text-xs mb-1 ${insights.maintenanceSummary.high > 0 ? "text-amber-400" : "text-muted-foreground"}`}>High Priority</p>
+                <p className={`text-2xl font-semibold ${insights.maintenanceSummary.high > 0 ? "text-amber-300" : ""}`}>{formatNumber(insights.maintenanceSummary.high)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Open</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.open)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">In Progress</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.inProgress)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Resolved</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.resolved)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Closed</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.closed)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Total</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.total)}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
+
+      {/* Recent Payouts */}
+      {insights?.recentPayouts && insights.recentPayouts.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Recent Payouts (All Landlords)</h2>
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Landlord</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Initiated</TableHead>
+                  <TableHead>Paid</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {insights.recentPayouts.map((payout) => (
+                  <TableRow key={payout.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{payout.landlordName}</p>
+                        <p className="text-xs text-muted-foreground">{payout.landlordSubdomain}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{formatCurrency(payout.amount)}</TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        payout.status === 'paid' ? 'bg-emerald-500/20 text-emerald-400' :
+                        payout.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
+                        payout.status === 'processing' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-red-500/20 text-red-400'
+                      }`}>
+                        {payout.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm">{formatDateTime(new Date(payout.initiatedAt)).dateTime}</TableCell>
+                    <TableCell className="text-sm">{payout.paidAt ? formatDateTime(new Date(payout.paidAt)).dateTime : '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </section>
+      )}
+
+      {/* Subscription Breakdown */}
+      {insights?.subscriptionBreakdown && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Subscription Tiers</h2>
+          <div className="grid gap-4 md:grid-cols-5">
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Free</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.subscriptionBreakdown.free)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-violet-950/30 border-violet-800/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-violet-400 mb-1">Pro ($29/mo)</p>
+                <p className="text-2xl font-semibold text-violet-300">{formatNumber(insights.subscriptionBreakdown.pro)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Growth (legacy)</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.subscriptionBreakdown.growth)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-1">Professional (legacy)</p>
+                <p className="text-2xl font-semibold">{formatNumber(insights.subscriptionBreakdown.professional)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-amber-950/30 border-amber-800/50">
+              <CardContent className="pt-4">
+                <p className="text-xs text-amber-400 mb-1">Enterprise ($99/mo)</p>
+                <p className="text-2xl font-semibold text-amber-300">{formatNumber(insights.subscriptionBreakdown.enterprise)}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+
   const tiersContent = (
     <div className="space-y-6">
       <section className="space-y-2">
@@ -1249,7 +1536,8 @@ const SuperAdminDashboard = ({
   );
 
   let content = overviewContent;
-  if (activeView === "traffic") content = trafficContent;
+  if (activeView === "health") content = healthContent;
+  else if (activeView === "traffic") content = trafficContent;
   else if (activeView === "engagement") content = engagementContent;
   else if (activeView === "users") content = usersContent;
   else if (activeView === "portfolio") content = portfolioContent;
