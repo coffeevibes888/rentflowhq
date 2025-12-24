@@ -19,32 +19,40 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const files = formData.getAll('files') as File[];
+    const file = formData.get('file') as File | null;
+    const category = formData.get('category') as string | null;
+    const propertyId = formData.get('propertyId') as string | null;
 
-    if (!files || files.length === 0) {
+    // Support both single file and multiple files
+    const filesToProcess = file ? [file] : files;
+
+    if (!filesToProcess || filesToProcess.length === 0) {
         return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     }
 
     const uploadedFiles = [];
 
-    for (const file of files) {
-        const buffer = Buffer.from(await file.arrayBuffer());
+    for (const f of filesToProcess) {
+        const buffer = Buffer.from(await f.arrayBuffer());
         const result = await uploadToCloudinary(buffer, {
             folder: 'documents',
         });
 
         const newFile = await prisma.scannedDocument.create({
             data: {
-                originalFileName: file.name,
+                originalFileName: f.name,
                 fileUrl: result.secure_url,
-                fileType: file.type,
-                fileSize: file.size,
+                fileType: f.type.split('/')[1] || f.type,
+                fileSize: f.size,
                 landlordId: landlord.id,
                 uploadedBy: session.user.id,
+                documentType: category || null,
+                classificationStatus: category ? 'classified' : 'pending',
             },
         });
 
         uploadedFiles.push(newFile);
     }
 
-    return NextResponse.json(uploadedFiles);
+    return NextResponse.json({ documents: uploadedFiles });
 }

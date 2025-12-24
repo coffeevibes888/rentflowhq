@@ -155,17 +155,16 @@ const Homepage = async () => {
           <div className='max-w-7xl mx-auto relative z-10'>
             <div className='grid gap-8 lg:grid-cols-2 items-center'>
               <div className='space-y-6 animate-in fade-in slide-in-from-left duration-700'>
-                <div className='inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-1.5 text-emerald-400 text-xs font-medium border border-emerald-500/20 backdrop-blur-sm'>
+                <div className='inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-purple text-xs font-medium border border-emerald-500/20 backdrop-blur-sm'>
                   <Sparkles className='h-3 w-3' />
-                  <span>Free for up to 24 units • No credit card required</span>
+                  <span className='text-purple font-bold txt-2xl'> • Run your properties like a pro — without hiring one. •</span>
                 </div>
                 
-                <h1 className='text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-black'>
-                  Collect Rent, Track Maintenance, Sign Leases — All in One Place.
+                <h1 className='text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight '>
+                 Property Management — Fully Automated.
                 </h1>
-                <p className='text-base md:text-lg text-slate-700 max-w-xl leading-relaxed'>
-                  Stop using spreadsheets. Get your own branded tenant portal, team collaboration, and automated rent collection. 
-                  <span className='font-semibold'> Just $2 flat fee per payment — not a percentage of rent.</span>
+                <p className='text-base md:text-lg text-white font-bold max-w-xl leading-relaxed'>
+                  Everything a property management company does, now handled by one platform. 
                 </p>
                 
                 <div className='flex flex-wrap items-center gap-4'>
@@ -176,17 +175,11 @@ const Homepage = async () => {
                     Start Free Today
                     <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
                   </Link>
-                  <Link
-                    href='#pricing'
-                    className='inline-flex items-center justify-center rounded-full border-2 border-slate-300 text-slate-700 px-6 py-3.5 text-sm font-semibold hover:bg-slate-100 hover:border-slate-400 transition-all duration-300'
-                  >
-                    View Pricing
-                  </Link>
                 </div>
                 
                 <div className='flex flex-wrap items-center gap-6 pt-4 text-sm'>
                   <div className='flex items-center gap-2 text-black'>
-                    <CheckCircle2 className='h-5 w-5 text-emerald-500' />
+                    <CheckCircle2 className='h-5 w-5 text-purple' />
                     <span>Free up to 24 units</span>
                   </div>
                   <div className='flex items-center gap-2 text-black'>
@@ -195,8 +188,21 @@ const Homepage = async () => {
                   </div>
                   <div className='flex items-center gap-2 text-black'>
                     <CheckCircle2 className='h-5 w-5 text-emerald-500' />
-                    <span>$2 flat fee, not %</span>
+                    <span>E-Signatures & Custom Lease's</span>
                   </div>
+                  <div className='flex items-center gap-2 text-black'>
+                    <CheckCircle2 className='h-5 w-5 text-emerald-500' />
+                    <span>Free Applications</span>
+                  </div>
+                  <div className='flex items-center gap-2 text-black'>
+                    <CheckCircle2 className='h-5 w-5 text-emerald-500' />
+                    <span>Online Rent Collections</span>
+                  </div>
+                  <div className='flex items-center gap-2 text-black'>
+                    <CheckCircle2 className='h-5 w-5 text-emerald-500' />
+                    <span>Maintenance Ticketing System</span>
+                  </div>
+         
                 </div>
               </div>
               

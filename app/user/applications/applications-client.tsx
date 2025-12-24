@@ -44,9 +44,11 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
   const hasUploadedDocuments = (app: Application) => {
     if (!app.verification) return false;
     // If identity or employment status is not 'pending', documents have been uploaded
+    // Also check for 'uploaded' status which is the new intermediate state
     return app.verification.identityStatus !== 'pending' || 
            app.verification.employmentStatus !== 'pending' ||
            app.verification.overallStatus === 'documents_submitted' ||
+           app.verification.overallStatus === 'in_progress' ||
            app.verification.overallStatus === 'complete';
   };
 
@@ -56,7 +58,8 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
     app.verification.identityStatus === 'pending' && 
     app.verification.employmentStatus === 'pending' &&
     app.verification.overallStatus !== 'complete' &&
-    app.verification.overallStatus !== 'documents_submitted'
+    app.verification.overallStatus !== 'documents_submitted' &&
+    app.verification.overallStatus !== 'in_progress'
   );
 
   // Find applications with documents submitted but awaiting review
@@ -163,11 +166,29 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
   const getVerificationProgress = (verification?: Application['verification']) => {
     if (!verification) return 0;
     let progress = 0;
-    // Give partial credit for uploaded (even if not verified)
-    if (verification.identityStatus !== 'pending') progress += 25;
-    if (verification.identityStatus === 'verified') progress += 25;
-    if (verification.employmentStatus !== 'pending') progress += 25;
-    if (verification.employmentStatus === 'verified') progress += 25;
+    
+    // Check if documents are uploaded (status is not 'pending')
+    const idUploaded = verification.identityStatus !== 'pending';
+    const incomeUploaded = verification.employmentStatus !== 'pending';
+    const idVerified = verification.identityStatus === 'verified';
+    const incomeVerified = verification.employmentStatus === 'verified';
+    
+    // Progress: ID uploaded = 25%, ID verified = 50%, Income uploaded = 75%, Income verified = 100%
+    if (idUploaded) progress += 25;
+    if (idVerified) progress += 25;
+    if (incomeUploaded) progress += 25;
+    if (incomeVerified) progress += 25;
+    
+    // If documents_submitted, show at least 75%
+    if (verification.overallStatus === 'documents_submitted' && progress < 75) {
+      progress = 75;
+    }
+    
+    // If complete, show 100%
+    if (verification.overallStatus === 'complete') {
+      progress = 100;
+    }
+    
     return progress;
   };
 

@@ -73,15 +73,39 @@ export class VerificationService {
     const uploadedEmploymentDocs = employmentDocs.filter(d => d.verificationStatus !== 'rejected');
 
     // Determine if application can be submitted
-    // Allow submission with at least 1 identity doc and 1 employment doc
+    // Allow submission with at least 1 identity doc and 1 employment doc (any number)
     const canSubmit = 
-      uploadedIdentityDocs.length > 0 &&
-      uploadedEmploymentDocs.length > 0;
+      uploadedIdentityDocs.length >= 1 &&
+      uploadedEmploymentDocs.length >= 1;
+
+    // Determine identity status based on uploads
+    let identityStatus = appVerification.identityStatus;
+    if (uploadedIdentityDocs.length > 0 && identityStatus === 'pending') {
+      identityStatus = 'uploaded';
+    }
+    if (verifiedIdentityDocs.length > 0) {
+      identityStatus = 'verified';
+    }
+
+    // Determine employment status based on uploads
+    let employmentStatus = appVerification.employmentStatus;
+    if (uploadedEmploymentDocs.length > 0 && employmentStatus === 'pending') {
+      employmentStatus = 'uploaded';
+    }
+    if (verifiedEmploymentDocs.length > 0) {
+      employmentStatus = 'verified';
+    }
+
+    // Determine overall status
+    let overallStatus = appVerification.overallStatus;
+    if (canSubmit && overallStatus === 'incomplete') {
+      overallStatus = 'documents_submitted';
+    }
 
     return {
-      identityStatus: appVerification.identityStatus,
-      employmentStatus: appVerification.employmentStatus,
-      overallStatus: appVerification.overallStatus,
+      identityStatus,
+      employmentStatus,
+      overallStatus,
       canSubmit,
       identityVerifiedAt: appVerification.identityVerifiedAt,
       employmentVerifiedAt: appVerification.employmentVerifiedAt,
@@ -92,16 +116,16 @@ export class VerificationService {
           required: true,
           uploaded: uploadedIdentityDocs.length > 0,
           verified: verifiedIdentityDocs.length > 0,
-          count: uploadedIdentityDocs.length, // Show uploaded count for progress
+          count: uploadedIdentityDocs.length,
           verifiedCount: verifiedIdentityDocs.length,
         },
         employment: {
           required: true,
           uploaded: uploadedEmploymentDocs.length > 0,
-          verified: verifiedEmploymentDocs.length >= 3,
-          count: uploadedEmploymentDocs.length, // Show uploaded count for progress
+          verified: verifiedEmploymentDocs.length > 0, // Changed: any verified doc counts
+          count: uploadedEmploymentDocs.length,
           verifiedCount: verifiedEmploymentDocs.length,
-          requiredCount: 3,
+          requiredCount: 1, // Changed from 3 to 1 - minimum required
         },
       },
     };
@@ -196,6 +220,7 @@ export class VerificationService {
 
     // Check identity verification status
     const identityDocs = documents.filter(d => d.category === 'identity');
+    const uploadedIdentityDocs = identityDocs.filter(d => d.verificationStatus !== 'rejected');
     const verifiedIdentityDocs = identityDocs.filter(d => d.verificationStatus === 'verified');
     
     let identityStatus = 'pending';
@@ -208,24 +233,26 @@ export class VerificationService {
       identityStatus = 'rejected';
     } else if (identityDocs.some(d => d.verificationStatus === 'needs_review')) {
       identityStatus = 'needs_review';
+    } else if (uploadedIdentityDocs.length > 0) {
+      identityStatus = 'uploaded'; // Documents uploaded, awaiting review
     }
 
     // Check employment verification status
     const employmentDocs = documents.filter(d => d.category === 'employment');
+    const uploadedEmploymentDocs = employmentDocs.filter(d => d.verificationStatus !== 'rejected');
     const verifiedEmploymentDocs = employmentDocs.filter(d => d.verificationStatus === 'verified');
     
     let employmentStatus = 'pending';
     
-    // Require at least 3 verified employment documents
-    if (verifiedEmploymentDocs.length >= 3) {
+    // Changed: Any verified employment document counts as verified
+    if (verifiedEmploymentDocs.length > 0) {
       employmentStatus = 'verified';
     } else if (employmentDocs.some(d => d.verificationStatus === 'rejected')) {
       employmentStatus = 'rejected';
     } else if (employmentDocs.some(d => d.verificationStatus === 'needs_review')) {
       employmentStatus = 'needs_review';
-    } else if (verifiedEmploymentDocs.length > 0 && verifiedEmploymentDocs.length < 3) {
-      // Some verified but not enough
-      employmentStatus = 'pending';
+    } else if (uploadedEmploymentDocs.length > 0) {
+      employmentStatus = 'uploaded'; // Documents uploaded, awaiting review
     }
 
     // Determine overall status
@@ -255,10 +282,8 @@ export class VerificationService {
       });
     } else {
       // Check if documents have been uploaded (even if not verified yet)
-      const uploadedIdentityDocs = identityDocs.filter(d => d.verificationStatus !== 'rejected');
-      const uploadedEmploymentDocs = employmentDocs.filter(d => d.verificationStatus !== 'rejected');
-      
-      if (uploadedIdentityDocs.length > 0 && uploadedEmploymentDocs.length > 0) {
+      // Changed: Only need 1 of each type to be considered "documents_submitted"
+      if (uploadedIdentityDocs.length >= 1 && uploadedEmploymentDocs.length >= 1) {
         overallStatus = 'documents_submitted';
       } else if (uploadedIdentityDocs.length > 0 || uploadedEmploymentDocs.length > 0) {
         overallStatus = 'in_progress';

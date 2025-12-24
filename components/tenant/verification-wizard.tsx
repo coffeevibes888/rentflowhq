@@ -85,8 +85,8 @@ export function VerificationWizard({ applicationId, onComplete }: VerificationWi
           setCurrentStep('employment');
           setUploadSuccess(false);
         }, 1500);
-      } else if (currentStep === 'employment' && status.requiredDocuments.employment.count >= 3) {
-        // All employment docs uploaded
+      } else if (currentStep === 'employment' && status.requiredDocuments.employment.count >= 1) {
+        // At least 1 employment doc uploaded - can complete
         setTimeout(() => {
           if (status.canSubmit) {
             setCurrentStep('complete');
@@ -107,14 +107,14 @@ export function VerificationWizard({ applicationId, onComplete }: VerificationWi
     // Welcome = 0%
     // Identity uploaded = 33%
     // Identity verified = 50%
-    // Employment docs uploaded = 75%
+    // Employment docs uploaded (1+) = 75%
     // Complete = 100%
     
     if (verificationStatus.requiredDocuments.identity.count > 0) progress = 33;
     if (verificationStatus.requiredDocuments.identity.verified) progress = 50;
-    if (verificationStatus.requiredDocuments.employment.count >= 3) progress = 75;
+    if (verificationStatus.requiredDocuments.employment.count >= 1) progress = 75;
     if (verificationStatus.requiredDocuments.employment.verified) progress = 90;
-    if (verificationStatus.canSubmit || verificationStatus.overallStatus === 'complete') progress = 100;
+    if (verificationStatus.canSubmit || verificationStatus.overallStatus === 'complete' || verificationStatus.overallStatus === 'documents_submitted') progress = 100;
     
     return progress;
   };
@@ -388,19 +388,19 @@ export function VerificationWizard({ applicationId, onComplete }: VerificationWi
                 </div>
               </div>
 
-              {/* Warning if less than 3 documents */}
+              {/* Warning if less than 3 documents - now just informational */}
               {(verificationStatus?.requiredDocuments.employment.count || 0) >= 1 && 
                (verificationStatus?.requiredDocuments.employment.count || 0) < 3 && (
-                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium text-amber-800 dark:text-amber-200">
-                        Recommended: Upload 3 documents
+                      <p className="font-medium text-blue-800 dark:text-blue-200">
+                        Document uploaded successfully!
                       </p>
-                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                        Landlords prefer 3 recent pay stubs or equivalent to verify income. 
-                        You can proceed with fewer documents, but your application may be less competitive.
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        You can add more documents to strengthen your application, or continue to submit.
+                        Landlords typically prefer 3 pay stubs, but you can proceed with what you have.
                       </p>
                     </div>
                   </div>
@@ -526,11 +526,9 @@ export function VerificationWizard({ applicationId, onComplete }: VerificationWi
                 {(verificationStatus?.requiredDocuments.employment.count ?? 0) >= 1 && (
                   <Button 
                     onClick={() => setCurrentStep('complete')}
-                    variant={(verificationStatus?.requiredDocuments.employment.count ?? 0) >= 3 ? 'default' : 'outline'}
+                    className="bg-green-600 hover:bg-green-700"
                   >
-                    {(verificationStatus?.requiredDocuments.employment.count ?? 0) >= 3 
-                      ? 'Complete Verification' 
-                      : 'Continue Anyway'}
+                    Complete Verification
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 )}

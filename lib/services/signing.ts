@@ -18,11 +18,33 @@ export async function stampSignatureOnPdf(opts: {
   landlordId?: string;
   leaseId?: string;
 }) {
-  const pdfDoc = await PDFDocument.load(opts.basePdf);
+  // Validate signature data URL
+  if (!opts.signatureDataUrl || !opts.signatureDataUrl.startsWith('data:image/png;base64,')) {
+    throw new Error('Invalid signature format. Expected PNG data URL.');
+  }
+
+  let pdfDoc;
+  try {
+    pdfDoc = await PDFDocument.load(opts.basePdf);
+  } catch (pdfLoadError: any) {
+    console.error('Failed to load PDF:', pdfLoadError);
+    throw new Error('Failed to load lease document for signing.');
+  }
+
   const pages = pdfDoc.getPages();
   const lastPage = pages[pages.length - 1];
 
-  const sigPng = await pdfDoc.embedPng(opts.signatureDataUrl);
+  // Convert data URL to Uint8Array for more reliable embedding
+  let sigPng;
+  try {
+    const base64Data = opts.signatureDataUrl.replace(/^data:image\/png;base64,/, '');
+    const signatureBuffer = Buffer.from(base64Data, 'base64');
+    sigPng = await pdfDoc.embedPng(signatureBuffer);
+  } catch (embedError: any) {
+    console.error('Failed to embed signature image:', embedError);
+    throw new Error('Failed to process signature image. Please try drawing your signature again.');
+  }
+
   const { width, height } = lastPage.getSize();
   const imgWidth = 200;
   const imgHeight = (sigPng.height / sigPng.width) * imgWidth;
@@ -90,6 +112,11 @@ export async function stampSignatureOnPdf(opts: {
   let signedPdfUrl = '';
   let auditLogUrl = '';
 
+  console.log('Signing - Starting Cloudinary upload...');
+  console.log('Signing - Final PDF size:', finalPdf.length, 'bytes');
+  console.log('Signing - Landlord ID:', opts.landlordId);
+  console.log('Signing - Lease ID:', opts.leaseId);
+
   try {
     const [signedUpload, auditUpload] = await Promise.all([
       uploadToCloudinary(Buffer.from(finalPdf), {
@@ -107,8 +134,10 @@ export async function stampSignatureOnPdf(opts: {
     ]);
     signedPdfUrl = signedUpload.secure_url;
     auditLogUrl = auditUpload.secure_url;
+    console.log('Signing - Cloudinary upload successful');
   } catch (uploadError: any) {
     console.error('Cloudinary upload failed:', uploadError);
+    console.error('Cloudinary error details:', JSON.stringify(uploadError, null, 2));
     if (uploadError?.http_code === 401) {
       throw new Error('Document storage authentication failed. Please check Cloudinary credentials (CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET).');
     }

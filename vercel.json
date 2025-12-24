@@ -1,1 +1,7 @@
-{}
+{
+  "functions": {
+    "app/api/sign/[token]/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}

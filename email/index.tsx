@@ -50,7 +50,7 @@ export const sendPurchaseReceipt = async ({ order }: { order: Order }) => {
       from: `${APP_NAME} <${SENDER_EMAIL}>`,
       to: order.user.email,
       subject: `Order Confirmation ${order.id}`,
-      text: body,
+      html: body,
     });
 
     console.log('✓ Purchase Receipt Email Sent:', info.messageId);
@@ -74,7 +74,7 @@ export const sendVerificationEmail = async ({
       from: `${APP_NAME} <${SENDER_EMAIL}>`,
       to: email,
       subject: 'Verify your email address',
-      text: body,
+      html: body,
     });
 
     console.log('✓ Verification Email Sent:', info.messageId);
@@ -98,7 +98,7 @@ export const sendPasswordResetEmail = async ({
       from: `${APP_NAME} <${SENDER_EMAIL}>`,
       to: email,
       subject: 'Reset your password',
-      text: body,
+      html: body,
     });
 
     console.log('✓ Password Reset Email Sent:', info.messageId);

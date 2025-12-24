@@ -536,17 +536,64 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                     const startDate = application.moveInDate ?? new Date();
                     const billingDayOfMonth = startDate.getDate();
 
+                    // Get the property's default lease document if configured
+                    const propertyWithLease = await tx.property.findUnique({
+                      where: { id: unit.propertyId },
+                      include: {
+                        defaultLeaseDocument: {
+                          select: {
+                            id: true,
+                            name: true,
+                            isFieldsConfigured: true,
+                            signatureFields: true,
+                          },
+                        },
+                      },
+                    });
+
+                    const legalDocumentId = propertyWithLease?.defaultLeaseDocument?.isFieldsConfigured
+                      ? propertyWithLease.defaultLeaseDocument.id
+                      : null;
+
                     const lease = await tx.lease.create({
                       data: {
                         unitId,
                         tenantId: applicantId,
+                        legalDocumentId,
                         startDate,
                         endDate: null,
                         rentAmount: unit.rentAmount,
                         billingDayOfMonth,
-                        status: 'active',
+                        status: 'pending_signature', // Changed to pending_signature until signed
                       },
                     });
+
+                    // Create signature request for tenant if we have a configured lease document
+                    if (legalDocumentId && propertyWithLease?.defaultLeaseDocument) {
+                      const crypto = await import('crypto');
+                      const tenantToken = crypto.randomBytes(24).toString('hex');
+                      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+                      const applicantUser = await tx.user.findUnique({
+                        where: { id: applicantId },
+                        select: { name: true, email: true },
+                      });
+
+                      if (applicantUser?.email) {
+                        await tx.documentSignatureRequest.create({
+                          data: {
+                            documentId: legalDocumentId,
+                            leaseId: lease.id,
+                            recipientEmail: applicantUser.email,
+                            recipientName: applicantUser.name || 'Tenant',
+                            status: 'sent',
+                            expiresAt,
+                            token: tenantToken,
+                            role: 'tenant',
+                          },
+                        });
+                      }
+                    }
 
                     const firstMonthDue = startDate;
                     const lastMonthDue = startDate;

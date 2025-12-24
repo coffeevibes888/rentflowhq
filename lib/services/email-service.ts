@@ -51,16 +51,9 @@ export async function sendBrandedEmail({ to, subject, template, data, landlordId
     const subdomain = landlord.subdomain;
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
     
-    // Create branded email address from subdomain
-    // If subdomain exists and useSubdomain is enabled, use it
-    // Otherwise, fall back to main domain
-    if (landlord.useSubdomain && subdomain) {
-      fromEmail = `noreply@${subdomain}.${rootDomain}`;
-    } else {
-      // Fallback to main domain
-      fromEmail = process.env.SMTP_USER || `noreply@${rootDomain}`;
-    }
-    
+    // IMPORTANT: Zoho SMTP only allows sending from the authenticated email address
+    // Use the SMTP_USER as the from email, but set the display name to the landlord's name
+    fromEmail = process.env.SMTP_USER || `noreply@${rootDomain}`;
     fromName = landlord.name || 'Property Management';
 
     switch (template) {
@@ -86,7 +79,7 @@ export async function sendBrandedEmail({ to, subject, template, data, landlordId
       to: Array.isArray(to) ? to : [to],
       subject: `${subject} - ${fromName}`,
       html: emailHtml,
-      replyTo: `support@${subdomain}.${rootDomain}`, // Reply to landlord's support email
+      replyTo: fromEmail, // Reply to the authenticated SMTP email
     };
 
     const info = await transporter.sendMail(mailOptions);

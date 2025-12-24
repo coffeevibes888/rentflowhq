@@ -1,27 +1,74 @@
-import { requireAdmin } from '@/lib/auth-guard';
 import { Metadata } from 'next';
-import AdminDocumentsClient from './documents-client';
+import { requireAdmin } from '@/lib/auth-guard';
+import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { prisma } from '@/db/prisma';
+import DocumentsClient from './documents-client';
 
 export const metadata: Metadata = {
-    title: 'Documents',
+  title: 'Document Center',
 };
 
 const AdminDocumentsPage = async () => {
-    await requireAdmin();
+  await requireAdmin();
 
+  const landlordResult = await getOrCreateCurrentLandlord();
+  if (!landlordResult.success) {
     return (
-        <main className="w-full px-4 py-8 md:px-0">
-            <div className="max-w-6xl mx-auto space-y-8">
-                <div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Documents</h1>
-                    <p className="text-sm text-gray-400">
-                        Manage all your documents in one place.
-                    </p>
-                </div>
-                <AdminDocumentsClient />
-            </div>
-        </main>
+      <main className="px-4 py-10">
+        <div className="max-w-3xl mx-auto text-sm text-red-600">
+          {landlordResult.message || 'Unable to load landlord context.'}
+        </div>
+      </main>
     );
+  }
+
+  const landlordId = landlordResult.landlord.id;
+
+  // Fetch all data in parallel
+  const [legalDocuments, scannedDocuments, properties] = await Promise.all([
+    prisma.legalDocument.findMany({
+      where: { landlordId },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.scannedDocument.findMany({
+      where: { landlordId },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.property.findMany({
+      where: { landlordId },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+      },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
+
+  return (
+    <DocumentsClient
+      legalDocuments={legalDocuments.map((doc) => ({
+        ...doc,
+        fileSize: doc.fileSize ?? undefined,
+        createdAt: doc.createdAt.toISOString(),
+        updatedAt: doc.updatedAt.toISOString(),
+      }))}
+      scannedDocuments={scannedDocuments.map((doc) => ({
+        ...doc,
+        fileSize: doc.fileSize ?? undefined,
+        ocrConfidence: doc.ocrConfidence ? Number(doc.ocrConfidence) : undefined,
+        ocrProcessedAt: doc.ocrProcessedAt?.toISOString(),
+        classifiedAt: doc.classifiedAt?.toISOString(),
+        createdAt: doc.createdAt.toISOString(),
+        updatedAt: doc.updatedAt.toISOString(),
+      }))}
+      properties={properties.map((p) => ({
+        id: p.id,
+        name: p.name,
+        address: p.address as { city?: string; state?: string } | null,
+      }))}
+    />
+  );
 };
 
 export default AdminDocumentsPage;
