@@ -254,6 +254,16 @@ export class VerificationService {
         },
       });
     } else {
+      // Check if documents have been uploaded (even if not verified yet)
+      const uploadedIdentityDocs = identityDocs.filter(d => d.verificationStatus !== 'rejected');
+      const uploadedEmploymentDocs = employmentDocs.filter(d => d.verificationStatus !== 'rejected');
+      
+      if (uploadedIdentityDocs.length > 0 && uploadedEmploymentDocs.length > 0) {
+        overallStatus = 'documents_submitted';
+      } else if (uploadedIdentityDocs.length > 0 || uploadedEmploymentDocs.length > 0) {
+        overallStatus = 'in_progress';
+      }
+      
       await db.applicationVerification.update({
         where: { applicationId },
         data: {

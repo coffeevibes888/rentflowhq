@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Clock, Calendar as CalendarIcon, CheckCircle2, Loader2 } from 'lucide-react';
 import { bookAppointment, getPropertySchedule, getPropertyAppointments } from '@/lib/actions/schedule.actions';
 import { toast } from '@/hooks/use-toast';
-import { format, addDays, isSameDay, parse } from 'date-fns';
+import { format, addDays, addMinutes, parse } from 'date-fns';
 
 interface PropertySchedulerProps {
   propertyId: string;
@@ -85,13 +85,14 @@ export default function PropertyScheduler({ propertyId, propertyName }: Property
       let currentTime = startTime;
       while (currentTime < endTime) {
         const slotStart = format(currentTime, 'HH:mm');
-        const slotEnd = format(addDays(currentTime, slotDuration / (24 * 60)), 'HH:mm');
+        const nextTime = addMinutes(currentTime, slotDuration);
+        const slotEnd = format(nextTime, 'HH:mm');
         
         if (!booked.includes(slotStart)) {
           slots.push({ start: slotStart, end: slotEnd });
         }
         
-        currentTime = addDays(currentTime, slotDuration / (24 * 60));
+        currentTime = nextTime;
       }
     });
 

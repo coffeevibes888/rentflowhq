@@ -201,13 +201,13 @@ export class VerificationProcessorService {
           return;
         }
 
-        // Update verification status to verified
+        // Set status to needs_review for landlord to manually approve
         await db.verificationDocument.update({
           where: { id: documentId },
           data: {
-            verificationStatus: 'verified',
+            verificationStatus: 'needs_review',
             verificationMethod: 'ocr',
-            verificationCompletedAt: new Date(),
+            ocrProcessedAt: new Date(),
           },
         });
 

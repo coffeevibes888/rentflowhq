@@ -330,43 +330,56 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               <div className='mt-4 space-y-2'>
                 <p className='font-semibold text-slate-900 text-sm'>ID & Income Documents</p>
                 <div className='space-y-2'>
-                  {verificationDocuments.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
-                        doc.verificationStatus === 'verified' 
-                          ? 'border-green-200 bg-green-50' 
-                          : doc.verificationStatus === 'rejected'
-                          ? 'border-red-200 bg-red-50'
-                          : 'border-slate-200 bg-slate-50'
-                      }`}
-                    >
-                      <div className='min-w-0'>
-                        <p className='text-xs font-medium text-slate-900 truncate'>{doc.originalFileName}</p>
-                        <p className='text-[11px] text-slate-500'>
-                          {doc.category === 'identity' ? '🪪 ID' : '💰 Income'} • {String(doc.docType).replace(/_/g, ' ')} • 
-                          <span className={
-                            doc.verificationStatus === 'verified' ? 'text-green-600 font-medium' :
-                            doc.verificationStatus === 'rejected' ? 'text-red-600 font-medium' :
-                            'text-amber-600'
-                          }>
-                            {' '}{doc.verificationStatus}
-                          </span>
-                          {doc.ocrConfidence && ` • ${Number(doc.ocrConfidence).toFixed(0)}% confidence`}
-                        </p>
-                      </div>
+                  {verificationDocuments.map((doc) => {
+                    // Map status to user-friendly display
+                    const getStatusDisplay = (status: string) => {
+                      switch (status) {
+                        case 'verified': return { text: 'Approved', color: 'text-green-600' };
+                        case 'rejected': return { text: 'Rejected', color: 'text-red-600' };
+                        case 'processing': 
+                        case 'pending':
+                        case 'needs_review':
+                        default: return { text: 'Needs Review', color: 'text-amber-600' };
+                      }
+                    };
+                    const statusDisplay = getStatusDisplay(doc.verificationStatus);
+                    const needsReview = !['verified', 'rejected'].includes(doc.verificationStatus);
+                    
+                    return (
+                      <div
+                        key={doc.id}
+                        className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
+                          doc.verificationStatus === 'verified' 
+                            ? 'border-green-200 bg-green-50' 
+                            : doc.verificationStatus === 'rejected'
+                            ? 'border-red-200 bg-red-50'
+                            : 'border-amber-200 bg-amber-50'
+                        }`}
+                      >
+                        <div className='min-w-0'>
+                          <p className='text-xs font-medium text-slate-900 truncate'>{doc.originalFileName}</p>
+                          <p className='text-[11px] text-slate-500'>
+                            {doc.category === 'identity' ? '🪪 ID' : '💰 Income'} • {String(doc.docType).replace(/_/g, ' ')} • 
+                            <span className={`font-medium ${statusDisplay.color}`}>
+                              {' '}{statusDisplay.text}
+                            </span>
+                          </p>
+                        </div>
 
-                      <form action={openVerificationDocument}>
-                        <input type='hidden' name='documentId' value={doc.id} />
-                        <button
-                          type='submit'
-                          className='inline-flex items-center justify-center rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-blue-700'
-                        >
-                          View
-                        </button>
-                      </form>
-                    </div>
-                  ))}
+                        <div className='flex items-center gap-2'>
+                          <form action={openVerificationDocument}>
+                            <input type='hidden' name='documentId' value={doc.id} />
+                            <button
+                              type='submit'
+                              className='inline-flex items-center justify-center rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-blue-700'
+                            >
+                              View
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

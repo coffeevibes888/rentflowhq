@@ -38,19 +38,35 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { PropertyZillowData } from '@/components/admin/property-zillow-data';
+import CashoutDialog from '@/components/admin/cashout-dialog';
+import { ArrowDownToLine, Wallet } from 'lucide-react';
+
+interface CashoutInfo {
+  canCashOut: boolean;
+  availableBalance: number;
+  hasBankAccount: boolean;
+  bankAccount: {
+    last4: string;
+    bankName: string | null;
+    isVerified: boolean;
+  } | null;
+  defaultBankLast4: string | null;
+}
 
 interface PropertyDetailsTabsProps {
   property: any;
   rentPayments: any[];
   landlordId: string;
   isPro?: boolean;
+  cashoutInfo?: CashoutInfo;
 }
 
-export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro = false }: PropertyDetailsTabsProps) {
+export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro = false, cashoutInfo }: PropertyDetailsTabsProps) {
   const router = useRouter();
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [viewingLease, setViewingLease] = useState<any | null>(null);
+  const [showCashoutDialog, setShowCashoutDialog] = useState(false);
   
   // Expense dialog state
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
@@ -130,9 +146,9 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-violet-200/70">Property Management</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-black text-2xl font-bold">Property Management</p>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-white">{property.name}</h1>
-            <p className="text-slate-300/80 text-sm">
+            <p className="text-black text-sm">
               {property.type} • {property.address && typeof property.address === 'object'
                 ? `${(property.address as any).street ?? ''} ${(property.address as any).city ?? ''}`.trim()
                 : ''}
@@ -143,18 +159,18 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
             {property.units.length === 1 ? (
               <Button 
                 variant="outline" 
-                className="border-white/10 text-black text-xs sm:text-sm"
+                className="border-white/10 text-white text-xs sm:text-sm"
                 onClick={() => handleCreateInvoice(property.units[0].id)}
               >
                 <Receipt className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Create</span> Invoice
+                <span className="hidden sm:inline text-white">Create</span> Invoice
               </Button>
             ) : property.units.length > 1 ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="border-white/10 text-black text-xs sm:text-sm">
+                  <Button variant="outline" className="border-white/10 text-green text-xs sm:text-sm">
                     <Receipt className="w-4 h-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Create</span> Invoice
+                    <span className="hidden sm:inline text-white">Create Invoice</span> 
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -183,13 +199,25 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </DropdownMenu>
             ) : null}
             
-            <Button variant="outline" className="border-white/10 text-black text-xs sm:text-sm" onClick={() => setExpenseDialogOpen(true)}>
+            {/* Cash Out Button - only show if property has bank account */}
+            {cashoutInfo?.canCashOut && cashoutInfo.hasBankAccount && (
+              <Button 
+                variant="outline" 
+                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs sm:text-sm"
+                onClick={() => setShowCashoutDialog(true)}
+              >
+                <ArrowDownToLine className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Cash Out</span>
+              </Button>
+            )}
+            
+            <Button variant="outline" className="border-white/10 text-white text-xs sm:text-sm" onClick={() => setExpenseDialogOpen(true)}>
               <Plus className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Add</span> Expense
             </Button>
-            <Button asChild variant="outline" className="border-white/10 text-black text-xs sm:text-sm">
+            <Button asChild variant="outline" className="border-white/10 text-white text-xs sm:text-sm">
               <Link href={`/admin/products/${property.id}`}>
-                <span className="hidden sm:inline">Edit Property</span>
+                <span className="hidden sm:inline ">Edit Property</span>
                 <span className="sm:hidden">Edit</span>
               </Link>
             </Button>
@@ -198,26 +226,26 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full flex flex-wrap gap-1 bg-slate-900/60 border border-white/10 p-1 rounded-xl h-auto">
+          <TabsList className="w-full flex flex-wrap gap-1 bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 rounded-xl h-auto text-white">
             <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
               <Building2 className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Overview</span>
+              <span className="hidden sm:inline text-white">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="property-data" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
+            <TabsTrigger value="property-data" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
               <TrendingUp className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Property Data</span>
+              <span className="hidden sm:inline text-white font-bold">Property Data</span>
               {isPro && <Badge className="ml-1 sm:ml-2 bg-blue-500/20 text-blue-300 text-[10px] sm:text-xs">Pro</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
+            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
               <Users className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Tenants</span>
+              <span className="hidden sm:inline text-white font-bold">Tenants</span>
               {activeLeases.length > 0 && (
                 <Badge className="ml-1 sm:ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs">{activeLeases.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
+            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
               <BarChart3 className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Financials</span>
+              <span className="hidden sm:inline text-white font-bold">Financials</span>
             </TabsTrigger>
           </TabsList>
 
@@ -276,9 +304,9 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2 ">
               {/* Units Overview */}
-              <Card className="border-white/10 bg-slate-900/60">
+              <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 text-white">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Building2 className="w-5 h-5" />
@@ -287,14 +315,14 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {property.units.map((unit: any) => (
-                    <div key={unit.id} className="rounded-lg border border-white/10 bg-slate-800/60 p-4">
+                    <div key={unit.id} className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm shadow-2xl drop-shadow-2xl text-white">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-white">{unit.name}</span>
-                        <Badge variant="outline" className={unit.isAvailable ? 'border-emerald-400/40 text-emerald-200' : 'border-blue-400/40 text-blue-200'}>
+                        <span className="font-medium text-black font-semibold">{unit.name}</span>
+                        <Badge variant="outline" className={unit.isAvailable ? 'border-emerald-400/40 text-black' : 'border-green-400/40 text-black'}>
                           {unit.isAvailable ? 'Available' : 'Occupied'}
                         </Badge>
                       </div>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-black font-semibold">
                         {unit.type} • {unit.bedrooms ?? '—'} bd • {unit.bathrooms ?? '—'} ba • {formatCurrency(unit.rentAmount)}/mo
                       </p>
                     </div>
@@ -303,7 +331,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </Card>
 
               {/* Maintenance Tickets */}
-              <Card className="border-white/10 bg-slate-900/60">
+              <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 text-white">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-white flex items-center gap-2">
@@ -315,7 +343,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                     </CardDescription>
                   </div>
                   <Link href="/admin/maintenance">
-                    <Button variant="outline" size="sm" className="border-white/10 text-black">
+                    <Button variant="outline" size="sm" className="border-white/10 text-white">
                       View All
                     </Button>
                   </Link>
@@ -608,6 +636,24 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Cashout Dialog */}
+      {cashoutInfo && (
+        <CashoutDialog
+          open={showCashoutDialog}
+          onOpenChange={setShowCashoutDialog}
+          availableBalance={cashoutInfo.availableBalance}
+          properties={[{
+            id: property.id,
+            name: property.name,
+            hasBankAccount: cashoutInfo.hasBankAccount,
+            bankAccount: cashoutInfo.bankAccount,
+          }]}
+          preselectedPropertyId={property.id}
+          defaultBankLast4={cashoutInfo.defaultBankLast4}
+          onSuccess={() => window.location.reload()}
+        />
+      )}
     </main>
   );
 }

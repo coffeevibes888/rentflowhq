@@ -4,6 +4,7 @@ import { updateOrderToPaid } from '@/lib/actions/order-actions';
 import { prisma } from '@/db/prisma';
 import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-tiers';
 import { NotificationService } from '@/lib/services/notification-service';
+import { creditLandlordWallet } from '@/lib/services/wallet.service';
 
 export async function POST(req: NextRequest) {
   const payload = await req.text();
@@ -106,6 +107,21 @@ export async function POST(req: NextRequest) {
             actionUrl: `/admin/analytics`,
             metadata: { paymentId: payment.id, leaseId: payment.leaseId },
             landlordId,
+          });
+
+          // Credit landlord wallet
+          await creditLandlordWallet({
+            landlordId,
+            amount: Number(payment.amount),
+            paymentMethod: paymentMethodType,
+            description: `Rent payment from ${payment.tenant.name || 'Tenant'}`,
+            referenceId: payment.id,
+            metadata: {
+              type: 'rent_payment',
+              leaseId: payment.leaseId,
+              unitName: payment.lease.unit.name,
+              propertyName: payment.lease.unit.property.name,
+            },
           });
         }
       }
@@ -322,6 +338,33 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       message: 'Webhook processed: invoice.payment_failed',
+    });
+  }
+
+  // Handle Stripe Connect account updates
+  if (event.type === 'account.updated') {
+    const account = event.data.object as Stripe.Account;
+    
+    // Find landlord by Connect account ID
+    const landlord = await prisma.landlord.findFirst({
+      where: { stripeConnectAccountId: account.id },
+    });
+
+    if (landlord) {
+      const isOnboarded = account.details_submitted || false;
+      const canReceivePayouts = account.payouts_enabled || false;
+      const newStatus = isOnboarded ? (canReceivePayouts ? 'active' : 'pending_verification') : 'pending';
+
+      await prisma.landlord.update({
+        where: { id: landlord.id },
+        data: { stripeOnboardingStatus: newStatus },
+      });
+
+      console.log(`Connect account ${account.id} updated: ${newStatus}`);
+    }
+
+    return NextResponse.json({
+      message: 'Webhook processed: account.updated',
     });
   }
 

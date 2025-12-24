@@ -88,6 +88,7 @@ export async function POST(
   const signerName = (body.signerName as string | undefined)?.trim();
   const signerEmail = (body.signerEmail as string | undefined)?.trim();
   const consent = !!body.consent;
+  const initialsData = body.initialsData as Array<{ id: string; value: string }> | undefined;
 
   if (!signatureDataUrl || !signerName || !signerEmail || !consent) {
     return NextResponse.json({ message: 'Missing signature, name, email, or consent' }, { status: 400 });
@@ -132,7 +133,7 @@ export async function POST(
   const tenantName = lease.tenant?.name || 'Tenant';
   const propertyLabel = `${lease.unit.property?.name || 'Property'} - ${lease.unit.name} (${lease.unit.type})`;
 
-  const leaseHtml = renderDocuSignReadyLeaseHtml({
+  let leaseHtml = renderDocuSignReadyLeaseHtml({
     landlordName,
     tenantName,
     propertyLabel,
@@ -144,6 +145,26 @@ export async function POST(
     billingDayOfMonth: String(lease.billingDayOfMonth),
     todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
   });
+
+  // Embed initials into the HTML before generating PDF
+  if (initialsData && Array.isArray(initialsData)) {
+    initialsData.forEach(({ id, value }) => {
+      if (value) {
+        const placeholder = `/${id}/`;
+        const imgTag = `<img src="${value}" alt="Initial" style="height: 24px; display: inline-block; vertical-align: middle;" />`;
+        leaseHtml = leaseHtml.replace(placeholder, imgTag);
+      }
+    });
+  }
+
+  // Embed signature into HTML as well (for tenant signature placeholder)
+  if (sig.role === 'tenant') {
+    const sigImgTag = `<img src="${signatureDataUrl}" alt="Tenant Signature" style="height: 38px; display: inline-block; vertical-align: middle;" />`;
+    leaseHtml = leaseHtml.replace('/sig_tenant/', sigImgTag);
+  } else {
+    const sigImgTag = `<img src="${signatureDataUrl}" alt="Landlord Signature" style="height: 38px; display: inline-block; vertical-align: middle;" />`;
+    leaseHtml = leaseHtml.replace('/sig_landlord/', sigImgTag);
+  }
 
   const basePdf = await generateLeasePdf(leaseHtml);
 

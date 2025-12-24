@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import RentStripePayment from './rent-stripe-payment';
+import CashPaymentOption from './cash-payment-option';
 import { Button } from '@/components/ui/button';
+import { CreditCard, Banknote } from 'lucide-react';
 
 export default function RentPayClient({
   rentPaymentIds,
@@ -20,6 +22,9 @@ export default function RentPayClient({
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+
+  const totalAmount = totalInCents / 100;
 
   const handleStartPayment = async () => {
     try {
@@ -69,7 +74,7 @@ export default function RentPayClient({
     }
   };
 
-    if (clientSecret && paymentData) {
+  if (clientSecret && paymentData) {
     return (
       <div className='space-y-4'>
         <RentStripePayment 
@@ -79,6 +84,52 @@ export default function RentPayClient({
           rentAmount={paymentData.rentAmount}
           initialConvenienceFee={paymentData.convenienceFee}
         />
+      </div>
+    );
+  }
+
+  // Show payment method selection
+  if (showPaymentOptions) {
+    return (
+      <div className='space-y-3'>
+        {errorMessage && (
+          <div className='p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg'>
+            {errorMessage}
+          </div>
+        )}
+        
+        <p className='text-xs text-slate-300 font-medium'>Choose payment method:</p>
+        
+        {/* Card/Bank Payment */}
+        <Button
+          className='w-full inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all'
+          onClick={handleStartPayment}
+          disabled={isLoading}
+        >
+          <CreditCard className='w-4 h-4 mr-2' />
+          {isLoading ? 'Preparing payment...' : 'Pay with Card or Bank'}
+        </Button>
+
+        {/* Cash Payment */}
+        <CashPaymentOption
+          rentPaymentIds={rentPaymentIds}
+          totalAmount={totalAmount}
+        />
+
+        <Button
+          variant='ghost'
+          size='sm'
+          onClick={() => setShowPaymentOptions(false)}
+          className='w-full text-slate-400 hover:text-white'
+        >
+          Back
+        </Button>
+
+        <div className='text-xs text-slate-400 space-y-1 pt-2 border-t border-white/10'>
+          <p>✓ Bank transfer (ACH) is FREE with no convenience fee</p>
+          <p>✓ Card/wallet payments have a $2 convenience fee</p>
+          <p>✓ Cash payments have a $3.99 retail fee</p>
+        </div>
       </div>
     );
   }
@@ -93,15 +144,14 @@ export default function RentPayClient({
       <Button
         className='inline-flex items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 px-8 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all'
         size='lg'
-        onClick={handleStartPayment}
-        disabled={isLoading}
+        onClick={() => setShowPaymentOptions(true)}
       >
-        {isLoading ? 'Preparing payment...' : 'Pay Rent Now'}
+        Pay Rent Now
       </Button>
       <div className='text-xs text-slate-400 space-y-1'>
         <p>✓ Multiple payment options available</p>
         <p>✓ Bank transfer (ACH) is FREE with no convenience fee</p>
-        <p>✓ Card/wallet payments have a $2 convenience fee</p>
+        <p>✓ Card, wallet, or cash payments accepted</p>
       </div>
     </div>
   );

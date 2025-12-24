@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { loadConnect } from '@stripe/connect-js';
+import { loadConnectAndInitialize } from '@stripe/connect-js';
 import { Loader2 } from 'lucide-react';
 
 const PayoutsConnectEmbedded = ({
@@ -90,11 +90,9 @@ function EmbeddedStripeOnboarding({
           return;
         }
 
-        const stripeConnectWrapper = await loadConnect();
-        const stripeConnectInstance = stripeConnectWrapper.initialize({
+        const stripeConnectInstance = await loadConnectAndInitialize({
           publishableKey,
-          clientSecret,
-          refreshClientSecret: fetchClientSecret,
+          fetchClientSecret: async () => clientSecret,
           appearance: {
             overlays: 'dialog',
             variables: {

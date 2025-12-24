@@ -580,6 +580,7 @@ model Landlord {
   applicationDocuments ApplicationDocument[]
   verificationDocuments VerificationDocument[] @relation("VerificationDocuments")
   employmentVerificationUsage EmploymentVerificationUsage[] @relation("EmploymentVerificationUsage")
+  wallet LandlordWallet?
 }
 
 model QuickBooksConnection {
@@ -731,6 +732,8 @@ model RentPayment {
   convenienceFee Decimal? @default(0) @db.Decimal(12, 2)
   isRecurring   Boolean  @default(false)
   metadata      Json?    @db.Json
+  walletCredited Boolean @default(false) // Has this payment been credited to landlord wallet?
+  walletCreditedAt DateTime? @db.Timestamp(6)
   createdAt     DateTime @default(now()) @db.Timestamp(6)
   updatedAt     DateTime @updatedAt
 
@@ -1533,4 +1536,42 @@ model TenantInvoice {
   @@index([leaseId])
   @@index([status])
   @@index([dueDate])
+}
+
+
+// ============= LANDLORD WALLET SYSTEM =============
+
+// Landlord wallet for tracking available balance from rent payments
+model LandlordWallet {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId       String   @unique @db.Uuid
+  availableBalance Decimal  @default(0) @db.Decimal(12, 2) // Ready to cash out
+  pendingBalance   Decimal  @default(0) @db.Decimal(12, 2) // Processing (7-day hold)
+  lastPayoutAt     DateTime? @db.Timestamp(6)
+  createdAt        DateTime @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime @updatedAt
+
+  landlord     Landlord            @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@index([landlordId])
+}
+
+// Wallet transaction history
+model WalletTransaction {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId    String   @db.Uuid
+  type        String   // 'credit' (rent received), 'payout' (cash out), 'fee', 'refund'
+  amount      Decimal  @db.Decimal(12, 2) // Positive for credits, negative for debits
+  description String?
+  status      String   @default("completed") // pending, completed, failed
+  referenceId String?  @db.Uuid // Link to RentPayment, Payout, etc.
+  metadata    Json?    @db.Json
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+
+  wallet LandlordWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([type])
+  @@index([createdAt])
 }

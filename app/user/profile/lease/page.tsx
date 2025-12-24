@@ -28,8 +28,16 @@ export default async function UserProfileLeasePage() {
           property: { select: { name: true, landlord: { select: { name: true } } } },
         },
       },
+      signatureRequests: {
+        where: { status: 'signed' },
+        orderBy: { signedAt: 'desc' },
+        take: 1,
+      },
     },
   });
+
+  // Get the most recent signed PDF URL (could be from tenant or landlord signature)
+  const signedPdfUrl = lease?.signatureRequests?.[0]?.signedPdfUrl || null;
 
   const leaseHtml = lease
     ? renderDocuSignReadyLeaseHtml({
@@ -101,7 +109,7 @@ export default async function UserProfileLeasePage() {
                 document.
               </p>
               <div className='flex gap-3'>
-                <LeaseViewer leaseHtml={leaseHtml} triggerLabel='View lease' />
+                <LeaseViewer leaseHtml={leaseHtml} signedPdfUrl={signedPdfUrl} triggerLabel='View lease' />
                 <DocusignSignButton leaseId={lease.id} />
               </div>
             </div>

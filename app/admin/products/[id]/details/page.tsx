@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { getConnectAccountStatus } from '@/lib/actions/stripe-connect.actions';
 import { PropertyDetailsTabs } from './property-details-tabs';
 import { normalizeTier } from '@/lib/config/subscription-tiers';
 
@@ -17,6 +18,7 @@ export default async function PropertyDetailsPage(props: {
   const property = await prisma.property.findFirst({
     where: { id, landlordId: landlordResult.landlord.id },
     include: {
+      bankAccount: true,
       units: {
         include: {
           leases: {
@@ -229,12 +231,33 @@ export default async function PropertyDetailsPage(props: {
   const landlordTier = normalizeTier(landlordResult.landlord.subscriptionTier);
   const isPro = landlordTier === 'pro' || landlordTier === 'enterprise';
 
+  // Get Connect account status and wallet balance for cashout
+  const connectStatus = await getConnectAccountStatus();
+  const wallet = await prisma.landlordWallet.findUnique({
+    where: { landlordId: landlordResult.landlord.id },
+  });
+  const availableBalance = wallet ? Number(wallet.availableBalance || 0) : 0;
+
+  // Prepare bank account info for cashout
+  const bankAccountInfo = property.bankAccount ? {
+    last4: property.bankAccount.last4,
+    bankName: property.bankAccount.bankName,
+    isVerified: property.bankAccount.isVerified,
+  } : null;
+
   return (
     <PropertyDetailsTabs 
       property={serializedProperty} 
       rentPayments={serializedRentPayments}
       landlordId={landlordResult.landlord.id}
       isPro={isPro}
+      cashoutInfo={{
+        canCashOut: connectStatus.status?.canReceivePayouts ?? false,
+        availableBalance,
+        hasBankAccount: !!property.bankAccount,
+        bankAccount: bankAccountInfo,
+        defaultBankLast4: connectStatus.status?.bankAccountLast4 ?? null,
+      }}
     />
   );
 }
