@@ -5,19 +5,19 @@ import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-
 
 /**
  * Manual tier setter for testing purposes
- * Only accessible by super-admin
+ * Only accessible by superAdmin
  * 
  * POST /api/super-admin/set-tier
- * Body: { landlordId: string, tier: 'free' | 'pro' | 'enterprise' }
+ * Body: { landlordId: string, tier: 'free' | 'pro' | 'enterprise', durationDays?: number, isGrant?: boolean }
  */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user?.id || session.user.role !== 'super-admin') {
+    if (!session?.user?.id || session.user.role !== 'superAdmin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { landlordId, tier } = await request.json();
+    const { landlordId, tier, durationDays, isGrant } = await request.json();
 
     if (!landlordId || !tier) {
       return NextResponse.json({ error: 'landlordId and tier are required' }, { status: 400 });
@@ -28,6 +28,10 @@ export async function POST(request: NextRequest) {
     }
 
     const tierConfig = SUBSCRIPTION_TIERS[tier as SubscriptionTier];
+    
+    // Calculate period end based on duration (default 30 days, or custom)
+    const periodDays = durationDays || 30;
+    const periodEnd = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
 
     // Update or create the subscription
     await prisma.landlordSubscription.upsert({
@@ -41,7 +45,10 @@ export async function POST(request: NextRequest) {
         freeEvictionChecks: tierConfig.features.freeEvictionChecks,
         freeEmploymentVerification: tierConfig.features.freeEmploymentVerification,
         currentPeriodStart: new Date(),
-        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        currentPeriodEnd: periodEnd,
+        isGranted: isGrant || false,
+        grantedBy: isGrant ? session.user.id : null,
+        grantedAt: isGrant ? new Date() : null,
       },
       update: {
         tier,
@@ -50,7 +57,10 @@ export async function POST(request: NextRequest) {
         freeBackgroundChecks: tierConfig.features.freeBackgroundChecks,
         freeEvictionChecks: tierConfig.features.freeEvictionChecks,
         freeEmploymentVerification: tierConfig.features.freeEmploymentVerification,
-        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        currentPeriodEnd: periodEnd,
+        isGranted: isGrant || false,
+        grantedBy: isGrant ? session.user.id : null,
+        grantedAt: isGrant ? new Date() : null,
       },
     });
 
@@ -72,6 +82,8 @@ export async function POST(request: NextRequest) {
       features: tierConfig.features,
       unitLimit: tierConfig.unitLimit,
       noCashoutFees: tierConfig.noCashoutFees,
+      periodEnd: periodEnd.toISOString(),
+      isGranted: isGrant || false,
     });
   } catch (error) {
     console.error('Failed to set tier:', error);
@@ -83,7 +95,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user?.id || session.user.role !== 'super-admin') {
+    if (!session?.user?.id || session.user.role !== 'superAdmin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -96,6 +108,12 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
+    // Get current user's landlord for the toggle feature
+    const currentUserLandlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+      include: { subscription: true },
+    });
+
     return NextResponse.json({
       landlords: landlords.map(l => ({
         id: l.id,
@@ -104,6 +122,9 @@ export async function GET(request: NextRequest) {
         currentTier: l.subscription?.tier || l.subscriptionTier || 'free',
         status: l.subscription?.status || l.subscriptionStatus || 'active',
         propertyCount: l._count.properties,
+        periodEnd: l.subscription?.currentPeriodEnd,
+        isGranted: (l.subscription as any)?.isGranted || false,
+        isCurrentUser: l.ownerUserId === session.user.id,
       })),
       availableTiers: Object.entries(SUBSCRIPTION_TIERS).map(([key, config]) => ({
         id: key,
@@ -112,9 +133,78 @@ export async function GET(request: NextRequest) {
         unitLimit: config.unitLimit,
         noCashoutFees: config.noCashoutFees,
       })),
+      currentUserLandlordId: currentUserLandlord?.id || null,
+      currentUserTier: currentUserLandlord?.subscription?.tier || currentUserLandlord?.subscriptionTier || 'free',
     });
   } catch (error) {
     console.error('Failed to get landlords:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// DELETE - Cancel/revoke a granted subscription
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || session.user.role !== 'superAdmin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { landlordId } = await request.json();
+
+    if (!landlordId) {
+      return NextResponse.json({ error: 'landlordId is required' }, { status: 400 });
+    }
+
+    // Reset to free tier
+    const freeTier = SUBSCRIPTION_TIERS.free;
+
+    await prisma.landlordSubscription.upsert({
+      where: { landlordId },
+      create: {
+        landlordId,
+        tier: 'free',
+        status: 'active',
+        unitLimit: freeTier.unitLimit,
+        freeBackgroundChecks: freeTier.features.freeBackgroundChecks,
+        freeEvictionChecks: freeTier.features.freeEvictionChecks,
+        freeEmploymentVerification: freeTier.features.freeEmploymentVerification,
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: null,
+        isGranted: false,
+        grantedBy: null,
+        grantedAt: null,
+      },
+      update: {
+        tier: 'free',
+        status: 'active',
+        unitLimit: freeTier.unitLimit,
+        freeBackgroundChecks: freeTier.features.freeBackgroundChecks,
+        freeEvictionChecks: freeTier.features.freeEvictionChecks,
+        freeEmploymentVerification: freeTier.features.freeEmploymentVerification,
+        currentPeriodEnd: null,
+        isGranted: false,
+        grantedBy: null,
+        grantedAt: null,
+      },
+    });
+
+    await prisma.landlord.update({
+      where: { id: landlordId },
+      data: {
+        subscriptionTier: 'free',
+        subscriptionStatus: 'active',
+        freeBackgroundChecks: freeTier.features.freeBackgroundChecks,
+        freeEmploymentVerification: freeTier.features.freeEmploymentVerification,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Subscription revoked, reset to free tier',
+    });
+  } catch (error) {
+    console.error('Failed to revoke subscription:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -124,17 +124,18 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const requestScreening = async (formData: FormData) => {
     'use server';
 
-    const bundle = formData.get('screeningBundle');
-
-    const bundleValue = typeof bundle === 'string' && bundle ? bundle : 'full_package';
+    const provider = formData.get('screeningProvider') as string || 'manual';
+    const notes = formData.get('screeningNotes') as string || '';
 
     await prisma.rentalApplication.update({
       where: { id: application.id },
       data: {
-        screeningProvider: 'rentspree',
-        screeningBundle: bundleValue,
-        screeningStatus: 'requested',
+        screeningProvider: provider,
+        screeningStatus: 'in_progress',
         screeningRequestedAt: new Date(),
+        notes: application.notes 
+          ? `${application.notes}\n\nScreening Notes: ${notes}`
+          : `Screening Notes: ${notes}`,
       },
     });
 
@@ -421,35 +422,94 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
 
           <section className='space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm'>
             <h3 className='text-sm font-semibold text-slate-900'>Tenant screening</h3>
-            <div className='space-y-2 text-xs text-slate-600'>
-              <p>Order a screening package for this applicant. Results will appear in your connected provider.</p>
-              {application.screeningStatus && (
-                <p className='text-slate-500'>
-                  Current status: <span className='font-medium text-slate-800'>{application.screeningStatus}</span>
-                  {application.screeningBundle && ` • ${application.screeningBundle}`}
+            
+            {application.screeningStatus && (
+              <div className={`p-3 rounded-lg ${
+                application.screeningStatus === 'completed' ? 'bg-green-50 border border-green-200' :
+                application.screeningStatus === 'failed' ? 'bg-red-50 border border-red-200' :
+                'bg-amber-50 border border-amber-200'
+              }`}>
+                <p className='font-medium text-sm text-slate-800'>
+                  Status: <span className={`${
+                    application.screeningStatus === 'completed' ? 'text-green-700' :
+                    application.screeningStatus === 'failed' ? 'text-red-700' :
+                    'text-amber-700'
+                  }`}>{application.screeningStatus}</span>
                 </p>
-              )}
+                {application.screeningProvider && (
+                  <p className='text-xs text-slate-600'>Provider: {application.screeningProvider}</p>
+                )}
+              </div>
+            )}
+
+            <div className='space-y-3'>
+              <p className='text-xs text-slate-600'>Run a background check using one of these services:</p>
+              
+              <div className='space-y-2'>
+                <a 
+                  href='https://www.mysmartmove.com/' 
+                  target='_blank' 
+                  rel='noopener noreferrer'
+                  className='flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-colors'
+                >
+                  <div>
+                    <p className='font-medium text-slate-900 text-sm'>SmartMove by TransUnion</p>
+                    <p className='text-xs text-slate-500'>Tenant pays • Credit, criminal, eviction</p>
+                  </div>
+                  <span className='text-blue-600 text-xs'>→</span>
+                </a>
+                
+                <a 
+                  href='https://www.avail.co/tenant-screening' 
+                  target='_blank' 
+                  rel='noopener noreferrer'
+                  className='flex items-center justify-between p-3 rounded-lg border border-emerald-200 bg-emerald-50 hover:border-emerald-300 transition-colors'
+                >
+                  <div>
+                    <p className='font-medium text-slate-900 text-sm'>Avail <span className='text-emerald-600 text-xs'>Free basic</span></p>
+                    <p className='text-xs text-slate-500'>Tenant pays for full report • Easy to use</p>
+                  </div>
+                  <span className='text-emerald-600 text-xs'>→</span>
+                </a>
+                
+                <a 
+                  href='https://www.rentprep.com/' 
+                  target='_blank' 
+                  rel='noopener noreferrer'
+                  className='flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-colors'
+                >
+                  <div>
+                    <p className='font-medium text-slate-900 text-sm'>RentPrep</p>
+                    <p className='text-xs text-slate-500'>From $21 • Background + eviction</p>
+                  </div>
+                  <span className='text-blue-600 text-xs'>→</span>
+                </a>
+              </div>
             </div>
 
-            <form action={requestScreening} className='space-y-3 text-sm'>
-              <div className='space-y-1'>
-                <label className='block text-xs font-medium text-slate-700'>Choose screening type</label>
-                <select
-                  name='screeningBundle'
-                  defaultValue={application.screeningBundle || 'full_package'}
-                  className='w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm'
-                >
-                  <option value='eviction_only'>Evictions only</option>
-                  <option value='background_only'>Background & address history</option>
-                  <option value='full_package'>Full package (credit, background, evictions)</option>
-                </select>
-              </div>
-
+            <form action={requestScreening} className='space-y-3 pt-3 border-t border-slate-100'>
+              <p className='text-xs font-medium text-slate-700'>Track screening status</p>
+              <select
+                name='screeningProvider'
+                defaultValue={application.screeningProvider || ''}
+                className='w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm'
+              >
+                <option value=''>Select provider used...</option>
+                <option value='smartmove'>SmartMove</option>
+                <option value='avail'>Avail</option>
+                <option value='rentprep'>RentPrep</option>
+                <option value='other'>Other</option>
+              </select>
+              <textarea
+                name='screeningNotes'
+                placeholder='Add screening results or notes...'
+                className='w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm min-h-[60px]'
+              />
               <button
                 type='submit'
-                className='inline-flex items-center justify-center rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500'
+                className='inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-xs font-medium text-white hover:bg-slate-800'
               >
-                Request screening
+                Update screening status
               </button>
             </form>
           </section>

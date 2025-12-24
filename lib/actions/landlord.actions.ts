@@ -91,6 +91,16 @@ export async function getOrCreateCurrentLandlord() {
     });
 
     if (!landlord) {
+      // Verify the user exists before creating landlord
+      const userExists = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      });
+
+      if (!userExists) {
+        throw new Error('User account not found. Please sign out and sign in again.');
+      }
+
       const base =
         userName
           .trim()

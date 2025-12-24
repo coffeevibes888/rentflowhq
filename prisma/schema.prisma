@@ -1184,6 +1184,11 @@ model LandlordSubscription {
   freeEvictionChecks    Boolean  @default(false)
   freeEmploymentVerification Boolean @default(false)
   
+  // Granted subscriptions (by super admin)
+  isGranted             Boolean  @default(false)
+  grantedBy             String?  @db.Uuid // User ID of super admin who granted
+  grantedAt             DateTime? @db.Timestamp(6)
+  
   createdAt             DateTime @default(now()) @db.Timestamp(6)
   updatedAt             DateTime @updatedAt
 
@@ -1191,6 +1196,7 @@ model LandlordSubscription {
 
   @@index([status])
   @@index([tier])
+  @@index([isGranted])
 }
 
 model SubscriptionEvent {
