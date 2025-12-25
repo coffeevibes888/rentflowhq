@@ -26,22 +26,21 @@ const tiers = [
     id: 'free',
     name: 'Free',
     price: 0,
-    description: 'Perfect for small landlords. Stop using spreadsheets.',
+    description: 'Perfect for small landlords.',
     unitLimit: 'Up to 24 units',
     icon: Building2,
     popular: false,
     features: [
       { name: 'Up to 24 units', included: true },
-      { name: 'Online rent collection ($2/payment)', included: true },
+      { name: 'Online rent collection', included: true },
       { name: 'Your own branded tenant portal', included: true },
-      { name: 'Custom subdomain (yourname.rentflowhq.com)', included: true },
+      { name: 'Custom subdomain (yourname.rooms4rentlv.com)', included: true },
       { name: 'Maintenance ticket system', included: true },
-      { name: 'Digital lease storage', included: true },
-      { name: 'Tenant applications', included: true },
-      { name: 'Zillow neighborhood comps', included: true },
+      { name: 'Digital leases with E-Sign', included: true },
       { name: 'Basic reporting', included: true },
-      { name: 'QuickBooks & TurboTax integration', included: false },
-      { name: 'Team management & chat', included: false },
+      { name: 'Automation Application Process', included: true },
+      // { name: 'QuickBooks & TurboTax integration', included: false },
+      // { name: 'Team management & chat', included: false },
     ],
     cta: 'Start Free',
     iconBg: 'bg-slate-500/20',
@@ -63,7 +62,6 @@ const tiers = [
       { name: 'Auto late fee charges', included: true },
       { name: 'Team management & Slack-like chat', included: true },
       { name: 'ID & paystub verification', included: true },
-      { name: 'No platform cashout fees', included: true },
       { name: 'Priority support', included: true },
       { name: 'Advanced analytics & reporting', included: true },
     ],
@@ -75,7 +73,7 @@ const tiers = [
     id: 'enterprise',
     name: 'Enterprise',
     price: null,
-    description: 'Custom solutions for property management companies.',
+    description: 'COMING SOON.',
     unitLimit: 'Unlimited units',
     icon: Crown,
     popular: false,
@@ -88,8 +86,8 @@ const tiers = [
       { name: 'Webhooks', included: true },
       { name: 'Dedicated account manager', included: true },
       { name: 'Custom integrations', included: true },
-      { name: 'SLA guarantee', included: true },
-      { name: 'Onboarding & training', included: true },
+      // { name: 'SLA guarantee', included: true },
+      // { name: 'Onboarding & training', included: true },
     ],
     cta: 'Contact Sales',
     iconBg: 'bg-amber-500/20',
@@ -152,7 +150,7 @@ export default function PricingSection() {
             Free for Small Landlords. Scales as You Grow.
           </h2>
           <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-            No percentage fees. Just $2 flat per rent payment. Free up to 24 units.
+            Finally an Automation Tool that saves you time and money. Let's face it your time is valuable.
           </p>
         </div>
 

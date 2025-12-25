@@ -155,16 +155,12 @@ const Homepage = async () => {
           <div className='max-w-7xl mx-auto relative z-10'>
             <div className='grid gap-8 lg:grid-cols-2 items-center'>
               <div className='space-y-6 animate-in fade-in slide-in-from-left duration-700'>
-                <div className='inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-purple text-xs font-medium border border-emerald-500/20 backdrop-blur-sm'>
-                  <Sparkles className='h-3 w-3' />
-                  <span className='text-purple font-bold txt-2xl'> • Run your properties like a pro — without hiring one. •</span>
-                </div>
                 
                 <h1 className='text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight '>
                  Property Management — Fully Automated.
                 </h1>
                 <p className='text-base md:text-lg text-white font-bold max-w-xl leading-relaxed'>
-                  Everything a property management company does, now handled by one platform. 
+                  Take control of your time, and stop wasting it on chasing rents, countless hours on reports and doing everything by hand.
                 </p>
                 
                 <div className='flex flex-wrap items-center gap-4'>
@@ -177,7 +173,7 @@ const Homepage = async () => {
                   </Link>
                 </div>
                 
-                <div className='flex flex-wrap items-center gap-6 pt-4 text-sm'>
+                {/* <div className='flex flex-wrap items-center gap-6 pt-4 text-sm'>
                   <div className='flex items-center gap-2 text-black'>
                     <CheckCircle2 className='h-5 w-5 text-purple' />
                     <span>Free up to 24 units</span>
@@ -203,7 +199,7 @@ const Homepage = async () => {
                     <span>Maintenance Ticketing System</span>
                   </div>
          
-                </div>
+                </div> */}
               </div>
               
               <div className='relative h-[600px] lg:h-[600px] rounded-3xl  border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200'>
