@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Building2, Bed, Bath, Maximize, MapPin } from 'lucide-react';
 import PropertyScheduler from '@/components/subdomain/property-scheduler';
 import { SubdomainApplyButton } from '@/components/subdomain/apply-button';
+import PropertyMap from '@/components/maps/property-map';
 
 export default async function SubdomainPropertyPage({
   params,
@@ -175,6 +176,33 @@ export default async function SubdomainPropertyPage({
         </div>
 
         <PropertyScheduler propertyId={property.id} propertyName={property.name} />
+
+        {/* Property Location Map */}
+        {property.address && typeof property.address === 'object' && (property.address as any).street && (
+          <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-violet-400" />
+                Property Location
+              </CardTitle>
+              <CardDescription className="text-slate-300">
+                {(property.address as any).street}, {(property.address as any).city}, {(property.address as any).state} {(property.address as any).zip}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PropertyMap
+                address={{
+                  street: (property.address as any).street,
+                  city: (property.address as any).city,
+                  state: (property.address as any).state,
+                  zip: (property.address as any).zip,
+                }}
+                propertyName={property.name}
+                className="h-[350px]"
+              />
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex justify-center">
           <SubdomainApplyButton propertySlug={property.slug} />
