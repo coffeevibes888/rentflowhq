@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { FileCheck, FileText, ExternalLink } from 'lucide-react';
+import { FileCheck, FileText, ExternalLink, AlertCircle } from 'lucide-react';
 
 interface LeaseViewerProps {
   leaseHtml: string;
@@ -20,6 +20,7 @@ interface LeaseViewerProps {
 export default function LeaseViewer({ leaseHtml, signedPdfUrl, triggerLabel = 'View lease' }: LeaseViewerProps) {
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'pdf' | 'html'>(signedPdfUrl ? 'pdf' : 'html');
+  const [pdfError, setPdfError] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -72,11 +73,47 @@ export default function LeaseViewer({ leaseHtml, signedPdfUrl, triggerLabel = 'V
         <div className='flex-1 min-h-0 overflow-auto p-4 sm:p-6 bg-white'>
           {viewMode === 'pdf' && signedPdfUrl ? (
             <div className='h-full'>
-              <iframe
-                src={signedPdfUrl}
-                className='w-full h-full min-h-[600px] rounded-xl border border-black/10'
-                title='Signed Lease PDF'
-              />
+              {pdfError ? (
+                <div className='flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8'>
+                  <AlertCircle className='w-12 h-12 text-amber-500 mb-4' />
+                  <h3 className='text-lg font-semibold text-gray-900 mb-2'>Unable to display PDF</h3>
+                  <p className='text-sm text-gray-600 mb-4'>
+                    The signed PDF couldn&apos;t be loaded in the viewer.
+                  </p>
+                  <div className='flex gap-3'>
+                    <a
+                      href={signedPdfUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700'
+                    >
+                      <ExternalLink className='w-4 h-4' />
+                      Open PDF in New Tab
+                    </a>
+                    <Button variant='outline' onClick={() => setViewMode('html')}>
+                      View HTML Preview
+                    </Button>
+                  </div>
+                  <p className='text-xs text-gray-400 mt-4'>
+                    PDF URL: {signedPdfUrl?.substring(0, 60)}...
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <iframe
+                    src={signedPdfUrl}
+                    className='w-full h-full min-h-[600px] rounded-xl border border-black/10'
+                    title='Signed Lease PDF'
+                    onError={() => setPdfError(true)}
+                  />
+                  <p className='text-xs text-gray-500 mt-2 text-center'>
+                    If the PDF doesn&apos;t load, try the &quot;Preview&quot; button above or{' '}
+                    <a href={signedPdfUrl} target='_blank' rel='noopener noreferrer' className='text-blue-600 hover:underline'>
+                      download it directly
+                    </a>.
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <div className='rounded-xl border border-black/10 bg-white p-4 sm:p-6'>

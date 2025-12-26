@@ -12,7 +12,9 @@ const currency = z
 // Base schema for products (shared by insert and update)
 const baseProductSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
-  slug: z.string().min(3, 'Slug must be at least 3 characters'),
+  slug: z.string()
+    .min(3, 'Slug must be at least 3 characters')
+    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens (no special characters like : or !)'),
   category: z.string().min(3, 'Category must be at least 3 characters'),
   subCategory: z
     .string()

@@ -668,6 +668,9 @@ model Property {
   marketBenchmarks MarketBenchmark[]
   bankAccount PropertyBankAccount?
   invoices TenantInvoice[]
+  
+  // Tenant lifecycle relations
+  tenantHistory TenantHistory[]
 }
 
 model Unit {
@@ -694,6 +697,10 @@ model Unit {
   expenses Expense[]
 
   leaseViolations LeaseViolation[]
+  
+  // Tenant lifecycle relations
+  turnoverChecklists UnitTurnoverChecklist[]
+  tenantHistory      TenantHistory[]
 }
 
 model Lease {
@@ -705,7 +712,9 @@ model Lease {
   endDate        DateTime? @db.Timestamp(6)
   rentAmount     Decimal  @db.Decimal(12, 2)
   billingDayOfMonth Int   // 1-28 typically
-  status         String   @default("active") // active, ended, pending
+  status         String   @default("active") // active, ended, pending, terminated
+  terminationReason String? // eviction, voluntary, lease_end, mutual_agreement, other
+  terminatedAt   DateTime? @db.Timestamp(6)
   docusignEnvelopeId String?
   tenantSignedAt DateTime? @db.Timestamp(6)
   landlordSignedAt DateTime? @db.Timestamp(6)
@@ -720,6 +729,11 @@ model Lease {
   signatureRequests DocumentSignatureRequest[]
 
   violations LeaseViolation[]
+  
+  // Tenant lifecycle relations
+  evictionNotices    EvictionNotice[]
+  departures         TenantDeparture[]
+  depositDispositions DepositDisposition[]
 }
 
 model RentPayment {
@@ -1589,4 +1603,179 @@ model WalletTransaction {
   @@index([walletId])
   @@index([type])
   @@index([createdAt])
+}
+
+
+// ============= TENANT LIFECYCLE MANAGEMENT =============
+
+// Eviction notice tracking
+model EvictionNotice {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  leaseId         String   @db.Uuid
+  tenantId        String   @db.Uuid
+  landlordId      String   @db.Uuid
+  unitId          String   @db.Uuid
+  
+  noticeType      String   // '3-day', '7-day', '30-day'
+  status          String   @default("served") // served, cure_period, cured, expired, filed_with_court, completed
+  reason          String
+  amountOwed      Decimal? @db.Decimal(12, 2)
+  additionalNotes String?
+  
+  servedAt        DateTime @default(now()) @db.Timestamp(6)
+  deadlineDate    DateTime @db.Timestamp(6)
+  curedAt         DateTime? @db.Timestamp(6)
+  filedAt         DateTime? @db.Timestamp(6)
+  completedAt     DateTime? @db.Timestamp(6)
+  
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt
+
+  lease           Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  
+  @@index([leaseId])
+  @@index([tenantId])
+  @@index([landlordId])
+  @@index([status])
+}
+
+// Tenant departure records
+model TenantDeparture {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  leaseId         String   @db.Uuid
+  tenantId        String   @db.Uuid
+  unitId          String   @db.Uuid
+  landlordId      String   @db.Uuid
+  
+  departureType   String   // 'eviction', 'voluntary', 'lease_end', 'mutual_agreement'
+  departureDate   DateTime @db.Timestamp(6)
+  notes           String?
+  
+  // Linked eviction notice if departure was due to eviction
+  evictionNoticeId String? @db.Uuid
+  
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt
+
+  lease           Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  
+  @@index([leaseId])
+  @@index([tenantId])
+  @@index([unitId])
+}
+
+// Security deposit disposition
+model DepositDisposition {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  leaseId         String   @db.Uuid
+  tenantId        String   @db.Uuid
+  landlordId      String   @db.Uuid
+  
+  originalAmount  Decimal  @db.Decimal(12, 2)
+  totalDeductions Decimal  @db.Decimal(12, 2)
+  refundAmount    Decimal  @db.Decimal(12, 2)
+  refundMethod    String?  // 'check', 'ach', 'pending'
+  refundStatus    String   @default("pending") // 'pending', 'processing', 'completed'
+  
+  notes           String?
+  processedAt     DateTime? @db.Timestamp(6)
+  
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt
+
+  lease           Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  deductions      DepositDeductionItem[]
+  
+  @@index([leaseId])
+  @@index([tenantId])
+}
+
+// Itemized deposit deductions with evidence
+model DepositDeductionItem {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  depositDispositionId String  @db.Uuid
+  
+  category            String   // 'damages', 'unpaid_rent', 'cleaning', 'repairs', 'other'
+  amount              Decimal  @db.Decimal(12, 2)
+  description         String
+  evidenceUrls        String[] @default([]) // Cloudinary URLs for photos/videos
+  
+  createdAt           DateTime @default(now()) @db.Timestamp(6)
+
+  depositDisposition  DepositDisposition @relation(fields: [depositDispositionId], references: [id], onDelete: Cascade)
+  
+  @@index([depositDispositionId])
+}
+
+// Unit turnover checklist for preparing unit for new tenant
+model UnitTurnoverChecklist {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unitId          String   @db.Uuid
+  leaseId         String?  @db.Uuid // The lease that ended
+  landlordId      String   @db.Uuid
+  
+  depositProcessed    Boolean @default(false)
+  keysCollected       Boolean @default(false)
+  unitInspected       Boolean @default(false)
+  cleaningCompleted   Boolean @default(false)
+  repairsCompleted    Boolean @default(false)
+  
+  depositProcessedAt  DateTime? @db.Timestamp(6)
+  keysCollectedAt     DateTime? @db.Timestamp(6)
+  unitInspectedAt     DateTime? @db.Timestamp(6)
+  cleaningCompletedAt DateTime? @db.Timestamp(6)
+  repairsCompletedAt  DateTime? @db.Timestamp(6)
+  
+  notes               String?
+  completedAt         DateTime? @db.Timestamp(6)
+  
+  createdAt           DateTime @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime @updatedAt
+
+  unit                Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  
+  @@index([unitId])
+  @@index([landlordId])
+}
+
+// Historical record of past tenants
+model TenantHistory {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unitId          String   @db.Uuid
+  propertyId      String   @db.Uuid
+  landlordId      String   @db.Uuid
+  tenantId        String   @db.Uuid
+  leaseId         String   @db.Uuid
+  
+  tenantName      String
+  tenantEmail     String
+  tenantPhone     String?
+  
+  leaseStartDate  DateTime @db.Timestamp(6)
+  leaseEndDate    DateTime? @db.Timestamp(6)
+  rentAmount      Decimal  @db.Decimal(12, 2)
+  
+  departureType   String   // 'eviction', 'voluntary', 'lease_end', 'mutual_agreement'
+  departureDate   DateTime @db.Timestamp(6)
+  departureNotes  String?
+  
+  // Deposit summary
+  depositAmount   Decimal? @db.Decimal(12, 2)
+  depositRefunded Decimal? @db.Decimal(12, 2)
+  depositDeducted Decimal? @db.Decimal(12, 2)
+  
+  // Eviction info if applicable
+  wasEvicted      Boolean  @default(false)
+  evictionReason  String?
+  
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+
+  unit            Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  @@index([unitId])
+  @@index([propertyId])
+  @@index([landlordId])
+  @@index([tenantId])
+  @@index([departureDate])
 }

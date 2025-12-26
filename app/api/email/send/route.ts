@@ -32,14 +32,14 @@ export async function POST(req: NextRequest) {
     const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
-    const fromAddress = process.env.SMTP_FROM_EMAIL || 'no-reply@rockenmyvibe.com';
+    const fromAddress = process.env.SMTP_FROM_EMAIL || 'noreply@rooms4rentlv.com';
 
     if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
       return NextResponse.json({ error: 'SMTP configuration is not configured' }, { status: 500 });
     }
 
     const currentUserId = session.user.id as string;
-    const fromName = session.user.name || 'RockEnMyVibe';
+    const fromName = session.user.name || 'Rooms4Rent';
 
     const attachmentEntries = formData.getAll('attachments');
     const attachments: { filename: string; content: string; contentType?: string }[] = [];

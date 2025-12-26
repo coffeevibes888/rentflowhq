@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
       const smtpUser = process.env.SMTP_USER;
       const smtpPass = process.env.SMTP_PASS;
-      const fromAddress = process.env.SMTP_FROM_EMAIL || 'no-reply@rockenmyvibe.com';
+      const fromAddress = process.env.SMTP_FROM_EMAIL || 'noreply@rooms4rentlv.com';
 
       if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
         return NextResponse.json(

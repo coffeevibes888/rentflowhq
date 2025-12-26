@@ -37,7 +37,7 @@ export function getSignedCloudinaryUrl(params: {
 }) {
   requireCloudinaryConfig();
   const resourceType = params.resourceType || 'raw';
-  const expiresInSeconds = params.expiresInSeconds ?? 60 * 10;
+  const expiresInSeconds = params.expiresInSeconds ?? 60 * 60; // Default 1 hour
   const expiresAt = Math.floor(Date.now() / 1000) + expiresInSeconds;
 
   return cloudinary.url(params.publicId, {
@@ -45,6 +45,25 @@ export function getSignedCloudinaryUrl(params: {
     type: 'authenticated',
     sign_url: true,
     expires_at: expiresAt,
+    secure: true,
+  });
+}
+
+/**
+ * Generate a signed URL from a Cloudinary secure_url
+ * This is useful when you have the full URL stored in the database
+ */
+export function getSignedUrlFromStoredUrl(
+  storedUrl: string,
+  expiresInSeconds: number = 60 * 60 // Default 1 hour
+): string | null {
+  const publicId = extractPublicIdFromUrl(storedUrl);
+  if (!publicId) return null;
+  
+  return getSignedCloudinaryUrl({
+    publicId,
+    resourceType: 'raw',
+    expiresInSeconds,
   });
 }
 

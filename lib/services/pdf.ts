@@ -57,8 +57,23 @@ export async function htmlToPdfBuffer(html: string): Promise<Buffer> {
   try {
     await page.setViewport({ width: 850, height: 1100 });
     await page.emulateMediaType('print');
-    await page.setContent(html, { waitUntil: 'load', timeout: 30000 });
+    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
     console.log('PDF generation - Content set');
+
+    // Wait for all images to load (including base64 data URLs)
+    await page.evaluate(async () => {
+      const images = Array.from(document.querySelectorAll('img'));
+      await Promise.all(
+        images.map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        })
+      );
+    });
+    console.log('PDF generation - Images loaded');
 
     const pdf = await page.pdf({
       format: 'A4',

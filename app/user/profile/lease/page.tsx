@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import DocusignSignButton from './docusign-sign-button';
 import LeaseViewer from './lease-viewer';
 import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
+import { getSignedUrlFromStoredUrl } from '@/lib/cloudinary';
 
 export default async function UserProfileLeasePage() {
   const session = await auth();
@@ -17,7 +18,7 @@ export default async function UserProfileLeasePage() {
   const lease = await prisma.lease.findFirst({
     where: {
       tenantId: userId,
-      status: 'active',
+      status: { in: ['active', 'pending_signature'] },
     },
     orderBy: { startDate: 'desc' },
     include: {
@@ -29,15 +30,24 @@ export default async function UserProfileLeasePage() {
         },
       },
       signatureRequests: {
-        where: { status: 'signed' },
-        orderBy: { signedAt: 'desc' },
-        take: 1,
+        orderBy: { createdAt: 'desc' },
       },
     },
   });
 
   // Get the most recent signed PDF URL (could be from tenant or landlord signature)
-  const signedPdfUrl = lease?.signatureRequests?.[0]?.signedPdfUrl || null;
+  const signedRequest = lease?.signatureRequests?.find(sr => sr.status === 'signed');
+  
+  // Generate a signed URL for authenticated Cloudinary PDFs
+  const rawPdfUrl = signedRequest?.signedPdfUrl || null;
+  const signedPdfUrl = rawPdfUrl ? getSignedUrlFromStoredUrl(rawPdfUrl) : null;
+  
+  // Check if tenant needs to sign
+  const tenantSignatureRequest = lease?.signatureRequests?.find(
+    sr => sr.role === 'tenant' && sr.recipientEmail === session.user.email
+  );
+  const needsTenantSignature = tenantSignatureRequest && tenantSignatureRequest.status !== 'signed';
+  const isPendingSignature = lease?.status === 'pending_signature';
 
   const leaseHtml = lease
     ? renderDocuSignReadyLeaseHtml({
@@ -69,7 +79,29 @@ export default async function UserProfileLeasePage() {
             You don&apos;t have an active lease on file yet. Please contact management if you believe this is a mistake.
           </div>
         ) : (
-          <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg space-y-6 text-sm text-gray-100'>
+          <>
+            {/* Pending Signature Banner */}
+            {isPendingSignature && (
+              <div className='backdrop-blur-md bg-amber-500/20 border border-amber-400/50 rounded-xl px-6 py-4 shadow-lg'>
+                <div className='flex items-start gap-3'>
+                  <div className='rounded-full bg-amber-500/30 p-2 mt-0.5'>
+                    <svg className='h-5 w-5 text-amber-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' />
+                    </svg>
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='text-base font-semibold text-amber-100'>Lease Awaiting Signature</h3>
+                    <p className='text-sm text-amber-200/80 mt-1'>
+                      {needsTenantSignature 
+                        ? 'Your application has been approved! Please review and sign your lease agreement below to complete your move-in process.'
+                        : 'Your lease is pending final signatures. You can still proceed with move-in payments.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg space-y-6 text-sm text-gray-100'>
             <div className='space-y-2'>
               <p className='text-[11px] font-semibold text-gray-300 uppercase tracking-[0.16em]'>Property</p>
               <p className='text-base md:text-lg font-medium text-white'>
@@ -114,6 +146,7 @@ export default async function UserProfileLeasePage() {
               </div>
             </div>
           </div>
+          </>
         )}
       </div>
     </div>

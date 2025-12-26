@@ -261,58 +261,103 @@ export async function POST(
   } else {
     // Fall back to HTML template signing
     console.log('Using HTML template for signing');
-    let leaseHtml = renderDocuSignReadyLeaseHtml({
-      landlordName,
-      tenantName,
-      propertyLabel,
-      leaseStartDate: new Date(lease.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      leaseEndDate: lease.endDate
-        ? new Date(lease.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-        : 'Month-to-Month',
-      rentAmount: Number(lease.rentAmount).toLocaleString(),
-      billingDayOfMonth: String(lease.billingDayOfMonth),
-      todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-    });
-
-    // Embed initials into the HTML
-    if (initialsData && Array.isArray(initialsData)) {
-      initialsData.forEach(({ id, value }) => {
-        if (value) {
-          const placeholder = `/${id}/`;
-          const imgTag = `<img src="${value}" alt="Initial" style="height: 24px; display: inline-block; vertical-align: middle;" />`;
-          leaseHtml = leaseHtml.replace(placeholder, imgTag);
+    
+    // For landlord signing, check if tenant has already signed and use their PDF as base
+    if (sig.role === 'landlord') {
+      const tenantSignatureRequest = await prisma.documentSignatureRequest.findFirst({
+        where: { 
+          leaseId: lease.id, 
+          role: 'tenant', 
+          status: 'signed',
+          signedPdfUrl: { not: null }
+        },
+        select: { signedPdfUrl: true }
+      });
+      
+      if (tenantSignatureRequest?.signedPdfUrl) {
+        console.log('Landlord signing - Using tenant signed PDF as base');
+        try {
+          const pdfBuffer = await fetchPdfBuffer(tenantSignatureRequest.signedPdfUrl);
+          
+          stamped = await stampSignatureOnPdf({
+            basePdf: pdfBuffer,
+            signerName,
+            signerEmail,
+            role: 'landlord',
+            signatureDataUrl,
+            signedAt,
+            audit,
+            landlordId: lease.unit.property?.landlord?.id,
+            leaseId: lease.id,
+          });
+        } catch (error: any) {
+          console.error('Failed to use tenant signed PDF, falling back to HTML:', error);
+          // Fall through to HTML generation below
         }
-      });
+      }
     }
-
-    // Embed signature
-    if (sig.role === 'tenant') {
-      const sigImgTag = `<img src="${signatureDataUrl}" alt="Tenant Signature" style="height: 38px; display: inline-block; vertical-align: middle;" />`;
-      leaseHtml = leaseHtml.replace('/sig_tenant/', sigImgTag);
-    } else {
-      const sigImgTag = `<img src="${signatureDataUrl}" alt="Landlord Signature" style="height: 38px; display: inline-block; vertical-align: middle;" />`;
-      leaseHtml = leaseHtml.replace('/sig_landlord/', sigImgTag);
-    }
-
-    try {
-      const basePdf = await generateLeasePdf(leaseHtml);
-      stamped = await stampSignatureOnPdf({
-        basePdf,
-        signerName,
-        signerEmail,
-        role: sig.role as 'tenant' | 'landlord',
-        signatureDataUrl,
-        signedAt,
-        audit,
-        landlordId: lease.unit.property?.landlord?.id,
-        leaseId: lease.id,
+    
+    // If we don't have a stamped result yet (tenant signing or fallback), generate from HTML
+    if (!stamped) {
+      let leaseHtml = renderDocuSignReadyLeaseHtml({
+        landlordName,
+        tenantName,
+        propertyLabel,
+        leaseStartDate: new Date(lease.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        leaseEndDate: lease.endDate
+          ? new Date(lease.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+          : 'Month-to-Month',
+        rentAmount: Number(lease.rentAmount).toLocaleString(),
+        billingDayOfMonth: String(lease.billingDayOfMonth),
+        todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       });
-    } catch (error: any) {
-      console.error('HTML template signing failed:', error);
-      return NextResponse.json(
-        { message: error?.message || 'Failed to process signature. Please try again.' },
-        { status: 500 }
-      );
+
+      // Embed initials into the HTML
+      if (initialsData && Array.isArray(initialsData)) {
+        console.log('Signing - Processing initials data:', initialsData.length, 'items');
+        initialsData.forEach(({ id, value }) => {
+          if (value) {
+            const placeholder = `/${id}/`;
+            const imgTag = `<img src="${value}" alt="Initial" style="height: 24px; display: inline-block; vertical-align: middle;" />`;
+            const beforeReplace = leaseHtml.includes(placeholder);
+            leaseHtml = leaseHtml.replace(placeholder, imgTag);
+            const afterReplace = leaseHtml.includes(placeholder);
+            console.log(`Signing - Initial ${id}: placeholder found=${beforeReplace}, replaced=${beforeReplace && !afterReplace}`);
+          }
+        });
+      } else {
+        console.log('Signing - No initials data provided');
+      }
+
+      // Embed signature
+      if (sig.role === 'tenant') {
+        const sigImgTag = `<img src="${signatureDataUrl}" alt="Tenant Signature" style="height: 38px; display: inline-block; vertical-align: middle;" />`;
+        leaseHtml = leaseHtml.replace('/sig_tenant/', sigImgTag);
+      } else {
+        const sigImgTag = `<img src="${signatureDataUrl}" alt="Landlord Signature" style="height: 38px; display: inline-block; vertical-align: middle;" />`;
+        leaseHtml = leaseHtml.replace('/sig_landlord/', sigImgTag);
+      }
+
+      try {
+        const basePdf = await generateLeasePdf(leaseHtml);
+        stamped = await stampSignatureOnPdf({
+          basePdf,
+          signerName,
+          signerEmail,
+          role: sig.role as 'tenant' | 'landlord',
+          signatureDataUrl,
+          signedAt,
+          audit,
+          landlordId: lease.unit.property?.landlord?.id,
+          leaseId: lease.id,
+        });
+      } catch (error: any) {
+        console.error('HTML template signing failed:', error);
+        return NextResponse.json(
+          { message: error?.message || 'Failed to process signature. Please try again.' },
+          { status: 500 }
+        );
+      }
     }
   }
 

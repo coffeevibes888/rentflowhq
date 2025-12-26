@@ -16,6 +16,7 @@ import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import PropertyActions from '@/components/admin/property-actions';
 import ScheduleHoursButton from '@/components/admin/schedule-hours-button';
+import { PropertyUnitsList } from '@/components/admin/property-units-list';
 
 
 const PAGE_SIZE = 10;
@@ -50,7 +51,23 @@ const AdminProductsPage = async (props: {
       where,
       include: {
         units: {
-          select: { id: true, rentAmount: true, images: true, isAvailable: true },
+          select: { 
+            id: true, 
+            name: true,
+            rentAmount: true, 
+            images: true, 
+            isAvailable: true,
+            leases: {
+              where: { status: 'active' },
+              select: {
+                id: true,
+                tenant: {
+                  select: { name: true }
+                }
+              },
+              take: 1
+            }
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -166,7 +183,7 @@ const AdminProductsPage = async (props: {
                 <TableHead>PROPERTY</TableHead>
                 <TableHead className='text-right'>MONTHLY RENT</TableHead>
                 <TableHead>TYPE</TableHead>
-                <TableHead>AVAILABLE UNITS</TableHead>
+                <TableHead>UNIT AVAILABILITY</TableHead>
                 <TableHead className='w-[100px]'>ACTIONS</TableHead>
               </TableRow>
             </TableHeader>
@@ -225,9 +242,18 @@ const AdminProductsPage = async (props: {
                       </Link>
                     </TableCell>
                     <TableCell className='text-slate-300'>
-                      <Link href={`/admin/products/${property.id}/details`} className='block hover:text-violet-400 transition-colors'>
-                        {availableUnits.length}
-                      </Link>
+                      <PropertyUnitsList
+                        propertyId={property.id}
+                        units={property.units.map(u => ({
+                          id: u.id,
+                          name: u.name,
+                          rentAmount: Number(u.rentAmount),
+                          isAvailable: u.isAvailable,
+                          hasActiveLease: u.leases && u.leases.length > 0,
+                          tenantName: u.leases?.[0]?.tenant?.name,
+                          leaseId: u.leases?.[0]?.id,
+                        }))}
+                      />
                     </TableCell>
                     <TableCell>
                       <div className='flex flex-col gap-2'>

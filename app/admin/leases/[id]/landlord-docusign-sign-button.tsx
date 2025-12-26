@@ -2,16 +2,17 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import LeaseSigningModal from '@/components/lease-signing-modal';
+import { useRouter } from 'next/navigation';
+import { FileSignature, Loader2 } from 'lucide-react';
 
-interface LandlordDocusignSignButtonProps {
+interface LandlordSignButtonProps {
   leaseId: string;
+  variant?: 'default' | 'compact';
 }
 
-export default function LandlordDocusignSignButton({ leaseId }: LandlordDocusignSignButtonProps) {
+export default function LandlordSignButton({ leaseId, variant = 'default' }: LandlordSignButtonProps) {
   const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [signingToken, setSigningToken] = useState('');
+  const router = useRouter();
 
   const handleSign = async () => {
     setLoading(true);
@@ -35,8 +36,8 @@ export default function LandlordDocusignSignButton({ leaseId }: LandlordDocusign
         return;
       }
       
-      setSigningToken(token);
-      setModalOpen(true);
+      // Navigate to the signing page
+      router.push(`/sign/${token}`);
     } catch (error) {
       console.error('Sign error:', error);
       alert('An error occurred while initiating signing');
@@ -45,23 +46,43 @@ export default function LandlordDocusignSignButton({ leaseId }: LandlordDocusign
     }
   };
 
-  return (
-    <>
+  if (variant === 'compact') {
+    return (
       <Button
         onClick={handleSign}
         disabled={loading}
-        className='bg-orange-600 hover:bg-orange-700 text-white'
+        size="sm"
+        className='bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90'
       >
-        {loading ? 'Loading...' : 'Sign Lease Electronically'}
+        {loading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <>
+            <FileSignature className="w-4 h-4 mr-2" />
+            Sign Lease
+          </>
+        )}
       </Button>
-      
-      {signingToken && (
-        <LeaseSigningModal 
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          token={signingToken}
-        />
+    );
+  }
+
+  return (
+    <Button
+      onClick={handleSign}
+      disabled={loading}
+      className='bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90'
+    >
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          Loading...
+        </>
+      ) : (
+        <>
+          <FileSignature className="w-4 h-4 mr-2" />
+          Sign Lease Electronically
+        </>
       )}
-    </>
+    </Button>
   );
 }

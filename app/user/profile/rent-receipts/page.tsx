@@ -20,7 +20,7 @@ export default async function UserProfileRentReceiptsPage() {
   const lease = await prisma.lease.findFirst({
     where: {
       tenantId: userId,
-      status: 'active',
+      status: { in: ['active', 'pending_signature'] },
     },
     include: {
       unit: {
@@ -95,6 +95,25 @@ export default async function UserProfileRentReceiptsPage() {
           </div>
         ) : (
           <>
+            {/* Pending Signature Notice */}
+            {lease.status === 'pending_signature' && (
+              <div className='backdrop-blur-md bg-amber-500/20 border border-amber-400/50 rounded-xl px-6 py-4 shadow-lg'>
+                <div className='flex items-start gap-3'>
+                  <div className='rounded-full bg-amber-500/30 p-2 mt-0.5'>
+                    <svg className='h-5 w-5 text-amber-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' />
+                    </svg>
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='text-base font-semibold text-amber-100'>Lease Pending Signature</h3>
+                    <p className='text-sm text-amber-200/80 mt-1'>
+                      Your application has been approved! You can pay your move-in costs below. Don&apos;t forget to{' '}
+                      <a href='/user/profile/lease' className='underline hover:text-amber-100'>sign your lease</a> to complete the process.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg space-y-4 text-sm text-gray-100'>
               <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
                 <div className='space-y-1'>

@@ -227,14 +227,14 @@ const Homepage = async () => {
                         <div className='text-[10px] text-red'>1 urgent</div>
                       </div>
                       <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-                        <div className='text-xs text-black'>Applications</div>
+                        <div className='text-xs text-black'>Messages</div>
                         <div className='text-2xl font-bold text-white'>5</div>
-                        <div className='text-[10px] text-green-400'>3 pending</div>
+                        <div className='text-[10px] text-green-400'>3 unread</div>
                       </div>
                       <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-                        <div className='text-xs text-black'>Applications</div>
-                        <div className='text-2xl font-bold text-white'>5</div>
-                        <div className='text-[10px] text-green-400'>3 pending</div>
+                        <div className='text-xs text-black'>Available Balance</div>
+                        <div className='text-2xl font-bold text-white'>$2,400</div>
+                        <div className='text-[10px] text-green-400'>Cash Out</div>
                       </div>
                       <div className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
                         <div className='text-xs text-black'>Applications</div>
@@ -262,7 +262,7 @@ const Homepage = async () => {
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
                 We Get It. Property Management is Exhausting.
               </h2>
-              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
+              <p className='text-lg text-black font-semibold max-w-2xl mx-auto'>
                 You didn't become a landlord to spend hours on admin work. Here's how we solve your biggest headaches.
               </p>
             </div>
@@ -395,7 +395,7 @@ const Homepage = async () => {
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
                 Get Started in Minutes, Not Days
               </h2>
-              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
+              <p className='text-lg text-black font-semibold max-w-2xl mx-auto'>
                 No complicated setup. No training required. Just sign up and start managing.
               </p>
             </div>
@@ -468,7 +468,7 @@ const Homepage = async () => {
               <h2 className='text-3xl md:text-4xl font-bold text-white'>
                 Everything You Need. Nothing You Don't.
               </h2>
-              <p className='text-lg text-slate-300 max-w-2xl mx-auto'>
+              <p className='text-lg text-black font-semibold max-w-2xl mx-auto'>
                 Whether you have 3 units or 200, get the tools that enterprise property managers use — without the enterprise price tag.
               </p>
             </div>
@@ -507,7 +507,7 @@ const Homepage = async () => {
         </section>
 
         {/* Final CTA */}
-        <section className='w-full py-16 md:py-20 px-4 bg-gradient-to-br from-violet-500/10 via-cyan-500/10 to-purple-500/10'>
+        {/* <section className='w-full py-16 md:py-20 px-4 bg-gradient-to-br from-violet-500/10 via-cyan-500/10 to-purple-500/10'>
           <div className='max-w-4xl mx-auto text-center space-y-8 animate-in fade-in duration-700'>
             <h2 className='text-3xl md:text-5xl font-bold text-white leading-tight'>
               Ready to Stop Chasing Rent?
@@ -534,7 +534,7 @@ const Homepage = async () => {
               No credit card required • Free up to 24 units • $2 flat fee per payment
             </p>
           </div>
-        </section>
+        </section> */}
       </main>
 
       <CustomerReviews />

@@ -430,7 +430,8 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
       if (session.role === 'tenant') {
         router.push('/user/profile/rent-receipts');
       } else {
-        router.refresh();
+        // Redirect landlord to admin dashboard or properties page
+        router.push('/admin/products');
       }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Failed to sign' });

@@ -136,20 +136,20 @@ export default function PricingSection() {
   return (
     <section id="pricing" className="w-full py-20 md:py-28 px-4 relative overflow-hidden scroll-mt-20">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-r from-indigo-700 to-sky-600" />
+      <div className="absolute inset-0 " />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-500/10 rounded-full blur-3xl" />
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center space-y-4 mb-16 animate-in fade-in duration-700">
-          <div className="inline-flex items-center gap-2 rounded-full bg-violet-500/10 px-4 py-1.5 text-violet-300 text-sm font-medium border border-violet-500/20">
-            <Sparkles className="h-4 w-4" />
-            Simple, Transparent Pricing
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-violet-300 text-sm font-medium border border-violet-500/20">
+            <Sparkles className="h-4 w-4 text-blue-800" />
+            <span className='text-blue-800'>Simple, Transparent Pricing</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white">
             Free for Small Landlords. Scales as You Grow.
           </h2>
-          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+          <p className="text-lg text-black font-semibold max-w-2xl mx-auto">
             Finally an Automation Tool that saves you time and money. Let's face it your time is valuable.
           </p>
         </div>
@@ -261,11 +261,11 @@ export default function PricingSection() {
 
         {/* Bottom note */}
         <div className="mt-16 text-center">
-          <p className="text-slate-400 text-sm">
+          <p className="text-black text-sm">
             All plans include SSL security, 99.9% uptime, and 24/7 monitoring.
             <br />
             <span className="text-slate-500">Questions? </span>
-            <a href="/contact" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
+            <a href="/contact" className="text-blue-800 hover:text-violet-300 underline underline-offset-2">
               Talk to our team
             </a>
           </p>
@@ -277,7 +277,7 @@ export default function PricingSection() {
             <h3 className="text-2xl md:text-3xl font-bold text-white">
               How We Compare to Competitors
             </h3>
-            <p className="text-slate-400 max-w-xl mx-auto">
+            <p className="text-black font-semibold max-w-xl mx-auto">
               See why landlords are switching to Rent Flow HQ
             </p>
           </div>
@@ -369,7 +369,7 @@ export default function PricingSection() {
           </div>
           
           <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-black">
               Comparison based on publicly available pricing as of December 2024. Features may vary by plan.
             </p>
           </div>

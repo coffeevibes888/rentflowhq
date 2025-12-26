@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { prisma } from '@/db/prisma';
 import RentReminderEmail from '@/email/templates/rent-reminder';
 import { render } from '@react-email/render';
@@ -6,16 +6,8 @@ import MaintenanceUpdateEmail from '@/email/templates/maintenance-update';
 import ApplicationStatusEmail from '@/email/templates/application-status';
 import NotificationEmail from '@/email/templates/notification';
 
-// Create transporter using Zoho SMTP
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Initialize Resend client
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface EmailOptions {
   to: string | string[];
@@ -45,16 +37,13 @@ export async function sendBrandedEmail({ to, subject, template, data, landlordId
 
     // Generate email content based on template
     let emailHtml: string;
-    let fromEmail: string;
-    let fromName: string;
 
-    const subdomain = landlord.subdomain;
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
     
-    // IMPORTANT: Zoho SMTP only allows sending from the authenticated email address
-    // Use the SMTP_USER as the from email, but set the display name to the landlord's name
-    fromEmail = process.env.SMTP_USER || `noreply@${rootDomain}`;
-    fromName = landlord.name || 'Property Management';
+    // Use landlord's name as the sender display name
+    // Email will come from your verified domain but show landlord's name
+    const senderEmail = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+    const fromName = landlord.name || 'Property Management';
 
     switch (template) {
       case 'rent-reminder':
@@ -73,19 +62,22 @@ export async function sendBrandedEmail({ to, subject, template, data, landlordId
         throw new Error('Unknown email template');
     }
 
-    // Send email using Zoho SMTP
-    const mailOptions = {
-      from: `${fromName} <${fromEmail}>`,
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: `${fromName} <${senderEmail}>`,
       to: Array.isArray(to) ? to : [to],
       subject: `${subject} - ${fromName}`,
       html: emailHtml,
-      replyTo: fromEmail, // Reply to the authenticated SMTP email
-    };
+      replyTo: senderEmail,
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
+    if (error) {
+      console.error('Email service error:', error);
+      throw new Error(error.message);
+    }
 
-    return { success: true, messageId: info.messageId };
+    console.log('Email sent successfully:', emailData?.id);
+    return { success: true, messageId: emailData?.id };
   } catch (error) {
     console.error('Email service error:', error);
     throw error;
@@ -176,11 +168,23 @@ export async function sendApplicationStatusUpdate(
 // Test email function
 export async function testEmailService() {
   try {
-    await transporter.verify();
-    console.log('SMTP server is ready to send emails');
+    // Simple test - try to send to Resend's test endpoint
+    const { data, error } = await resend.emails.send({
+      from: 'Test <onboarding@resend.dev>',
+      to: 'delivered@resend.dev', // Resend's test email
+      subject: 'Test Email',
+      html: '<p>Test email from Property Management App</p>',
+    });
+
+    if (error) {
+      console.error('Email test failed:', error);
+      return false;
+    }
+
+    console.log('Email service is ready:', data?.id);
     return true;
   } catch (error) {
-    console.error('SMTP server connection failed:', error);
+    console.error('Email service test failed:', error);
     return false;
   }
 }

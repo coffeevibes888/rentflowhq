@@ -29,11 +29,11 @@ export const metadata: Metadata = {
 export default async function TenantDashboardPage() {
   const session = await requireUser();
   
-  // Get tenant's active lease if any
+  // Get tenant's active or pending signature lease
   const activeLease = await prisma.lease.findFirst({
     where: {
       tenantId: session.user.id,
-      status: 'active',
+      status: { in: ['active', 'pending_signature'] },
     },
     include: {
       unit: {
@@ -141,6 +141,37 @@ export default async function TenantDashboardPage() {
             </Badge>
           )}
         </div>
+
+        {/* Lease Pending Signature Alert - Show prominently if tenant has a lease to sign */}
+        {activeLease?.status === 'pending_signature' && tenantNeedsSignature && (
+          <div className='rounded-xl border border-emerald-400/50 bg-gradient-to-r from-emerald-900/40 to-teal-900/40 p-5 space-y-4'>
+            <div className='flex items-start gap-3'>
+              <div className='rounded-full bg-emerald-500/20 p-2'>
+                <FileSignature className='h-5 w-5 text-emerald-300' />
+              </div>
+              <div className='flex-1'>
+                <h3 className='text-lg font-semibold text-slate-50'>🎉 Application Approved - Sign Your Lease</h3>
+                <p className='text-sm text-slate-300/90 mt-1'>
+                  Congratulations! Your rental application has been approved. Please sign your lease agreement and pay your move-in costs to complete the process.
+                </p>
+              </div>
+            </div>
+            <div className='flex flex-wrap gap-3'>
+              <Link href='/user/profile/lease'>
+                <Button className='bg-emerald-600 hover:bg-emerald-700 text-white'>
+                  <FileSignature className='mr-2 h-4 w-4' />
+                  Sign Lease
+                </Button>
+              </Link>
+              <Link href='/user/profile/rent-receipts'>
+                <Button variant='outline' className='border-emerald-400/50 text-emerald-100 hover:bg-emerald-500/20'>
+                  <CreditCard className='mr-2 h-4 w-4' />
+                  Pay Move-in Costs
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Pending Verification Alert - Show prominently if user has applications needing verification */}
         {pendingVerificationApps.length > 0 && (

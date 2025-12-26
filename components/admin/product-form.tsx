@@ -139,8 +139,8 @@ const ProductForm = ({
     }
     
     // Generate slug from address
-    const slugBase = `${data.address.street}`.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-    form.setValue('slug', slugify(slugBase, { lower: true }));
+    const slugBase = `${data.address.street}`.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+    form.setValue('slug', slugify(slugBase, { lower: true, strict: true }));
   };
 
   return (
@@ -189,21 +189,36 @@ const ProductForm = ({
                       className="bg-white/10 border-white/20 text-white placeholder:text-slate-400"
                       {...field}
                       value={field.value ?? ''}
+                      onChange={(e) => {
+                        // Sanitize input: only allow lowercase letters, numbers, and hyphens
+                        const sanitized = e.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9-\s]/g, '')
+                          .replace(/\s+/g, '-')
+                          .replace(/-+/g, '-');
+                        field.onChange(sanitized);
+                      }}
                     />
                     <Button
                       type="button"
                       className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-1 mt-2"
-                      onClick={() =>
+                      onClick={() => {
+                        const name = form.getValues('name') || '';
+                        // Remove special characters before slugifying
+                        const sanitized = name.replace(/[^a-zA-Z0-9\s-]/g, '');
                         form.setValue(
                           'slug',
-                          slugify(form.getValues('name'), { lower: true })
-                        )
-                      }
+                          slugify(sanitized, { lower: true, strict: true })
+                        );
+                      }}
                     >
                       Generate
                     </Button>
                   </div>
                 </FormControl>
+                <p className="text-xs text-slate-400 mt-1">
+                  Only lowercase letters, numbers, and hyphens allowed. No special characters like : or !
+                </p>
                 <FormMessage />
               </FormItem>
             )}

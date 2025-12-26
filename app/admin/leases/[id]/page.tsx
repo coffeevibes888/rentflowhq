@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { Badge } from '@/components/ui/badge';
 import { Bell } from 'lucide-react';
-import LandlordDocusignSignButton from './landlord-docusign-sign-button';
+import LandlordSignButton from './landlord-docusign-sign-button';
 
 interface AdminLeaseDetailPageProps {
   params: Promise<{ id: string }>;
@@ -69,7 +69,7 @@ export default async function AdminLeaseDetailPage({ params }: AdminLeaseDetailP
                   {tenantSignature?.signedAt ? `on ${new Date(tenantSignature.signedAt).toLocaleDateString()}` : ''}.
                   Please review and sign to complete the agreement.
                 </p>
-                <LandlordDocusignSignButton leaseId={lease.id} />
+                <LandlordSignButton leaseId={lease.id} />
               </div>
             </div>
           </div>

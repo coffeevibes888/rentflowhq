@@ -43,6 +43,10 @@ import { PropertyZillowData } from '@/components/admin/property-zillow-data';
 import CashoutDialog from '@/components/admin/cashout-dialog';
 import { ArrowDownToLine } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { EnhancedTenantCard } from '@/components/admin/enhanced-tenant-card';
+import { VacantUnitCard } from '@/components/admin/vacant-unit-card';
+import { PastTenantsTab } from '@/components/admin/past-tenants-tab';
+import { History } from 'lucide-react';
 
 interface CashoutInfo {
   canCashOut: boolean;
@@ -67,7 +71,19 @@ interface PropertyDetailsTabsProps {
 export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro = false, cashoutInfo }: PropertyDetailsTabsProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [selectedTenant, setSelectedTenant] = useState<string | null>(null);
+  
+  // Calculate active leases first to determine initial expanded state
+  const allLeases = property.units.flatMap((u: any) => 
+    u.leases.map((l: any) => ({ ...l, unitName: l.unitName || u.name }))
+  );
+  const activeLeases = allLeases.filter((l: any) => 
+    l.status === 'active' || l.status === 'pending' || l.status === 'pending_signature'
+  );
+  
+  // Auto-expand if only one tenant
+  const [selectedTenant, setSelectedTenant] = useState<string | null>(
+    activeLeases.length === 1 ? activeLeases[0].id : null
+  );
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedQuarter, setSelectedQuarter] = useState<number | null>(null);
   const [viewingLease, setViewingLease] = useState<any | null>(null);
@@ -86,6 +102,11 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
   const [expenseDescription, setExpenseDescription] = useState('');
   const [expenseIsRecurring, setExpenseIsRecurring] = useState(false);
   const [expenseSubmitting, setExpenseSubmitting] = useState(false);
+
+  // Refresh handler for tenant lifecycle actions
+  const handleTenantRefresh = () => {
+    router.refresh();
+  };
 
   // Export handlers
   const handleExportCSV = async () => {
@@ -190,10 +211,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
   const allTickets = property.units.flatMap((u: any) => u.tickets);
   const openTickets = allTickets.filter((t: any) => t.status === 'open' || t.status === 'in_progress');
   
-  const allLeases = property.units.flatMap((u: any) => 
-    u.leases.map((l: any) => ({ ...l, unitName: l.unitName || u.name }))
-  );
-  const activeLeases = allLeases.filter((l: any) => l.status === 'active' || l.status === 'pending');
+  // allLeases and activeLeases are calculated at the top of the component
   const pastLeases = allLeases.filter((l: any) => l.status === 'ended' || l.status === 'terminated');
 
   // Calculate financial summary
@@ -355,6 +373,10 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
             <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
               <BarChart3 className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline text-white font-bold">Financials</span>
+            </TabsTrigger>
+            <TabsTrigger value="past-tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
+              <History className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline text-white font-bold">Past Tenants</span>
             </TabsTrigger>
           </TabsList>
 
@@ -532,13 +554,14 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                 ) : (
                   <div className="space-y-4">
                     {activeLeases.map((lease: any) => (
-                      <TenantCard 
+                      <EnhancedTenantCard 
                         key={lease.id} 
                         lease={lease} 
                         isExpanded={selectedTenant === lease.id}
                         onToggle={() => setSelectedTenant(selectedTenant === lease.id ? null : lease.id)}
                         propertyId={property.id}
                         onViewLease={() => setViewingLease(lease)}
+                        onRefresh={handleTenantRefresh}
                       />
                     ))}
                   </div>
@@ -749,6 +772,24 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </div>
             </div>
           </TabsContent>
+
+          {/* PAST TENANTS TAB */}
+          <TabsContent value="past-tenants" className="mt-6">
+            <Card className="border-white/10 bg-slate-900/60">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <History className="w-5 h-5" />
+                  Past Tenants
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  History of previous tenants at this property
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PastTenantsTab propertyId={property.id} />
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -890,183 +931,6 @@ function StatusBadge({ status }: { status: string }) {
     <Badge variant="outline" className={styles[status] || 'border-slate-400/30 text-slate-300'}>
       {status.replace(/_/g, ' ')}
     </Badge>
-  );
-}
-
-function TenantCard({ lease, isExpanded, onToggle, propertyId, onViewLease }: { 
-  lease: any; 
-  isExpanded: boolean;
-  onToggle: () => void;
-  propertyId: string;
-  onViewLease: () => void;
-}) {
-  const tenant = lease.tenant;
-  const payments = lease.rentPayments || [];
-  const paidPayments = payments.filter((p: any) => p.status === 'paid');
-  const overduePayments = payments.filter((p: any) => p.status === 'overdue');
-  const totalOwed = payments
-    .filter((p: any) => p.status === 'pending' || p.status === 'overdue')
-    .reduce((sum: number, p: any) => sum + p.amount, 0);
-
-  const needsLandlordSignature = lease.signatureRequests?.some(
-    (sr: any) => sr.role === 'landlord' && sr.status !== 'signed'
-  );
-
-  return (
-    <div className="rounded-xl border border-white/10 bg-slate-800/60 overflow-hidden">
-      {/* Header - Always visible */}
-      <button 
-        onClick={onToggle}
-        className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-slate-800/80 transition-colors"
-      >
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 flex items-center justify-center flex-shrink-0">
-            {tenant?.image ? (
-              <Image src={tenant.image} alt={tenant.name} width={48} height={48} className="rounded-full" />
-            ) : (
-              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            )}
-          </div>
-          <div className="text-left min-w-0">
-            <p className="font-semibold text-white truncate">{tenant?.name || 'Unknown Tenant'}</p>
-            <p className="text-xs text-slate-400">Unit {lease.unitName} • {formatCurrency(lease.rentAmount)}/mo</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 ml-2">
-          {overduePayments.length > 0 && (
-            <Badge className="bg-red-500/20 text-red-300 border-red-400/30 text-[10px] sm:text-xs whitespace-nowrap">
-              {formatCurrency(totalOwed)} <span className="hidden sm:inline">overdue</span>
-            </Badge>
-          )}
-          {needsLandlordSignature && (
-            <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/30 text-[10px] sm:text-xs hidden sm:flex">
-              Needs signature
-            </Badge>
-          )}
-          <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-        </div>
-      </button>
-
-      {/* Expanded Content */}
-      {isExpanded && (
-        <div className="border-t border-white/10 p-4 space-y-4">
-          {/* Verification Status */}
-          {tenant?.verification && (
-            <div className="rounded-lg border border-blue-400/30 bg-blue-500/10 p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Verified Tenant</p>
-                    <p className="text-xs text-slate-400">
-                      ID: {tenant.verification.identityStatus === 'verified' ? '✓' : '○'} • 
-                      Income: {tenant.verification.employmentStatus === 'verified' ? '✓' : '○'}
-                    </p>
-                  </div>
-                </div>
-                {tenant.verification.monthlyIncome && (
-                  <div className="text-right">
-                    <p className="text-xs text-slate-400">Verified Income</p>
-                    <p className="text-lg font-bold text-emerald-400">
-                      ${tenant.verification.monthlyIncome.toLocaleString()}/mo
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Contact Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Mail className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <span className="text-slate-300 truncate">{tenant?.email || 'No email'}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <span className="text-slate-300">{tenant?.phoneNumber || 'No phone'}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <span className="text-slate-300">Move-in: {new Date(lease.startDate).toLocaleDateString()}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <span className="text-slate-300">Ends: {lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'Month-to-month'}</span>
-            </div>
-          </div>
-
-          {/* Payment History */}
-          <div className="rounded-lg border border-white/10 bg-slate-900/40 p-3 sm:p-4">
-            <h4 className="text-sm font-medium text-white mb-3">Payment History</h4>
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center mb-4">
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-emerald-400">{paidPayments.length}</p>
-                <p className="text-[10px] sm:text-xs text-slate-400">On Time</p>
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-red-400">{overduePayments.length}</p>
-                <p className="text-[10px] sm:text-xs text-slate-400">Late</p>
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-white">{formatCurrency(totalOwed)}</p>
-                <p className="text-[10px] sm:text-xs text-slate-400">Balance</p>
-              </div>
-            </div>
-            {payments.length > 0 && (
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {payments.slice(0, 6).map((payment: any) => (
-                  <div key={payment.id} className="flex items-center justify-between text-xs sm:text-sm gap-2">
-                    <span className="text-slate-400">{new Date(payment.dueDate).toLocaleDateString()}</span>
-                    <span className="text-slate-300">{formatCurrency(payment.amount)}</span>
-                    <StatusBadge status={payment.status} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              size="sm" 
-              onClick={onViewLease}
-              className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm"
-            >
-              <FileSignature className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">{needsLandlordSignature ? 'Sign Lease' : 'View Lease'}</span>
-              <span className="sm:hidden">Lease</span>
-            </Button>
-            {tenant?.applicationId ? (
-              <Link href={`/admin/applications/${tenant.applicationId}`}>
-                <Button size="sm" variant="outline" className="border-white/10 text-black text-xs sm:text-sm">
-                  <FileText className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">View ID & Documents</span>
-                  <span className="sm:hidden">Docs</span>
-                </Button>
-              </Link>
-            ) : (
-              <Button size="sm" variant="outline" className="border-white/10 text-black opacity-50 text-xs sm:text-sm" disabled>
-                <FileText className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">No Documents</span>
-                <span className="sm:hidden">N/A</span>
-              </Button>
-            )}
-            {totalOwed > 0 && (
-              <Link href={`/admin/evictions?tenantId=${tenant?.id}&propertyId=${propertyId}`}>
-                <Button size="sm" variant="outline" className="border-red-400/30 text-red-300 hover:bg-red-500/10 text-xs sm:text-sm">
-                  <AlertCircle className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Start Eviction</span>
-                  <span className="sm:hidden">Evict</span>
-                </Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 

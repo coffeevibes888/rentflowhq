@@ -75,6 +75,7 @@
     "react-hot-toast": "^2.6.0",
     "react-pdf": "^10.2.0",
     "recharts": "^2.14.1",
+    "resend": "^6.6.0",
     "slugify": "^1.6.6",
     "sonner": "^2.0.7",
     "stripe": "^17.4.0",
