@@ -1,22 +1,11 @@
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 import puppeteer, { Browser } from 'puppeteer-core';
 
 let browserInstance: Browser | null = null;
 const isLocal = process.env.NODE_ENV === 'development';
 
-// Optimized args for serverless environments
-const chromeArgs = [
-  ...chromium.args,
-  '--font-render-hinting=none',
-  '--disable-gpu',
-  '--disable-dev-shm-usage',
-  '--disable-accelerated-2d-canvas',
-  '--disable-animations',
-  '--disable-background-timer-throttling',
-  '--disable-restore-session-state',
-  '--single-process',
-  '--no-zygote',
-];
+// Remote chromium binary URL - this gets downloaded at runtime on Vercel
+const CHROMIUM_REMOTE_URL = 'https://github.com/nicholasgriffintn/chromium/releases/download/v131.0.0/chromium-v131.0.0-pack.tar';
 
 async function getBrowser(): Promise<Browser> {
   if (browserInstance && browserInstance.isConnected()) {
@@ -31,16 +20,15 @@ async function getBrowser(): Promise<Browser> {
         headless: true,
       }) as Browser;
     } else {
-      // For Vercel/production, use @sparticuz/chromium
-      console.log('PDF - Getting chromium executable path...');
-      const executablePath = await chromium.executablePath();
+      // For Vercel/production, download chromium at runtime
+      console.log('PDF - Downloading chromium binary...');
+      const executablePath = await chromium.executablePath(CHROMIUM_REMOTE_URL);
       console.log('PDF - Executable path:', executablePath);
       
       browserInstance = await puppeteer.launch({
-        args: chromeArgs,
+        args: chromium.args,
         executablePath,
         headless: chromium.headless,
-        defaultViewport: chromium.defaultViewport,
       }) as Browser;
       console.log('PDF - Browser launched successfully');
     }
