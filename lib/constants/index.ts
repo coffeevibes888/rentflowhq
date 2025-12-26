@@ -67,6 +67,8 @@ export const productDefaultValues = {
   saleUntil: null as string | null,
   cleaningFee: undefined as number | undefined,
   petDepositAnnual: undefined as number | undefined,
+  videoUrl: '' as string | undefined,
+  virtualTourUrl: '' as string | undefined,
 };
 
 export const USER_ROLES = process.env.USER_ROLES

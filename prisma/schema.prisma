@@ -29,6 +29,8 @@ model Product {
   onSale      Boolean     @default(false)
   salePercent Decimal?    @db.Decimal(5, 2)
   saleUntil   DateTime?   @db.Timestamp(6)
+  videoUrl    String?     // Property video URL
+  virtualTourUrl String?  // 3D walkthrough URL (Matterport, etc.)
   createdAt   DateTime    @default(now()) @db.Timestamp(6)
   OrderItem   OrderItem[]
   Review      Review[]
@@ -653,6 +655,10 @@ model Property {
   // Fee settings for this property
   cleaningFee       Decimal? @db.Decimal(12, 2) // One-time cleaning fee
   petDepositAnnual  Decimal? @db.Decimal(12, 2) // Annual pet deposit fee
+
+  // Video and virtual tour
+  videoUrl          String?  // Property video URL (uploaded or YouTube/Vimeo)
+  virtualTourUrl    String?  // 3D walkthrough URL (Matterport, etc.)
 
   landlord Landlord? @relation(fields: [landlordId], references: [id], onDelete: SetNull)
   defaultLeaseDocument LegalDocument? @relation("DefaultLeaseDocument", fields: [defaultLeaseDocumentId], references: [id], onDelete: SetNull)

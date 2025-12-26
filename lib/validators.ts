@@ -47,6 +47,9 @@ const baseProductSchema = z.object({
     (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
     z.number().min(0).optional()
   ),
+  // Video and virtual tour
+  videoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  virtualTourUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 
 // Schema for inserting products

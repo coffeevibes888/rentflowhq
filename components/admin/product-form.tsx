@@ -21,6 +21,17 @@ import { useSubscriptionContext } from '@/components/subscription/subscription-p
 import { SubscriptionTier } from '@/lib/config/subscription-tiers';
 import { ZillowPropertyLookup } from './zillow-property-lookup';
 
+// Helper functions for video embeds
+function extractYouTubeId(url: string): string {
+  const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+  return match?.[1] || '';
+}
+
+function extractVimeoId(url: string): string {
+  const match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  return match?.[1] || '';
+}
+
 const ProductForm = ({
   type,
   product,
@@ -585,6 +596,144 @@ const ProductForm = ({
             </FormItem>
           )}
         />
+
+        {/* -------------------- Video & Virtual Tour -------------------- */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-200">Video & Virtual Tour</h3>
+          <p className="text-sm text-slate-400">Add a property video or 3D walkthrough to help tenants explore remotely.</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FormField
+              control={form.control}
+              name="videoUrl"
+              render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'videoUrl'> }) => (
+                <FormItem className="w-full">
+                  <FormLabel className="text-slate-200">Property Video URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://youtube.com/watch?v=... or upload below"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-slate-400"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Paste a YouTube, Vimeo, or direct video URL
+                  </p>
+                  <FormMessage />
+                  <div className="mt-2">
+                    <UploadButton
+                      endpoint="videoUploader"
+                      onClientUploadComplete={(res: { url: string }[]) => {
+                        const url = res[0]?.url;
+                        if (url) {
+                          form.setValue('videoUrl', url);
+                          toast({ description: 'Video uploaded successfully!' });
+                        }
+                      }}
+                      onUploadError={(error: Error) => {
+                        toast({
+                          variant: 'destructive',
+                          description: `Upload failed: ${error.message}`,
+                        });
+                      }}
+                    />
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="virtualTourUrl"
+              render={({ field }: { field: ControllerRenderProps<z.infer<typeof insertProductSchema>, 'virtualTourUrl'> }) => (
+                <FormItem className="w-full">
+                  <FormLabel className="text-slate-200">3D Virtual Tour URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://my.matterport.com/show/?m=..."
+                      className="bg-white/10 border-white/20 text-white placeholder:text-slate-400"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Paste a Matterport, Zillow 3D Home, or other virtual tour link
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Preview section */}
+          {(form.watch('videoUrl') || form.watch('virtualTourUrl')) && (
+            <Card className="bg-white/5 border-white/10">
+              <CardContent className="pt-4 space-y-4">
+                {form.watch('videoUrl') && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-slate-200">Video Preview</p>
+                    <div className="aspect-video rounded-lg overflow-hidden bg-black">
+                      {form.watch('videoUrl')?.includes('youtube.com') || form.watch('videoUrl')?.includes('youtu.be') ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${extractYouTubeId(form.watch('videoUrl') || '')}`}
+                          className="w-full h-full"
+                          allowFullScreen
+                          title="Property Video"
+                        />
+                      ) : form.watch('videoUrl')?.includes('vimeo.com') ? (
+                        <iframe
+                          src={`https://player.vimeo.com/video/${extractVimeoId(form.watch('videoUrl') || '')}`}
+                          className="w-full h-full"
+                          allowFullScreen
+                          title="Property Video"
+                        />
+                      ) : (
+                        <video
+                          src={form.watch('videoUrl') || ''}
+                          controls
+                          className="w-full h-full"
+                        />
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-400 hover:text-red-300"
+                      onClick={() => form.setValue('videoUrl', '')}
+                    >
+                      Remove Video
+                    </Button>
+                  </div>
+                )}
+
+                {form.watch('virtualTourUrl') && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-slate-200">Virtual Tour Preview</p>
+                    <div className="aspect-video rounded-lg overflow-hidden">
+                      <iframe
+                        src={form.watch('virtualTourUrl') || ''}
+                        className="w-full h-full"
+                        allowFullScreen
+                        title="Virtual Tour"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-400 hover:text-red-300"
+                      onClick={() => form.setValue('virtualTourUrl', '')}
+                    >
+                      Remove Virtual Tour
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         {/* -------------------- Submit Button -------------------- */}
         <div>

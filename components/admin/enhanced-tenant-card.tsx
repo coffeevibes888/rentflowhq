@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { formatCurrency } from '@/lib/utils';
 import {
   Users,
@@ -17,6 +19,12 @@ import {
   FileText,
   FileSignature,
   Loader2,
+  Receipt,
+  X,
+  ExternalLink,
+  FileCheck,
+  AlertCircle,
+  Plus,
 } from 'lucide-react';
 import { TenantActionsMenu } from './tenant-actions-menu';
 import { EvictionNoticeModal } from './eviction-notice-modal';
@@ -24,6 +32,7 @@ import { DepartureModal } from './departure-modal';
 import { TerminateLeaseModal } from './terminate-lease-modal';
 import { DepositDispositionModal } from './deposit-disposition-modal';
 import { EvictionHistoryPanel } from './eviction-history-panel';
+import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedTenantCardProps {
   lease: any;
@@ -57,6 +66,7 @@ export function EnhancedTenantCard({
   onRefresh,
 }: EnhancedTenantCardProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const tenant = lease.tenant;
   const payments = lease.rentPayments || [];
   const paidPayments = payments.filter((p: any) => p.status === 'paid');
@@ -73,6 +83,9 @@ export function EnhancedTenantCard({
   const needsLandlordSignature = tenantSigned && !landlordSigned;
   const isPendingSignature = lease.status === 'pending_signature';
 
+  // Get signed PDF URL from signature requests
+  const signedPdfUrl = landlordSignature?.signedPdfUrl || tenantSignature?.signedPdfUrl;
+
   // Modal states
   const [showEvictionModal, setShowEvictionModal] = useState(false);
   const [showDepartureModal, setShowDepartureModal] = useState(false);
@@ -80,12 +93,117 @@ export function EnhancedTenantCard({
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [signingLoading, setSigningLoading] = useState(false);
+  const [showLeaseViewer, setShowLeaseViewer] = useState(false);
+  const [leaseHtml, setLeaseHtml] = useState<string | null>(null);
+  const [loadingLeaseHtml, setLoadingLeaseHtml] = useState(false);
+
+  // Invoice states
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
+  const [invoiceAmount, setInvoiceAmount] = useState('');
+  const [invoiceReason, setInvoiceReason] = useState('');
+  const [invoiceDescription, setInvoiceDescription] = useState('');
+  const [invoiceDueDate, setInvoiceDueDate] = useState('');
+  const [submittingInvoice, setSubmittingInvoice] = useState(false);
 
   // Tab state for expanded content
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleRefresh = () => {
     onRefresh?.();
+  };
+
+  // Load invoices when invoices tab is selected
+  useEffect(() => {
+    if (activeTab === 'invoices' && invoices.length === 0 && !loadingInvoices) {
+      loadInvoices();
+    }
+  }, [activeTab]);
+
+  const loadInvoices = async () => {
+    setLoadingInvoices(true);
+    try {
+      const res = await fetch(`/api/invoices?leaseId=${lease.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setInvoices(data.invoices || []);
+      }
+    } catch (error) {
+      console.error('Failed to load invoices:', error);
+    } finally {
+      setLoadingInvoices(false);
+    }
+  };
+
+  const handleCreateInvoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingInvoice(true);
+    try {
+      const res = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leaseId: lease.id,
+          tenantId: tenant?.id,
+          propertyId,
+          amount: parseFloat(invoiceAmount),
+          reason: invoiceReason,
+          description: invoiceDescription || undefined,
+          dueDate: new Date(invoiceDueDate).toISOString(),
+        }),
+      });
+      
+      if (res.ok) {
+        toast({ description: 'Invoice created successfully' });
+        setInvoiceAmount('');
+        setInvoiceReason('');
+        setInvoiceDescription('');
+        setInvoiceDueDate('');
+        setShowInvoiceForm(false);
+        loadInvoices();
+      } else {
+        const data = await res.json();
+        toast({ variant: 'destructive', description: data.message || 'Failed to create invoice' });
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', description: 'Failed to create invoice' });
+    } finally {
+      setSubmittingInvoice(false);
+    }
+  };
+
+  const handleInvoiceAction = async (invoiceId: string, action: 'paid' | 'cancel') => {
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}/${action}`, { method: 'POST' });
+      if (res.ok) {
+        toast({ description: action === 'paid' ? 'Invoice marked as paid' : 'Invoice cancelled' });
+        loadInvoices();
+      } else {
+        toast({ variant: 'destructive', description: 'Action failed' });
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', description: 'Action failed' });
+    }
+  };
+
+  // Load lease HTML for viewing
+  const handleViewLeaseDocument = async () => {
+    setShowLeaseViewer(true);
+    if (!leaseHtml && !signedPdfUrl) {
+      setLoadingLeaseHtml(true);
+      try {
+        const res = await fetch(`/api/leases/${lease.id}/preview`);
+        if (res.ok) {
+          const data = await res.json();
+          setLeaseHtml(data.html);
+        }
+      } catch (error) {
+        console.error('Failed to load lease:', error);
+      } finally {
+        setLoadingLeaseHtml(false);
+      }
+    }
   };
 
   // Handle landlord signing
@@ -208,6 +326,12 @@ export function EnhancedTenantCard({
                 >
                   Documents
                 </TabsTrigger>
+                <TabsTrigger
+                  value="invoices"
+                  className="text-xs sm:text-sm data-[state=active]:bg-slate-800 data-[state=active]:text-white"
+                >
+                  Invoices
+                </TabsTrigger>
               </TabsList>
 
               {/* Overview Tab */}
@@ -319,7 +443,7 @@ export function EnhancedTenantCard({
                   ) : (
                     <Button
                       size="sm"
-                      onClick={onViewLease}
+                      onClick={handleViewLeaseDocument}
                       className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm"
                     >
                       <FileSignature className="w-4 h-4 sm:mr-2" />
@@ -380,11 +504,14 @@ export function EnhancedTenantCard({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={onViewLease}
+                    onClick={handleViewLeaseDocument}
                     className="w-full justify-start border-white/10 text-slate-300 hover:bg-slate-800"
                   >
                     <FileSignature className="w-4 h-4 mr-2" />
                     Lease Agreement
+                    {signedPdfUrl && (
+                      <Badge className="ml-auto bg-emerald-500/20 text-emerald-300 text-[10px]">Signed</Badge>
+                    )}
                   </Button>
                   {tenant?.applicationId && (
                     <Link
@@ -400,6 +527,148 @@ export function EnhancedTenantCard({
                         Application Documents
                       </Button>
                     </Link>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Invoices Tab */}
+              <TabsContent value="invoices" className="p-4 space-y-4 mt-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-medium text-white">Invoices</h4>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowInvoiceForm(!showInvoiceForm)}
+                    className="bg-violet-600 hover:bg-violet-500 text-xs"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Create Invoice
+                  </Button>
+                </div>
+
+                {/* Invoice Creation Form */}
+                {showInvoiceForm && (
+                  <form onSubmit={handleCreateInvoice} className="rounded-lg border border-white/10 bg-slate-800/60 p-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-slate-400">Amount ($)</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          required
+                          value={invoiceAmount}
+                          onChange={(e) => setInvoiceAmount(e.target.value)}
+                          className="bg-slate-900/60 border-white/10 text-white text-sm h-9"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400">Due Date</label>
+                        <Input
+                          type="date"
+                          required
+                          min={new Date().toISOString().split('T')[0]}
+                          value={invoiceDueDate}
+                          onChange={(e) => setInvoiceDueDate(e.target.value)}
+                          className="bg-slate-900/60 border-white/10 text-white text-sm h-9"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400">Reason</label>
+                      <Input
+                        required
+                        value={invoiceReason}
+                        onChange={(e) => setInvoiceReason(e.target.value)}
+                        className="bg-slate-900/60 border-white/10 text-white text-sm h-9"
+                        placeholder="e.g. Late fee, Repair charge"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400">Description (optional)</label>
+                      <Textarea
+                        value={invoiceDescription}
+                        onChange={(e) => setInvoiceDescription(e.target.value)}
+                        className="bg-slate-900/60 border-white/10 text-white text-sm resize-none"
+                        rows={2}
+                        placeholder="Additional details..."
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={submittingInvoice}
+                        className="bg-violet-600 hover:bg-violet-500"
+                      >
+                        {submittingInvoice ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+                        Create
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowInvoiceForm(false)}
+                        className="border-white/10 text-slate-300"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Invoice List */}
+                <div className="rounded-lg border border-white/10 bg-slate-900/40 p-3">
+                  {loadingInvoices ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                    </div>
+                  ) : invoices.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-4">No invoices yet</p>
+                  ) : (
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {invoices.map((invoice: any) => (
+                        <div
+                          key={invoice.id}
+                          className="rounded-lg border border-white/5 bg-slate-800/40 p-3 space-y-2"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="text-sm font-medium text-white">{invoice.reason}</p>
+                              <p className="text-xs text-slate-400">
+                                Due: {new Date(invoice.dueDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-semibold text-white">
+                                {formatCurrency(Number(invoice.amount))}
+                              </p>
+                              <InvoiceStatusBadge status={invoice.status} />
+                            </div>
+                          </div>
+                          {invoice.status === 'pending' && (
+                            <div className="flex gap-2 pt-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleInvoiceAction(invoice.id, 'paid')}
+                                className="text-xs h-7 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                              >
+                                Mark Paid
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleInvoiceAction(invoice.id, 'cancel')}
+                                className="text-xs h-7 text-red-400 hover:bg-red-500/10"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </TabsContent>
@@ -446,6 +715,128 @@ export function EnhancedTenantCard({
         leaseId={lease.id}
         tenantName={tenant?.name || 'Unknown'}
       />
+
+      {/* Lease Viewer Modal */}
+      {showLeaseViewer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowLeaseViewer(false)}
+          />
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl">
+            {/* Header */}
+            <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-white/10 bg-slate-900">
+              <div>
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                  {signedPdfUrl && <FileCheck className="w-5 h-5 text-emerald-400" />}
+                  Lease Agreement
+                </h2>
+                <p className="text-sm text-slate-400">
+                  {tenant?.name} • Unit {lease.unitName}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {signedPdfUrl && (
+                  <a
+                    href={signedPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-emerald-500/20 text-emerald-300 rounded-lg hover:bg-emerald-500/30"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Download PDF
+                  </a>
+                )}
+                <button 
+                  onClick={() => setShowLeaseViewer(false)}
+                  className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+              {loadingLeaseHtml ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
+                </div>
+              ) : signedPdfUrl ? (
+                <div className="space-y-4">
+                  {/* Signature Status */}
+                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <FileCheck className="w-6 h-6 text-emerald-400" />
+                      <h3 className="font-semibold text-white">Fully Executed Lease</h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      {tenantSigned && tenantSignature?.signedAt && (
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-emerald-500/20 text-emerald-300">Tenant</Badge>
+                          <span className="text-slate-300">
+                            Signed {new Date(tenantSignature.signedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      {landlordSigned && landlordSignature?.signedAt && (
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-emerald-500/20 text-emerald-300">Landlord</Badge>
+                          <span className="text-slate-300">
+                            Signed {new Date(landlordSignature.signedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* PDF Viewer */}
+                  <div className="rounded-xl border border-white/10 overflow-hidden">
+                    <iframe
+                      src={signedPdfUrl}
+                      className="w-full h-[600px]"
+                      title="Signed Lease PDF"
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 text-center">
+                    If the PDF doesn&apos;t load, click &quot;Download PDF&quot; above to view it directly.
+                  </p>
+                </div>
+              ) : leaseHtml ? (
+                <div className="rounded-xl border border-white/10 bg-white p-6">
+                  <div
+                    className="prose prose-sm max-w-none text-gray-800"
+                    style={{ fontSize: '14px', lineHeight: '1.6' }}
+                    dangerouslySetInnerHTML={{ __html: leaseHtml }}
+                  />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-2">Lease Not Available</h3>
+                  <p className="text-sm text-slate-400">
+                    The lease document could not be loaded. Please try again later.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
+  );
+}
+
+function InvoiceStatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    pending: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
+    paid: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
+    overdue: 'bg-red-500/20 text-red-300 border-red-400/30',
+    cancelled: 'bg-slate-500/20 text-slate-300 border-slate-400/30',
+  };
+  return (
+    <Badge className={`${styles[status] || styles.pending} text-[10px]`}>
+      {status}
+    </Badge>
   );
 }

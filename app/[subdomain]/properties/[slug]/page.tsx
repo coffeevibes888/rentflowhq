@@ -9,6 +9,7 @@ import { Building2, Bed, Bath, Maximize, MapPin } from 'lucide-react';
 import PropertyScheduler from '@/components/subdomain/property-scheduler';
 import { SubdomainApplyButton } from '@/components/subdomain/apply-button';
 import PropertyMap from '@/components/maps/property-map';
+import PropertyMediaSection from '@/components/subdomain/property-media-section';
 
 export default async function SubdomainPropertyPage({
   params,
@@ -40,6 +41,14 @@ export default async function SubdomainPropertyPage({
   if (!property) {
     notFound();
   }
+
+  // Get video/tour URLs from either Property or Product model
+  const mediaUrls = property.videoUrl || property.virtualTourUrl
+    ? { videoUrl: property.videoUrl, virtualTourUrl: property.virtualTourUrl }
+    : await prisma.product.findFirst({
+        where: { slug, landlordId: landlord.id },
+        select: { videoUrl: true, virtualTourUrl: true },
+      });
 
   const session = await auth();
 
@@ -176,6 +185,15 @@ export default async function SubdomainPropertyPage({
         </div>
 
         <PropertyScheduler propertyId={property.id} propertyName={property.name} />
+
+        {/* Video & Virtual Tour Section */}
+        {(mediaUrls?.videoUrl || mediaUrls?.virtualTourUrl) && (
+          <PropertyMediaSection
+            videoUrl={mediaUrls.videoUrl}
+            virtualTourUrl={mediaUrls.virtualTourUrl}
+            propertyName={property.name}
+          />
+        )}
 
         {/* Property Location Map */}
         {property.address && typeof property.address === 'object' && (property.address as any).street && (

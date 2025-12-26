@@ -16,6 +16,17 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata }) => {
       return { uploadedBy: metadata.userId };
     }),
+  videoUploader: f({
+    video: { maxFileSize: '256MB', maxFileCount: 1 },
+  })
+    .middleware(async () => {
+      const session = await auth();
+      if (!session) throw new UploadThingError('Unauthorized');
+      return { userId: session?.user?.id };
+    })
+    .onUploadComplete(async ({ metadata }) => {
+      return { uploadedBy: metadata.userId };
+    }),
   blogMediaUploader: f({
     image: { maxFileSize: '8MB' },
     video: { maxFileSize: '64MB' },
