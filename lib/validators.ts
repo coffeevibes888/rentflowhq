@@ -333,3 +333,91 @@ export const propertyBankAccountSchema = z.object({
   accountType: z.enum(['checking', 'savings']).optional(),
   routingNumber: z.string().optional(),
 });
+
+// ============= CONTRACTOR MANAGEMENT SCHEMAS =============
+
+// Contractor specialties
+export const CONTRACTOR_SPECIALTIES = [
+  'plumbing',
+  'electrical',
+  'hvac',
+  'appliance_repair',
+  'carpentry',
+  'painting',
+  'flooring',
+  'roofing',
+  'landscaping',
+  'cleaning',
+  'pest_control',
+  'locksmith',
+  'general_handyman',
+  'other',
+] as const;
+
+// Schema for adding a contractor to directory
+export const contractorSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().regex(phoneRegex, 'Invalid phone number format').optional().or(z.literal('')),
+  specialties: z.array(z.enum(CONTRACTOR_SPECIALTIES)).min(1, 'Select at least one specialty'),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+});
+
+// Schema for updating a contractor
+export const updateContractorSchema = contractorSchema.extend({
+  id: z.string().uuid('Invalid contractor ID'),
+});
+
+// Schema for contractor invitation
+export const contractorInviteSchema = z.object({
+  contractorId: z.string().uuid('Invalid contractor ID'),
+  email: z.string().email('Invalid email address'),
+});
+
+// Work order priority and status
+export const WORK_ORDER_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
+export const WORK_ORDER_STATUSES = ['draft', 'assigned', 'in_progress', 'completed', 'paid', 'cancelled'] as const;
+
+// Schema for creating a work order
+export const workOrderSchema = z.object({
+  contractorId: z.string().uuid('Invalid contractor ID'),
+  maintenanceTicketId: z.string().uuid('Invalid maintenance ticket ID').optional(),
+  propertyId: z.string().uuid('Invalid property ID'),
+  unitId: z.string().uuid('Invalid unit ID').optional(),
+  title: z.string().min(3, 'Title must be at least 3 characters').max(200),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  priority: z.enum(WORK_ORDER_PRIORITIES),
+  agreedPrice: z.coerce.number().positive('Price must be greater than 0'),
+  scheduledDate: z.string().datetime('Invalid scheduled date').optional(),
+  notes: z.string().max(1000, 'Notes must be less than 1000 characters').optional(),
+});
+
+// Schema for updating a work order
+export const updateWorkOrderSchema = workOrderSchema.partial().extend({
+  id: z.string().uuid('Invalid work order ID'),
+});
+
+// Schema for updating work order status
+export const workOrderStatusSchema = z.object({
+  id: z.string().uuid('Invalid work order ID'),
+  status: z.enum(WORK_ORDER_STATUSES),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+});
+
+// Schema for work order media upload
+export const workOrderMediaSchema = z.object({
+  workOrderId: z.string().uuid('Invalid work order ID'),
+  type: z.enum(['image', 'video']),
+  url: z.string().url('Invalid URL'),
+  thumbnailUrl: z.string().url('Invalid thumbnail URL').optional(),
+  caption: z.string().max(200, 'Caption must be less than 200 characters').optional(),
+  phase: z.enum(['before', 'during', 'after']),
+});
+
+// Schema for contractor payment
+export const contractorPaymentSchema = z.object({
+  workOrderId: z.string().uuid('Invalid work order ID'),
+});
+
+// Platform fee percentage for contractor payments (configurable)
+export const CONTRACTOR_PLATFORM_FEE_PERCENT = 2.5; // 2.5% platform fee

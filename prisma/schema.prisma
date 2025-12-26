@@ -89,6 +89,11 @@ model User {
 
   leaseViolations      LeaseViolation[]
   tenantInvoices       TenantInvoice[]
+
+  // Contractor management
+  contractorProfile    Contractor[]
+  workOrderMedia       WorkOrderMedia[]
+  workOrderHistory     WorkOrderHistory[]
 }
 
 model Account {
@@ -583,6 +588,12 @@ model Landlord {
   verificationDocuments VerificationDocument[] @relation("VerificationDocuments")
   employmentVerificationUsage EmploymentVerificationUsage[] @relation("EmploymentVerificationUsage")
   wallet LandlordWallet?
+
+  // Contractor management
+  contractors Contractor[]
+  contractorInvites ContractorInvite[]
+  workOrders WorkOrder[]
+  contractorPayments ContractorPayment[]
 }
 
 model QuickBooksConnection {
@@ -677,6 +688,9 @@ model Property {
   
   // Tenant lifecycle relations
   tenantHistory TenantHistory[]
+  
+  // Contractor work orders
+  workOrders WorkOrder[]
 }
 
 model Unit {
@@ -707,6 +721,9 @@ model Unit {
   // Tenant lifecycle relations
   turnoverChecklists UnitTurnoverChecklist[]
   tenantHistory      TenantHistory[]
+  
+  // Contractor work orders
+  workOrders WorkOrder[]
 }
 
 model Lease {
@@ -819,6 +836,9 @@ model MaintenanceTicket {
 
   unit   Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
   tenant User? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  
+  // Contractor work orders linked to this ticket
+  workOrders WorkOrder[]
 }
 
 model Expense {
@@ -1784,4 +1804,146 @@ model TenantHistory {
   @@index([landlordId])
   @@index([tenantId])
   @@index([departureDate])
+}
+
+
+// ============= CONTRACTOR MANAGEMENT SYSTEM =============
+
+// Contractor - A service provider in a landlord's directory
+model Contractor {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId             String   @db.Uuid
+  userId                 String?  @db.Uuid
+  name                   String
+  email                  String
+  phone                  String?
+  specialties            String[] @default([])
+  stripeConnectAccountId String?
+  stripeOnboardingStatus String?  // pending, complete
+  isPaymentReady         Boolean  @default(false)
+  notes                  String?
+  createdAt              DateTime @default(now()) @db.Timestamp(6)
+  updatedAt              DateTime @updatedAt
+
+  landlord    Landlord          @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  invites     ContractorInvite[]
+  workOrders  WorkOrder[]
+  payments    ContractorPayment[]
+
+  @@unique([landlordId, email])
+  @@index([landlordId])
+  @@index([userId])
+}
+
+// ContractorInvite - Pending invitation to join platform
+model ContractorInvite {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId   String   @db.Uuid
+  contractorId String   @db.Uuid
+  email        String
+  token        String   @unique
+  status       String   @default("pending") // pending, accepted, expired
+  expiresAt    DateTime @db.Timestamp(6)
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+
+  landlord   Landlord   @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([landlordId])
+}
+
+// WorkOrder - Assignment of work to a contractor
+model WorkOrder {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId          String    @db.Uuid
+  contractorId        String    @db.Uuid
+  maintenanceTicketId String?   @db.Uuid
+  propertyId          String    @db.Uuid
+  unitId              String?   @db.Uuid
+  title               String
+  description         String
+  status              String    @default("draft") // draft, assigned, in_progress, completed, paid, cancelled
+  priority            String    @default("medium") // low, medium, high, urgent
+  agreedPrice         Decimal   @db.Decimal(12, 2)
+  actualCost          Decimal?  @db.Decimal(12, 2)
+  scheduledDate       DateTime? @db.Timestamp(6)
+  completedAt         DateTime? @db.Timestamp(6)
+  notes               String?
+  createdAt           DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime  @updatedAt
+
+  landlord          Landlord           @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  contractor        Contractor         @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  maintenanceTicket MaintenanceTicket? @relation(fields: [maintenanceTicketId], references: [id], onDelete: SetNull)
+  property          Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unit              Unit?              @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  media             WorkOrderMedia[]
+  history           WorkOrderHistory[]
+  payment           ContractorPayment?
+
+  @@index([landlordId])
+  @@index([contractorId])
+  @@index([status])
+  @@index([propertyId])
+}
+
+// WorkOrderMedia - Photos/videos attached to work orders
+model WorkOrderMedia {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId  String   @db.Uuid
+  uploadedById String   @db.Uuid
+  uploaderRole String   // landlord, contractor
+  type         String   // image, video
+  url          String
+  thumbnailUrl String?
+  caption      String?
+  phase        String   @default("before") // before, during, after
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  uploader  User      @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId])
+}
+
+// WorkOrderHistory - Audit trail of status changes
+model WorkOrderHistory {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId    String   @db.Uuid
+  changedById    String   @db.Uuid
+  previousStatus String
+  newStatus      String
+  notes          String?
+  createdAt      DateTime @default(now()) @db.Timestamp(6)
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  changedBy User      @relation(fields: [changedById], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId])
+}
+
+// ContractorPayment - Payment record
+model ContractorPayment {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId       String    @db.Uuid
+  contractorId     String    @db.Uuid
+  workOrderId      String    @unique @db.Uuid
+  amount           Decimal   @db.Decimal(12, 2)
+  platformFee      Decimal   @db.Decimal(12, 2)
+  netAmount        Decimal   @db.Decimal(12, 2)
+  status           String    @default("pending") // pending, processing, completed, failed
+  stripeTransferId String?
+  failureReason    String?
+  paidAt           DateTime? @db.Timestamp(6)
+  createdAt        DateTime  @default(now()) @db.Timestamp(6)
+
+  landlord   Landlord   @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@index([landlordId])
+  @@index([contractorId])
+  @@index([status])
 }

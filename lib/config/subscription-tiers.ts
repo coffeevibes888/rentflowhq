@@ -21,6 +21,7 @@ export const SUBSCRIPTION_TIERS = {
       quickbooksIntegration: false,
       turbotaxIntegration: false,
       zillowComps: true, // Free tier gets Zillow neighborhood comps
+      contractorManagement: false, // PRO feature
     },
     description: 'Perfect for small landlords with up to 24 units',
   },
@@ -46,6 +47,7 @@ export const SUBSCRIPTION_TIERS = {
       quickbooksIntegration: true,
       turbotaxIntegration: true,
       zillowComps: true,
+      contractorManagement: true, // PRO feature - manage contractors, work orders, payments
     },
     description: 'Everything you need for 25-250 units with full team features',
   },
@@ -71,6 +73,7 @@ export const SUBSCRIPTION_TIERS = {
       quickbooksIntegration: true,
       turbotaxIntegration: true,
       zillowComps: true,
+      contractorManagement: true, // PRO feature
     },
     description: 'Custom branding, API access, and webhooks. Contact us for pricing.',
   },
