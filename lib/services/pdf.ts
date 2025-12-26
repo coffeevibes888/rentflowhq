@@ -4,10 +4,10 @@ import puppeteer, { Browser } from 'puppeteer-core';
 let browserInstance: Browser | null = null;
 const isLocal = process.env.NODE_ENV === 'development';
 
+// Optimized args for serverless environments
 const chromeArgs = [
+  ...chromium.args,
   '--font-render-hinting=none',
-  '--no-sandbox',
-  '--disable-setuid-sandbox',
   '--disable-gpu',
   '--disable-dev-shm-usage',
   '--disable-accelerated-2d-canvas',
@@ -15,6 +15,7 @@ const chromeArgs = [
   '--disable-background-timer-throttling',
   '--disable-restore-session-state',
   '--single-process',
+  '--no-zygote',
 ];
 
 async function getBrowser(): Promise<Browser> {
@@ -31,17 +32,23 @@ async function getBrowser(): Promise<Browser> {
       }) as Browser;
     } else {
       // For Vercel/production, use @sparticuz/chromium
+      console.log('PDF - Getting chromium executable path...');
       const executablePath = await chromium.executablePath();
+      console.log('PDF - Executable path:', executablePath);
+      
       browserInstance = await puppeteer.launch({
         args: chromeArgs,
         executablePath,
-        headless: true,
+        headless: chromium.headless,
+        defaultViewport: chromium.defaultViewport,
       }) as Browser;
+      console.log('PDF - Browser launched successfully');
     }
 
     return browserInstance;
   } catch (error: any) {
     console.error('Failed to launch browser:', error);
+    console.error('Error details:', error.message, error.stack);
     throw new Error('PDF generation service unavailable. Please try again later.');
   }
 }

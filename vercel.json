@@ -1,7 +1,8 @@
 {
   "functions": {
     "app/api/sign/[token]/route.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 1024
     }
   }
 }
