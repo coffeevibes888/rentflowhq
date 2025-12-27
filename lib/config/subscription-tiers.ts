@@ -10,7 +10,7 @@ export const SUBSCRIPTION_TIERS = {
       automaticLateFees: false,
       employmentChecksPerMonth: 0,
       teamManagement: false,
-      teamCommunications: false,
+      teamCommunications: false, // No team chat for free tier
       freeBackgroundChecks: false,
       freeEvictionChecks: false,
       freeEmploymentVerification: false,
@@ -22,6 +22,12 @@ export const SUBSCRIPTION_TIERS = {
       turbotaxIntegration: false,
       zillowComps: true, // Free tier gets Zillow neighborhood comps
       contractorManagement: false, // PRO feature
+      // Enterprise-only features
+      shiftScheduling: false,
+      timeTracking: false,
+      teamPayroll: false,
+      performanceReports: false,
+      unlimitedTeamMembers: false,
     },
     description: 'Perfect for small landlords with up to 24 units',
   },
@@ -48,13 +54,19 @@ export const SUBSCRIPTION_TIERS = {
       turbotaxIntegration: true,
       zillowComps: true,
       contractorManagement: true, // PRO feature - manage contractors, work orders, payments
+      // Enterprise-only features (disabled for Pro)
+      shiftScheduling: false,
+      timeTracking: false,
+      teamPayroll: false,
+      performanceReports: false,
+      unlimitedTeamMembers: false,
     },
     description: 'Everything you need for 25-250 units with full team features',
   },
   enterprise: {
     name: 'Enterprise',
-    price: null,
-    priceId: null,
+    price: 79.99,
+    priceId: process.env.STRIPE_PRICE_ENTERPRISE || null,
     unitLimit: Infinity,
     noCashoutFees: true,
     features: {
@@ -73,9 +85,15 @@ export const SUBSCRIPTION_TIERS = {
       quickbooksIntegration: true,
       turbotaxIntegration: true,
       zillowComps: true,
-      contractorManagement: true, // PRO feature
+      contractorManagement: true,
+      // Enterprise-only Team Operations features
+      shiftScheduling: true,
+      timeTracking: true,
+      teamPayroll: true,
+      performanceReports: true,
+      unlimitedTeamMembers: true,
     },
-    description: 'Custom branding, API access, and webhooks. Contact us for pricing.',
+    description: 'Full business operations with scheduling, time tracking, payroll, and unlimited team members.',
   },
 } as const;
 

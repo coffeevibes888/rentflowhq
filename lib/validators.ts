@@ -421,3 +421,155 @@ export const contractorPaymentSchema = z.object({
 
 // Platform fee percentage for contractor payments (configurable)
 export const CONTRACTOR_PLATFORM_FEE_PERCENT = 2.5; // 2.5% platform fee
+
+
+// ============= TEAM OPERATIONS SCHEMAS (ENTERPRISE) =============
+
+// Platform fee percentage for team payroll (same as contractor payments)
+export const TEAM_PLATFORM_FEE_PERCENT = 2.5;
+
+// Pay period types
+export const PAY_PERIOD_TYPES = ['weekly', 'biweekly', 'semimonthly', 'monthly'] as const;
+
+// Pay types
+export const PAY_TYPES = ['hourly', 'salary'] as const;
+
+// Shift statuses
+export const SHIFT_STATUSES = ['scheduled', 'completed', 'missed', 'cancelled'] as const;
+
+// Time entry approval statuses
+export const TIME_ENTRY_STATUSES = ['pending', 'approved', 'rejected'] as const;
+
+// Timesheet statuses
+export const TIMESHEET_STATUSES = ['draft', 'submitted', 'approved', 'rejected', 'paid'] as const;
+
+// Time off request statuses
+export const TIME_OFF_STATUSES = ['pending', 'approved', 'denied'] as const;
+
+// Team payment types
+export const TEAM_PAYMENT_TYPES = ['timesheet', 'bonus', 'commission', 'adjustment'] as const;
+
+// Schema for team member compensation
+export const teamMemberCompensationSchema = z.object({
+  teamMemberId: z.string().uuid('Invalid team member ID'),
+  payType: z.enum(PAY_TYPES),
+  hourlyRate: z.coerce.number().positive('Hourly rate must be positive').optional(),
+  salaryAmount: z.coerce.number().positive('Salary must be positive').optional(),
+  overtimeRate: z.coerce.number().positive('Overtime rate must be positive').optional(),
+  commissionRate: z.coerce.number().min(0).max(100, 'Commission rate must be 0-100%').optional(),
+}).refine(
+  (data) => {
+    if (data.payType === 'hourly' && !data.hourlyRate) {
+      return false;
+    }
+    if (data.payType === 'salary' && !data.salaryAmount) {
+      return false;
+    }
+    return true;
+  },
+  { message: 'Hourly rate required for hourly pay, salary amount required for salary pay' }
+);
+
+// Schema for team member availability
+export const teamMemberAvailabilitySchema = z.object({
+  teamMemberId: z.string().uuid('Invalid team member ID'),
+  dayOfWeek: z.number().int().min(0).max(6, 'Day of week must be 0-6'),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Time must be HH:MM format'),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Time must be HH:MM format'),
+  isAvailable: z.boolean(),
+});
+
+// Schema for creating a shift
+export const shiftSchema = z.object({
+  teamMemberId: z.string().uuid('Invalid team member ID'),
+  propertyId: z.string().uuid('Invalid property ID').optional(),
+  date: z.string().datetime('Invalid date'),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Time must be HH:MM format'),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Time must be HH:MM format'),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+});
+
+// Schema for updating a shift
+export const updateShiftSchema = shiftSchema.partial().extend({
+  id: z.string().uuid('Invalid shift ID'),
+  status: z.enum(SHIFT_STATUSES).optional(),
+});
+
+// Schema for time off request
+export const timeOffRequestSchema = z.object({
+  startDate: z.string().datetime('Invalid start date'),
+  endDate: z.string().datetime('Invalid end date'),
+  reason: z.string().max(500, 'Reason must be less than 500 characters').optional(),
+});
+
+// Schema for reviewing time off request
+export const reviewTimeOffSchema = z.object({
+  id: z.string().uuid('Invalid request ID'),
+  status: z.enum(['approved', 'denied']),
+  reviewNotes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+});
+
+// Schema for clock in
+export const clockInSchema = z.object({
+  propertyId: z.string().uuid('Invalid property ID').optional(),
+  shiftId: z.string().uuid('Invalid shift ID').optional(),
+  location: z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  }).optional(),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+});
+
+// Schema for clock out
+export const clockOutSchema = z.object({
+  timeEntryId: z.string().uuid('Invalid time entry ID'),
+  location: z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  }).optional(),
+  breakMinutes: z.number().int().min(0).max(480, 'Break cannot exceed 8 hours').optional(),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+});
+
+// Schema for manual time entry
+export const manualTimeEntrySchema = z.object({
+  teamMemberId: z.string().uuid('Invalid team member ID'),
+  propertyId: z.string().uuid('Invalid property ID').optional(),
+  clockIn: z.string().datetime('Invalid clock in time'),
+  clockOut: z.string().datetime('Invalid clock out time'),
+  breakMinutes: z.number().int().min(0).max(480, 'Break cannot exceed 8 hours').default(0),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+});
+
+// Schema for submitting timesheet
+export const submitTimesheetSchema = z.object({
+  timesheetId: z.string().uuid('Invalid timesheet ID'),
+});
+
+// Schema for reviewing timesheet
+export const reviewTimesheetSchema = z.object({
+  timesheetId: z.string().uuid('Invalid timesheet ID'),
+  status: z.enum(['approved', 'rejected']),
+  reviewNotes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+});
+
+// Schema for processing payroll
+export const processPayrollSchema = z.object({
+  timesheetIds: z.array(z.string().uuid('Invalid timesheet ID')).min(1, 'Select at least one timesheet'),
+});
+
+// Schema for bonus payment
+export const bonusPaymentSchema = z.object({
+  teamMemberId: z.string().uuid('Invalid team member ID'),
+  amount: z.coerce.number().positive('Amount must be positive'),
+  description: z.string().min(3, 'Description required').max(200),
+});
+
+// Schema for payroll settings
+export const payrollSettingsSchema = z.object({
+  payPeriodType: z.enum(PAY_PERIOD_TYPES),
+  payPeriodStartDay: z.number().int().min(0).max(31, 'Invalid start day'),
+  overtimeThreshold: z.coerce.number().min(0).max(168, 'Weekly hours cannot exceed 168'),
+  dailyOvertimeThreshold: z.coerce.number().min(0).max(24, 'Daily hours cannot exceed 24').optional(),
+  overtimeMultiplier: z.coerce.number().min(1).max(3, 'Overtime multiplier must be 1-3'),
+});

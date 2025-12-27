@@ -9,15 +9,6 @@ import {
   Building2, 
   Crown, 
   ArrowRight,
-  Bell,
-  DollarSign,
-  Users,
-  MessageSquare,
-  Briefcase,
-  Palette,
-  Code,
-  Webhook,
-  Shield,
   Sparkles
 } from 'lucide-react';
 
@@ -39,8 +30,7 @@ const tiers = [
       { name: 'Digital leases with E-Sign', included: true },
       { name: 'Basic reporting', included: true },
       { name: 'Automation Application Process', included: true },
-      // { name: 'QuickBooks & TurboTax integration', included: false },
-      // { name: 'Team management & chat', included: false },
+      { name: '1 team member', included: true },
     ],
     cta: 'Start Free',
     iconBg: 'bg-slate-500/20',
@@ -60,7 +50,9 @@ const tiers = [
       { name: 'QuickBooks & TurboTax integration', included: true },
       { name: 'Automatic rent reminders', included: true },
       { name: 'Auto late fee charges', included: true },
+      { name: 'Up to 5 team members', included: true },
       { name: 'Team management & Slack-like chat', included: true },
+      { name: 'Contractor management & payments', included: true },
       { name: 'ID & paystub verification', included: true },
       { name: 'Priority support', included: true },
       { name: 'Advanced analytics & reporting', included: true },
@@ -72,24 +64,26 @@ const tiers = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: null,
-    description: 'COMING SOON.',
+    price: 79.99,
+    description: 'Full-scale property management operations.',
     unitLimit: 'Unlimited units',
     icon: Crown,
     popular: false,
     features: [
       { name: 'Unlimited units', included: true },
       { name: 'Everything in Pro', included: true },
+      { name: 'Unlimited team members', included: true },
+      { name: 'Shift scheduling & calendar', included: true },
+      { name: 'Time tracking with GPS', included: true },
+      { name: 'Timesheet approval workflow', included: true },
+      { name: 'Team payroll from wallet', included: true },
+      { name: 'Performance reports', included: true },
       { name: 'Custom branding & white-label', included: true },
       { name: 'Custom domain support', included: true },
-      { name: 'API access', included: true },
-      { name: 'Webhooks', included: true },
+      { name: 'API access & webhooks', included: true },
       { name: 'Dedicated account manager', included: true },
-      { name: 'Custom integrations', included: true },
-      // { name: 'SLA guarantee', included: true },
-      // { name: 'Onboarding & training', included: true },
     ],
-    cta: 'Contact Sales',
+    cta: 'Get Enterprise',
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-300',
   },
@@ -102,13 +96,6 @@ export default function PricingSection() {
 
   const handleTierClick = async (tierId: string) => {
     setLoadingTier(tierId);
-
-    // Enterprise tier - go to contact
-    if (tierId === 'enterprise') {
-      router.push('/contact?subject=Enterprise%20Plan');
-      setLoadingTier(null);
-      return;
-    }
 
     // Check if user is logged in
     if (status === 'authenticated' && session?.user) {
@@ -324,7 +311,28 @@ export default function PricingSection() {
                 </tr>
                 <tr className="border-b border-white/5 hover:bg-white/5">
                   <td className="p-4 text-slate-200">Team Chat</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Pro)</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Contractor Management</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Pro)</span></td>
+                  <td className="p-4 text-center text-amber-400 text-xs">$ Extra</td>
+                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Shift Scheduling</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Enterprise)</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
+                </tr>
+                <tr className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-4 text-slate-200">Time Tracking & Payroll</td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Enterprise)</span></td>
                   <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
                   <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
                   <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
@@ -338,16 +346,9 @@ export default function PricingSection() {
                 </tr>
                 <tr className="border-b border-white/5 hover:bg-white/5">
                   <td className="p-4 text-slate-200">ID & Paystub Verification</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Pro)</span></td>
                   <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
                   <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Zillow Neighborhood Comps</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
                   <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
                 </tr>
                 <tr className="border-b border-white/5 hover:bg-white/5">

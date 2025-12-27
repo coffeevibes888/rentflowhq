@@ -94,6 +94,11 @@ model User {
   contractorProfile    Contractor[]
   workOrderMedia       WorkOrderMedia[]
   workOrderHistory     WorkOrderHistory[]
+
+  // Team Operations (Enterprise)
+  teamMemberships      TeamMember[]
+  reviewedTimeOffRequests TimeOffRequest[] @relation("TimeOffReviewer")
+  reviewedTimesheets   Timesheet[] @relation("TimesheetReviewer")
 }
 
 model Account {
@@ -594,6 +599,15 @@ model Landlord {
   contractorInvites ContractorInvite[]
   workOrders WorkOrder[]
   contractorPayments ContractorPayment[]
+
+  // Team Operations (Enterprise)
+  teamMembers TeamMember[]
+  shifts Shift[]
+  timeEntries TimeEntry[]
+  timesheets Timesheet[]
+  teamPayments TeamPayment[]
+  timeOffRequests TimeOffRequest[]
+  payrollSettings PayrollSettings?
 }
 
 model QuickBooksConnection {
@@ -691,6 +705,10 @@ model Property {
   
   // Contractor work orders
   workOrders WorkOrder[]
+  
+  // Team Operations (Enterprise)
+  shifts Shift[]
+  timeEntries TimeEntry[]
 }
 
 model Unit {
@@ -1284,6 +1302,16 @@ model TeamMember {
   joinedAt      DateTime? @db.Timestamp(6)
   createdAt     DateTime @default(now()) @db.Timestamp(6)
   updatedAt     DateTime @updatedAt
+
+  landlord        Landlord                  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  compensation    TeamMemberCompensation?
+  availability    TeamMemberAvailability[]
+  timeOffRequests TimeOffRequest[]
+  shifts          Shift[]
+  timeEntries     TimeEntry[]
+  timesheets      Timesheet[]
+  teamPayments    TeamPayment[]
 
   @@unique([landlordId, userId])
   @@index([landlordId])
@@ -1946,4 +1974,202 @@ model ContractorPayment {
   @@index([landlordId])
   @@index([contractorId])
   @@index([status])
+}
+
+
+// ============= TEAM OPERATIONS (ENTERPRISE) =============
+
+// Team member compensation settings
+model TeamMemberCompensation {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teamMemberId    String   @unique @db.Uuid
+  payType         String   @default("hourly") // hourly, salary
+  hourlyRate      Decimal? @db.Decimal(10, 2)
+  salaryAmount    Decimal? @db.Decimal(12, 2) // Annual salary
+  overtimeRate    Decimal? @db.Decimal(10, 2) // Defaults to 1.5x hourly
+  commissionRate  Decimal? @db.Decimal(5, 2)  // Percentage for leasing agents
+  stripeAccountId String?
+  stripeOnboardingStatus String? @default("pending")
+  isPaymentReady  Boolean  @default(false)
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt
+
+  teamMember TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+
+  @@index([teamMemberId])
+}
+
+// Team member availability (recurring weekly schedule)
+model TeamMemberAvailability {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teamMemberId String   @db.Uuid
+  dayOfWeek    Int      // 0=Sunday, 1=Monday, etc.
+  startTime    String   // "09:00" format
+  endTime      String   // "17:00" format
+  isAvailable  Boolean  @default(true)
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime @updatedAt
+
+  teamMember TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([teamMemberId, dayOfWeek])
+  @@index([teamMemberId])
+}
+
+// Time off requests
+model TimeOffRequest {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teamMemberId String    @db.Uuid
+  landlordId   String    @db.Uuid
+  startDate    DateTime  @db.Date
+  endDate      DateTime  @db.Date
+  reason       String?
+  status       String    @default("pending") // pending, approved, denied
+  reviewedById String?   @db.Uuid
+  reviewedAt   DateTime? @db.Timestamp(6)
+  reviewNotes  String?
+  createdAt    DateTime  @default(now()) @db.Timestamp(6)
+
+  teamMember TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  landlord   Landlord   @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  reviewedBy User?      @relation("TimeOffReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([teamMemberId])
+  @@index([landlordId])
+  @@index([status])
+}
+
+// Scheduled shifts
+model Shift {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId   String    @db.Uuid
+  teamMemberId String    @db.Uuid
+  propertyId   String?   @db.Uuid
+  date         DateTime  @db.Date
+  startTime    String    // "09:00" format
+  endTime      String    // "17:00" format
+  notes        String?
+  status       String    @default("scheduled") // scheduled, completed, missed, cancelled
+  createdAt    DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime  @updatedAt
+
+  landlord    Landlord    @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  teamMember  TeamMember  @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  property    Property?   @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  timeEntries TimeEntry[]
+
+  @@index([landlordId])
+  @@index([teamMemberId])
+  @@index([date])
+  @@index([propertyId])
+}
+
+// Time entries (clock in/out records)
+model TimeEntry {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId   String    @db.Uuid
+  teamMemberId String    @db.Uuid
+  shiftId      String?   @db.Uuid
+  propertyId   String?   @db.Uuid
+  clockIn      DateTime  @db.Timestamp(6)
+  clockOut     DateTime? @db.Timestamp(6)
+  clockInLat   Decimal?  @db.Decimal(10, 7)
+  clockInLng   Decimal?  @db.Decimal(10, 7)
+  clockOutLat  Decimal?  @db.Decimal(10, 7)
+  clockOutLng  Decimal?  @db.Decimal(10, 7)
+  breakMinutes Int       @default(0)
+  totalMinutes Int?
+  notes        String?
+  isManual     Boolean   @default(false)
+  approvalStatus String  @default("pending") // pending, approved, rejected
+  timesheetId  String?   @db.Uuid
+  createdAt    DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime  @updatedAt
+
+  landlord   Landlord   @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  teamMember TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  shift      Shift?     @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  property   Property?  @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  timesheet  Timesheet? @relation(fields: [timesheetId], references: [id], onDelete: SetNull)
+
+  @@index([landlordId])
+  @@index([teamMemberId])
+  @@index([clockIn])
+  @@index([timesheetId])
+}
+
+// Pay periods and timesheets
+model Timesheet {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId     String    @db.Uuid
+  teamMemberId   String    @db.Uuid
+  periodStart    DateTime  @db.Date
+  periodEnd      DateTime  @db.Date
+  totalHours     Decimal   @default(0) @db.Decimal(10, 2)
+  regularHours   Decimal   @default(0) @db.Decimal(10, 2)
+  overtimeHours  Decimal   @default(0) @db.Decimal(10, 2)
+  status         String    @default("draft") // draft, submitted, approved, rejected, paid
+  submittedAt    DateTime? @db.Timestamp(6)
+  reviewedById   String?   @db.Uuid
+  reviewedAt     DateTime? @db.Timestamp(6)
+  reviewNotes    String?
+  createdAt      DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime  @updatedAt
+
+  landlord    Landlord     @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  teamMember  TeamMember   @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  reviewedBy  User?        @relation("TimesheetReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  timeEntries TimeEntry[]
+  payment     TeamPayment?
+
+  @@unique([teamMemberId, periodStart, periodEnd])
+  @@index([landlordId])
+  @@index([teamMemberId])
+  @@index([status])
+}
+
+// Team payroll payments
+model TeamPayment {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId       String    @db.Uuid
+  teamMemberId     String    @db.Uuid
+  timesheetId      String?   @unique @db.Uuid
+  paymentType      String    @default("timesheet") // timesheet, bonus, commission, adjustment
+  grossAmount      Decimal   @db.Decimal(12, 2)
+  platformFee      Decimal   @db.Decimal(12, 2)
+  netAmount        Decimal   @db.Decimal(12, 2)
+  regularPay       Decimal?  @db.Decimal(12, 2)
+  overtimePay      Decimal?  @db.Decimal(12, 2)
+  commissionPay    Decimal?  @db.Decimal(12, 2)
+  bonusAmount      Decimal?  @db.Decimal(12, 2)
+  description      String?
+  status           String    @default("pending") // pending, processing, completed, failed
+  stripeTransferId String?
+  failureReason    String?
+  paidAt           DateTime? @db.Timestamp(6)
+  createdAt        DateTime  @default(now()) @db.Timestamp(6)
+
+  landlord   Landlord   @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  teamMember TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  timesheet  Timesheet? @relation(fields: [timesheetId], references: [id], onDelete: SetNull)
+
+  @@index([landlordId])
+  @@index([teamMemberId])
+  @@index([status])
+  @@index([paidAt])
+}
+
+// Payroll settings for landlord
+model PayrollSettings {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId             String   @unique @db.Uuid
+  payPeriodType          String   @default("biweekly") // weekly, biweekly, semimonthly, monthly
+  payPeriodStartDay      Int      @default(1) // Day of week (0-6) or day of month (1-31)
+  overtimeThreshold      Decimal  @default(40) @db.Decimal(5, 2) // Hours per week
+  dailyOvertimeThreshold Decimal? @db.Decimal(5, 2) // Hours per day (optional)
+  overtimeMultiplier     Decimal  @default(1.5) @db.Decimal(3, 2)
+  createdAt              DateTime @default(now()) @db.Timestamp(6)
+  updatedAt              DateTime @updatedAt
+
+  landlord Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
 }
