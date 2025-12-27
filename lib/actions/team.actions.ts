@@ -9,18 +9,22 @@ import { randomUUID } from 'crypto';
 import nodemailer from 'nodemailer';
 import { APP_NAME } from '@/lib/constants';
 
-export type TeamMemberRole = 'owner' | 'admin' | 'member';
+export type TeamMemberRole = 'owner' | 'admin' | 'manager' | 'member' | 'employee';
 export type TeamPermission = 
   | 'view_properties' 
   | 'manage_tenants' 
   | 'manage_maintenance' 
   | 'manage_finances'
-  | 'manage_team';
+  | 'manage_team'
+  | 'manage_schedule'
+  | 'approve_timesheets';
 
 const DEFAULT_PERMISSIONS: Record<TeamMemberRole, TeamPermission[]> = {
-  owner: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_team'],
-  admin: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances'],
+  owner: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_team', 'manage_schedule', 'approve_timesheets'],
+  admin: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_schedule', 'approve_timesheets'],
+  manager: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_schedule', 'approve_timesheets'],
   member: ['view_properties', 'manage_maintenance'],
+  employee: ['view_properties'],
 };
 
 // Type-safe prisma access for models that may not exist yet

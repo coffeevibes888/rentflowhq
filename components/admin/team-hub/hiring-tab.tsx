@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Briefcase, Plus, Users, FileText, CheckCircle, 
   XCircle, Clock, Mail, Phone, MapPin, Calendar,
-  ChevronRight, Eye, Trash2, Edit, Send
+  ChevronRight, Eye, Trash2, Edit, Send, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +55,7 @@ interface Applicant {
   coverLetter?: string;
   status: 'new' | 'reviewing' | 'interview' | 'offered' | 'hired' | 'rejected';
   appliedAt: string;
+  job?: { id: string; title: string };
 }
 
 interface HiringTabProps {
@@ -65,42 +66,11 @@ export function HiringTab({ landlordId }: HiringTabProps) {
   const [activeTab, setActiveTab] = useState('postings');
   const [showCreateJob, setShowCreateJob] = useState(false);
   const [showApplicantDetails, setShowApplicantDetails] = useState<Applicant | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
-  // Demo data - in production this would come from the database
-  const [jobPostings, setJobPostings] = useState<JobPosting[]>([
-    {
-      id: '1',
-      title: 'Property Manager',
-      description: 'Looking for an experienced property manager to oversee our residential portfolio.',
-      type: 'full-time',
-      location: 'Las Vegas, NV',
-      salary: '$50,000 - $65,000',
-      status: 'active',
-      applicantCount: 3,
-      createdAt: new Date().toISOString(),
-    },
-  ]);
-
-  const [applicants, setApplicants] = useState<Applicant[]>([
-    {
-      id: '1',
-      jobId: '1',
-      name: 'John Smith',
-      email: 'john.smith@email.com',
-      phone: '(555) 123-4567',
-      status: 'new',
-      appliedAt: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      jobId: '1',
-      name: 'Sarah Johnson',
-      email: 'sarah.j@email.com',
-      phone: '(555) 987-6543',
-      status: 'reviewing',
-      appliedAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-  ]);
+  const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
+  const [applicants, setApplicants] = useState<Applicant[]>([]);
 
   // New job form state
   const [newJob, setNewJob] = useState({
@@ -111,25 +81,142 @@ export function HiringTab({ landlordId }: HiringTabProps) {
     salary: '',
   });
 
-  const handleCreateJob = () => {
-    const job: JobPosting = {
-      id: Date.now().toString(),
-      ...newJob,
-      status: 'draft',
-      applicantCount: 0,
-      createdAt: new Date().toISOString(),
-    };
-    setJobPostings([job, ...jobPostings]);
-    setShowCreateJob(false);
-    setNewJob({ title: '', description: '', type: 'full-time', location: '', salary: '' });
+  // Fetch data on mount
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [jobsRes, applicantsRes] = await Promise.all([
+        fetch('/api/landlord/hiring/jobs'),
+        fetch('/api/landlord/hiring/applicants'),
+      ]);
+      
+      const jobsData = await jobsRes.json();
+      const applicantsData = await applicantsRes.json();
+      
+      if (jobsData.success) {
+        setJobPostings(jobsData.jobs);
+      }
+      if (applicantsData.success) {
+        setApplicants(applicantsData.applicants);
+      }
+    } catch (error) {
+      console.error('Failed to fetch hiring data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleUpdateApplicantStatus = (applicantId: string, status: Applicant['status']) => {
-    setApplicants(applicants.map(a => 
-      a.id === applicantId ? { ...a, status } : a
-    ));
-    if (showApplicantDetails?.id === applicantId) {
-      setShowApplicantDetails({ ...showApplicantDetails, status });
+  const handleCreateJob = async () => {
+    if (!newJob.title || !newJob.description || !newJob.location) return;
+    
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/landlord/hiring/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newJob),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setJobPostings([{ ...data.job, applicantCount: 0 }, ...jobPostings]);
+        setShowCreateJob(false);
+        setNewJob({ title: '', description: '', type: 'full-time', location: '', salary: '' });
+      } else {
+        alert(data.message || 'Failed to create job');
+      }
+    } catch {
+      alert('Failed to create job');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePublishJob = async (jobId: string) => {
+    try {
+      const res = await fetch(`/api/landlord/hiring/jobs/${jobId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'active' }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setJobPostings(jobPostings.map(j => 
+          j.id === jobId ? { ...j, status: 'active' } : j
+        ));
+      } else {
+        alert(data.message || 'Failed to publish job');
+      }
+    } catch {
+      alert('Failed to publish job');
+    }
+  };
+
+  const handleCloseJob = async (jobId: string) => {
+    try {
+      const res = await fetch(`/api/landlord/hiring/jobs/${jobId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'closed' }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setJobPostings(jobPostings.map(j => 
+          j.id === jobId ? { ...j, status: 'closed' } : j
+        ));
+      }
+    } catch {
+      alert('Failed to close job');
+    }
+  };
+
+  const handleDeleteJob = async (jobId: string) => {
+    if (!confirm('Are you sure you want to delete this job posting? This will also delete all applicants.')) return;
+    
+    try {
+      const res = await fetch(`/api/landlord/hiring/jobs/${jobId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setJobPostings(jobPostings.filter(j => j.id !== jobId));
+        setApplicants(applicants.filter(a => a.jobId !== jobId));
+      } else {
+        alert(data.message || 'Failed to delete job');
+      }
+    } catch {
+      alert('Failed to delete job');
+    }
+  };
+
+  const handleUpdateApplicantStatus = async (applicantId: string, status: Applicant['status']) => {
+    try {
+      const res = await fetch(`/api/landlord/hiring/applicants/${applicantId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setApplicants(applicants.map(a => 
+          a.id === applicantId ? { ...a, status } : a
+        ));
+        if (showApplicantDetails?.id === applicantId) {
+          setShowApplicantDetails({ ...showApplicantDetails, status });
+        }
+      } else {
+        alert(data.message || 'Failed to update status');
+      }
+    } catch {
+      alert('Failed to update status');
     }
   };
 
@@ -145,6 +232,14 @@ export function HiringTab({ landlordId }: HiringTabProps) {
     const c = config[status];
     return <Badge className={`${c.bg} ${c.text} border-0`}>{c.label}</Badge>;
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -233,16 +328,32 @@ export function HiringTab({ landlordId }: HiringTabProps) {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="border-white/10">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="border-white/10">
-                          <Eye className="h-4 w-4" />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="border-white/10"
+                          onClick={() => handleDeleteJob(job.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                         {job.status === 'draft' && (
-                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500">
+                          <Button 
+                            size="sm" 
+                            className="bg-emerald-600 hover:bg-emerald-500"
+                            onClick={() => handlePublishJob(job.id)}
+                          >
                             <Send className="h-4 w-4 mr-1" />
                             Publish
+                          </Button>
+                        )}
+                        {job.status === 'active' && (
+                          <Button 
+                            variant="outline"
+                            size="sm" 
+                            className="border-white/10"
+                            onClick={() => handleCloseJob(job.id)}
+                          >
+                            Close
                           </Button>
                         )}
                       </div>
@@ -274,37 +385,34 @@ export function HiringTab({ landlordId }: HiringTabProps) {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-white/5">
-                  {applicants.map((applicant) => {
-                    const job = jobPostings.find(j => j.id === applicant.jobId);
-                    return (
-                      <div 
-                        key={applicant.id}
-                        className="p-4 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
-                        onClick={() => setShowApplicantDetails(applicant)}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="h-11 w-11 rounded-full bg-slate-700 flex items-center justify-center">
-                            <span className="text-white font-medium">
-                              {applicant.name[0].toUpperCase()}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-white font-medium">{applicant.name}</p>
-                            <p className="text-sm text-slate-400">
-                              Applied for {job?.title || 'Unknown Position'}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {new Date(applicant.appliedAt).toLocaleDateString()}
-                            </p>
-                          </div>
+                  {applicants.map((applicant) => (
+                    <div 
+                      key={applicant.id}
+                      className="p-4 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
+                      onClick={() => setShowApplicantDetails(applicant)}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-11 w-11 rounded-full bg-slate-700 flex items-center justify-center">
+                          <span className="text-white font-medium">
+                            {applicant.name[0].toUpperCase()}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {getStatusBadge(applicant.status)}
-                          <ChevronRight className="h-5 w-5 text-slate-500" />
+                        <div>
+                          <p className="text-white font-medium">{applicant.name}</p>
+                          <p className="text-sm text-slate-400">
+                            Applied for {applicant.job?.title || 'Unknown Position'}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {new Date(applicant.appliedAt).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
-                    );
-                  })}
+                      <div className="flex items-center gap-3">
+                        {getStatusBadge(applicant.status)}
+                        <ChevronRight className="h-5 w-5 text-slate-500" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -384,15 +492,22 @@ export function HiringTab({ landlordId }: HiringTabProps) {
           </div>
           
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowCreateJob(false)}>
+            <Button variant="ghost" onClick={() => setShowCreateJob(false)} disabled={isSaving}>
               Cancel
             </Button>
             <Button 
               onClick={handleCreateJob}
-              disabled={!newJob.title || !newJob.description || !newJob.location}
+              disabled={!newJob.title || !newJob.description || !newJob.location || isSaving}
               className="bg-emerald-600 hover:bg-emerald-500"
             >
-              Create Draft
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Draft'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

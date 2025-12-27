@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   MessageSquare, Users, Calendar, Briefcase, 
-  Clock, FileText, DollarSign, BarChart3, Crown
+  Clock, FileText, DollarSign, Crown
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { TeamChat } from '@/components/team/team-chat';
@@ -78,7 +78,6 @@ export function TeamHub({
   landlordId, 
   teamMembers, 
   subscriptionTier,
-  features 
 }: TeamHubProps) {
   const [activeTab, setActiveTab] = useState('chat');
   const isEnterprise = subscriptionTier === 'enterprise';

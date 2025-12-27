@@ -608,6 +608,10 @@ model Landlord {
   teamPayments TeamPayment[]
   timeOffRequests TimeOffRequest[]
   payrollSettings PayrollSettings?
+
+  // Hiring (Enterprise)
+  jobPostings JobPosting[]
+  jobApplicants JobApplicant[]
 }
 
 model QuickBooksConnection {
@@ -2172,4 +2176,52 @@ model PayrollSettings {
   updatedAt              DateTime @updatedAt
 
   landlord Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+}
+
+
+// ============= HIRING (ENTERPRISE) =============
+
+// Job postings for hiring
+model JobPosting {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId   String    @db.Uuid
+  title        String
+  description  String
+  type         String    @default("full-time") // full-time, part-time, contract
+  location     String
+  salary       String?
+  requirements String?
+  benefits     String?
+  status       String    @default("draft") // draft, active, closed
+  createdAt    DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime  @updatedAt
+
+  landlord   Landlord       @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  applicants JobApplicant[]
+
+  @@index([landlordId])
+  @@index([status])
+}
+
+// Job applicants
+model JobApplicant {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId        String    @db.Uuid
+  landlordId   String    @db.Uuid
+  name         String
+  email        String
+  phone        String?
+  resumeUrl    String?
+  coverLetter  String?
+  status       String    @default("new") // new, reviewing, interview, offered, hired, rejected
+  notes        String?
+  appliedAt    DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime  @updatedAt
+
+  job      JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  landlord Landlord   @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([landlordId])
+  @@index([status])
 }
