@@ -23,16 +23,28 @@ import DashboardOverview from "../admin/overview/dashboard-overview";
 import UserManagement from "@/components/super-admin/user-management";
 import LandlordDetailModal from "@/components/super-admin/landlord-detail-modal";
 import TierManager from "@/components/super-admin/tier-manager";
+import { 
+  LayoutDashboard, 
+  Activity, 
+  Globe, 
+  MousePointerClick, 
+  Users, 
+  Building2, 
+  Settings, 
+  Layers,
+  Menu,
+  X
+} from "lucide-react";
 
 const views = [
-  { id: "overview", label: "Overview" },
-  { id: "health", label: "System Health" },
-  { id: "traffic", label: "Traffic" },
-  { id: "engagement", label: "Engagement" },
-  { id: "users", label: "Users & Sessions" },
-  { id: "portfolio", label: "Portfolio & Revenue" },
-  { id: "management", label: "User Management" },
-  { id: "tiers", label: "Tier Testing" },
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "health", label: "System Health", icon: Activity },
+  { id: "traffic", label: "Traffic", icon: Globe },
+  { id: "engagement", label: "Engagement", icon: MousePointerClick },
+  { id: "users", label: "Users & Sessions", icon: Users },
+  { id: "portfolio", label: "Portfolio & Revenue", icon: Building2 },
+  { id: "management", label: "User Management", icon: Settings },
+  { id: "tiers", label: "Tier Testing", icon: Layers },
 ] as const;
 
 type TopPage = { path: string; _count: { _all: number } };
@@ -83,8 +95,6 @@ type PlatformRevenue = {
   total: RentTotals;
 };
 type SubscriptionBreakdown = { free: number; pro: number; growth: number; professional: number; enterprise: number };
-
-// New types for enhanced dashboard
 type StripeConnectStatus = { completed: number; pendingVerification: number; pending: number; notStarted: number };
 type MaintenanceSummary = { open: number; inProgress: number; resolved: number; closed: number; urgent: number; high: number; total: number };
 type RecentSignups = { usersThisWeek: number; usersThisMonth: number; landlordsThisWeek: number; landlordsThisMonth: number };
@@ -114,7 +124,6 @@ type SuperAdminInsights = {
   locations: { states: LocationBreakdown[]; cities: LocationBreakdown[] };
   platformRevenue?: PlatformRevenue;
   subscriptionBreakdown?: SubscriptionBreakdown;
-  // New enhanced data
   stripeConnectStatus?: StripeConnectStatus;
   maintenanceSummary?: MaintenanceSummary;
   mrr?: number;
@@ -146,36 +155,68 @@ function formatDuration(ms: number) {
   const remMinutes = minutes % 60;
   return `${hours}h ${remMinutes}m`;
 }
+
 function parseOS(userAgent?: string | null): string {
   if (!userAgent) return "Unknown";
   const ua = userAgent.toLowerCase();
-
   if (ua.includes("windows nt")) return "Windows";
   if (ua.includes("mac os x") || ua.includes("macintosh")) return "macOS";
   if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("ios")) return "iOS";
   if (ua.includes("android")) return "Android";
   if (ua.includes("linux")) return "Linux";
-
   return "Other";
 }
+
+// Gradient card component for consistency
+function GradientCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 p-4 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+// Stat card component
+function StatCard({ label, value, subtext, variant = "default" }: { 
+  label: string; 
+  value: string | number; 
+  subtext?: string;
+  variant?: "default" | "gradient" | "success" | "warning" | "danger";
+}) {
+  const baseClasses = "rounded-xl border p-4";
+  const variantClasses = {
+    default: "bg-slate-900/60 border-white/10",
+    gradient: "bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-transparent",
+    success: "bg-emerald-950/50 border-emerald-800/50",
+    warning: "bg-amber-950/50 border-amber-800/50",
+    danger: "bg-red-950/50 border-red-800/50",
+  };
+
+  return (
+    <div className={`${baseClasses} ${variantClasses[variant]}`}>
+      <p className={`text-xs mb-1 ${variant === "gradient" ? "text-white/80" : "text-slate-400"}`}>{label}</p>
+      <p className={`text-2xl font-bold ${variant === "gradient" ? "text-white" : "text-white"}`}>{value}</p>
+      {subtext && <p className={`text-xs mt-1 ${variant === "gradient" ? "text-white/70" : "text-slate-500"}`}>{subtext}</p>}
+    </div>
+  );
+}
+
 
 const SuperAdminDashboard = ({
   userEmail,
   summary,
   analytics,
   insights,
-  users,
+  users: initialUsers,
   landlords,
   currentUser,
 }: SuperAdminDashboardProps) => {
   const [activeView, setActiveView] = useState<(typeof views)[number]["id"]>("overview");
   const [isClearingStats, startClearingStats] = useTransition();
-  const [isDeletingUser, startDeletingUser] = useTransition();
   const [selectedLandlordId, setSelectedLandlordId] = useState<string | null>(null);
-  const [activeTrafficDetail, setActiveTrafficDetail] = useState<
-    "today" | "yesterday" | "last7" | null
-  >(null);
-  const [mode, setMode] = useState<"live" | "test">("test");
+  const [activeTrafficDetail, setActiveTrafficDetail] = useState<"today" | "yesterday" | "last7" | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [users, setUsers] = useState(initialUsers || []);
 
   const {
     totalEvents,
@@ -197,47 +238,30 @@ const SuperAdminDashboard = ({
       const os = parseOS(ev.userAgent);
       counts[os] = (counts[os] || 0) + 1;
     }
-
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, [recentEvents]);
 
   const trafficDetailEvents = useMemo(() => {
     if (!activeTrafficDetail) return [] as AnalyticsEvent[];
-
     const now = new Date();
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
-
     const startOfYesterday = new Date(startOfToday);
     startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-
     const startOf7DaysAgo = new Date(startOfToday);
     startOf7DaysAgo.setDate(startOf7DaysAgo.getDate() - 7);
 
     return recentEvents.filter((ev) => {
       const created = new Date(ev.createdAt);
-
-      if (activeTrafficDetail === "today") {
-        return created >= startOfToday;
-      }
-
-      if (activeTrafficDetail === "yesterday") {
-        return created >= startOfYesterday && created < startOfToday;
-      }
-
-      if (activeTrafficDetail === "last7") {
-        return created >= startOf7DaysAgo;
-      }
-
+      if (activeTrafficDetail === "today") return created >= startOfToday;
+      if (activeTrafficDetail === "yesterday") return created >= startOfYesterday && created < startOfToday;
+      if (activeTrafficDetail === "last7") return created >= startOf7DaysAgo;
       return false;
     });
   }, [activeTrafficDetail, recentEvents]);
 
   const handleClearStatistics = () => {
     if (!window.confirm("This will clear all tracked analytics statistics. Continue?")) return;
-
     startClearingStats(async () => {
       try {
         const res = await fetch("/api/analytics/reset", { method: "POST" });
@@ -253,29 +277,6 @@ const SuperAdminDashboard = ({
     });
   };
 
-  const handleDeleteUser = (userId: string) => {
-    if (!window.confirm("Delete this user? This cannot be undone.")) return;
-    startDeletingUser(async () => {
-      try {
-        const res = await fetch("/api/super-admin/delete-user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          console.error("Failed to delete user", data?.message);
-          alert("Failed to delete user");
-          return;
-        }
-        window.location.reload();
-      } catch (err) {
-        console.error("Error deleting user", err);
-        alert("Error deleting user");
-      }
-    });
-  };
-
   const suspiciousSessionsMap = new Map<string, number>();
   for (const ev of recentEvents) {
     if (!ev.sessionCartId) continue;
@@ -286,231 +287,97 @@ const SuperAdminDashboard = ({
     .filter(([, count]) => count >= 20)
     .slice(0, 5);
 
-  const managementContent = (
-    <div className="space-y-6">
-      <section className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">User Management</h2>
-          <p className="text-xs text-muted-foreground">Manage users, landlords, and tenants</p>
-        </div>
-        <UserManagement users={users || []} landlords={landlords || []} />
-      </section>
-    </div>
-  );
+  // Overview Content
+  const overviewContent = (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Super Admin Dashboard</h1>
+        <p className="text-sm text-slate-400">Platform overview for {userEmail}</p>
+      </div>
 
-  const dataControlsContent = (
-    <div className="space-y-4">
-      <Card className="bg-slate-900 border-slate-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Data Controls</CardTitle>
-          <CardDescription className="text-xs">
-            Switch test/live mode and clear demo Stripe data.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium">Mode</label>
-            <div className="flex items-center gap-2 text-xs">
-              <button
-                type="button"
-                className={`px-3 py-1 rounded-md border ${
-                  mode === "test" ? "border-emerald-400 text-emerald-200" : "border-slate-700 text-slate-200"
-                }`}
-                onClick={() => setMode("test")}
-              >
-                Test
-              </button>
-              <button
-                type="button"
-                className={`px-3 py-1 rounded-md border ${
-                  mode === "live" ? "border-emerald-400 text-emerald-200" : "border-slate-700 text-slate-200"
-                }`}
-                onClick={() => setMode("live")}
-              >
-                Live
-              </button>
+      {/* Current User Card */}
+      {currentUser && (
+        <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 p-6">
+          <h2 className="text-lg font-semibold text-white mb-4">Current Session</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div>
+              <p className="text-xs text-white/70">Name</p>
+              <p className="font-medium text-white">{currentUser.name || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-white/70">Email</p>
+              <p className="font-medium text-white truncate">{currentUser.email || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-white/70">Role</p>
+              <p className="font-medium text-white">{currentUser.role || "user"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-white/70">Phone</p>
+              <p className="font-medium text-white">{currentUser.phoneNumber || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-white/70">Verified</p>
+              <p className="font-medium text-white">{currentUser.phoneVerified ? "Yes" : "No"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-white/70">User ID</p>
+              <p className="font-mono text-xs text-white truncate">{currentUser.id}</p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Tie this toggle to env/config to switch data sources in revenue widgets.
-          </p>
-          <button
-            type="button"
-            onClick={async () => {
-              if (!window.confirm("Clear demo/test revenue orders?")) return;
-              const res = await fetch("/api/super-admin/clear-demo-revenue", { method: "POST" });
-              const data = await res.json();
-              if (!res.ok || !data.success) {
-                alert("Failed to clear demo revenue");
-              } else {
-                alert(`Cleared ${data.deleted || 0} demo orders`);
-                window.location.reload();
-              }
-            }}
-            className="w-full rounded-md bg-red-500/90 text-white text-sm font-semibold py-2 hover:bg-red-600"
-          >
-            Clear Demo Revenue
-          </button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const overviewContent = (
-    <div className="space-y-10">
-      <section className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Super Admin Monitoring</h1>
-        <p className="text-sm text-muted-foreground">
-          High-level overview of store performance, traffic, and activity for {userEmail}.
-        </p>
-      </section>
-
-      {currentUser && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Current User Details</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardContent className="pt-4 space-y-1 text-sm">
-                <p className="text-xs font-medium text-muted-foreground">Name</p>
-                <p className="font-medium">{currentUser.name || "N/A"}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 space-y-1 text-sm">
-                <p className="text-xs font-medium text-muted-foreground">Email</p>
-                <p className="font-medium">{currentUser.email || "N/A"}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 space-y-1 text-sm">
-                <p className="text-xs font-medium text-muted-foreground">Role</p>
-                <p className="font-medium">{currentUser.role || "user"}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 space-y-1 text-sm">
-                <p className="text-xs font-medium text-muted-foreground">Phone</p>
-                <p className="font-medium">{currentUser.phoneNumber || "N/A"}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 space-y-1 text-sm">
-                <p className="text-xs font-medium text-muted-foreground">Phone Verified</p>
-                <p className="font-medium">
-                  {currentUser.phoneVerified ? "Yes" : "No"}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 space-y-1 text-sm">
-                <p className="text-xs font-medium text-muted-foreground">User ID</p>
-                <p className="font-mono text-xs truncate">{currentUser.id}</p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        </div>
       )}
 
+      {/* Portfolio Snapshot */}
       {insights && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Portfolio Snapshot</h2>
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Landlords</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.landlordsCount)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Property Managers</p>
-                <p className="text-2xl font-semibold">
-                  {formatNumber(insights.propertyManagersCount)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Properties</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.propertiesCount)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Units</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.unitsCount)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Active Leases</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.activeLeases)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Tenants (active)</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.tenantsCount)}</p>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Portfolio Snapshot</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <StatCard label="Landlords" value={formatNumber(insights.landlordsCount)} variant="gradient" />
+            <StatCard label="Property Managers" value={formatNumber(insights.propertyManagersCount)} />
+            <StatCard label="Properties" value={formatNumber(insights.propertiesCount)} />
+            <StatCard label="Units" value={formatNumber(insights.unitsCount)} />
+            <StatCard label="Active Leases" value={formatNumber(insights.activeLeases)} />
+            <StatCard label="Tenants" value={formatNumber(insights.tenantsCount)} />
           </div>
-        </section>
+        </div>
       )}
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Store Performance</h2>
+      {/* Traffic Overview */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Traffic Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <StatCard label="Total Page Views" value={formatNumber(totalEvents)} variant="gradient" />
+          <StatCard label="Unique Visitors" value={formatNumber(visitorsCount)} />
+          <StatCard label="Avg Views / Visitor" value={visitorsCount > 0 ? (totalEvents / visitorsCount).toFixed(2) : "0.00"} />
+        </div>
+      </div>
+
+      {/* Store Performance */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Store Performance</h2>
         <DashboardOverview summary={summary} />
-      </section>
+      </div>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Traffic Overview</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Total Page Views</p>
-              <p className="text-2xl font-semibold">{formatNumber(totalEvents)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Unique Visitors</p>
-              <p className="text-2xl font-semibold">{formatNumber(visitorsCount)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Average Views / Visitor</p>
-              <p className="text-2xl font-semibold">
-                {visitorsCount > 0 ? (totalEvents / visitorsCount).toFixed(2) : "0.00"}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <section className="grid gap-6 md:grid-cols-2">
+      {/* Top Pages & Countries */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Top Pages</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <h2 className="text-lg font-semibold text-white">Top Pages</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Page</TableHead>
-                  <TableHead className="text-right">Views</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">Page</TableHead>
+                  <TableHead className="text-right text-slate-400">Views</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topPages.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                      No traffic data yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {topPages.map((p: TopPage) => (
-                  <TableRow key={p.path}>
-                    <TableCell>{p.path}</TableCell>
-                    <TableCell className="text-right">{p._count._all}</TableCell>
+                {topPages.length === 0 ? (
+                  <TableRow><TableCell colSpan={2} className="text-slate-500">No traffic data yet.</TableCell></TableRow>
+                ) : topPages.map((p) => (
+                  <TableRow key={p.path} className="border-white/5">
+                    <TableCell className="text-white">{p.path}</TableCell>
+                    <TableCell className="text-right text-slate-300">{p._count._all}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -519,196 +386,140 @@ const SuperAdminDashboard = ({
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Top Countries</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <h2 className="text-lg font-semibold text-white">Top Countries</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Country</TableHead>
-                  <TableHead className="text-right">Visits</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">Country</TableHead>
+                  <TableHead className="text-right text-slate-400">Visits</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {countries.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                      No geo data yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {countries.map((c: CountryStat, idx: number) => (
-                  <TableRow key={`${c.country ?? "Unknown"}-${idx}`}>
-                    <TableCell>{c.country ?? "Unknown"}</TableCell>
-                    <TableCell className="text-right">{c._count._all}</TableCell>
+                {countries.length === 0 ? (
+                  <TableRow><TableCell colSpan={2} className="text-slate-500">No geo data yet.</TableCell></TableRow>
+                ) : countries.map((c, idx) => (
+                  <TableRow key={`${c.country ?? "Unknown"}-${idx}`} className="border-white/5">
+                    <TableCell className="text-white">{c.country ?? "Unknown"}</TableCell>
+                    <TableCell className="text-right text-slate-300">{c._count._all}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">Recent Paid Orders</h2>
-          <Link href="/admin/orders" className="text-xs text-primary underline-offset-4 hover:underline">
-            View all orders
-          </Link>
+      {/* Recent Orders */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Recent Paid Orders</h2>
+          <Link href="/admin/orders" className="text-xs text-cyan-400 hover:underline">View all</Link>
         </div>
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
+        <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>BUYER</TableHead>
-                <TableHead>DATE</TableHead>
-                <TableHead>TOTAL</TableHead>
-                <TableHead className="text-right">ACTION</TableHead>
+              <TableRow className="border-white/10">
+                <TableHead className="text-slate-400">Buyer</TableHead>
+                <TableHead className="text-slate-400">Date</TableHead>
+                <TableHead className="text-slate-400">Total</TableHead>
+                <TableHead className="text-right text-slate-400">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {summary.latestSales.slice(0, 8).map((order: LatestSale) => (
-                <TableRow key={order.id}>
-                  <TableCell>{order?.user?.name || "Deleted User"}</TableCell>
-                  <TableCell>{formatDateTime(new Date(order.createdAt)).dateOnly}</TableCell>
-                  <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
+              {summary.latestSales.slice(0, 8).map((order) => (
+                <TableRow key={order.id} className="border-white/5">
+                  <TableCell className="text-white">{order?.user?.name || "Deleted User"}</TableCell>
+                  <TableCell className="text-slate-300">{formatDateTime(new Date(order.createdAt)).dateOnly}</TableCell>
+                  <TableCell className="text-white font-medium">{formatCurrency(order.totalPrice)}</TableCell>
                   <TableCell className="text-right">
-                    <Link
-                      href={`/order/${order.id}`}
-                      className="text-xs font-medium text-primary hover:underline"
-                    >
-                      View
-                    </Link>
+                    <Link href={`/order/${order.id}`} className="text-cyan-400 hover:underline text-sm">View</Link>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-      </section>
+      </div>
     </div>
   );
 
+
+  // Traffic Content
   const trafficContent = (
     <div className="space-y-8">
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Traffic Summary</h2>
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Current Online Visitors</p>
-              <p className="text-2xl font-semibold">{formatNumber(currentOnlineVisitors)}</p>
-            </CardContent>
-          </Card>
-          <Card
-            className="cursor-pointer"
-            onClick={() =>
-              setActiveTrafficDetail((prev) => (prev === "today" ? null : "today"))
-            }
-          >
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Page Views Today</p>
-              <p className="text-2xl font-semibold">{formatNumber(eventsToday)}</p>
-            </CardContent>
-          </Card>
-          <Card
-            className="cursor-pointer"
-            onClick={() =>
-              setActiveTrafficDetail((prev) => (prev === "yesterday" ? null : "yesterday"))
-            }
-          >
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Page Views Yesterday</p>
-              <p className="text-2xl font-semibold">{formatNumber(eventsYesterday)}</p>
-            </CardContent>
-          </Card>
-          <Card
-            className="cursor-pointer"
-            onClick={() =>
-              setActiveTrafficDetail((prev) => (prev === "last7" ? null : "last7"))
-            }
-          >
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Last 7 Days Page Views</p>
-              <p className="text-2xl font-semibold">{formatNumber(eventsLast7Days)}</p>
-            </CardContent>
-          </Card>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Traffic Analytics</h1>
+        <p className="text-sm text-slate-400">Monitor visitor activity and page views</p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label="Online Now" value={formatNumber(currentOnlineVisitors)} variant="gradient" />
+        <div onClick={() => setActiveTrafficDetail(prev => prev === "today" ? null : "today")} className="cursor-pointer">
+          <StatCard label="Views Today" value={formatNumber(eventsToday)} />
         </div>
-      </section>
+        <div onClick={() => setActiveTrafficDetail(prev => prev === "yesterday" ? null : "yesterday")} className="cursor-pointer">
+          <StatCard label="Views Yesterday" value={formatNumber(eventsYesterday)} />
+        </div>
+        <div onClick={() => setActiveTrafficDetail(prev => prev === "last7" ? null : "last7")} className="cursor-pointer">
+          <StatCard label="Last 7 Days" value={formatNumber(eventsLast7Days)} />
+        </div>
+      </div>
 
       {activeTrafficDetail && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {activeTrafficDetail === "today" && "Page Views Today - Detail"}
-            {activeTrafficDetail === "yesterday" && "Page Views Yesterday - Detail"}
-            {activeTrafficDetail === "last7" && "Last 7 Days Page Views - Detail"}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-white">
+            {activeTrafficDetail === "today" && "Today's Page Views"}
+            {activeTrafficDetail === "yesterday" && "Yesterday's Page Views"}
+            {activeTrafficDetail === "last7" && "Last 7 Days Page Views"}
           </h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>When</TableHead>
-                  <TableHead>Session</TableHead>
-                  <TableHead>Path</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>OS</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">When</TableHead>
+                  <TableHead className="text-slate-400">Session</TableHead>
+                  <TableHead className="text-slate-400">Path</TableHead>
+                  <TableHead className="text-slate-400">Location</TableHead>
+                  <TableHead className="text-slate-400">OS</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {trafficDetailEvents.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-sm text-muted-foreground">
-                      No matching events found in the recent window.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {trafficDetailEvents.map((ev) => (
-                  <TableRow key={ev.id}>
-                    <TableCell>{formatDateTime(new Date(ev.createdAt)).dateTime}</TableCell>
-                    <TableCell className="text-xs font-mono truncate max-w-[140px]">
-                      {ev.sessionCartId}
-                    </TableCell>
-                    <TableCell>{ev.path}</TableCell>
-                    <TableCell>
-                      {[
-                        ev.city || undefined,
-                        ev.region || undefined,
-                        ev.country || undefined,
-                      ]
-                        .filter(Boolean)
-                        .join(", ") || "Unknown"}
-                    </TableCell>
-                    <TableCell>{parseOS(ev.userAgent)}</TableCell>
+                {trafficDetailEvents.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-slate-500">No events found.</TableCell></TableRow>
+                ) : trafficDetailEvents.map((ev) => (
+                  <TableRow key={ev.id} className="border-white/5">
+                    <TableCell className="text-slate-300 text-sm">{formatDateTime(new Date(ev.createdAt)).dateTime}</TableCell>
+                    <TableCell className="text-xs font-mono text-slate-400 truncate max-w-[100px]">{ev.sessionCartId}</TableCell>
+                    <TableCell className="text-white">{ev.path}</TableCell>
+                    <TableCell className="text-slate-300">{[ev.city, ev.region, ev.country].filter(Boolean).join(", ") || "Unknown"}</TableCell>
+                    <TableCell className="text-slate-300">{parseOS(ev.userAgent)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-        </section>
+        </div>
       )}
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Top Pages</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <h2 className="text-lg font-semibold text-white">Top Pages</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Page</TableHead>
-                  <TableHead className="text-right">Views</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">Page</TableHead>
+                  <TableHead className="text-right text-slate-400">Views</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topPages.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                      No traffic data yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {topPages.map((p: TopPage) => (
-                  <TableRow key={p.path}>
-                    <TableCell>{p.path}</TableCell>
-                    <TableCell className="text-right">{p._count._all}</TableCell>
+                {topPages.length === 0 ? (
+                  <TableRow><TableCell colSpan={2} className="text-slate-500">No data.</TableCell></TableRow>
+                ) : topPages.map((p) => (
+                  <TableRow key={p.path} className="border-white/5">
+                    <TableCell className="text-white">{p.path}</TableCell>
+                    <TableCell className="text-right text-slate-300">{p._count._all}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -717,98 +528,65 @@ const SuperAdminDashboard = ({
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Top Countries</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <h2 className="text-lg font-semibold text-white">Top Countries</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Country</TableHead>
-                  <TableHead className="text-right">Visits</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">Country</TableHead>
+                  <TableHead className="text-right text-slate-400">Visits</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {countries.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                      No geo data yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {countries.map((c: CountryStat, idx: number) => (
-                  <TableRow key={`${c.country ?? "Unknown"}-${idx}`}>
-                    <TableCell>{c.country ?? "Unknown"}</TableCell>
-                    <TableCell className="text-right">{c._count._all}</TableCell>
+                {countries.length === 0 ? (
+                  <TableRow><TableCell colSpan={2} className="text-slate-500">No data.</TableCell></TableRow>
+                ) : countries.map((c, idx) => (
+                  <TableRow key={`${c.country}-${idx}`} className="border-white/5">
+                    <TableCell className="text-white">{c.country ?? "Unknown"}</TableCell>
+                    <TableCell className="text-right text-slate-300">{c._count._all}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 
+  // Engagement Content
   const engagementContent = (
     <div className="space-y-8">
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Engagement</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Average Session Length</p>
-              <p className="text-2xl font-semibold">{formatDuration(averageSessionDurationMs)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Average Views / Visitor</p>
-              <p className="text-2xl font-semibold">
-                {visitorsCount > 0 ? (totalEvents / visitorsCount).toFixed(2) : "0.00"}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Engagement</h1>
+        <p className="text-sm text-slate-400">User engagement and session metrics</p>
+      </div>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StatCard label="Average Session Length" value={formatDuration(averageSessionDurationMs)} variant="gradient" />
+        <StatCard label="Avg Views / Visitor" value={visitorsCount > 0 ? (totalEvents / visitorsCount).toFixed(2) : "0.00"} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Recent Activity</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
+          <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-x-auto max-h-96 overflow-y-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>When</TableHead>
-                  <TableHead>Session</TableHead>
-                  <TableHead>Path</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>OS</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">When</TableHead>
+                  <TableHead className="text-slate-400">Path</TableHead>
+                  <TableHead className="text-slate-400">Location</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentEvents.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-sm text-muted-foreground">
-                      No recent activity yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {recentEvents.map((ev: AnalyticsEvent) => (
-                  <TableRow key={ev.id}>
-                    <TableCell>{formatDateTime(new Date(ev.createdAt)).dateTime}</TableCell>
-                    <TableCell className="text-xs font-mono truncate max-w-[140px]">
-                      {ev.sessionCartId}
-                    </TableCell>
-                    <TableCell>{ev.path}</TableCell>
-                    <TableCell>
-                      {[
-                        ev.city || undefined,
-                        ev.region || undefined,
-                        ev.country || undefined,
-                      ]
-                        .filter(Boolean)
-                        .join(", ") || "Unknown"}
-                    </TableCell>
-                    <TableCell>{parseOS(ev.userAgent)}</TableCell>
+                {recentEvents.length === 0 ? (
+                  <TableRow><TableCell colSpan={3} className="text-slate-500">No activity.</TableCell></TableRow>
+                ) : recentEvents.slice(0, 20).map((ev) => (
+                  <TableRow key={ev.id} className="border-white/5">
+                    <TableCell className="text-slate-300 text-sm">{formatDateTime(new Date(ev.createdAt)).dateTime}</TableCell>
+                    <TableCell className="text-white">{ev.path}</TableCell>
+                    <TableCell className="text-slate-300">{[ev.city, ev.region, ev.country].filter(Boolean).join(", ") || "Unknown"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -817,653 +595,396 @@ const SuperAdminDashboard = ({
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Suspicious Activity (Heuristic)</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 space-y-2 text-sm">
-            {suspiciousSessions.length === 0 && (
-              <p className="text-muted-foreground">No obvious suspicious sessions detected recently.</p>
-            )}
-            {suspiciousSessions.map(([sessionId, count]) => (
-              <div key={sessionId} className="flex items-center justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <p className="font-mono text-xs truncate">{sessionId}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {count} page views in the recent window (possible bot or scraping).
-                  </p>
+          <h2 className="text-lg font-semibold text-white">Suspicious Activity</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 p-4 space-y-3">
+            {suspiciousSessions.length === 0 ? (
+              <p className="text-slate-500">No suspicious sessions detected.</p>
+            ) : suspiciousSessions.map(([sessionId, count]) => (
+              <div key={sessionId} className="flex items-center justify-between gap-2 p-3 bg-red-950/30 rounded-lg border border-red-800/50">
+                <div className="min-w-0">
+                  <p className="font-mono text-xs text-white truncate">{sessionId}</p>
+                  <p className="text-xs text-slate-400">{count} page views (possible bot)</p>
                 </div>
-                <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-destructive">
-                  Flagged
-                </span>
+                <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-red-500/20 text-red-400 rounded-full">Flagged</span>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 
+  // Users Content
   const usersContent = (
     <div className="space-y-8">
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Users & Sessions</h2>
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Current Online Users</p>
-              <p className="text-2xl font-semibold">{formatNumber(currentOnlineVisitors)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Unique Visitors (All Time)</p>
-              <p className="text-2xl font-semibold">{formatNumber(visitorsCount)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Average Session Length</p>
-              <p className="text-2xl font-semibold">{formatDuration(averageSessionDurationMs)}</p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Users & Sessions</h1>
+        <p className="text-sm text-slate-400">User statistics and device breakdown</p>
+      </div>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Devices</h2>
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Desktop</p>
-              <p className="text-2xl font-semibold">{formatNumber(devices?.desktop ?? 0)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Mobile</p>
-              <p className="text-2xl font-semibold">{formatNumber(devices?.mobile ?? 0)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Tablet</p>
-              <p className="text-2xl font-semibold">{formatNumber(devices?.tablet ?? 0)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Other</p>
-              <p className="text-2xl font-semibold">{formatNumber(devices?.other ?? 0)}</p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StatCard label="Online Now" value={formatNumber(currentOnlineVisitors)} variant="gradient" />
+        <StatCard label="Unique Visitors" value={formatNumber(visitorsCount)} />
+        <StatCard label="Avg Session" value={formatDuration(averageSessionDurationMs)} />
+      </div>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Operating Systems (Recent)</h2>
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden max-w-xl">
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Devices</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label="Desktop" value={formatNumber(devices?.desktop ?? 0)} />
+          <StatCard label="Mobile" value={formatNumber(devices?.mobile ?? 0)} />
+          <StatCard label="Tablet" value={formatNumber(devices?.tablet ?? 0)} />
+          <StatCard label="Other" value={formatNumber(devices?.other ?? 0)} />
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-white">Operating Systems</h2>
+        <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden max-w-md">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>OS</TableHead>
-                <TableHead className="text-right">Events</TableHead>
+              <TableRow className="border-white/10">
+                <TableHead className="text-slate-400">OS</TableHead>
+                <TableHead className="text-right text-slate-400">Events</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {osBreakdown.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                    No recent activity to determine OS distribution.
-                  </TableCell>
-                </TableRow>
-              )}
-              {osBreakdown.map(([os, count]) => (
-                <TableRow key={os}>
-                  <TableCell>{os}</TableCell>
-                  <TableCell className="text-right">{formatNumber(count)}</TableCell>
+              {osBreakdown.length === 0 ? (
+                <TableRow><TableCell colSpan={2} className="text-slate-500">No data.</TableCell></TableRow>
+              ) : osBreakdown.map(([os, count]) => (
+                <TableRow key={os} className="border-white/5">
+                  <TableCell className="text-white">{os}</TableCell>
+                  <TableCell className="text-right text-slate-300">{formatNumber(count)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-      </section>
+      </div>
     </div>
   );
 
+
+  // Portfolio Content
   const portfolioContent = (
     <div className="space-y-8">
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight text-emerald-400">Platform Revenue (Your Earnings)</h2>
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-emerald-950/50 border-emerald-800">
-            <CardContent className="pt-4">
-              <p className="text-xs text-emerald-300 mb-1">Today</p>
-              <p className="text-2xl font-semibold text-emerald-400">
-                {formatCurrency(insights?.platformRevenue?.total.day ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-emerald-950/50 border-emerald-800">
-            <CardContent className="pt-4">
-              <p className="text-xs text-emerald-300 mb-1">This Week</p>
-              <p className="text-2xl font-semibold text-emerald-400">
-                {formatCurrency(insights?.platformRevenue?.total.week ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-emerald-950/50 border-emerald-800">
-            <CardContent className="pt-4">
-              <p className="text-xs text-emerald-300 mb-1">This Month</p>
-              <p className="text-2xl font-semibold text-emerald-400">
-                {formatCurrency(insights?.platformRevenue?.total.month ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-emerald-950/50 border-emerald-800">
-            <CardContent className="pt-4">
-              <p className="text-xs text-emerald-300 mb-1">This Year</p>
-              <p className="text-2xl font-semibold text-emerald-400">
-                {formatCurrency(insights?.platformRevenue?.total.year ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Convenience Fees (Rent Payments)</p>
-              <p className="text-lg font-semibold">
-                {formatCurrency(insights?.platformRevenue?.convenienceFees.month ?? 0)}
-                <span className="text-xs text-muted-foreground ml-1">this month</span>
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Cashout Fees (Landlord Payouts)</p>
-              <p className="text-lg font-semibold">
-                {formatCurrency(insights?.platformRevenue?.cashoutFees.month ?? 0)}
-                <span className="text-xs text-muted-foreground ml-1">this month</span>
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Subscription Revenue</p>
-              <p className="text-lg font-semibold">
-                {formatCurrency(insights?.platformRevenue?.subscriptionRevenue.month ?? 0)}
-                <span className="text-xs text-muted-foreground ml-1">this month</span>
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Portfolio & Revenue</h1>
+        <p className="text-sm text-slate-400">Platform revenue and landlord portfolios</p>
+      </div>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Subscription Breakdown</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Free Tier</p>
-              <p className="text-2xl font-semibold">
-                {formatNumber(insights?.subscriptionBreakdown?.free ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Pro ($29.99/mo)</p>
-              <p className="text-2xl font-semibold text-violet-400">
-                {formatNumber(
-                  (insights?.subscriptionBreakdown?.pro ?? 0) +
-                  (insights?.subscriptionBreakdown?.growth ?? 0) +
-                  (insights?.subscriptionBreakdown?.professional ?? 0)
-                )}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Enterprise (Custom)</p>
-              <p className="text-2xl font-semibold text-amber-400">
-                {formatNumber(insights?.subscriptionBreakdown?.enterprise ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
+      {/* Platform Revenue */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-emerald-400">Platform Revenue (Your Earnings)</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label="Today" value={formatCurrency(insights?.platformRevenue?.total.day ?? 0)} variant="success" />
+          <StatCard label="This Week" value={formatCurrency(insights?.platformRevenue?.total.week ?? 0)} variant="success" />
+          <StatCard label="This Month" value={formatCurrency(insights?.platformRevenue?.total.month ?? 0)} variant="success" />
+          <StatCard label="This Year" value={formatCurrency(insights?.platformRevenue?.total.year ?? 0)} variant="success" />
         </div>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Landlords & Managers</h2>
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Landlords</p>
-              <p className="text-2xl font-semibold">
-                {formatNumber(insights?.landlordsCount ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Property Managers</p>
-              <p className="text-2xl font-semibold">
-                {formatNumber(insights?.propertyManagersCount ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Properties</p>
-              <p className="text-2xl font-semibold">
-                {formatNumber(insights?.propertiesCount ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Units</p>
-              <p className="text-2xl font-semibold">
-                {formatNumber(insights?.unitsCount ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <StatCard label="Convenience Fees (Month)" value={formatCurrency(insights?.platformRevenue?.convenienceFees.month ?? 0)} />
+          <StatCard label="Cashout Fees (Month)" value={formatCurrency(insights?.platformRevenue?.cashoutFees.month ?? 0)} />
+          <StatCard label="Subscription Revenue (Month)" value={formatCurrency(insights?.platformRevenue?.subscriptionRevenue.month ?? 0)} />
         </div>
-      </section>
+      </div>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Rent Intake (All Landlords)</h2>
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">Today</p>
-              <p className="text-2xl font-semibold">
-                {formatCurrency(insights?.rentTotals.day ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">This Week</p>
-              <p className="text-2xl font-semibold">
-                {formatCurrency(insights?.rentTotals.week ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">This Month</p>
-              <p className="text-2xl font-semibold">
-                {formatCurrency(insights?.rentTotals.month ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">This Year</p>
-              <p className="text-2xl font-semibold">
-                {formatCurrency(insights?.rentTotals.year ?? 0)}
-              </p>
-            </CardContent>
-          </Card>
+      {/* Subscription Breakdown */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Subscription Breakdown</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <StatCard label="Free Tier" value={formatNumber(insights?.subscriptionBreakdown?.free ?? 0)} />
+          <div className="rounded-xl bg-violet-950/50 border border-violet-800/50 p-4">
+            <p className="text-xs text-violet-400 mb-1">Pro ($29.99/mo)</p>
+            <p className="text-2xl font-bold text-violet-300">
+              {formatNumber((insights?.subscriptionBreakdown?.pro ?? 0) + (insights?.subscriptionBreakdown?.growth ?? 0) + (insights?.subscriptionBreakdown?.professional ?? 0))}
+            </p>
+          </div>
+          <div className="rounded-xl bg-amber-950/50 border border-amber-800/50 p-4">
+            <p className="text-xs text-amber-400 mb-1">Enterprise ($79.99/mo)</p>
+            <p className="text-2xl font-bold text-amber-300">{formatNumber(insights?.subscriptionBreakdown?.enterprise ?? 0)}</p>
+          </div>
         </div>
-      </section>
+      </div>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">Top Landlords by Portfolio</h2>
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
+      {/* Landlords & Managers */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Landlords & Managers</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label="Landlords" value={formatNumber(insights?.landlordsCount ?? 0)} variant="gradient" />
+          <StatCard label="Property Managers" value={formatNumber(insights?.propertyManagersCount ?? 0)} />
+          <StatCard label="Properties" value={formatNumber(insights?.propertiesCount ?? 0)} />
+          <StatCard label="Units" value={formatNumber(insights?.unitsCount ?? 0)} />
+        </div>
+      </div>
+
+      {/* Rent Intake */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Rent Intake (All Landlords)</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label="Today" value={formatCurrency(insights?.rentTotals.day ?? 0)} />
+          <StatCard label="This Week" value={formatCurrency(insights?.rentTotals.week ?? 0)} />
+          <StatCard label="This Month" value={formatCurrency(insights?.rentTotals.month ?? 0)} variant="gradient" />
+          <StatCard label="This Year" value={formatCurrency(insights?.rentTotals.year ?? 0)} />
+        </div>
+      </div>
+
+      {/* Top Landlords */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-white">Top Landlords by Portfolio</h2>
+        <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Landlord</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Properties</TableHead>
-                <TableHead>Units</TableHead>
-                <TableHead>Tenants</TableHead>
-                <TableHead className="text-right">Rent Collected</TableHead>
+              <TableRow className="border-white/10">
+                <TableHead className="text-slate-400">Landlord</TableHead>
+                <TableHead className="text-slate-400">Tier</TableHead>
+                <TableHead className="text-slate-400 text-center">Properties</TableHead>
+                <TableHead className="text-slate-400 text-center">Units</TableHead>
+                <TableHead className="text-slate-400 text-center">Tenants</TableHead>
+                <TableHead className="text-right text-slate-400">Rent Collected</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(insights?.landlordsPortfolio || []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-sm text-muted-foreground">
-                    No landlord data yet.
-                  </TableCell>
-                </TableRow>
-              )}
-              {(insights?.landlordsPortfolio || [])
+              {(insights?.landlordsPortfolio || []).length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="text-slate-500">No landlord data.</TableCell></TableRow>
+              ) : (insights?.landlordsPortfolio || [])
                 .slice()
                 .sort((a, b) => b.rentCollected - a.rentCollected)
                 .slice(0, 10)
                 .map((ll) => (
-                  <TableRow key={ll.id}>
+                  <TableRow key={ll.id} className="border-white/5">
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{ll.name}</span>
-                        <span className="text-xs text-muted-foreground">{ll.subdomain}</span>
+                      <div>
+                        <p className="font-medium text-white">{ll.name}</p>
+                        <p className="text-xs text-slate-400">{ll.subdomain}</p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        ll.subscriptionTier === 'enterprise' ? 'bg-amber-100 text-amber-800' :
-                        ll.subscriptionTier === 'pro' ? 'bg-violet-100 text-violet-800' :
-                        'bg-slate-100 text-slate-800'
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        ll.subscriptionTier === 'enterprise' ? 'bg-amber-500/20 text-amber-400' :
+                        ll.subscriptionTier === 'pro' ? 'bg-violet-500/20 text-violet-400' :
+                        'bg-slate-500/20 text-slate-400'
                       }`}>
                         {ll.subscriptionTier || 'free'}
                       </span>
                     </TableCell>
-                    <TableCell>{ll.properties}</TableCell>
-                    <TableCell>{ll.units}</TableCell>
-                    <TableCell>{ll.tenants}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(ll.rentCollected)}</TableCell>
+                    <TableCell className="text-center text-slate-300">{ll.properties}</TableCell>
+                    <TableCell className="text-center text-slate-300">{ll.units}</TableCell>
+                    <TableCell className="text-center text-slate-300">{ll.tenants}</TableCell>
+                    <TableCell className="text-right text-white font-medium">{formatCurrency(ll.rentCollected)}</TableCell>
                   </TableRow>
                 ))}
             </TableBody>
           </Table>
         </div>
-      </section>
+      </div>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      {/* Geography */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Geography (Top States)</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <h2 className="text-lg font-semibold text-white">Top States</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>State</TableHead>
-                  <TableHead className="text-right">Properties</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">State</TableHead>
+                  <TableHead className="text-right text-slate-400">Properties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(insights?.locations.states || []).length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                      No location data yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {(insights?.locations.states || []).map((loc) => (
-                  <TableRow key={`${loc.state}-${loc.count}`}>
-                    <TableCell>{loc.state || "Unknown"}</TableCell>
-                    <TableCell className="text-right">{loc.count}</TableCell>
+                {(insights?.locations.states || []).length === 0 ? (
+                  <TableRow><TableCell colSpan={2} className="text-slate-500">No data.</TableCell></TableRow>
+                ) : (insights?.locations.states || []).map((loc) => (
+                  <TableRow key={`${loc.state}-${loc.count}`} className="border-white/5">
+                    <TableCell className="text-white">{loc.state || "Unknown"}</TableCell>
+                    <TableCell className="text-right text-slate-300">{loc.count}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
         </div>
+
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Geography (Top Cities)</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <h2 className="text-lg font-semibold text-white">Top Cities</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>City</TableHead>
-                  <TableHead className="text-right">Properties</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">City</TableHead>
+                  <TableHead className="text-right text-slate-400">Properties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(insights?.locations.cities || []).length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                      No location data yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {(insights?.locations.cities || []).map((loc) => (
-                  <TableRow key={`${loc.city}-${loc.count}`}>
-                    <TableCell>{loc.city || "Unknown"}</TableCell>
-                    <TableCell className="text-right">{loc.count}</TableCell>
+                {(insights?.locations.cities || []).length === 0 ? (
+                  <TableRow><TableCell colSpan={2} className="text-slate-500">No data.</TableCell></TableRow>
+                ) : (insights?.locations.cities || []).map((loc) => (
+                  <TableRow key={`${loc.city}-${loc.count}`} className="border-white/5">
+                    <TableCell className="text-white">{loc.city || "Unknown"}</TableCell>
+                    <TableCell className="text-right text-slate-300">{loc.count}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">Revenue Timeline</h2>
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden max-w-2xl">
+      {/* Revenue Timeline */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-white">Revenue Timeline</h2>
+        <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden max-w-2xl">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Month</TableHead>
-                <TableHead className="text-right">Total Rent</TableHead>
+              <TableRow className="border-white/10">
+                <TableHead className="text-slate-400">Month</TableHead>
+                <TableHead className="text-right text-slate-400">Total Rent</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(insights?.revenueTimeline || []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                    No revenue timeline yet.
-                  </TableCell>
-                </TableRow>
-              )}
-              {(insights?.revenueTimeline || []).map((item) => (
-                <TableRow key={item.month}>
-                  <TableCell className="font-mono text-xs">{item.month}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+              {(insights?.revenueTimeline || []).length === 0 ? (
+                <TableRow><TableCell colSpan={2} className="text-slate-500">No data.</TableCell></TableRow>
+              ) : (insights?.revenueTimeline || []).map((item) => (
+                <TableRow key={item.month} className="border-white/5">
+                  <TableCell className="font-mono text-xs text-white">{item.month}</TableCell>
+                  <TableCell className="text-right text-white font-medium">{formatCurrency(item.total)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-      </section>
+      </div>
     </div>
   );
 
+
+  // Health Content
   const healthContent = (
     <div className="space-y-8">
-      <section className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">System Health & Insights</h1>
-        <p className="text-sm text-muted-foreground">
-          Monitor platform health, Stripe Connect status, maintenance tickets, and recent activity.
-        </p>
-      </section>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">System Health</h1>
+        <p className="text-sm text-slate-400">Monitor platform health, Stripe Connect, and maintenance</p>
+      </div>
 
-      {/* MRR & Revenue Quick Stats */}
+      {/* MRR & Revenue */}
       {insights && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Revenue Metrics</h2>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card className="bg-emerald-950/30 border-emerald-800/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-emerald-400 mb-1">Monthly Recurring Revenue</p>
-                <p className="text-2xl font-semibold text-emerald-300">{formatCurrency(insights.mrr || 0)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Platform Revenue (Month)</p>
-                <p className="text-2xl font-semibold">{formatCurrency(insights.platformRevenue?.total.month || 0)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Convenience Fees (Month)</p>
-                <p className="text-2xl font-semibold">{formatCurrency(insights.platformRevenue?.convenienceFees.month || 0)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Cashout Fees (Month)</p>
-                <p className="text-2xl font-semibold">{formatCurrency(insights.platformRevenue?.cashoutFees.month || 0)}</p>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Revenue Metrics</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard label="Monthly Recurring Revenue" value={formatCurrency(insights.mrr || 0)} variant="success" />
+            <StatCard label="Platform Revenue (Month)" value={formatCurrency(insights.platformRevenue?.total.month || 0)} />
+            <StatCard label="Convenience Fees (Month)" value={formatCurrency(insights.platformRevenue?.convenienceFees.month || 0)} />
+            <StatCard label="Cashout Fees (Month)" value={formatCurrency(insights.platformRevenue?.cashoutFees.month || 0)} />
           </div>
-        </section>
+        </div>
       )}
 
       {/* Recent Signups */}
       {insights?.recentSignups && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Recent Signups</h2>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">New Users (7 days)</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.recentSignups.usersThisWeek)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">New Users (30 days)</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.recentSignups.usersThisMonth)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-violet-950/30 border-violet-800/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-violet-400 mb-1">New Landlords (7 days)</p>
-                <p className="text-2xl font-semibold text-violet-300">{formatNumber(insights.recentSignups.landlordsThisWeek)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-violet-950/30 border-violet-800/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-violet-400 mb-1">New Landlords (30 days)</p>
-                <p className="text-2xl font-semibold text-violet-300">{formatNumber(insights.recentSignups.landlordsThisMonth)}</p>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Recent Signups</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard label="New Users (7 days)" value={formatNumber(insights.recentSignups.usersThisWeek)} />
+            <StatCard label="New Users (30 days)" value={formatNumber(insights.recentSignups.usersThisMonth)} />
+            <div className="rounded-xl bg-violet-950/50 border border-violet-800/50 p-4">
+              <p className="text-xs text-violet-400 mb-1">New Landlords (7 days)</p>
+              <p className="text-2xl font-bold text-violet-300">{formatNumber(insights.recentSignups.landlordsThisWeek)}</p>
+            </div>
+            <div className="rounded-xl bg-violet-950/50 border border-violet-800/50 p-4">
+              <p className="text-xs text-violet-400 mb-1">New Landlords (30 days)</p>
+              <p className="text-2xl font-bold text-violet-300">{formatNumber(insights.recentSignups.landlordsThisMonth)}</p>
+            </div>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Stripe Connect Onboarding Status */}
+      {/* Stripe Connect Status */}
       {insights?.stripeConnectStatus && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Stripe Connect Onboarding</h2>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card className="bg-emerald-950/30 border-emerald-800/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-emerald-400 mb-1">Completed</p>
-                <p className="text-2xl font-semibold text-emerald-300">{formatNumber(insights.stripeConnectStatus.completed)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-amber-950/30 border-amber-800/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-amber-400 mb-1">Pending Verification</p>
-                <p className="text-2xl font-semibold text-amber-300">{formatNumber(insights.stripeConnectStatus.pendingVerification)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-blue-950/30 border-blue-800/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-blue-400 mb-1">In Progress</p>
-                <p className="text-2xl font-semibold text-blue-300">{formatNumber(insights.stripeConnectStatus.pending)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-slate-800/50 border-slate-700/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-slate-400 mb-1">Not Started</p>
-                <p className="text-2xl font-semibold text-slate-300">{formatNumber(insights.stripeConnectStatus.notStarted)}</p>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Stripe Connect Onboarding</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard label="Completed" value={formatNumber(insights.stripeConnectStatus.completed)} variant="success" />
+            <StatCard label="Pending Verification" value={formatNumber(insights.stripeConnectStatus.pendingVerification)} variant="warning" />
+            <div className="rounded-xl bg-blue-950/50 border border-blue-800/50 p-4">
+              <p className="text-xs text-blue-400 mb-1">In Progress</p>
+              <p className="text-2xl font-bold text-blue-300">{formatNumber(insights.stripeConnectStatus.pending)}</p>
+            </div>
+            <StatCard label="Not Started" value={formatNumber(insights.stripeConnectStatus.notStarted)} />
           </div>
-        </section>
+        </div>
       )}
 
-      {/* System Health */}
+      {/* Payment Health */}
       {insights?.systemHealth && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Payment Health</h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className={insights.systemHealth.failedPaymentsLast30Days > 0 ? "bg-red-950/30 border-red-800/50" : ""}>
-              <CardContent className="pt-4">
-                <p className={`text-xs mb-1 ${insights.systemHealth.failedPaymentsLast30Days > 0 ? "text-red-400" : "text-muted-foreground"}`}>Failed Payments (30 days)</p>
-                <p className={`text-2xl font-semibold ${insights.systemHealth.failedPaymentsLast30Days > 0 ? "text-red-300" : ""}`}>{formatNumber(insights.systemHealth.failedPaymentsLast30Days)}</p>
-              </CardContent>
-            </Card>
-            <Card className={insights.systemHealth.overduePayments > 0 ? "bg-amber-950/30 border-amber-800/50" : ""}>
-              <CardContent className="pt-4">
-                <p className={`text-xs mb-1 ${insights.systemHealth.overduePayments > 0 ? "text-amber-400" : "text-muted-foreground"}`}>Overdue Payments</p>
-                <p className={`text-2xl font-semibold ${insights.systemHealth.overduePayments > 0 ? "text-amber-300" : ""}`}>{formatNumber(insights.systemHealth.overduePayments)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Collection Rate</p>
-                <p className="text-2xl font-semibold">{(insights.collectionRate * 100).toFixed(1)}%</p>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Payment Health</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StatCard 
+              label="Failed Payments (30 days)" 
+              value={formatNumber(insights.systemHealth.failedPaymentsLast30Days)} 
+              variant={insights.systemHealth.failedPaymentsLast30Days > 0 ? "danger" : "default"} 
+            />
+            <StatCard 
+              label="Overdue Payments" 
+              value={formatNumber(insights.systemHealth.overduePayments)} 
+              variant={insights.systemHealth.overduePayments > 0 ? "warning" : "default"} 
+            />
+            <StatCard label="Collection Rate" value={`${(insights.collectionRate * 100).toFixed(1)}%`} />
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Maintenance Tickets Summary */}
+      {/* Maintenance Tickets */}
       {insights?.maintenanceSummary && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Maintenance Tickets</h2>
-          <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
-            <Card className={insights.maintenanceSummary.urgent > 0 ? "bg-red-950/30 border-red-800/50" : ""}>
-              <CardContent className="pt-4">
-                <p className={`text-xs mb-1 ${insights.maintenanceSummary.urgent > 0 ? "text-red-400" : "text-muted-foreground"}`}>Urgent</p>
-                <p className={`text-2xl font-semibold ${insights.maintenanceSummary.urgent > 0 ? "text-red-300" : ""}`}>{formatNumber(insights.maintenanceSummary.urgent)}</p>
-              </CardContent>
-            </Card>
-            <Card className={insights.maintenanceSummary.high > 0 ? "bg-amber-950/30 border-amber-800/50" : ""}>
-              <CardContent className="pt-4">
-                <p className={`text-xs mb-1 ${insights.maintenanceSummary.high > 0 ? "text-amber-400" : "text-muted-foreground"}`}>High Priority</p>
-                <p className={`text-2xl font-semibold ${insights.maintenanceSummary.high > 0 ? "text-amber-300" : ""}`}>{formatNumber(insights.maintenanceSummary.high)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Open</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.open)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">In Progress</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.inProgress)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Resolved</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.resolved)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Closed</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.closed)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Total</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.maintenanceSummary.total)}</p>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Maintenance Tickets</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            <StatCard 
+              label="Urgent" 
+              value={formatNumber(insights.maintenanceSummary.urgent)} 
+              variant={insights.maintenanceSummary.urgent > 0 ? "danger" : "default"} 
+            />
+            <StatCard 
+              label="High Priority" 
+              value={formatNumber(insights.maintenanceSummary.high)} 
+              variant={insights.maintenanceSummary.high > 0 ? "warning" : "default"} 
+            />
+            <StatCard label="Open" value={formatNumber(insights.maintenanceSummary.open)} />
+            <StatCard label="In Progress" value={formatNumber(insights.maintenanceSummary.inProgress)} />
+            <StatCard label="Resolved" value={formatNumber(insights.maintenanceSummary.resolved)} />
+            <StatCard label="Closed" value={formatNumber(insights.maintenanceSummary.closed)} />
+            <StatCard label="Total" value={formatNumber(insights.maintenanceSummary.total)} />
           </div>
-        </section>
+        </div>
       )}
 
       {/* Recent Payouts */}
       {insights?.recentPayouts && insights.recentPayouts.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Recent Payouts (All Landlords)</h2>
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-white">Recent Payouts</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Landlord</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Initiated</TableHead>
-                  <TableHead>Paid</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-slate-400">Landlord</TableHead>
+                  <TableHead className="text-slate-400">Amount</TableHead>
+                  <TableHead className="text-slate-400">Status</TableHead>
+                  <TableHead className="text-slate-400">Initiated</TableHead>
+                  <TableHead className="text-slate-400">Paid</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {insights.recentPayouts.map((payout) => (
-                  <TableRow key={payout.id}>
+                  <TableRow key={payout.id} className="border-white/5">
                     <TableCell>
                       <div>
-                        <p className="font-medium">{payout.landlordName}</p>
-                        <p className="text-xs text-muted-foreground">{payout.landlordSubdomain}</p>
+                        <p className="font-medium text-white">{payout.landlordName}</p>
+                        <p className="text-xs text-slate-400">{payout.landlordSubdomain}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{formatCurrency(payout.amount)}</TableCell>
+                    <TableCell className="text-white font-medium">{formatCurrency(payout.amount)}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                         payout.status === 'paid' ? 'bg-emerald-500/20 text-emerald-400' :
                         payout.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
                         payout.status === 'processing' ? 'bg-blue-500/20 text-blue-400' :
@@ -1472,65 +993,56 @@ const SuperAdminDashboard = ({
                         {payout.status}
                       </span>
                     </TableCell>
-                    <TableCell className="text-sm">{formatDateTime(new Date(payout.initiatedAt)).dateTime}</TableCell>
-                    <TableCell className="text-sm">{payout.paidAt ? formatDateTime(new Date(payout.paidAt)).dateTime : '-'}</TableCell>
+                    <TableCell className="text-slate-300 text-sm">{formatDateTime(new Date(payout.initiatedAt)).dateTime}</TableCell>
+                    <TableCell className="text-slate-300 text-sm">{payout.paidAt ? formatDateTime(new Date(payout.paidAt)).dateTime : '-'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Subscription Breakdown */}
+      {/* Subscription Tiers */}
       {insights?.subscriptionBreakdown && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Subscription Tiers</h2>
-          <div className="grid gap-4 md:grid-cols-5">
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Free</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.subscriptionBreakdown.free)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-violet-950/30 border-violet-800/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-violet-400 mb-1">Pro ($29/mo)</p>
-                <p className="text-2xl font-semibold text-violet-300">{formatNumber(insights.subscriptionBreakdown.pro)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Growth (legacy)</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.subscriptionBreakdown.growth)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Professional (legacy)</p>
-                <p className="text-2xl font-semibold">{formatNumber(insights.subscriptionBreakdown.professional)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-amber-950/30 border-amber-800/50">
-              <CardContent className="pt-4">
-                <p className="text-xs text-amber-400 mb-1">Enterprise ($99/mo)</p>
-                <p className="text-2xl font-semibold text-amber-300">{formatNumber(insights.subscriptionBreakdown.enterprise)}</p>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Subscription Tiers</h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <StatCard label="Free" value={formatNumber(insights.subscriptionBreakdown.free)} />
+            <div className="rounded-xl bg-violet-950/50 border border-violet-800/50 p-4">
+              <p className="text-xs text-violet-400 mb-1">Pro ($29.99/mo)</p>
+              <p className="text-2xl font-bold text-violet-300">{formatNumber(insights.subscriptionBreakdown.pro)}</p>
+            </div>
+            <StatCard label="Growth (legacy)" value={formatNumber(insights.subscriptionBreakdown.growth)} />
+            <StatCard label="Professional (legacy)" value={formatNumber(insights.subscriptionBreakdown.professional)} />
+            <div className="rounded-xl bg-amber-950/50 border border-amber-800/50 p-4">
+              <p className="text-xs text-amber-400 mb-1">Enterprise ($79.99/mo)</p>
+              <p className="text-2xl font-bold text-amber-300">{formatNumber(insights.subscriptionBreakdown.enterprise)}</p>
+            </div>
           </div>
-        </section>
+        </div>
       )}
     </div>
   );
 
+  // Management Content
+  const managementContent = (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">User Management</h1>
+        <p className="text-sm text-slate-400">Manage users, landlords, and tenants</p>
+      </div>
+      <UserManagement users={users} landlords={landlords || []} />
+    </div>
+  );
+
+  // Tiers Content
   const tiersContent = (
     <div className="space-y-6">
-      <section className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Tier Testing</h1>
-        <p className="text-sm text-muted-foreground">
-          Manually set subscription tiers for landlords to test tier-specific features without Stripe CLI.
-        </p>
-      </section>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Tier Testing</h1>
+        <p className="text-sm text-slate-400">Manually set subscription tiers for testing</p>
+      </div>
       <TierManager />
     </div>
   );
@@ -1544,81 +1056,100 @@ const SuperAdminDashboard = ({
   else if (activeView === "management") content = managementContent;
   else if (activeView === "tiers") content = tiersContent;
 
+
   return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-      {/* Mobile Navigation */}
-      <div className="lg:hidden">
-        <Card className="bg-slate-900 border-slate-800">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold">Super Admin</h2>
-              <button
-                type="button"
-                onClick={handleClearStatistics}
-                disabled={isClearingStats}
-                className="rounded-md bg-red-500/90 text-xs font-semibold text-white px-3 py-1.5 hover:bg-red-600 disabled:opacity-60"
-              >
-                {isClearingStats ? "Clearing..." : "Clear Stats"}
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {views.map((view) => (
+    <div className="min-h-screen">
+      {/* Mobile Header */}
+      <div className="lg:hidden sticky top-0 z-50 bg-blue-700 border-b border-white/10 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-white">Super Admin</h1>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-lg bg-white/10 text-white"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="mt-3 pb-2 space-y-1">
+            {views.map((view) => {
+              const Icon = view.icon;
+              return (
                 <button
                   key={view.id}
-                  type="button"
-                  onClick={() => setActiveView(view.id)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                  onClick={() => { setActiveView(view.id); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${
                     activeView === view.id
-                      ? "bg-slate-700 text-slate-50"
-                      : "bg-slate-800/50 text-slate-300 hover:bg-slate-800"
+                      ? "bg-white/20 text-white"
+                      : "text-white/70 hover:bg-white/10 hover:text-white"
                   }`}
                 >
+                  <Icon className="h-4 w-4" />
                   {view.label}
                 </button>
-              ))}
+              );
+            })}
+            <div className="pt-2 border-t border-white/10">
+              <button
+                onClick={handleClearStatistics}
+                disabled={isClearingStats}
+                className="w-full px-3 py-2.5 rounded-lg bg-red-500/80 text-white text-sm font-medium hover:bg-red-500 disabled:opacity-50"
+              >
+                {isClearingStats ? "Clearing..." : "Clear All Statistics"}
+              </button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
       </div>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-52 shrink-0 space-y-4">
-        <Card className="bg-slate-900 border-slate-800">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Super Admin</CardTitle>
-            <CardDescription className="text-xs">Deep visibility into users and visitors.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0 pb-4">
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-blue-700 border-r border-white/10 p-4 sticky top-0">
+          <div className="mb-6">
+            <h1 className="text-xl font-bold text-white">Super Admin</h1>
+            <p className="text-xs text-white/60 mt-1">Platform Management</p>
+          </div>
+
+          <nav className="flex-1 space-y-1">
+            {views.map((view) => {
+              const Icon = view.icon;
+              return (
+                <button
+                  key={view.id}
+                  onClick={() => setActiveView(view.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${
+                    activeView === view.id
+                      ? "bg-white/20 text-white font-medium"
+                      : "text-white/70 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {view.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="pt-4 border-t border-white/10 space-y-3">
             <button
-              type="button"
               onClick={handleClearStatistics}
               disabled={isClearingStats}
-              className="mt-1 w-full rounded-md bg-red-500/90 text-xs font-semibold text-white py-1.5 hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 rounded-lg bg-red-500/80 text-white text-sm font-medium hover:bg-red-500 disabled:opacity-50 transition"
             >
-              {isClearingStats ? "Clearing statistics..." : "Clear All Statistics"}
+              {isClearingStats ? "Clearing..." : "Clear All Statistics"}
             </button>
-          </CardContent>
-        </Card>
-        <nav className="flex flex-col gap-1">
-          {views.map((view) => (
-            <button
-              key={view.id}
-              type="button"
-              onClick={() => setActiveView(view.id)}
-              className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition ${
-                activeView === view.id
-                  ? "bg-slate-800 text-slate-50"
-                  : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50"
-              }`}
-            >
-              <span>{view.label}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
+          </div>
+        </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 min-w-0 space-y-6">{content}</main>
+        {/* Main Content */}
+        <main className="flex-1 min-w-0 bg-blue-700 min-h-screen">
+          <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+            {content}
+          </div>
+        </main>
+      </div>
 
       {/* Landlord Detail Modal */}
       <LandlordDetailModal
