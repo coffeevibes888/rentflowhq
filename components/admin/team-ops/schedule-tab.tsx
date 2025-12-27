@@ -30,7 +30,7 @@ interface Shift {
   status: string;
   notes: string | null;
   teamMember: { id: string; name: string; image: string | null };
-  property: { id: string; name: string } | null;
+  property: { id: string | null; name: string } | null;
 }
 
 export default function ScheduleTab() {

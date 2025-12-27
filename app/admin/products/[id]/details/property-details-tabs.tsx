@@ -8,7 +8,7 @@ import {
   Building2, Users, FileText, Wrench, DollarSign, Download, 
   ChevronRight, Phone, Mail, Calendar, AlertCircle,
   Clock, Home, FileSignature, BarChart3, X, Bell, Plus, Receipt, TrendingUp,
-  FileSpreadsheet, Loader2, PieChart
+  FileSpreadsheet, Loader2, PieChart, MessageCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,7 @@ import { EnhancedTenantCard } from '@/components/admin/enhanced-tenant-card';
 import { VacantUnitCard } from '@/components/admin/vacant-unit-card';
 import { PastTenantsTab } from '@/components/admin/past-tenants-tab';
 import { History } from 'lucide-react';
+import TenantComms from '@/components/admin/tenant-comms';
 
 interface CashoutInfo {
   canCashOut: boolean;
@@ -66,9 +67,16 @@ interface PropertyDetailsTabsProps {
   landlordId: string;
   isPro?: boolean;
   cashoutInfo?: CashoutInfo;
+  tenants?: Array<{
+    id: string;
+    name: string;
+    email: string;
+    unitName?: string;
+    propertyName?: string;
+  }>;
 }
 
-export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro = false, cashoutInfo }: PropertyDetailsTabsProps) {
+export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro = false, cashoutInfo, tenants = [] }: PropertyDetailsTabsProps) {
   const router = useRouter();
   const { toast } = useToast();
   
@@ -358,10 +366,9 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               <Building2 className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline text-white">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="property-data" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
-              <TrendingUp className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline text-white font-bold">Property Data</span>
-              {isPro && <Badge className="ml-1 sm:ml-2 bg-blue-500/20 text-blue-300 text-[10px] sm:text-xs">Pro</Badge>}
+            <TabsTrigger value="communications" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
+              <MessageCircle className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline text-white font-bold">Communications</span>
             </TabsTrigger>
             <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
               <Users className="w-4 h-4 sm:mr-2" />
@@ -507,32 +514,37 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
             </div>
           </TabsContent>
 
-          {/* PROPERTY DATA TAB */}
-          <TabsContent value="property-data" className="mt-6">
-            <PropertyZillowData 
-              propertyAddress={{
-                street: property.address && typeof property.address === 'object' 
-                  ? (property.address as any).street 
-                  : undefined,
-                city: property.address && typeof property.address === 'object' 
-                  ? (property.address as any).city 
-                  : undefined,
-                state: property.address && typeof property.address === 'object' 
-                  ? (property.address as any).state 
-                  : undefined,
-                zipCode: property.address && typeof property.address === 'object' 
-                  ? (property.address as any).zipCode 
-                  : undefined,
-              }}
-              propertyInfo={{
-                bedrooms: property.units[0]?.bedrooms,
-                bathrooms: property.units[0]?.bathrooms,
-                sizeSqFt: property.units[0]?.sizeSqFt,
-                propertyType: property.type,
-                rentAmount: property.units[0]?.rentAmount,
-              }}
-              isPro={isPro}
-            />
+          {/* COMMUNICATIONS TAB */}
+          <TabsContent value="communications" className="mt-6">
+            <div className="space-y-6">
+              {/* Communications Header */}
+              <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5" />
+                    Property Communications
+                  </CardTitle>
+                  <CardDescription className="text-slate-300">
+                    Message tenants at {property.name} directly from here
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* Tenant Communications Component */}
+              <div className="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
+                <TenantComms 
+                  tenants={tenants.length > 0 ? tenants : activeLeases.map((lease: any) => ({
+                    id: lease.tenant?.id || '',
+                    name: lease.tenant?.name || 'Unknown Tenant',
+                    email: lease.tenant?.email || '',
+                    unitName: lease.unitName,
+                    propertyName: property.name,
+                  })).filter((t: any) => t.id)}
+                  landlordId={landlordId}
+                  hideHeader
+                />
+              </div>
+            </div>
           </TabsContent>
 
           {/* TENANTS TAB */}

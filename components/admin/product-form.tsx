@@ -121,14 +121,14 @@ const ProductForm = ({
     // Auto-fill form fields with Zillow data
     const fullAddress = `${data.address.street}, ${data.address.city}, ${data.address.state} ${data.address.zipCode}`;
     form.setValue('streetAddress', fullAddress);
-    form.setValue('bedrooms', String(data.bedrooms));
-    form.setValue('bathrooms', String(data.bathrooms));
-    form.setValue('sizeSqFt', String(data.sizeSqFt));
+    form.setValue('bedrooms', data.bedrooms);
+    form.setValue('bathrooms', data.bathrooms);
+    form.setValue('sizeSqFt', data.sizeSqFt);
     form.setValue('category', data.propertyType);
     
     // Set suggested rent based on Zillow rent estimate
     if (data.rentZestimate) {
-      form.setValue('price', String(data.rentZestimate));
+      form.setValue('price', data.rentZestimate);
     }
     
     // Set description if empty

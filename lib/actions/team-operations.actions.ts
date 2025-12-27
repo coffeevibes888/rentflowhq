@@ -750,7 +750,6 @@ export async function getPendingPayroll() {
       try {
         const calc = await calculatePayroll(ts.id);
         payrollItems.push({
-          timesheetId: ts.id,
           teamMemberName: ts.teamMember.user.name,
           periodStart: ts.periodStart,
           periodEnd: ts.periodEnd,
@@ -808,7 +807,15 @@ export async function processPayroll(data: z.infer<typeof processPayrollSchema>)
 
     // Calculate total needed
     let totalNeeded = 0;
-    const payrollItems = [];
+    const payrollItems: Array<{
+      timesheetId: string;
+      teamMemberId: string;
+      grossAmount: number;
+      regularPay: number;
+      overtimePay: number;
+      platformFee: number;
+      netAmount: number;
+    }> = [];
 
     for (const ts of timesheets) {
       const calc = await calculatePayroll(ts.id);

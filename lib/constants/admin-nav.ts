@@ -1,4 +1,4 @@
-import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, MessageCircle, ScanText, Users, HardHat, Clock, LucideIcon } from 'lucide-react';
+import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon } from 'lucide-react';
 
 export interface AdminNavLink {
   title: string;
@@ -48,24 +48,11 @@ export const adminNavLinks: AdminNavLink[] = [
     proOnly: true,
   },
   {
-    title: 'Team Operations',
-    description: 'Scheduling, time tracking & payroll',
-    href: '/admin/team-operations',
-    icon: Clock,
-    enterpriseOnly: true,
-  },
-  {
     title: 'Analytics',
     description: 'Financial reports & insights',
     href: '/admin/analytics',
     icon: TrendingUp,
     proOnly: true,
-  },
-  {
-    title: 'Communications',
-    description: 'Inbox + tenant messages',
-    href: '/admin/communications',
-    icon: MessageCircle,
   },
   {
     title: 'Branding',
@@ -74,8 +61,8 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: Palette,
   },
   {
-    title: 'Team',
-    description: 'Invite & manage team members',
+    title: 'Team Hub',
+    description: 'Chat, members & operations',
     href: '/admin/team',
     icon: Users,
   },

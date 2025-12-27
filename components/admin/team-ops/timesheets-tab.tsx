@@ -88,7 +88,7 @@ export default function TimesheetsTab() {
         periodEnd: new Date(result.timesheet.periodEnd),
         submittedAt: result.timesheet.submittedAt ? new Date(result.timesheet.submittedAt) : null,
         reviewedAt: result.timesheet.reviewedAt ? new Date(result.timesheet.reviewedAt) : null,
-        timeEntries: result.timesheet.timeEntries.map((e: { clockIn: string | Date; clockOut: string | Date | null }) => ({
+        timeEntries: result.timesheet.timeEntries.map((e: { id: string; clockIn: string | Date; clockOut: string | Date | null; totalMinutes: number | null; property: { name: string } | null }) => ({
           ...e,
           clockIn: new Date(e.clockIn),
           clockOut: e.clockOut ? new Date(e.clockOut) : null,

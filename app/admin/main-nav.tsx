@@ -46,7 +46,7 @@ const MainNav = ({
   return (
     <nav
       className={cn(
-        'flex flex-col gap-2 text-base text-black font-medium',
+        'flex flex-col gap-1 text-base text-black font-medium',
         className
       )}
       {...props}
@@ -59,15 +59,27 @@ const MainNav = ({
           <Link
             key={item.href}
             href={item.href}
+            title={item.title}
             className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2',
-              isActive ? 'text-white font-semibold' : 'text-black'
+              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
+              isActive 
+                ? 'bg-gradient-to-r from-violet-600/90 to-purple-600/90 text-white shadow-lg shadow-violet-500/20' 
+                : 'text-slate-700 hover:bg-white/20 hover:text-slate-900'
             )}
           >
-            <Icon className='h-5 w-5 shrink-0' />
-            <div className='flex flex-col'>
-              <span className='font-medium text-sm'>{item.title}</span>
-              <span className='text-xs text-emerald-300'>{item.description}</span>
+            <Icon className={cn(
+              'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
+              isActive ? 'text-white' : 'text-slate-600'
+            )} />
+            <div className='flex flex-col min-w-0 nav-text-content'>
+              <span className={cn(
+                'font-semibold text-sm truncate',
+                isActive ? 'text-white' : 'text-slate-800'
+              )}>{item.title}</span>
+              <span className={cn(
+                'text-[11px] truncate',
+                isActive ? 'text-violet-200' : 'text-slate-500'
+              )}>{item.description}</span>
             </div>
           </Link>
         );
@@ -76,15 +88,27 @@ const MainNav = ({
       {showManageSubscription && (
         <Link
           href='/admin/settings/subscription'
+          title="Manage Subscription"
           className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2',
-            pathname.startsWith('/admin/settings/subscription') ? 'text-white font-semibold' : 'text-black'
+            'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
+            pathname.startsWith('/admin/settings/subscription') 
+              ? 'bg-gradient-to-r from-violet-600/90 to-purple-600/90 text-white shadow-lg shadow-violet-500/20' 
+              : 'text-slate-700 hover:bg-white/20 hover:text-slate-900'
           )}
         >
-          <Settings2 className='h-5 w-5 shrink-0' />
-          <div className='flex flex-col'>
-            <span className='font-medium text-sm'>Manage Subscription</span>
-            <span className='text-xs text-emerald-300'>Billing portal & usage</span>
+          <Settings2 className={cn(
+            'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
+            pathname.startsWith('/admin/settings/subscription') ? 'text-white' : 'text-slate-600'
+          )} />
+          <div className='flex flex-col min-w-0 nav-text-content'>
+            <span className={cn(
+              'font-semibold text-sm truncate',
+              pathname.startsWith('/admin/settings/subscription') ? 'text-white' : 'text-slate-800'
+            )}>Manage Subscription</span>
+            <span className={cn(
+              'text-[11px] truncate',
+              pathname.startsWith('/admin/settings/subscription') ? 'text-violet-200' : 'text-slate-500'
+            )}>Billing portal & usage</span>
           </div>
         </Link>
       )}

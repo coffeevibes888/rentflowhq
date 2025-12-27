@@ -115,6 +115,8 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'admin' | 'member'>('member');
   const [isInviting, setIsInviting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
   const [teamMembersData, setTeamMembersData] = useState<TeamMemberData[]>(initialTeamMembers);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -226,6 +228,9 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
     if (!inviteEmail.trim()) return;
     
     setIsInviting(true);
+    setInviteError(null);
+    setInviteSuccess(false);
+    
     try {
       const res = await fetch('/api/landlord/team/invite', {
         method: 'POST',
@@ -235,12 +240,23 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
       const data = await res.json();
       
       if (data.success) {
-        setTeamMembersData([...teamMembersData, data.member]);
-        setShowInviteDialog(false);
-        setInviteEmail('');
-        setInviteRole('member');
+        setInviteSuccess(true);
+        if (data.member) {
+          setTeamMembersData([...teamMembersData, data.member]);
+        }
+        // Close dialog after short delay to show success
+        setTimeout(() => {
+          setShowInviteDialog(false);
+          setInviteEmail('');
+          setInviteRole('member');
+          setInviteSuccess(false);
+        }, 1500);
+      } else {
+        setInviteError(data.message || 'Failed to send invitation. Please try again.');
       }
-    } catch {
+    } catch (error) {
+      console.error('Invite error:', error);
+      setInviteError('Network error. Please check your connection and try again.');
     } finally {
       setIsInviting(false);
     }
@@ -694,7 +710,13 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
       </div>
 
       {/* Invite Dialog */}
-      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+      <Dialog open={showInviteDialog} onOpenChange={(open) => {
+        setShowInviteDialog(open);
+        if (!open) {
+          setInviteError(null);
+          setInviteSuccess(false);
+        }
+      }}>
         <DialogContent className="bg-slate-900 border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white">Invite Team Member</DialogTitle>
@@ -704,15 +726,34 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {inviteError && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                {inviteError}
+              </div>
+            )}
+            
+            {inviteSuccess && (
+              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm">
+                ✓ Invitation sent successfully! They&apos;ll receive an email shortly.
+              </div>
+            )}
+            
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">Email Address</label>
               <Input
                 type="email"
                 placeholder="colleague@example.com"
                 value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
+                onChange={(e) => {
+                  setInviteEmail(e.target.value);
+                  setInviteError(null);
+                }}
                 className="bg-slate-800 border-white/10 text-white"
+                disabled={isInviting || inviteSuccess}
               />
+              <p className="text-xs text-slate-500">
+                If they don&apos;t have an account, they&apos;ll be invited to sign up.
+              </p>
             </div>
             
             <div className="space-y-2">
@@ -721,6 +762,7 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
                 value={inviteRole} 
                 onChange={(e) => setInviteRole(e.target.value as 'admin' | 'member')}
                 className="w-full p-2 rounded-lg bg-slate-800 border border-white/10 text-white"
+                disabled={isInviting || inviteSuccess}
               >
                 <option value="member">Member - View & manage assigned tasks</option>
                 <option value="admin">Admin - Full access to all features</option>
@@ -729,15 +771,24 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
           </div>
           
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowInviteDialog(false)}>
+            <Button variant="ghost" onClick={() => setShowInviteDialog(false)} disabled={isInviting}>
               Cancel
             </Button>
             <Button 
               onClick={handleInviteMember}
-              disabled={isInviting || !inviteEmail.trim()}
+              disabled={isInviting || !inviteEmail.trim() || inviteSuccess}
               className="bg-violet-600 hover:bg-violet-500"
             >
-              {isInviting ? 'Sending...' : 'Send Invitation'}
+              {isInviting ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span>
+                  Sending...
+                </>
+              ) : inviteSuccess ? (
+                '✓ Sent!'
+              ) : (
+                'Send Invitation'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
