@@ -58,25 +58,23 @@ export default async function TeamPage() {
     : 'free';
 
   return (
-    <main className="w-full h-[calc(100vh-140px)]">
-      <div className="-m-4 md:-m-6 h-full">
-        <TeamHub
-          currentUser={{
-            id: session?.user?.id || '',
-            name: session?.user?.name || 'User',
-            email: session?.user?.email || '',
-            image: session?.user?.image || undefined,
-          }}
-          landlordId={landlordResult.success ? landlordResult.landlord.id : ''}
-          teamMembers={teamData.success && teamData.members ? teamData.members : []}
-          subscriptionTier={tier as 'free' | 'pro' | 'enterprise'}
-          features={{
-            teamManagement: subscriptionData.features?.teamManagement,
-            teamCommunications: subscriptionData.features?.teamCommunications,
-            teamOperations: tier === 'enterprise',
-          }}
-        />
-      </div>
+    <main className="w-full min-h-[600px] pb-8">
+      <TeamHub
+        currentUser={{
+          id: session?.user?.id || '',
+          name: session?.user?.name || 'User',
+          email: session?.user?.email || '',
+          image: session?.user?.image || undefined,
+        }}
+        landlordId={landlordResult.success ? landlordResult.landlord.id : ''}
+        teamMembers={teamData.success && teamData.members ? teamData.members : []}
+        subscriptionTier={tier as 'free' | 'pro' | 'enterprise'}
+        features={{
+          teamManagement: subscriptionData.features?.teamManagement,
+          teamCommunications: subscriptionData.features?.teamCommunications,
+          teamOperations: tier === 'enterprise',
+        }}
+      />
     </main>
   );
 }

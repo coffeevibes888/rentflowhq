@@ -85,10 +85,12 @@ export default function TimeTrackingTab() {
         setMyActiveEntry({ id: activeResult.entry.id, clockIn: new Date(activeResult.entry.clockIn) });
       }
       if (membersRes.members) {
-        setTeamMembers(membersRes.members.map((m: { id: string; user: { name: string } }) => ({
-          id: m.id,
-          name: m.user.name,
-        })));
+        setTeamMembers(membersRes.members
+          .filter((m: { user: { name: string } | null }) => m.user !== null)
+          .map((m: { id: string; user: { name: string } }) => ({
+            id: m.id,
+            name: m.user.name,
+          })));
       }
     } catch (error) {
       console.error('Failed to load time tracking data:', error);

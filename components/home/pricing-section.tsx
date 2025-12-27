@@ -41,11 +41,11 @@ const tiers = [
     name: 'Pro',
     price: 29.99,
     description: 'For growing landlords. The only tool that scales with you.',
-    unitLimit: 'Up to 250 units',
+    unitLimit: 'Up to 75 units',
     icon: Zap,
     popular: true,
     features: [
-      { name: 'Up to 250 units', included: true },
+      { name: 'Up to 75 units', included: true },
       { name: 'Everything in Free', included: true },
       { name: 'QuickBooks & TurboTax integration', included: true },
       { name: 'Automatic rent reminders', included: true },

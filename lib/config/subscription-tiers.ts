@@ -35,7 +35,7 @@ export const SUBSCRIPTION_TIERS = {
     name: 'Pro',
     price: 29.99,
     priceId: process.env.STRIPE_PRICE_PRO || null,
-    unitLimit: 250,
+    unitLimit: 75,
     noCashoutFees: true, // Paid tier - no platform cashout fees (only Stripe fees)
     features: {
       automaticRentReminders: true,
@@ -61,7 +61,7 @@ export const SUBSCRIPTION_TIERS = {
       performanceReports: false,
       unlimitedTeamMembers: false,
     },
-    description: 'Everything you need for 25-250 units with full team features',
+    description: 'Everything you need for 25-75 units with full team features',
   },
   enterprise: {
     name: 'Enterprise',
@@ -121,13 +121,13 @@ export function normalizeTier(tier: string | null | undefined): SubscriptionTier
 
 export function getTierForUnitCount(unitCount: number): SubscriptionTier {
   if (unitCount <= 24) return 'free';
-  if (unitCount <= 250) return 'pro';
+  if (unitCount <= 75) return 'pro';
   return 'enterprise';
 }
 
 export function getRequiredTierForUnitCount(unitCount: number): SubscriptionTier {
   if (unitCount <= 24) return 'free';
-  if (unitCount <= 250) return 'pro';
+  if (unitCount <= 75) return 'pro';
   return 'enterprise';
 }
 

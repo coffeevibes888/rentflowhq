@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Users, UserPlus, Mail, Shield, ShieldCheck, Crown, 
-  MoreVertical, Trash2, UserCog, Clock, Search,
+  MoreVertical, Trash2, Clock, Search,
   Building2, Briefcase
 } from 'lucide-react';
 import {
@@ -127,6 +127,26 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
     }
   };
 
+  const handleClearAllInvites = async () => {
+    if (!confirm('Are you sure you want to clear all pending invitations?')) return;
+    
+    try {
+      const res = await fetch('/api/landlord/team/clear-invites', {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setMembers(members.filter(m => m.status !== 'pending'));
+        alert(data.message);
+      } else {
+        alert(data.message || 'Failed to clear invites');
+      }
+    } catch {
+      alert('Failed to clear invites');
+    }
+  };
+
   const handleUpdateRole = async (memberId: string, newRole: string) => {
     try {
       const res = await fetch(`/api/landlord/team/${memberId}`, {
@@ -219,8 +239,8 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
                 <Crown className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">5</p>
-                <p className="text-xs text-slate-400">Max Seats</p>
+                <p className="text-2xl font-bold text-white">{isEnterprise ? '∞' : '5'}</p>
+                <p className="text-xs text-slate-400">{isEnterprise ? 'Unlimited' : 'Max Seats'}</p>
               </div>
             </div>
           </CardContent>
@@ -344,10 +364,21 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
       {pendingMembers.length > 0 && (
         <Card className="border-amber-500/20 bg-amber-500/5">
           <CardHeader className="border-b border-amber-500/20">
-            <CardTitle className="text-white flex items-center gap-2">
-              <Clock className="h-5 w-5 text-amber-400" />
-              Pending Invitations
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-white flex items-center gap-2">
+                <Clock className="h-5 w-5 text-amber-400" />
+                Pending Invitations
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAllInvites}
+                className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Clear All
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-amber-500/10">

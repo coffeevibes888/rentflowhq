@@ -126,6 +126,11 @@ export default function NotificationBell({ userId, landlordId }: NotificationBel
   };
 
   useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    
     fetchNotifications();
     
     // Set up polling for new notifications

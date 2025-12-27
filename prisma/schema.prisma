@@ -1296,7 +1296,7 @@ model EmploymentCheck {
 model TeamMember {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   landlordId    String   @db.Uuid
-  userId        String   @db.Uuid
+  userId        String?  @db.Uuid
   role          String   @default("member") // owner, admin, member
   permissions   String[] @default([]) // view_properties, manage_tenants, manage_maintenance, manage_finances
   invitedEmail  String?
@@ -1308,7 +1308,7 @@ model TeamMember {
   updatedAt     DateTime @updatedAt
 
   landlord        Landlord                  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
-  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   compensation    TeamMemberCompensation?
   availability    TeamMemberAvailability[]
   timeOffRequests TimeOffRequest[]
@@ -1317,7 +1317,7 @@ model TeamMember {
   timesheets      Timesheet[]
   teamPayments    TeamPayment[]
 
-  @@unique([landlordId, userId])
+  @@unique([landlordId, invitedEmail])
   @@index([landlordId])
   @@index([userId])
   @@index([inviteToken])

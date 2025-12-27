@@ -63,11 +63,13 @@ export default function ScheduleTab() {
         setShifts(shiftsResult.shifts.map(s => ({ ...s, date: new Date(s.date) })));
       }
       if (membersRes.members) {
-        setTeamMembers(membersRes.members.map((m: { id: string; user: { name: string; image: string | null } }) => ({
-          id: m.id,
-          name: m.user.name,
-          image: m.user.image,
-        })));
+        setTeamMembers(membersRes.members
+          .filter((m: { user: { name: string; image: string | null } | null }) => m.user !== null)
+          .map((m: { id: string; user: { name: string; image: string | null } }) => ({
+            id: m.id,
+            name: m.user.name,
+            image: m.user.image,
+          })));
       }
       if (propsRes.properties) {
         setProperties(propsRes.properties);

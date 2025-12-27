@@ -32,11 +32,11 @@ export default function NotificationBell({ isAdmin }: { isAdmin: boolean }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   // Fetch notifications
   const fetchNotifications = async () => {
-    if (!session?.user?.id) {
+    if (!session?.user?.id || status !== 'authenticated') {
       setLoading(false);
       return;
     }
@@ -140,6 +140,10 @@ export default function NotificationBell({ isAdmin }: { isAdmin: boolean }) {
   };
 
   useEffect(() => {
+    if (status === 'loading') {
+      return; // Wait for session to load
+    }
+    
     if (session?.user?.id) {
       fetchNotifications();
       
@@ -151,9 +155,9 @@ export default function NotificationBell({ isAdmin }: { isAdmin: boolean }) {
     } else {
       setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, status]);
 
-  if (!session?.user?.id) {
+  if (status === 'loading' || !session?.user?.id) {
     return null;
   }
 
