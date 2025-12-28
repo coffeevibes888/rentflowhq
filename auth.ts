@@ -67,6 +67,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.id = token.sub;
       session.user.role = token.role;
       session.user.name = token.name;
+      session.user.onboardingCompleted = token.onboardingCompleted;
 
       const dbUser = await prisma.user.findUnique({
         where: { id: token.sub },
@@ -77,6 +78,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           shippingAddress: true,
           billingAddress: true,
           image: true,
+          onboardingCompleted: true,
         },
       });
 
@@ -87,6 +89,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.shippingAddress = dbUser.shippingAddress;
         session.user.billingAddress = dbUser.billingAddress;
         session.user.image = dbUser.image || undefined;
+        session.user.onboardingCompleted = dbUser.onboardingCompleted;
       }
 
       // If there is an update, set the user name
@@ -101,6 +104,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+
+        // Fetch onboarding status from database
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { onboardingCompleted: true },
+        });
+        token.onboardingCompleted = dbUser?.onboardingCompleted ?? false;
 
         // If user has no name then use the email
         if (user.name === 'NO_NAME') {

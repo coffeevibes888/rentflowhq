@@ -12,6 +12,7 @@ declare module 'next-auth/jwt' {
     sub: string;
     role: string;
     name: string;
+    onboardingCompleted: boolean;
   }
 }
 
@@ -28,6 +29,7 @@ declare module 'next-auth' {
       shippingAddress?: any;
       billingAddress?: any;
       image?: string;
+      onboardingCompleted: boolean;
     } & DefaultSession['user'];
   }
 

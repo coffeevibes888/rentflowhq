@@ -11,96 +11,36 @@ import { signUpUser } from '@/lib/actions/user.actions';
 import { useSearchParams } from 'next/navigation';
 import OAuthButtons from '@/components/auth/oauth-buttons';
 
-interface SignUpFormProps {
-  propertySlug?: string;
-}
-
-const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
+const SignUpForm = () => {
   const [data, action] = useActionState(signUpUser, {
     success: false,
     message: '',
   });
 
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '';
-  const fromProperty = searchParams.get('fromProperty') === 'true' || Boolean(propertySlug);
-  const planParam = searchParams.get('plan');
-  const roleParam = searchParams.get('role');
-  
-  // If coming from pricing page with a plan, default to landlord role
-  const defaultRole = fromProperty ? 'tenant' : (roleParam || (planParam ? 'landlord' : 'tenant'));
+  const callbackUrl = searchParams.get('callbackUrl') || '/onboarding';
 
   const SignUpButton = () => {
     const { pending } = useFormStatus();
 
     return (
       <Button disabled={pending} className='w-full' variant='default'>
-        {pending ? 'Submitting...' : 'Sign Up'}
+        {pending ? 'Creating account...' : 'Create Account'}
       </Button>
     );
   };
 
   return (
     <div className='space-y-4'>
-      <OAuthButtons callbackUrl={callbackUrl || '/onboarding/role'} />
+      <OAuthButtons callbackUrl={callbackUrl} />
       
       <form action={action}>
         <input type='hidden' name='callbackUrl' value={callbackUrl} />
-        {propertySlug && <input type='hidden' name='propertySlug' value={propertySlug} />}
-        {fromProperty && <input type='hidden' name='fromProperty' value='true' />}
-        {planParam && <input type='hidden' name='plan' value={planParam} />}
+        <input type='hidden' name='role' value='user' />
+        
         <div className='space-y-6'>
-          {!fromProperty && (
-            <div className='space-y-2'>
-              <p className='text-xs font-semibold uppercase tracking-[0.2em] text-slate-500'>
-                Tell us who you are
-              </p>
-              <div className='grid gap-3 sm:grid-cols-3 text-xs'>
-                <label className='cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='role'
-                    value='tenant'
-                    defaultChecked={defaultRole === 'tenant'}
-                    className='sr-only peer'
-                  />
-                  <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
-                    Tenant
-                  </div>
-                </label>
-
-                <label className='cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='role'
-                    value='landlord'
-                    defaultChecked={defaultRole === 'landlord'}
-                    className='sr-only peer'
-                  />
-                  <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
-                    Landlord
-                  </div>
-                </label>
-
-                <label className='cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='role'
-                    value='property_manager'
-                    defaultChecked={defaultRole === 'property_manager'}
-                    className='sr-only peer'
-                  />
-                  <div className='rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-center font-medium text-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900 transition-colors'>
-                    Property manager
-                  </div>
-                </label>
-              </div>
-            </div>
-          )}
-          {fromProperty && <input type='hidden' name='role' value='tenant' />}
-
           <div>
-            <Label htmlFor='email'>Name</Label>
+            <Label htmlFor='name'>Name</Label>
             <Input
               id='name'
               name='name'
@@ -108,6 +48,7 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
               autoComplete='name'
               defaultValue={signUpDefaultValues.name}
               className='bg-white text-gray-900 border-gray-300'
+              placeholder='Your full name'
             />
           </div>
           <div>
@@ -115,10 +56,11 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
             <Input
               id='email'
               name='email'
-              type='text'
+              type='email'
               autoComplete='email'
               defaultValue={signUpDefaultValues.email}
               className='bg-white text-gray-900 border-gray-300'
+              placeholder='you@example.com'
             />
           </div>
           <div>
@@ -128,9 +70,10 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
               name='password'
               type='password'
               required
-              autoComplete='password'
+              autoComplete='new-password'
               defaultValue={signUpDefaultValues.password}
               className='bg-white text-gray-900 border-gray-300'
+              placeholder='Create a password'
             />
           </div>
           <div>
@@ -140,9 +83,10 @@ const SignUpForm = ({ propertySlug }: SignUpFormProps) => {
               name='confirmPassword'
               type='password'
               required
-              autoComplete='confirmPassword'
+              autoComplete='new-password'
               defaultValue={signUpDefaultValues.confirmPassword}
               className='bg-white text-gray-900 border-gray-300'
+              placeholder='Confirm your password'
             />
           </div>
           <div>

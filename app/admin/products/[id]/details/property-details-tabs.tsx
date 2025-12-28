@@ -531,7 +531,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </Card>
 
               {/* Tenant Communications Component */}
-              <div className="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 backdrop-blur-xl shadow-2xl overflow-hidden">
                 <TenantComms 
                   tenants={tenants.length > 0 ? tenants : activeLeases.map((lease: any) => ({
                     id: lease.tenant?.id || '',

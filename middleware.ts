@@ -34,7 +34,8 @@ export function middleware(req: NextRequest) {
     'verify-email', 'forgot-password', 'reset-password', 'unauthorized',
     'about', 'blog', 'contact', 'cart', 'checkout', 'products', 'product',
     'search', 'order', 'shipping-address', 'place-order', 'payment-method',
-    'verify-payment-method', 'application', 'chat'
+    'verify-payment-method', 'application', 'chat', 'agent', 'contractor',
+    'employee', 'team', 'listings'
   ];
 
   // If first path segment looks like a landlord slug (not a reserved route)
