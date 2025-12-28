@@ -675,6 +675,7 @@ model Property {
   description String?
   address     Json     @db.Json
   type        String   // e.g. apartment, house, office, mixed-use
+  status      String   @default("active") // active, paused, suspended, deleted
   createdAt   DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @updatedAt
 
@@ -713,6 +714,8 @@ model Property {
   // Team Operations (Enterprise)
   shifts Shift[]
   timeEntries TimeEntry[]
+
+  @@index([status])
 }
 
 model Unit {

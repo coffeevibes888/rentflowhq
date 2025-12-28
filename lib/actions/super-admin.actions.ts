@@ -548,3 +548,109 @@ export async function clearDemoRevenueData() {
   });
   return { success: true, deleted: result.count };
 }
+
+
+// Property Management for Super Admin
+export async function getAllPropertiesForSuperAdmin() {
+  await requireSuperAdmin();
+  
+  const properties = await prisma.property.findMany({
+    include: {
+      landlord: {
+        select: {
+          id: true,
+          name: true,
+          companyName: true,
+          ownerUserId: true,
+        },
+      },
+      units: {
+        select: {
+          id: true,
+          name: true,
+          isAvailable: true,
+          rentAmount: true,
+        },
+      },
+      _count: {
+        select: {
+          units: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return properties.map(p => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    type: p.type,
+    status: (p as any).status || 'active',
+    address: p.address,
+    landlordId: p.landlordId,
+    landlordName: p.landlord?.companyName || p.landlord?.name || 'Unknown',
+    unitCount: p._count.units,
+    availableUnits: p.units.filter(u => u.isAvailable).length,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  }));
+}
+
+export async function updatePropertyStatus(propertyId: string, status: 'active' | 'paused' | 'suspended' | 'deleted') {
+  await requireSuperAdmin();
+  
+  if (!propertyId) {
+    return { success: false, message: 'Property ID is required' };
+  }
+
+  const validStatuses = ['active', 'paused', 'suspended', 'deleted'];
+  if (!validStatuses.includes(status)) {
+    return { success: false, message: 'Invalid status' };
+  }
+
+  try {
+    await prisma.property.update({
+      where: { id: propertyId },
+      data: { status },
+    });
+
+    return { success: true, message: `Property ${status === 'active' ? 'activated' : status}` };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function deletePropertyPermanently(propertyId: string) {
+  await requireSuperAdmin();
+  
+  if (!propertyId) {
+    return { success: false, message: 'Property ID is required' };
+  }
+
+  try {
+    // First check if property has active leases
+    const activeLeases = await prisma.lease.count({
+      where: {
+        unit: { propertyId },
+        status: 'active',
+      },
+    });
+
+    if (activeLeases > 0) {
+      return { 
+        success: false, 
+        message: `Cannot delete property with ${activeLeases} active lease(s). Suspend it instead.` 
+      };
+    }
+
+    // Delete the property (cascade will handle units, etc.)
+    await prisma.property.delete({
+      where: { id: propertyId },
+    });
+
+    return { success: true, message: 'Property permanently deleted' };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}

@@ -42,13 +42,10 @@ export default async function SubdomainPropertyPage({
     notFound();
   }
 
-  // Get video/tour URLs from either Property or Product model
+  // Get video/tour URLs from Property model
   const mediaUrls = property.videoUrl || property.virtualTourUrl
     ? { videoUrl: property.videoUrl, virtualTourUrl: property.virtualTourUrl }
-    : await prisma.product.findFirst({
-        where: { slug, landlordId: landlord.id },
-        select: { videoUrl: true, virtualTourUrl: true },
-      });
+    : null;
 
   const session = await auth();
 

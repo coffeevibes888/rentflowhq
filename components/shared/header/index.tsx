@@ -65,7 +65,7 @@ const Header = async () => {
 
         <div className="flex items-center justify-center text-sm font-medium">
           <Link href='/' className="m-2.5 px-1 text-black hover:underline ">Home</Link>
-          <Link href='/search?category=all' className="m-2.5 px-1 text-black hover:underline">Listings</Link>
+          <Link href='/listings' className="m-2.5 px-1 text-black hover:underline">Listings</Link>
           <Link href='/blog' className="m-2.5 px-1 text-black hover:underline">Blog</Link>
           <Link href='/about' className="m-2.5 px-1 text-black hover:underline ">About</Link>
           <Link href='/contact' className="m-2.5 px-1 text-black hover:underline ">Contact</Link>

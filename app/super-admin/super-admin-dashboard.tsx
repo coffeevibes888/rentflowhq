@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import PropertyManagement from "@/components/super-admin/property-management";
 import { formatCurrency, formatDateTime, formatNumber } from "@/lib/utils";
 import DashboardOverview from "../admin/overview/dashboard-overview";
 import UserManagement from "@/components/super-admin/user-management";
@@ -43,6 +44,7 @@ const views = [
   { id: "engagement", label: "Engagement", icon: MousePointerClick },
   { id: "users", label: "Users & Sessions", icon: Users },
   { id: "portfolio", label: "Portfolio & Revenue", icon: Building2 },
+  { id: "properties", label: "Properties", icon: Building2 },
   { id: "management", label: "User Management", icon: Settings },
   { id: "tiers", label: "Tier Testing", icon: Layers },
 ] as const;
@@ -1047,12 +1049,16 @@ const SuperAdminDashboard = ({
     </div>
   );
 
+  // Properties Content
+  const propertiesContent = <PropertyManagement />;
+
   let content = overviewContent;
   if (activeView === "health") content = healthContent;
   else if (activeView === "traffic") content = trafficContent;
   else if (activeView === "engagement") content = engagementContent;
   else if (activeView === "users") content = usersContent;
   else if (activeView === "portfolio") content = portfolioContent;
+  else if (activeView === "properties") content = propertiesContent;
   else if (activeView === "management") content = managementContent;
   else if (activeView === "tiers") content = tiersContent;
 

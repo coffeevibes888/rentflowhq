@@ -46,6 +46,18 @@ export default function PropertyMap({ address, propertyName, className = '' }: P
         return;
       }
 
+      // Check if script is already loading/loaded
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+      if (existingScript) {
+        // Script exists, wait for it to load
+        if (window.google?.maps) {
+          initMap();
+        } else {
+          existingScript.addEventListener('load', initMap);
+        }
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;

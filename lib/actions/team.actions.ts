@@ -30,6 +30,47 @@ const DEFAULT_PERMISSIONS: Record<TeamMemberRole, TeamPermission[]> = {
 // Type-safe prisma access for models that may not exist yet
 const teamMemberModel = () => (prisma as any).teamMember;
 
+// Get invite details by token (for showing invite info before accepting)
+export async function getTeamInviteByToken(token: string) {
+  try {
+    const member = await teamMemberModel()?.findUnique?.({
+      where: { inviteToken: token },
+    });
+
+    if (!member) {
+      return { success: false, message: 'Invalid invitation' };
+    }
+
+    if (member.status !== 'pending') {
+      return { success: false, message: 'This invitation has already been used' };
+    }
+
+    if (member.inviteExpires && member.inviteExpires < new Date()) {
+      return { success: false, message: 'This invitation has expired' };
+    }
+
+    // Get landlord info
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: member.landlordId },
+      select: { id: true, name: true, companyName: true },
+    });
+
+    return {
+      success: true,
+      invite: {
+        id: member.id,
+        email: member.invitedEmail,
+        role: member.role,
+        landlordId: member.landlordId,
+        landlordName: landlord?.companyName || landlord?.name || 'Property Management Company',
+        expiresAt: member.inviteExpires,
+      },
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
 async function sendTeamInviteEmail(params: {
   email: string;
   inviteToken: string;
