@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import {
 
 export default function ContractorOnboardingClient() {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -64,6 +66,8 @@ export default function ContractorOnboardingClient() {
       const data = await response.json();
 
       if (response.ok) {
+        // Update the session to refresh the role and onboardingCompleted status
+        await updateSession();
         router.push('/contractor/dashboard');
       } else {
         setError(data.error || 'Something went wrong. Please try again.');

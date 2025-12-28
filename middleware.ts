@@ -5,9 +5,9 @@ import type { NextRequest } from 'next/server';
  * Middleware for path-based "subdomain" routing
  * 
  * Since we're on Vercel Hobby (no wildcard custom domains), we use path-based routing:
- * - rooms4rentlv.com/[landlord-slug]/... for tenant-facing pages
- * - rooms4rentlv.com/admin/... for landlord admin
- * - rooms4rentlv.com/user/... for tenant dashboard
+ * - propertyflowhq.com/[landlord-slug]/... for tenant-facing pages
+ * - propertyflowhq.com/admin/... for landlord admin
+ * - propertyflowhq.com/user/... for tenant dashboard
  * 
  * The [subdomain] dynamic route folder handles /[landlord-slug]/... paths automatically.
  * This middleware just ensures proper header passing and basic routing.

@@ -18,7 +18,7 @@ async function getLandlordForRequest() {
 const Header = async () => {
   const categories = await getCategoryTree();
   const landlord = await getLandlordForRequest();
-  const displayName = landlord?.name || 'Rooms For Rent LV';
+  const displayName = landlord?.name || 'Property Flow HQ';
   const session = await auth();
   const isAuthenticated = Boolean(session?.user);
 

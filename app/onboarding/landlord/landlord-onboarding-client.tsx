@@ -228,7 +228,7 @@ export default function LandlordOnboardingClient() {
                   Get your own tenant portal
                 </h1>
                 <p className="text-lg text-slate-400 max-w-xl mx-auto">
-                  We'll create a custom URL like <span className="font-mono text-violet-400">yourname.rooms4rentlv.com</span> for tenant applications and rent payments.
+                  We'll create a custom URL like <span className="font-mono text-violet-400">yourname.propertyflowhq.com</span> for tenant applications and rent payments.
                 </p>
               </div>
 

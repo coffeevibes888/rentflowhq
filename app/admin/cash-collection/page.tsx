@@ -180,7 +180,7 @@ Reference ID: ${payment.referenceId}
             </style>
           </head>
           <body>
-            <h2>Rooms4RentLV - Cash Payment</h2>
+            <h2>Property Flow HQ - Cash Payment</h2>
             <div class="info"><strong>Reference ID:</strong> ${payment.referenceId}</div>
             <div class="info"><strong>Amount:</strong> $${payment.amount.toFixed(2)}</div>
             <div class="info"><strong>Location:</strong> ${payment.location}</div>

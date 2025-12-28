@@ -92,7 +92,7 @@ export default function RoleSelectionClient({ userName }: RoleSelectionClientPro
         >
           <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-500/20 to-cyan-500/20 px-4 py-1.5 text-sm font-medium text-violet-300 ring-1 ring-violet-500/30">
             <Sparkles className="h-4 w-4" />
-            Welcome to Rooms For Rent LV
+            Welcome to Property Flow HQ
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
             Hey {userName.split(' ')[0]}! 👋

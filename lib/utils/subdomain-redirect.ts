@@ -4,7 +4,7 @@ import { prisma } from '@/db/prisma';
 /**
  * PATH-BASED ROUTING (Vercel Hobby compatible)
  * 
- * Instead of subdomain.rooms4rentlv.com, we use rooms4rentlv.com/[landlord-slug]/...
+ * Instead of subdomain.propertyflowhq.com, we use propertyflowhq.com/[landlord-slug]/...
  * This works on Vercel Hobby without wildcard domain support.
  * 
  * URL patterns:

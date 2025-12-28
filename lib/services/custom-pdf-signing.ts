@@ -195,7 +195,7 @@ export async function applySignaturesToPdf(opts: {
     `IP Address: ${audit.ip || 'Unknown'}`,
     `User Agent: ${audit.userAgent || 'Unknown'}`,
     '',
-    'This document was electronically signed using Rooms4RentLV.',
+    'This document was electronically signed using Property Flow HQ.',
     'The signer agreed that their electronic signature is legally binding.',
   ].join('\n');
 

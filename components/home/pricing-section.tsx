@@ -25,7 +25,7 @@ const tiers = [
       { name: 'Up to 24 units', included: true },
       { name: 'Online rent collection', included: true },
       { name: 'Your own branded tenant portal', included: true },
-      { name: 'Custom subdomain (yourname.rooms4rentlv.com)', included: true },
+      { name: 'Custom subdomain (yourname.propertyflowhq.com)', included: true },
       { name: 'Maintenance ticket system', included: true },
       { name: 'Digital leases with E-Sign', included: true },
       { name: 'Basic reporting', included: true },

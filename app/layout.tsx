@@ -12,12 +12,12 @@ let resolvedMetadataBase: URL;
 try {
   resolvedMetadataBase = new URL(SERVER_URL);
 } catch {
-  resolvedMetadataBase = new URL('https://www.rooms4rentlv.com');
+  resolvedMetadataBase = new URL('https://www.propertyflowhq.com');
 }
 
 export const metadata: Metadata = {
   title: {
-    template: `%s | Rooms For Rent LV`,
+    template: `%s | Property Flow HQ`,
     default: APP_NAME,
   },
   description: APP_DESCRIPTION,

@@ -3,11 +3,11 @@ import { prisma } from '@/db/prisma';
 import ListingsClient from './listings-client';
 
 export const metadata: Metadata = {
-  title: 'Find Your Perfect Home | Rooms For Rent LV',
+  title: 'Find Your Perfect Home | Property Flow HQ',
   description: 'Browse available apartments, rooms, and homes for rent in Las Vegas. Search by price, bedrooms, bathrooms, and location. Find your next home today.',
-  keywords: ['apartments for rent', 'rooms for rent', 'Las Vegas rentals', 'homes for rent', 'rental properties'],
+  keywords: ['apartments for rent', 'homes for rent', 'Las Vegas rentals', 'rental properties'],
   openGraph: {
-    title: 'Find Your Perfect Home | Rooms For Rent LV',
+    title: 'Find Your Perfect Home | Property Flow HQ',
     description: 'Browse available apartments, rooms, and homes for rent in Las Vegas.',
     type: 'website',
   },

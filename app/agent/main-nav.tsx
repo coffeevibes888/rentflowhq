@@ -32,22 +32,22 @@ const AgentMainNav = ({
             className={cn(
               'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
               isActive 
-                ? 'bg-gradient-to-r from-amber-600/90 to-orange-600/90 text-white shadow-lg shadow-amber-500/20' 
-                : 'text-slate-700 hover:bg-white/20 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-violet-600/90 to-indigo-600/90 text-white shadow-lg shadow-violet-500/20' 
+                : 'text-slate-300 hover:bg-white/10 hover:text-white'
             )}
           >
             <Icon className={cn(
               'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
-              isActive ? 'text-white' : 'text-slate-600'
+              isActive ? 'text-white' : 'text-slate-400'
             )} />
             <div className='flex flex-col min-w-0 nav-text-content'>
               <span className={cn(
                 'font-semibold text-sm truncate',
-                isActive ? 'text-white' : 'text-slate-800'
+                isActive ? 'text-white' : 'text-slate-200'
               )}>{item.title}</span>
               <span className={cn(
                 'text-[11px] truncate',
-                isActive ? 'text-amber-200' : 'text-slate-500'
+                isActive ? 'text-violet-200' : 'text-slate-500'
               )}>{item.description}</span>
             </div>
           </Link>

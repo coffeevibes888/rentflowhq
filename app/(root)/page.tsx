@@ -476,7 +476,7 @@ const Homepage = async () => {
             <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
               {[
                 { icon: DollarSign, title: 'Online Rent Collection', desc: '$2 flat fee per payment — not a percentage of your rent' },
-                { icon: Building2, title: 'Your Own Branded Portal', desc: 'Custom subdomain (yourname.rentflowhq.com) for your tenants' },
+                { icon: Building2, title: 'Your Own Branded Portal', desc: 'Custom subdomain (yourname.propertyflowhq.com) for your tenants' },
                 { icon: MessageSquare, title: 'Team Chat Built-In', desc: 'Slack-like communication for your property management team' },
                 { icon: FileText, title: 'Digital Leases', desc: 'E-signatures, storage, and automatic renewal reminders' },
                 { icon: Wrench, title: 'Maintenance Tickets', desc: 'Priority-based system with tenant communication' },

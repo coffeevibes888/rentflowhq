@@ -44,7 +44,7 @@ export class PayNearMeService {
     const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const barcodeData = {
-      company: 'Rooms4RentLV',
+      company: 'PropertyFlowHQ',
       referenceId,
       amount: options.amount.toFixed(2),
       tenantName: options.tenantInfo.name,
@@ -169,7 +169,7 @@ export class PayNearMeService {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Rooms4RentLV - Cash Payment Slip</title>
+        <title>Property Flow HQ - Cash Payment Slip</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: 0 auto; }
           .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
@@ -181,7 +181,7 @@ export class PayNearMeService {
       </head>
       <body>
         <div class="header">
-          <h2>Rooms4RentLV</h2>
+          <h2>Property Flow HQ</h2>
           <h3>Cash Payment Slip</h3>
         </div>
         
@@ -215,7 +215,7 @@ export class PayNearMeService {
         
         <div class="footer">
           Questions? Call (702) 555-0123<br>
-          www.rooms4rentlv.com
+          www.propertyflowhq.com
         </div>
       </body>
       </html>

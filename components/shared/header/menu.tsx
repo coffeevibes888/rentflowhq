@@ -24,6 +24,12 @@ const Menu = async () => {
   } else if (userRole === 'property_manager') {
     dashboardLabel = 'Property Manager Dashboard';
     dashboardLink = '/admin/overview';
+  } else if (userRole === 'agent') {
+    dashboardLabel = 'Agent Dashboard';
+    dashboardLink = '/agent/dashboard';
+  } else if (userRole === 'contractor') {
+    dashboardLabel = 'Contractor Dashboard';
+    dashboardLink = '/contractor/dashboard';
   }
   
   return (

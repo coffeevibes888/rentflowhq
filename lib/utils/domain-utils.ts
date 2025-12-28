@@ -4,7 +4,7 @@
  */
 export function getRootDomainFromHost(host: string | null): string {
   if (!host) {
-    return process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'rooms4rentlv.com';
+    return process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'propertyflowhq.com';
   }
 
   const bareHost = host.split(':')[0].toLowerCase();
@@ -15,8 +15,8 @@ export function getRootDomainFromHost(host: string | null): string {
   }
 
   // For production, extract root domain from host
-  // If host is "subdomain.rooms4rentlv.com", return "rooms4rentlv.com"
-  // If host is "rooms4rentlv.com", return "rooms4rentlv.com"
+  // If host is "subdomain.propertyflowhq.com", return "propertyflowhq.com"
+  // If host is "propertyflowhq.com", return "propertyflowhq.com"
   const parts = bareHost.split('.');
   
   // If it's a subdomain (has more than 2 parts), extract the root

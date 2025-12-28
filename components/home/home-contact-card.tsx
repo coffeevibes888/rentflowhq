@@ -154,7 +154,7 @@ const HomeContactCard = () => {
                   <Mail className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                   <div>
                     <div className="font-semibold text-white text-sm">Email Support</div>
-                    <div className="text-xs text-slate-400 break-all">support@rooms4rentlv.com</div>
+                    <div className="text-xs text-slate-400 break-all">support@propertyflowhq.com</div>
                   </div>
                 </div>
 

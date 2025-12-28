@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       const adminEmail = process.env.SMTP_USER || 'allen@rockenmyvibe.com';
       
       await resend.emails.send({
-        from: `${APP_NAME} <${process.env.SENDER_EMAIL || 'noreply@rooms4rentlv.com'}>`,
+        from: `${APP_NAME} <${process.env.SENDER_EMAIL || 'noreply@propertyflowhq.com'}>`,
         to: adminEmail,
         replyTo: email,
         subject: `New Contact Form Submission: ${subject || 'No Subject'}`,

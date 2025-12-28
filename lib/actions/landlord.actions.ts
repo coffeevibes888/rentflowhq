@@ -36,7 +36,7 @@ async function saveFiles(
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const folder = ['rooms4rentlv', 'landlords', landlordId, ...dirParts]
+    const folder = ['propertyflowhq', 'landlords', landlordId, ...dirParts]
       .filter(Boolean)
       .join('/');
     const publicId = `${landlordId}-${randomUUID()}`;
@@ -273,7 +273,7 @@ export async function uploadLandlordLogo(formData: FormData) {
     let result;
     try {
       result = await uploadToCloudinary(buffer, {
-        folder: ['rooms4rentlv', 'landlords', landlord.id, 'branding', 'logo'].join('/'),
+        folder: ['propertyflowhq', 'landlords', landlord.id, 'branding', 'logo'].join('/'),
         public_id: `${landlord.id}-logo-${randomUUID()}`,
         resource_type: 'image',
       });

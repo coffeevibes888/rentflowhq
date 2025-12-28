@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import {
 
 export default function AgentOnboardingClient() {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -65,6 +67,8 @@ export default function AgentOnboardingClient() {
       const data = await response.json();
 
       if (response.ok) {
+        // Update the session to refresh the role and onboardingCompleted status
+        await updateSession();
         router.push('/agent/dashboard');
       } else {
         setError(data.error || 'Something went wrong. Please try again.');
@@ -299,7 +303,7 @@ export default function AgentOnboardingClient() {
               <div className="space-y-2">
                 <Label className="text-slate-300">Choose your URL</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500 text-sm">rooms4rentlv.com/</span>
+                  <span className="text-slate-500 text-sm">propertyflowhq.com/</span>
                   <Input
                     placeholder="your-name"
                     value={formData.subdomain}

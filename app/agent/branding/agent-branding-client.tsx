@@ -110,14 +110,14 @@ export default function AgentBrandingClient({ agent }: AgentBrandingClientProps)
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg">
-              <span className="text-slate-600">rooms4rentlv.com/</span>
+              <span className="text-slate-600">propertyflowhq.com/</span>
               <span className="font-semibold text-slate-900">{agent.subdomain}</span>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="ml-auto"
-                onClick={() => navigator.clipboard.writeText(`https://rooms4rentlv.com/${agent.subdomain}`)}
+                onClick={() => navigator.clipboard.writeText(`https://propertyflowhq.com/${agent.subdomain}`)}
               >
                 Copy
               </Button>

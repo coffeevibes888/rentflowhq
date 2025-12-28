@@ -56,8 +56,8 @@ export function AgentSidebarWrapper({ children }: AgentSidebarWrapperProps) {
           onClick={toggleSidebar}
           className={cn(
             'absolute -right-3 top-8 z-10 flex h-6 w-6 items-center justify-center rounded-full',
-            'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg',
-            'hover:from-amber-500 hover:to-orange-500 transition-all duration-200',
+            'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg',
+            'hover:from-violet-500 hover:to-indigo-500 transition-all duration-200',
             'border-2 border-white/20 hover:scale-110'
           )}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}

@@ -13,9 +13,9 @@ export default function AgentLayout({
 }>) {
   return (
     <SessionProviderWrapper>
-      <div className='flex min-h-screen flex-col bg-gradient-to-r from-amber-400 via-orange-400 to-amber-600'>
+      <div className='flex min-h-screen flex-col bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900'>
         <Header />
-        <div className='flex flex-1 text-black'>
+        <div className='flex flex-1 text-white'>
           {/* Collapsible Sidebar */}
           <AgentSidebarWrapper>
             <div className='flex items-center gap-3 px-2 p-2'>
@@ -29,7 +29,7 @@ export default function AgentLayout({
                 />
               </div>
               <div className='flex flex-col sidebar-expanded-only'>
-                <span className='text-sm text-black'>Real Estate Agent Portal</span>
+                <span className='text-sm text-white'>Real Estate Agent Portal</span>
               </div>
             </div>
             <AgentMainNav className='flex-1' />

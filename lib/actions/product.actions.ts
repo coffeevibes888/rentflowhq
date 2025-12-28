@@ -33,7 +33,7 @@ async function migrateImagesToCloudinary(images: string[], landlordId: string) {
 
     try {
       const result = await uploadUrlToCloudinary(url, {
-        folder: ['rooms4rentlv', 'landlords', landlordId, 'properties', 'photos'].join('/'),
+        folder: ['propertyflowhq', 'landlords', landlordId, 'properties', 'photos'].join('/'),
         resource_type: 'image',
       });
       migrated.push(result.secure_url);

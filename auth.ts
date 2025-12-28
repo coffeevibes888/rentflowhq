@@ -72,6 +72,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const dbUser = await prisma.user.findUnique({
         where: { id: token.sub },
         select: { 
+          role: true,
           phoneVerified: true, 
           phoneNumber: true,
           address: true,
@@ -83,6 +84,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       });
 
       if (dbUser) {
+        session.user.role = dbUser.role;
         session.user.phoneVerified = dbUser.phoneVerified;
         session.user.phoneNumber = dbUser.phoneNumber;
         session.user.address = dbUser.address;
@@ -137,9 +139,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      // Handle session updates
-      if (session?.user.name && trigger === 'update') {
-        token.name = session.user.name;
+      // Handle session updates - refresh role and onboardingCompleted from database
+      if (trigger === 'update') {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true, onboardingCompleted: true, name: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.onboardingCompleted = dbUser.onboardingCompleted;
+          if (session?.user?.name) {
+            token.name = session.user.name;
+          }
+        }
       }
 
       return token;

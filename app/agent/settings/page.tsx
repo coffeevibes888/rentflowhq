@@ -61,7 +61,7 @@ export default async function AgentSettingsPage() {
             </div>
             <div>
               <p className="text-sm text-slate-500">Subdomain</p>
-              <p className="font-medium text-slate-900">rooms4rentlv.com/{agent.subdomain}</p>
+              <p className="font-medium text-slate-900">propertyflowhq.com/{agent.subdomain}</p>
             </div>
           </div>
         </CardContent>

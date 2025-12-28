@@ -66,7 +66,7 @@ const AdminOverviewPage = async (props: {
   const landlordName = landlordResult.landlord.companyName || landlordResult.landlord.name;
 
   // Build the listing URL for sharing
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'rooms4rentlv.com';
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'propertyflowhq.com';
   const isLocalhost = rootDomain.includes('localhost');
   const protocol = isLocalhost ? 'http' : 'https';
   const listingUrl = landlordSubdomain ? `${protocol}://${rootDomain}/${landlordSubdomain}` : '';

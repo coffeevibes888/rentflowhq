@@ -48,7 +48,7 @@ async function main() {
   const adminUser = await prisma.user.create({
     data: {
       name: 'Admin User',
-      email: 'admin@rentflowhq.com',
+      email: 'admin@propertyflowhq.com',
       password: adminPassword,
       role: 'admin',
       emailVerified: new Date(),
@@ -60,14 +60,14 @@ async function main() {
   console.log('🏢 Creating landlord profile for admin...');
   const landlord = await prisma.landlord.create({
     data: {
-      name: 'RentFlow Properties',
+      name: 'PropertyFlow Properties',
       ownerUserId: adminUser.id,
-      subdomain: 'rentflow',
+      subdomain: 'propertyflow',
       subscriptionTier: 'pro',
       logoUrl: null,
       heroImages: [],
       themeColor: '#8b5cf6', // violet
-      companyName: 'RentFlow Properties LLC',
+      companyName: 'PropertyFlow Properties LLC',
       companyAddress: '123 Main Street, Las Vegas, NV 89101',
       aboutBio: 'Professional property management services in Las Vegas.',
     },
@@ -94,7 +94,7 @@ async function main() {
   const superAdmin = await prisma.user.create({
     data: {
       name: 'Super Admin',
-      email: 'superadmin@rentflowhq.com',
+      email: 'superadmin@propertyflowhq.com',
       password: superAdminPassword,
       role: 'super_admin',
       emailVerified: new Date(),
@@ -106,7 +106,7 @@ async function main() {
   console.log('📝 Login Credentials:');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('Admin:');
-  console.log('  Email: admin@rentflowhq.com');
+  console.log('  Email: admin@propertyflowhq.com');
   console.log('  Password: Admin123!');
   console.log('');
   console.log('Tenant:');
@@ -114,7 +114,7 @@ async function main() {
   console.log('  Password: Tenant123!');
   console.log('');
   console.log('Super Admin:');
-  console.log('  Email: superadmin@rentflowhq.com');
+  console.log('  Email: superadmin@propertyflowhq.com');
   console.log('  Password: SuperAdmin123!');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
