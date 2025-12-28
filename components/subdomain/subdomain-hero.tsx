@@ -12,6 +12,7 @@ interface SubdomainHeroProps {
   brandPhone?: string | null;
   brandAddress?: string | null;
   heroMedia: string[];
+  subdomain: string;
 }
 
 export default function SubdomainHero({
@@ -20,6 +21,7 @@ export default function SubdomainHero({
   brandPhone,
   brandAddress,
   heroMedia,
+  subdomain,
 }: SubdomainHeroProps) {
   return (
     <div className="relative w-full min-h-[480px] md:h-[600px] overflow-visible flex items-center justify-center bg-transparent">
@@ -57,7 +59,7 @@ export default function SubdomainHero({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.6, ease: 'easeOut' }}
           >
-            <Link href="/sign-up">
+            <Link href={`/${subdomain}/sign-in`}>
               <motion.button
                 whileHover={{ scale: 1.05, y: -2, boxShadow: '0 24px 60px rgba(0,0,0,0.75)' }}
                 whileTap={{ scale: 0.97, y: 0, boxShadow: '0 14px 30px rgba(0,0,0,0.6)' }}

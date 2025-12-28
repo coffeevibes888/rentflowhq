@@ -124,6 +124,7 @@ export default async function SubdomainRootPage({
           brandPhone={brandPhone}
           brandAddress={brandAddress}
           heroMedia={heroMedia}
+          subdomain={subdomain}
         />
 
         {/* Property Listings Section (moved up for visibility) */}
@@ -337,14 +338,14 @@ export default async function SubdomainRootPage({
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
-                  href="/sign-up"
+                  href={`/${subdomain}/sign-in`}
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-base font-bold text-violet-600 hover:bg-violet-50 transition-all hover:scale-105 shadow-lg"
                 >
                   Start Your Application
                   <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
-                  href="/sign-in"
+                  href={`/${subdomain}/sign-in`}
                   className="inline-flex items-center justify-center rounded-full border-2 border-white/30 bg-white/10 px-8 py-4 text-base font-semibold text-white hover:bg-white/20 transition-all backdrop-blur-sm"
                 >
                   Already Applied? Sign In

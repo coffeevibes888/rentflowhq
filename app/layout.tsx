@@ -6,6 +6,7 @@ import PageViewTracker from '@/components/analytics/page-view-tracker';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { ThemeProvider } from 'next-themes';
 import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
+import PrivacyConsentBanner from '@/components/privacy/privacy-consent-banner';
 
 let resolvedMetadataBase: URL;
 try {
@@ -56,6 +57,7 @@ export default function RootLayout({
             {children}
             <Toaster />
             <TeamChatWidgetWrapper />
+            <PrivacyConsentBanner />
           </ThemeProvider>
         </SessionProviderWrapper>
       </body>

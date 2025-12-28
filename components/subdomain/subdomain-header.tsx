@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Landlord, User } from '@prisma/client';
-import { Menu } from 'lucide-react';
+import { Menu, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 type LandlordWithExtras = Landlord & {
@@ -21,6 +22,7 @@ interface SubdomainHeaderProps {
 
 export default function SubdomainHeader({ landlord }: SubdomainHeaderProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   const accent = (() => {
     switch (landlord.themeColor) {
       case 'emerald':
@@ -45,6 +47,16 @@ export default function SubdomainHeader({ landlord }: SubdomainHeaderProps) {
     <header className="w-full bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-6">
+          {/* Back Button */}
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-1 text-sm text-white/80 hover:text-white transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="hidden sm:inline">Back</span>
+          </button>
+
           {/* Logo and Company Name */}
           <Link href={basePath} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             {landlord.logoUrl ? (
@@ -71,24 +83,18 @@ export default function SubdomainHeader({ landlord }: SubdomainHeaderProps) {
 
           {/* Nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-200/90">
-            <Link href={basePath} className="hover:text-violet-200 transition-colors">
+            <Link href="/" className="hover:text-violet-200 transition-colors">
               Home
             </Link>
-            <Link href={`${basePath}#properties`} className="hover:text-violet-200 transition-colors">
+            <Link href="/listings" className="hover:text-violet-200 transition-colors">
               Listings
             </Link>
             <Link href={`${basePath}/about`} className="hover:text-violet-200 transition-colors">
               About
             </Link>
-            {ownerEmail ? (
-              <a href={`mailto:${ownerEmail}`} className="hover:text-violet-200 transition-colors">
-                Contact
-              </a>
-            ) : ownerPhone ? (
-              <a href={`tel:${ownerPhone}`} className="hover:text-violet-200 transition-colors">
-                Call
-              </a>
-            ) : null}
+            <Link href={`${basePath}/contact`} className="hover:text-violet-200 transition-colors">
+              Contact
+            </Link>
           </nav>
 
           {/* Contact Info */}
@@ -116,7 +122,7 @@ export default function SubdomainHeader({ landlord }: SubdomainHeaderProps) {
               </a>
             )}
             <Link
-              href="/sign-in"
+              href={`${basePath}/sign-in`}
               className="px-4 py-2 rounded-lg bg-violet-500 text-white text-sm font-medium hover:bg-violet-600 transition-colors"
             >
               Sign In
@@ -134,25 +140,18 @@ export default function SubdomainHeader({ landlord }: SubdomainHeaderProps) {
         {/* Mobile Nav */}
         {open && (
           <div className="md:hidden mt-3 space-y-2 text-sm font-medium text-slate-200/90">
-            <Link href={basePath} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
+            <Link href="/" className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
               Home
             </Link>
-            <Link href={`${basePath}#properties`} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
+            <Link href="/listings" className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
               Listings
             </Link>
             <Link href={`${basePath}/about`} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
               About
             </Link>
-            {ownerEmail && (
-              <a href={`mailto:${ownerEmail}`} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-                Contact
-              </a>
-            )}
-            {ownerPhone && (
-              <a href={`tel:${ownerPhone}`} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-                Call
-              </a>
-            )}
+            <Link href={`${basePath}/contact`} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
+              Contact
+            </Link>
           </div>
         )}
       </div>
