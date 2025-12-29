@@ -82,15 +82,17 @@ export async function POST() {
     const inviteCode = generateInviteCode();
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
+    // Generate a unique placeholder email using the invite code and timestamp
+    const uniqueId = `${inviteCode.toLowerCase()}-${Date.now()}`;
+    const placeholderEmail = `pending-${uniqueId}@invite.placeholder`;
+
     // Create a placeholder contractor record (will be updated when contractor signs up)
-    // We need a contractorId for the invite, so we create a placeholder
     const placeholderContractor = await prisma.contractor.create({
       data: {
         landlordId,
-        userId: session.user.id, // Temporary, will be updated
+        userId: null, // No user yet - will be linked when contractor signs up
         name: 'Pending Contractor',
-        email: 'pending@placeholder.com',
-        status: 'pending_invite',
+        email: placeholderEmail,
       },
     });
 
@@ -98,7 +100,7 @@ export async function POST() {
       data: {
         landlordId,
         contractorId: placeholderContractor.id,
-        email: 'pending@placeholder.com',
+        email: placeholderEmail,
         token: inviteCode,
         status: 'pending',
         expiresAt,

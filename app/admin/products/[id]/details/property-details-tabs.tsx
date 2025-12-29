@@ -45,8 +45,6 @@ import { ArrowDownToLine } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EnhancedTenantCard } from '@/components/admin/enhanced-tenant-card';
 import { VacantUnitCard } from '@/components/admin/vacant-unit-card';
-import { PastTenantsTab } from '@/components/admin/past-tenants-tab';
-import { History } from 'lucide-react';
 import TenantComms from '@/components/admin/tenant-comms';
 
 interface CashoutInfo {
@@ -381,10 +379,6 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               <BarChart3 className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline text-white font-bold">Financials</span>
             </TabsTrigger>
-            <TabsTrigger value="past-tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
-              <History className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline text-white font-bold">Past Tenants</span>
-            </TabsTrigger>
           </TabsList>
 
           {/* OVERVIEW TAB */}
@@ -516,22 +510,22 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
           {/* COMMUNICATIONS TAB */}
           <TabsContent value="communications" className="mt-6">
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
               {/* Communications Header */}
               <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <MessageCircle className="w-5 h-5" />
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-white flex items-center gap-2 text-base sm:text-lg">
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     Property Communications
                   </CardTitle>
-                  <CardDescription className="text-slate-300">
+                  <CardDescription className="text-slate-300 text-xs sm:text-sm">
                     Message tenants at {property.name} directly from here
                   </CardDescription>
                 </CardHeader>
               </Card>
 
               {/* Tenant Communications Component */}
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 backdrop-blur-xl shadow-2xl overflow-hidden">
+              <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 backdrop-blur-xl shadow-2xl overflow-hidden p-3 sm:p-4 md:p-6">
                 <TenantComms 
                   tenants={tenants.length > 0 ? tenants : activeLeases.map((lease: any) => ({
                     id: lease.tenant?.id || '',
@@ -548,69 +542,90 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
           </TabsContent>
 
           {/* TENANTS TAB */}
-          <TabsContent value="tenants" className="mt-6 space-y-6">
-            {/* Current Tenants */}
+          <TabsContent value="tenants" className="mt-6 space-y-4 sm:space-y-6">
             <Card className="border-white/10 bg-slate-900/60">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Current Tenants
+              <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+                <CardTitle className="text-white flex items-center gap-2 text-base sm:text-lg">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Tenants
                 </CardTitle>
-                <CardDescription className="text-slate-400">
-                  {activeLeases.length} active lease{activeLeases.length !== 1 ? 's' : ''}
+                <CardDescription className="text-slate-400 text-xs sm:text-sm">
+                  Manage current and past tenants at this property
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {activeLeases.length === 0 ? (
-                  <p className="text-sm text-slate-400 text-center py-8">No active tenants</p>
-                ) : (
-                  <div className="space-y-4">
-                    {activeLeases.map((lease: any) => (
-                      <EnhancedTenantCard 
-                        key={lease.id} 
-                        lease={lease} 
-                        isExpanded={selectedTenant === lease.id}
-                        onToggle={() => setSelectedTenant(selectedTenant === lease.id ? null : lease.id)}
-                        propertyId={property.id}
-                        onViewLease={() => setViewingLease(lease)}
-                        onRefresh={handleTenantRefresh}
-                      />
-                    ))}
-                  </div>
-                )}
+              <CardContent className="p-3 sm:p-6 pt-0">
+                <Tabs defaultValue="current" className="w-full">
+                  <TabsList className="w-full grid grid-cols-2 bg-slate-800/60 border border-white/10 p-1 rounded-lg h-auto mb-4">
+                    <TabsTrigger 
+                      value="current" 
+                      className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md px-3 py-2 text-xs sm:text-sm text-slate-300"
+                    >
+                      <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                      Current
+                      {activeLeases.length > 0 && (
+                        <Badge className="ml-1.5 sm:ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs">{activeLeases.length}</Badge>
+                      )}
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="past" 
+                      className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md px-3 py-2 text-xs sm:text-sm text-slate-300"
+                    >
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                      Past
+                      {pastLeases.length > 0 && (
+                        <Badge className="ml-1.5 sm:ml-2 bg-slate-500/20 text-slate-300 text-[10px] sm:text-xs">{pastLeases.length}</Badge>
+                      )}
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Current Tenants */}
+                  <TabsContent value="current" className="mt-0">
+                    {activeLeases.length === 0 ? (
+                      <p className="text-xs sm:text-sm text-slate-400 text-center py-6 sm:py-8">No active tenants</p>
+                    ) : (
+                      <div className="space-y-3 sm:space-y-4">
+                        {activeLeases.map((lease: any) => (
+                          <EnhancedTenantCard 
+                            key={lease.id} 
+                            lease={lease} 
+                            isExpanded={selectedTenant === lease.id}
+                            onToggle={() => setSelectedTenant(selectedTenant === lease.id ? null : lease.id)}
+                            propertyId={property.id}
+                            onViewLease={() => setViewingLease(lease)}
+                            onRefresh={handleTenantRefresh}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  {/* Past Tenants */}
+                  <TabsContent value="past" className="mt-0">
+                    {pastLeases.length === 0 ? (
+                      <p className="text-xs sm:text-sm text-slate-400 text-center py-6 sm:py-8">No past tenants</p>
+                    ) : (
+                      <div className="space-y-2 sm:space-y-3">
+                        {pastLeases.map((lease: any) => (
+                          <div key={lease.id} className="rounded-lg border border-white/10 bg-slate-800/40 p-3 sm:p-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="font-medium text-slate-300 text-sm sm:text-base truncate">{lease.tenant?.name || 'Unknown'}</p>
+                                <p className="text-[10px] sm:text-xs text-slate-500">
+                                  Unit {lease.unitName} • {new Date(lease.startDate).toLocaleDateString()} - {lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'N/A'}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className="border-slate-500/40 text-slate-400 text-[10px] sm:text-xs w-fit">
+                                {lease.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
-
-            {/* Past Tenants */}
-            {pastLeases.length > 0 && (
-              <Card className="border-white/10 bg-slate-900/60">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Past Tenants
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {pastLeases.map((lease: any) => (
-                      <div key={lease.id} className="rounded-lg border border-white/10 bg-slate-800/40 p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-slate-300">{lease.tenant?.name || 'Unknown'}</p>
-                            <p className="text-xs text-slate-500">
-                              Unit {lease.unitName} • {new Date(lease.startDate).toLocaleDateString()} - {lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'N/A'}
-                            </p>
-                          </div>
-                          <Badge variant="outline" className="border-slate-500/40 text-slate-400">
-                            {lease.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
           {/* FINANCIALS TAB */}
@@ -783,24 +798,6 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                 </Card>
               </div>
             </div>
-          </TabsContent>
-
-          {/* PAST TENANTS TAB */}
-          <TabsContent value="past-tenants" className="mt-6">
-            <Card className="border-white/10 bg-slate-900/60">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <History className="w-5 h-5" />
-                  Past Tenants
-                </CardTitle>
-                <CardDescription className="text-slate-400">
-                  History of previous tenants at this property
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PastTenantsTab propertyId={property.id} />
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>

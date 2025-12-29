@@ -165,7 +165,7 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
         </button>
       </DialogTrigger>
       
-      <DialogContent className='sm:max-w-md bg-slate-900 border-white/10 text-white'>
+      <DialogContent className='sm:max-w-md bg-slate-900 border-white/10 text-white max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle className='text-white flex items-center gap-2'>
             <Wrench className='h-5 w-5 text-emerald-400' />
