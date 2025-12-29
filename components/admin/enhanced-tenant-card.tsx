@@ -83,8 +83,8 @@ export function EnhancedTenantCard({
   const needsLandlordSignature = tenantSigned && !landlordSigned;
   const isPendingSignature = lease.status === 'pending_signature';
 
-  // Get signed PDF URL from signature requests
-  const signedPdfUrl = landlordSignature?.signedPdfUrl || tenantSignature?.signedPdfUrl;
+  // Get signed PDF URL from signature requests (initial value)
+  const initialSignedPdfUrl = landlordSignature?.signedPdfUrl || tenantSignature?.signedPdfUrl;
 
   // Modal states
   const [showEvictionModal, setShowEvictionModal] = useState(false);
@@ -96,6 +96,7 @@ export function EnhancedTenantCard({
   const [showLeaseViewer, setShowLeaseViewer] = useState(false);
   const [leaseHtml, setLeaseHtml] = useState<string | null>(null);
   const [loadingLeaseHtml, setLoadingLeaseHtml] = useState(false);
+  const [signedPdfUrl, setSignedPdfUrl] = useState<string | null>(initialSignedPdfUrl || null);
 
   // Invoice states
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
@@ -197,6 +198,10 @@ export function EnhancedTenantCard({
         if (res.ok) {
           const data = await res.json();
           setLeaseHtml(data.html);
+          // Update signedPdfUrl from API response if available
+          if (data.signedPdfUrl) {
+            setSignedPdfUrl(data.signedPdfUrl);
+          }
         }
       } catch (error) {
         console.error('Failed to load lease:', error);

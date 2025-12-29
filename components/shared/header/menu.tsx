@@ -60,7 +60,7 @@ const Menu = async () => {
             <NotificationBell isAdmin={isAdmin} />
             <Link href='/' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Home</Link>
             <Link href='/listings' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Listings</Link>
-            <Link href='/blog' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Blog</Link>
+            <Link href='/contractors' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Contractors</Link>
             <Link href='/about' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">About</Link>
             <Link href='/contact' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Contact</Link>
             <UserButton />

@@ -48,13 +48,15 @@ export default function AgentListingsClient({ listings }: AgentListingsClientPro
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [listingTypeFilter, setListingTypeFilter] = useState<string>('all');
 
   const filteredListings = listings.filter((listing) => {
     const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (listing.address?.city?.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || listing.status === statusFilter;
     const matchesType = typeFilter === 'all' || listing.propertyType === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    const matchesListingType = listingTypeFilter === 'all' || listing.listingType === listingTypeFilter;
+    return matchesSearch && matchesStatus && matchesType && matchesListingType;
   });
 
   const getStatusBadge = (status: string) => {
@@ -95,6 +97,16 @@ export default function AgentListingsClient({ listings }: AgentListingsClientPro
             className="pl-10 bg-white/80"
           />
         </div>
+        <Select value={listingTypeFilter} onValueChange={setListingTypeFilter}>
+          <SelectTrigger className="w-full md:w-40 bg-white/80">
+            <SelectValue placeholder="Buy/Rent" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Buy & Rent</SelectItem>
+            <SelectItem value="sale">For Sale</SelectItem>
+            <SelectItem value="rent">For Rent</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full md:w-40 bg-white/80">
             <SelectValue placeholder="Status" />
@@ -158,8 +170,11 @@ export default function AgentListingsClient({ listings }: AgentListingsClientPro
                     <Building2 className="h-12 w-12 text-slate-400" />
                   </div>
                 )}
-                <div className="absolute top-3 left-3">
+                <div className="absolute top-3 left-3 flex gap-2">
                   <Badge className={getStatusBadge(listing.status)}>{listing.status}</Badge>
+                  <Badge className={listing.listingType === 'rent' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}>
+                    {listing.listingType === 'rent' ? 'For Rent' : 'For Sale'}
+                  </Badge>
                 </div>
                 <div className="absolute top-3 right-3">
                   <DropdownMenu>

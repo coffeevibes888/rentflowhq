@@ -394,6 +394,8 @@ export async function createProduct(data: z.infer<typeof insertProductSchema>) {
     return {
       success: true,
       message: 'Property created successfully',
+      propertyId: property.id,
+      propertyName: property.name,
     };
   } catch (error: any) {
     if (error?.code === 'P2002') {

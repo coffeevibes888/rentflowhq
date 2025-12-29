@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import type { Product } from '@/types';
+import PropertyLeaseAssignment from '@/components/admin/property-lease-assignment';
 
 export const metadata: Metadata = {
   title: 'Update Property',
@@ -32,6 +33,13 @@ const AdminProductUpdatePage = async (props: {
       units: {
         take: 1,
         orderBy: { createdAt: 'asc' },
+      },
+      defaultLeaseDocument: {
+        select: {
+          id: true,
+          name: true,
+          isFieldsConfigured: true,
+        },
       },
     },
   });
@@ -73,6 +81,14 @@ const AdminProductUpdatePage = async (props: {
     return (
       <div className='space-y-8 max-w-5xl mx-auto'>
         <h1 className='h2-bold'>Update Property</h1>
+        
+        {/* Lease Assignment Section */}
+        <PropertyLeaseAssignment 
+          propertyId={property.id}
+          propertyName={property.name}
+          currentLease={property.defaultLeaseDocument}
+        />
+        
         <ProductForm type='Update' product={productForForm} productId={property.id} />
       </div>
     );

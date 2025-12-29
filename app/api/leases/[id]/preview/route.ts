@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { getSignedUrlFromStoredUrl } from '@/lib/cloudinary';
 
 export async function GET(
   request: NextRequest,
@@ -41,7 +42,9 @@ export async function GET(
             },
           },
         },
-        signatureRequests: true,
+        signatureRequests: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
@@ -65,7 +68,18 @@ export async function GET(
       todayDate: new Date().toISOString().split('T')[0],
     });
 
-    return NextResponse.json({ html });
+    // Get signed PDF URL if available
+    const signedRequest = lease.signatureRequests?.find(sr => sr.status === 'signed' && sr.signedPdfUrl);
+    const rawPdfUrl = signedRequest?.signedPdfUrl || null;
+    const signedPdfUrl = rawPdfUrl ? getSignedUrlFromStoredUrl(rawPdfUrl) : null;
+
+    return NextResponse.json({ 
+      html,
+      signedPdfUrl,
+      leaseStatus: lease.status,
+      tenantSigned: !!lease.tenantSignedAt,
+      landlordSigned: !!lease.landlordSignedAt,
+    });
   } catch (error) {
     console.error('Error generating lease preview:', error);
     return NextResponse.json({ message: 'Failed to generate lease preview' }, { status: 500 });

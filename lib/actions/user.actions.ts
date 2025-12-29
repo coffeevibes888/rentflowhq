@@ -112,11 +112,14 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
     const fromProperty = formData.get('fromProperty') === 'true' || Boolean(formData.get('propertySlug'));
 
     const rawRole = formData.get('role');
+    
+    // Supported roles: user, tenant, landlord, property_manager, contractor, homeowner, agent
+    const validRoles = ['user', 'tenant', 'landlord', 'property_manager', 'contractor', 'homeowner', 'agent'];
     const roleValue = fromProperty
       ? 'tenant'
-      : rawRole === 'tenant' || rawRole === 'landlord' || rawRole === 'property_manager'
+      : rawRole && validRoles.includes(rawRole as string)
         ? (rawRole as string)
-        : 'tenant';
+        : 'user';
 
     const createdUser = await prisma.user.create({
       data: {

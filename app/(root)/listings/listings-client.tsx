@@ -32,15 +32,16 @@ import { cn } from '@/lib/utils';
 
 interface Listing {
   id: string;
-  propertyId: string;
+  propertyId: string | null;
   propertyName: string;
   propertySlug: string;
-  unitName: string;
+  unitName: string | null;
   type: string;
   bedrooms: number | null;
   bathrooms: number | null;
   sizeSqFt: number | null;
-  rentAmount: number;
+  price: number;
+  rentAmount: number | null;
   images: string[];
   amenities: string[];
   availableFrom: string | null;
@@ -53,8 +54,11 @@ interface Listing {
     lng: number | null;
   };
   landlord: { name: string; subdomain: string } | null;
+  agent: { id: string; name: string; subdomain: string; brokerage: string | null; image: string | null } | null;
   hasVideo: boolean;
   hasVirtualTour: boolean;
+  listingType: 'sale' | 'rent';
+  source: 'property' | 'agent';
 }
 
 interface ListingsClientProps {
@@ -76,6 +80,7 @@ interface ListingsClientProps {
     city?: string;
     q?: string;
     view?: string;
+    listingType?: string;
   };
 }
 
@@ -120,6 +125,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
     bathrooms: searchParams.bathrooms || 'any',
     type: searchParams.type || 'all',
     city: searchParams.city || 'all',
+    listingType: searchParams.listingType || 'all',
   });
 
   const { listings, filters: filterOptions, total } = initialData;
@@ -134,6 +140,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
     if (filters.bathrooms !== 'any') params.set('bathrooms', filters.bathrooms);
     if (filters.type !== 'all') params.set('type', filters.type);
     if (filters.city !== 'all') params.set('city', filters.city);
+    if (filters.listingType !== 'all') params.set('listingType', filters.listingType);
     if (viewMode !== 'grid') params.set('view', viewMode);
     
     router.push(`/listings?${params.toString()}`);
@@ -147,6 +154,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
       bathrooms: 'any',
       type: 'all',
       city: 'all',
+      listingType: 'all',
     });
     setSearchQuery('');
     router.push('/listings');
@@ -159,6 +167,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
     filters.bathrooms !== 'any' || 
     filters.type !== 'all' || 
     filters.city !== 'all' ||
+    filters.listingType !== 'all' ||
     searchQuery;
 
   const toggleFavorite = (id: string) => {
@@ -260,6 +269,52 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {/* Buy/Rent Toggle */}
+              <div className="flex border rounded-lg overflow-hidden mr-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'rounded-none px-4',
+                    filters.listingType === 'all' && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                  )}
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, listingType: 'all' }));
+                    setTimeout(applyFilters, 0);
+                  }}
+                >
+                  All
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'rounded-none px-4',
+                    filters.listingType === 'sale' && 'bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white'
+                  )}
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, listingType: 'sale' }));
+                    setTimeout(applyFilters, 0);
+                  }}
+                >
+                  Buy
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'rounded-none px-4',
+                    filters.listingType === 'rent' && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                  )}
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, listingType: 'rent' }));
+                    setTimeout(applyFilters, 0);
+                  }}
+                >
+                  Rent
+                </Button>
+              </div>
+              
               {propertyTypes.map((type) => {
                 const Icon = type.icon;
                 return (
@@ -339,6 +394,12 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
               <Badge variant="secondary" className="gap-1">
                 Type: {filters.type}
                 <X className="h-3 w-3 cursor-pointer" onClick={() => { setFilters(p => ({...p, type: 'all'})); }} />
+              </Badge>
+            )}
+            {filters.listingType !== 'all' && (
+              <Badge variant="secondary" className="gap-1">
+                {filters.listingType === 'sale' ? 'For Sale' : 'For Rent'}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => { setFilters(p => ({...p, listingType: 'all'})); }} />
               </Badge>
             )}
             {filters.bedrooms !== 'any' && (
@@ -547,9 +608,13 @@ function ListingCard({
   onToggleFavorite: () => void;
 }) {
   const mainImage = listing.images[0] || '/images/livingroom.jpg';
-  const propertyUrl = listing.landlord?.subdomain 
-    ? `/${listing.landlord.subdomain}/properties/${listing.propertySlug}`
-    : `/properties/${listing.propertySlug}`;
+  const propertyUrl = listing.source === 'agent' 
+    ? `/${listing.agent?.subdomain}/listings/${listing.propertySlug}`
+    : listing.landlord?.subdomain 
+      ? `/${listing.landlord.subdomain}/properties/${listing.propertySlug}`
+      : `/properties/${listing.propertySlug}`;
+  
+  const priceLabel = listing.listingType === 'rent' ? '/mo' : '';
   
   if (viewMode === 'list') {
     return (
@@ -569,6 +634,11 @@ function ListingCard({
               >
                 <Heart className={cn('h-5 w-5', isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-600')} />
               </button>
+              <div className="absolute top-3 left-3">
+                <Badge className={listing.listingType === 'rent' ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white'}>
+                  {listing.listingType === 'rent' ? 'For Rent' : 'For Sale'}
+                </Badge>
+              </div>
               {(listing.hasVideo || listing.hasVirtualTour) && (
                 <div className="absolute bottom-3 left-3 flex gap-2">
                   {listing.hasVideo && (
@@ -588,7 +658,7 @@ function ListingCard({
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 className="font-semibold text-lg hover:text-blue-600 transition-colors">
-                    {listing.propertyName} - {listing.unitName}
+                    {listing.propertyName}{listing.unitName ? ` - ${listing.unitName}` : ''}
                   </h3>
                   <p className="text-slate-500 flex items-center gap-1 text-sm">
                     <MapPin className="h-4 w-4" />
@@ -596,8 +666,8 @@ function ListingCard({
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-blue-600">{formatPrice(listing.rentAmount)}</p>
-                  <p className="text-sm text-slate-500">/month</p>
+                  <p className="text-2xl font-bold text-blue-600">{formatPrice(listing.price)}</p>
+                  {priceLabel && <p className="text-sm text-slate-500">{priceLabel}</p>}
                 </div>
               </div>
               <div className="flex items-center gap-4 text-sm text-slate-600 mb-3">
@@ -618,6 +688,11 @@ function ListingCard({
                 )}
                 <Badge variant="outline" className="capitalize">{listing.type}</Badge>
               </div>
+              {listing.agent && (
+                <p className="text-sm text-slate-500 mb-2">
+                  Listed by {listing.agent.name}{listing.agent.brokerage ? ` • ${listing.agent.brokerage}` : ''}
+                </p>
+              )}
               {listing.amenities.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {listing.amenities.slice(0, 5).map((amenity) => (
@@ -657,22 +732,23 @@ function ListingCard({
           >
             <Heart className={cn('h-5 w-5', isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-600')} />
           </button>
-          {(listing.hasVideo || listing.hasVirtualTour) && (
-            <div className="absolute top-3 left-3 flex gap-2">
-              {listing.hasVideo && (
-                <Badge className="bg-black/70 text-white gap-1">
-                  <Video className="h-3 w-3" />
-                </Badge>
-              )}
-              {listing.hasVirtualTour && (
-                <Badge className="bg-black/70 text-white gap-1">
-                  <View className="h-3 w-3" />
-                </Badge>
-              )}
-            </div>
-          )}
+          <div className="absolute top-3 left-3 flex gap-2">
+            <Badge className={listing.listingType === 'rent' ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white'}>
+              {listing.listingType === 'rent' ? 'For Rent' : 'For Sale'}
+            </Badge>
+            {listing.hasVideo && (
+              <Badge className="bg-black/70 text-white gap-1">
+                <Video className="h-3 w-3" />
+              </Badge>
+            )}
+            {listing.hasVirtualTour && (
+              <Badge className="bg-black/70 text-white gap-1">
+                <View className="h-3 w-3" />
+              </Badge>
+            )}
+          </div>
           <div className="absolute bottom-3 left-3 right-3">
-            <p className="text-white text-2xl font-bold">{formatPrice(listing.rentAmount)}<span className="text-sm font-normal">/mo</span></p>
+            <p className="text-white text-2xl font-bold">{formatPrice(listing.price)}{priceLabel && <span className="text-sm font-normal">{priceLabel}</span>}</p>
           </div>
         </div>
         <CardContent className="p-4">
@@ -700,6 +776,11 @@ function ListingCard({
               </span>
             )}
           </div>
+          {listing.agent && (
+            <p className="text-xs text-slate-400 mt-2 truncate">
+              {listing.agent.name}
+            </p>
+          )}
         </CardContent>
       </Card>
     </Link>
@@ -722,9 +803,16 @@ function MapView({
   });
 
   const getPropertyUrl = (listing: Listing) => {
-    return listing.landlord?.subdomain 
-      ? `/${listing.landlord.subdomain}/properties/${listing.propertySlug}`
-      : `/properties/${listing.propertySlug}`;
+    // Agent listings go to agent's listing page
+    if (listing.source === 'agent' && listing.agent?.subdomain) {
+      return `/${listing.agent.subdomain}/listings/${listing.propertySlug}`;
+    }
+    // Property manager listings go to their subdomain
+    if (listing.landlord?.subdomain) {
+      return `/${listing.landlord.subdomain}/properties/${listing.propertySlug}`;
+    }
+    // Fallback
+    return `/properties/${listing.propertySlug}`;
   };
 
   // Geocode addresses when map loads
@@ -843,69 +931,117 @@ function MapView({
                 mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
               >
                 <div
-                  onClick={() => setSelectedListing(listing)}
-                  style={{ transform: 'translate(-50%, -100%)' }}
+                  onClick={(e) => { e.stopPropagation(); setSelectedListing(listing); }}
                   className="cursor-pointer"
+                  style={{ transform: 'translate(-50%, -100%)' }}
                 >
+                  {/* Map Pin Marker */}
                   <div 
                     className={cn(
-                      "px-3 py-1.5 rounded-full font-bold text-sm shadow-lg whitespace-nowrap transition-all hover:scale-110",
-                      selectedListing?.id === listing.id 
-                        ? "bg-violet-600 text-white scale-110" 
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                      "relative transition-transform hover:scale-110",
+                      selectedListing?.id === listing.id && "scale-110 z-10"
                     )}
+                    style={{ width: '36px', height: '52px' }}
                   >
-                    {formatPrice(listing.rentAmount)}
+                    <svg 
+                      width="36" 
+                      height="52" 
+                      viewBox="0 0 36 52" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="drop-shadow-lg absolute inset-0"
+                    >
+                      {/* Slimmer pin shape */}
+                      <path 
+                        d="M18 0C8.06 0 0 8.06 0 18C0 32 18 52 18 52C18 52 36 32 36 18C36 8.06 27.94 0 18 0Z" 
+                        className={cn(
+                          selectedListing?.id === listing.id 
+                            ? "fill-violet-600" 
+                            : listing.listingType === 'sale' 
+                              ? "fill-emerald-600"
+                              : "fill-blue-600"
+                        )}
+                      />
+                      {/* Dark green inner circle */}
+                      <circle cx="18" cy="18" r="13" fill="#166534" />
+                    </svg>
+                    {/* Price text positioned inside the circle */}
+                    <span 
+                      className="absolute font-bold text-[10px] text-white"
+                      style={{ 
+                        top: '15px', 
+                        left: '50%', 
+                        transform: 'translateX(-50%)'
+                      }}
+                    >
+                      {listing.price >= 1000000 
+                        ? `$${(listing.price / 1000000).toFixed(1)}M`
+                        : listing.price >= 1000 
+                          ? `$${Math.round(listing.price / 1000)}K`
+                          : `$${listing.price}`
+                      }
+                    </span>
                   </div>
-                  <div 
-                    className={cn(
-                      "w-0 h-0 mx-auto border-l-[8px] border-r-[8px] border-t-[10px] border-l-transparent border-r-transparent",
-                      selectedListing?.id === listing.id 
-                        ? "border-t-violet-600" 
-                        : "border-t-blue-600"
-                    )}
-                  />
                 </div>
               </OverlayView>
             ))}
-          </GoogleMap>
-        )}
-        
-        {/* Selected listing popup */}
-        {selectedListing && (
-          <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-30">
-            <Card className="shadow-xl">
-              <button 
-                onClick={() => setSelectedListing(null)}
-                className="absolute top-2 right-2 p-1 hover:bg-slate-100 rounded z-10"
+            
+            {/* Popup card above selected pin */}
+            {selectedListing && listingsWithCoords.find(l => l.id === selectedListing.id) && (
+              <OverlayView
+                position={listingsWithCoords.find(l => l.id === selectedListing.id)!.coords}
+                mapPaneName={OverlayView.FLOAT_PANE}
               >
-                <X className="h-4 w-4" />
-              </button>
-              <Link href={getPropertyUrl(selectedListing)}>
-                <div className="flex gap-3 p-3">
-                  <div className="relative w-24 h-20 flex-shrink-0 rounded-lg overflow-hidden">
-                    <Image
-                      src={selectedListing.images[0] || '/images/livingroom.jpg'}
-                      alt={selectedListing.propertyName}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-blue-600 text-lg">{formatPrice(selectedListing.rentAmount)}/mo</p>
-                    <p className="font-medium text-sm truncate">{selectedListing.propertyName}</p>
-                    <p className="text-xs text-slate-500 truncate">
-                      {selectedListing.address.city}, {selectedListing.address.state}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
-                      {selectedListing.bedrooms !== null && <span>{selectedListing.bedrooms} bd</span>}
-                      {selectedListing.bathrooms !== null && <span>{selectedListing.bathrooms} ba</span>}
-                    </div>
-                  </div>
+                <div 
+                  style={{ transform: 'translate(-50%, -100%)', marginTop: '-60px' }}
+                  className="relative"
+                >
+                  <Link href={getPropertyUrl(selectedListing)} className="block">
+                    <Card className="shadow-xl w-64 hover:shadow-2xl transition-shadow cursor-pointer bg-white">
+                      <button 
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedListing(null); }}
+                        className="absolute top-2 right-2 p-1 hover:bg-slate-100 rounded z-10 bg-white/80"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                      <div className="flex gap-3 p-3">
+                        <div className="relative w-20 h-16 flex-shrink-0 rounded-lg overflow-hidden">
+                          <Image
+                            src={selectedListing.images[0] || '/images/livingroom.jpg'}
+                            alt={selectedListing.propertyName}
+                            fill
+                            className="object-cover"
+                          />
+                          <Badge 
+                            className={cn(
+                              "absolute bottom-1 left-1 text-[9px] px-1 py-0",
+                              selectedListing.listingType === 'rent' ? 'bg-blue-600' : 'bg-emerald-600'
+                            )}
+                          >
+                            {selectedListing.listingType === 'rent' ? 'Rent' : 'Sale'}
+                          </Badge>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-blue-600">{formatPrice(selectedListing.price)}{selectedListing.listingType === 'rent' ? '/mo' : ''}</p>
+                          <p className="font-medium text-sm truncate text-slate-900">{selectedListing.propertyName}</p>
+                          <p className="text-xs text-slate-500 truncate">
+                            {selectedListing.address.city}, {selectedListing.address.state}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                            {selectedListing.bedrooms !== null && <span>{selectedListing.bedrooms} bd</span>}
+                            {selectedListing.bathrooms !== null && <span>{selectedListing.bathrooms} ba</span>}
+                            {selectedListing.sizeSqFt && <span>{selectedListing.sizeSqFt.toLocaleString()} sqft</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                  {/* Arrow pointing down to pin */}
+                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-0 h-0 border-l-[10px] border-r-[10px] border-t-[10px] border-l-transparent border-r-transparent border-t-white" />
                 </div>
-              </Link>
-            </Card>
-          </div>
+              </OverlayView>
+            )}
+          </GoogleMap>
         )}
       </div>
       
@@ -934,7 +1070,7 @@ function MapView({
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-blue-600">{formatPrice(listing.rentAmount)}/mo</p>
+                  <p className="font-bold text-blue-600">{formatPrice(listing.price)}{listing.listingType === 'rent' ? '/mo' : ''}</p>
                   <p className="font-medium text-sm truncate">{listing.propertyName}</p>
                   <p className="text-xs text-slate-500 truncate">
                     {listing.address.city}, {listing.address.state}
