@@ -64,21 +64,21 @@ const MainNav = ({
               'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
               isActive 
                 ? 'bg-gradient-to-r from-violet-600/90 to-purple-600/90 text-white shadow-lg shadow-violet-500/20' 
-                : 'text-slate-700 hover:bg-white/20 hover:text-slate-900'
+                : 'hover:bg-white/20'
             )}
           >
             <Icon className={cn(
               'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
-              isActive ? 'text-white' : 'text-slate-600'
+              isActive ? 'text-white' : '!text-black'
             )} />
             <div className='flex flex-col min-w-0 nav-text-content'>
               <span className={cn(
-                'font-semibold text-sm truncate',
-                isActive ? 'text-white' : 'text-slate-800'
+                'text-sm truncate',
+                isActive ? 'text-white font-semibold' : '!text-black !font-semibold'
               )}>{item.title}</span>
               <span className={cn(
                 'text-[11px] truncate',
-                isActive ? 'text-violet-200' : 'text-slate-500'
+                isActive ? 'text-violet-200' : '!text-black/60'
               )}>{item.description}</span>
             </div>
           </Link>
@@ -93,21 +93,21 @@ const MainNav = ({
             'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
             pathname.startsWith('/admin/settings/subscription') 
               ? 'bg-gradient-to-r from-violet-600/90 to-purple-600/90 text-white shadow-lg shadow-violet-500/20' 
-              : 'text-slate-700 hover:bg-white/20 hover:text-slate-900'
+              : 'hover:bg-white/20'
           )}
         >
           <Settings2 className={cn(
             'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
-            pathname.startsWith('/admin/settings/subscription') ? 'text-white' : 'text-slate-600'
+            pathname.startsWith('/admin/settings/subscription') ? 'text-white' : '!text-black'
           )} />
           <div className='flex flex-col min-w-0 nav-text-content'>
             <span className={cn(
-              'font-semibold text-sm truncate',
-              pathname.startsWith('/admin/settings/subscription') ? 'text-white' : 'text-slate-800'
+              'text-sm truncate',
+              pathname.startsWith('/admin/settings/subscription') ? 'text-white font-semibold' : '!text-black !font-semibold'
             )}>Manage Subscription</span>
             <span className={cn(
               'text-[11px] truncate',
-              pathname.startsWith('/admin/settings/subscription') ? 'text-violet-200' : 'text-slate-500'
+              pathname.startsWith('/admin/settings/subscription') ? 'text-violet-200' : '!text-black/60'
             )}>Billing portal & usage</span>
           </div>
         </Link>

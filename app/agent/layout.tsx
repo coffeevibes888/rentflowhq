@@ -13,7 +13,7 @@ export default function AgentLayout({
 }>) {
   return (
     <SessionProviderWrapper>
-      <div className='flex min-h-screen flex-col bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900'>
+      <div className='flex min-h-screen flex-col bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600'>
         <Header />
         <div className='flex flex-1 text-white'>
           {/* Collapsible Sidebar */}

@@ -8,8 +8,6 @@ import {
   DollarSign,
   Wallet,
   MessageCircle,
-  TrendingUp,
-  Activity,
 } from 'lucide-react';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { redirect } from 'next/navigation';
@@ -19,6 +17,7 @@ import { formatCurrency } from '@/lib/utils';
 import { cookies } from 'next/headers';
 import { SERVER_URL } from '@/lib/constants';
 import ShareListingCard from '@/components/admin/share-listing-card';
+import ShareContractorCard from '@/components/admin/share-contractor-card';
 
 export const metadata: Metadata = {
   title: 'Property Dashboard',
@@ -70,6 +69,9 @@ const AdminOverviewPage = async (props: {
   const isLocalhost = rootDomain.includes('localhost');
   const protocol = isLocalhost ? 'http' : 'https';
   const listingUrl = landlordSubdomain ? `${protocol}://${rootDomain}/${landlordSubdomain}` : '';
+  
+  // Build the contractor sign-up URL
+  const contractorUrl = `${protocol}://${rootDomain}/sign-up?callbackUrl=${encodeURIComponent('/onboarding/contractor')}`;
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -93,7 +95,6 @@ const AdminOverviewPage = async (props: {
     rentPaidYtd,
     scheduledRent,
     unpaidRent,
-    payoutsThisMonth,
     openSupportThreads,
     threadParticipants,
   ] = await Promise.all([
@@ -211,14 +212,6 @@ const AdminOverviewPage = async (props: {
         },
       },
     }),
-    prisma.payout.aggregate({
-      _count: { id: true },
-      _sum: { amount: true },
-      where: {
-        landlordId,
-        initiatedAt: { gte: startOfMonth },
-      },
-    }),
     isAdmin
       ? prismaAny.thread.count({
           where: {
@@ -257,12 +250,8 @@ const AdminOverviewPage = async (props: {
   const scheduledRentMonthly = Number(scheduledRent?._sum?.rentAmount || 0);
 
   const collectionRate = scheduledRentMonthly > 0 ? (rentCollectedThisMonth / scheduledRentMonthly) * 100 : 0;
-  const vacancyRate = totalUnitsSafe > 0 ? (vacantUnits / totalUnitsSafe) * 100 : 0;
-  const vacancyLossThisMonth = Math.max(scheduledRentMonthly - rentCollectedThisMonth, 0);
 
   const availableBalance = Number(unpaidRent?._sum?.amount || 0);
-  const payoutsCountThisMonth = Number(payoutsThisMonth?._count?.id || 0);
-  const payoutsAmountThisMonth = Number(payoutsThisMonth?._sum?.amount || 0);
 
   type ThreadParticipantWithThread = {
     lastReadAt: Date | null;
@@ -281,14 +270,6 @@ const AdminOverviewPage = async (props: {
     : 0;
 
   const messagesCountToShow = isAdmin ? Number(openSupportThreads || 0) : unreadThreads;
-
-  const portfolioHealthScore = Math.max(
-    0,
-    Math.min(
-      100,
-      Math.round(100 - vacancyRate * 0.6 - Number(urgentTickets || 0) * 5),
-    ),
-  );
 
   return (
     <div className='w-full px-4 py-8 md:px-0'>
@@ -312,6 +293,9 @@ const AdminOverviewPage = async (props: {
               {listingUrl && (
                 <ShareListingCard listingUrl={listingUrl} landlordName={landlordName} />
               )}
+
+              {/* Share Contractor Card */}
+              <ShareContractorCard contractorUrl={contractorUrl} landlordName={landlordName} />
 
               <Link
                 href='/admin/products'
@@ -374,18 +358,6 @@ const AdminOverviewPage = async (props: {
               </Link>
 
               <Link
-                href='/admin/payouts'
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Payouts (Month)</div>
-                  <Wallet className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{payoutsCountThisMonth}</div>
-                <div className='text-[10px] text-white/90'>{formatCurrency(payoutsAmountThisMonth)} sent</div>
-              </Link>
-
-              <Link
                 href={isAdmin ? '/admin/messages' : '/admin/tenant-messages'}
                 className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
               >
@@ -395,30 +367,6 @@ const AdminOverviewPage = async (props: {
                 </div>
                 <div className='text-2xl font-bold text-white'>{messagesCountToShow}</div>
                 <div className='text-[10px] text-white/90'>{isAdmin ? 'Open inbox threads' : 'Unread threads'}</div>
-              </Link>
-
-              <Link
-                href='/admin/analytics'
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Economic Occupancy</div>
-                  <TrendingUp className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{collectionRate.toFixed(0)}%</div>
-                <div className='text-[10px] text-white/90'>{formatCurrency(vacancyLossThisMonth)} vacancy loss</div>
-              </Link>
-
-              <Link
-                href='/admin/analytics'
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Portfolio Health</div>
-                  <Activity className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{portfolioHealthScore}</div>
-                <div className='text-[10px] text-white/90'>{vacancyRate.toFixed(1)}% vacancy</div>
               </Link>
             </div>
 

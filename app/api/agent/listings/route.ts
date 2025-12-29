@@ -40,6 +40,8 @@ export async function POST(request: Request) {
       yearBuilt,
       lotSizeSqFt,
       garage,
+      images,
+      videoUrl,
     } = body;
 
     if (!title || !price || !address) {
@@ -63,6 +65,8 @@ export async function POST(request: Request) {
         yearBuilt: yearBuilt ? parseInt(yearBuilt) : null,
         lotSizeSqFt: lotSizeSqFt ? parseInt(lotSizeSqFt) : null,
         garage: garage ? parseInt(garage) : null,
+        images: images || [],
+        videoUrl: videoUrl || null,
       },
     });
 

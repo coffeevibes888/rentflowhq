@@ -1,6 +1,10 @@
+import { APP_NAME } from '@/lib/constants';
+import Image from 'next/image';
 import Header from '@/components/shared/header';
 import Footer from '@/components/footer';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
+import { ContractorSidebarWrapper } from '@/components/contractor/contractor-sidebar-wrapper';
+import ContractorMainNav from './main-nav';
 
 export default function ContractorLayout({
   children,
@@ -9,13 +13,37 @@ export default function ContractorLayout({
 }>) {
   return (
     <SessionProviderWrapper>
-      <div className='flex min-h-screen flex-col bg-gradient-to-r from-rose-400 via-pink-400 to-rose-600'>
+      <div className='flex min-h-screen flex-col bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600'>
         <Header />
-        <main className='flex-1 px-4 md:px-8 py-6'>
-          <div className='mx-auto max-w-5xl w-full'>
-            {children}
+        <div className='flex flex-1'>
+          {/* Collapsible Sidebar */}
+          <ContractorSidebarWrapper>
+            <div className='flex items-center gap-3 px-2 p-2'>
+              <div className='relative h-10 w-10 rounded-lg overflow-hidden flex items-center justify-center bg-white/10'>
+                <Image
+                  src='/images/logo.svg'
+                  height={40}
+                  width={40}
+                  alt={APP_NAME}
+                  className='object-contain filter brightness-0 invert'
+                />
+              </div>
+              <div className='flex flex-col sidebar-expanded-only'>
+                <span className='text-sm text-black'>Contractor Portal</span>
+              </div>
+            </div>
+            <ContractorMainNav className='flex-1' />
+          </ContractorSidebarWrapper>
+
+          {/* Content */}
+          <div className='flex-1 flex flex-col min-w-0'>
+            <main className='flex-1 overflow-y-auto px-3 md:px-6 lg:px-8 py-4 md:py-6'>
+              <div className='mx-auto max-w-7xl w-full'>
+                {children}
+              </div>
+            </main>
           </div>
-        </main>
+        </div>
         <Footer />
       </div>
     </SessionProviderWrapper>

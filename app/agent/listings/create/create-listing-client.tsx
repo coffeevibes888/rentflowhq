@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, MapPin, DollarSign, Home, Save, Loader2, ArrowLeft } from 'lucide-react';
+import { Building2, MapPin, DollarSign, Home, Save, Loader2, ArrowLeft, ImagePlus, Video, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { UploadButton } from '@/lib/uploadthing';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface CreateListingClientProps {
   agentId: string;
@@ -25,6 +27,8 @@ export default function CreateListingClient({ agentId }: CreateListingClientProp
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -43,6 +47,10 @@ export default function CreateListingClient({ agentId }: CreateListingClientProp
     garage: '',
   });
 
+  const removeImage = (indexToRemove: number) => {
+    setImages(images.filter((_, index) => index !== indexToRemove));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -54,6 +62,8 @@ export default function CreateListingClient({ agentId }: CreateListingClientProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          images,
+          videoUrl: videoUrl || null,
           address: {
             street: formData.street,
             city: formData.city,
@@ -313,6 +323,113 @@ export default function CreateListingClient({ agentId }: CreateListingClientProp
                   className="bg-white"
                 />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Photos & Video */}
+        <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImagePlus className="h-5 w-5 text-violet-600" />
+              Photos & Video
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Image Upload */}
+            <div className="space-y-3">
+              <Label>Property Photos</Label>
+              <p className="text-sm text-slate-500">Upload up to 20 photos of the property. First image will be the cover photo.</p>
+              
+              {/* Image Preview Grid */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {images.map((url, index) => (
+                    <div key={index} className="relative group aspect-video rounded-lg overflow-hidden border border-slate-200">
+                      <Image
+                        src={url}
+                        alt={`Property photo ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                      {index === 0 && (
+                        <span className="absolute top-2 left-2 bg-violet-600 text-white text-xs px-2 py-0.5 rounded">
+                          Cover
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {images.length < 20 && (
+                <UploadButton
+                  endpoint="imageUploader"
+                  onClientUploadComplete={(res) => {
+                    if (res) {
+                      const newUrls = res.map((file) => file.url);
+                      setImages((prev) => [...prev, ...newUrls].slice(0, 20));
+                    }
+                  }}
+                  onUploadError={(error: Error) => {
+                    setError(`Image upload failed: ${error.message}`);
+                  }}
+                  appearance={{
+                    button: "bg-violet-600 hover:bg-violet-700 text-white font-medium px-4 py-2 rounded-lg",
+                    allowedContent: "text-slate-500 text-sm",
+                  }}
+                />
+              )}
+              <p className="text-xs text-slate-400">{images.length}/20 photos uploaded</p>
+            </div>
+
+            {/* Video Upload */}
+            <div className="space-y-3 pt-4 border-t border-slate-200">
+              <Label className="flex items-center gap-2">
+                <Video className="h-4 w-4 text-violet-600" />
+                Property Video (Optional)
+              </Label>
+              <p className="text-sm text-slate-500">Upload a walkthrough video of the property (max 256MB).</p>
+              
+              {videoUrl ? (
+                <div className="relative">
+                  <video
+                    src={videoUrl}
+                    controls
+                    className="w-full max-w-md rounded-lg border border-slate-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVideoUrl('')}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <UploadButton
+                  endpoint="videoUploader"
+                  onClientUploadComplete={(res) => {
+                    if (res && res[0]) {
+                      setVideoUrl(res[0].url);
+                    }
+                  }}
+                  onUploadError={(error: Error) => {
+                    setError(`Video upload failed: ${error.message}`);
+                  }}
+                  appearance={{
+                    button: "bg-slate-600 hover:bg-slate-700 text-white font-medium px-4 py-2 rounded-lg",
+                    allowedContent: "text-slate-500 text-sm",
+                  }}
+                />
+              )}
             </div>
           </CardContent>
         </Card>

@@ -27,28 +27,33 @@ export async function POST(request: Request) {
         role: 'contractor',
         onboardingCompleted: true,
         onboardingStep: null,
+        name: companyName || session.user.name,
       },
     });
+
+    let linked = false;
 
     // If invite code provided, try to link to landlord
     if (inviteCode) {
       const invite = await prisma.contractorInvite.findFirst({
         where: {
-          token: inviteCode,
+          token: inviteCode.toUpperCase(), // Codes are uppercase
           status: 'pending',
           expiresAt: { gt: new Date() },
+        },
+        include: {
+          contractor: true,
         },
       });
 
       if (invite) {
-        // Create contractor profile linked to landlord
-        await prisma.contractor.create({
+        // Update the placeholder contractor with real user info
+        await prisma.contractor.update({
+          where: { id: invite.contractorId },
           data: {
-            landlordId: invite.landlordId,
             userId: session.user.id,
             name: companyName || session.user.name || 'Contractor',
-            email: session.user.email,
-            phone: null,
+            email: session.user.email || '',
             specialties: specialties || [],
             serviceAreas: serviceAreas ? serviceAreas.split(',').map((s: string) => s.trim()) : [],
             licenseNumber: licenseNumber || null,
@@ -60,12 +65,20 @@ export async function POST(request: Request) {
         // Update invite status
         await prisma.contractorInvite.update({
           where: { id: invite.id },
-          data: { status: 'accepted' },
+          data: { 
+            status: 'accepted',
+            email: session.user.email || invite.email,
+          },
         });
+
+        linked = true;
       }
     }
 
-    return NextResponse.json({ success: true });
+    // If no valid invite code, contractor is registered but not linked to any landlord yet
+    // They'll appear in the marketplace and can be invited by landlords later
+
+    return NextResponse.json({ success: true, linked });
   } catch (error) {
     console.error('Contractor onboarding error:', error);
     return NextResponse.json(

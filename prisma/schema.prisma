@@ -606,6 +606,7 @@ model Landlord {
   contractorInvites ContractorInvite[]
   workOrders WorkOrder[]
   contractorPayments ContractorPayment[]
+  contractorEstimates ContractorEstimate[]
 
   // Team Operations (Enterprise)
   teamMembers TeamMember[]
@@ -1872,10 +1873,46 @@ model Contractor {
   invites     ContractorInvite[]
   workOrders  WorkOrder[]
   payments    ContractorPayment[]
+  estimates   ContractorEstimate[]
+  bids        WorkOrderBid[]
 
   @@unique([landlordId, email])
   @@index([landlordId])
   @@index([userId])
+}
+
+// ContractorEstimate - Quotes and estimate templates
+model ContractorEstimate {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId   String    @db.Uuid
+  landlordId     String?   @db.Uuid
+  workOrderId    String?   @db.Uuid
+  title          String
+  description    String?
+  lineItems      Json      @default("[]") @db.Json // [{description, qty, unitPrice, total}]
+  laborCost      Decimal   @default(0) @db.Decimal(12, 2)
+  materialsCost  Decimal   @default(0) @db.Decimal(12, 2)
+  totalAmount    Decimal   @db.Decimal(12, 2)
+  estimatedHours Decimal?  @db.Decimal(6, 2)
+  validUntil     DateTime? @db.Timestamp(6)
+  status         String    @default("draft") // draft, sent, viewed, accepted, declined, expired
+  isTemplate     Boolean   @default(false)
+  templateName   String?
+  attachmentUrl  String?   // PDF upload of their standard estimate form
+  sentAt         DateTime? @db.Timestamp(6)
+  viewedAt       DateTime? @db.Timestamp(6)
+  respondedAt    DateTime? @db.Timestamp(6)
+  createdAt      DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime  @updatedAt
+
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  landlord   Landlord?  @relation(fields: [landlordId], references: [id], onDelete: SetNull)
+  workOrder  WorkOrder? @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+
+  @@index([contractorId])
+  @@index([landlordId])
+  @@index([status])
+  @@index([isTemplate])
 }
 
 // ContractorInvite - Pending invitation to join platform
@@ -1896,39 +1933,77 @@ model ContractorInvite {
   @@index([landlordId])
 }
 
+// WorkOrderBid - Contractor bids on open job postings (Upwork-style)
+model WorkOrderBid {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId       String    @db.Uuid
+  contractorId      String    @db.Uuid
+  amount            Decimal   @db.Decimal(12, 2)
+  estimatedHours    Decimal?  @db.Decimal(6, 2)
+  proposedStartDate DateTime? @db.Timestamp(6)
+  message           String?
+  status            String    @default("pending") // pending, accepted, declined, withdrawn
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt
+
+  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@unique([workOrderId, contractorId])
+  @@index([workOrderId])
+  @@index([contractorId])
+}
+
 // WorkOrder - Assignment of work to a contractor
 model WorkOrder {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   landlordId          String    @db.Uuid
-  contractorId        String    @db.Uuid
+  contractorId        String?   @db.Uuid // Nullable for open bid jobs
   maintenanceTicketId String?   @db.Uuid
   propertyId          String    @db.Uuid
   unitId              String?   @db.Uuid
   title               String
   description         String
-  status              String    @default("draft") // draft, assigned, in_progress, completed, paid, cancelled
+  status              String    @default("draft") // draft, open, assigned, in_progress, completed, approved, paid, cancelled, disputed
   priority            String    @default("medium") // low, medium, high, urgent
-  agreedPrice         Decimal   @db.Decimal(12, 2)
+  agreedPrice         Decimal?  @db.Decimal(12, 2) // Nullable for open bid jobs
   actualCost          Decimal?  @db.Decimal(12, 2)
   scheduledDate       DateTime? @db.Timestamp(6)
   completedAt         DateTime? @db.Timestamp(6)
   notes               String?
+  
+  // Escrow fields (Upwork-style)
+  escrowStatus          String    @default("none") // none, funded, released, refunded, disputed
+  escrowAmount          Decimal?  @db.Decimal(12, 2)
+  escrowFundedAt        DateTime? @db.Timestamp(6)
+  escrowReleasedAt      DateTime? @db.Timestamp(6)
+  stripePaymentIntentId String?
+  
+  // Open bid fields
+  isOpenBid             Boolean   @default(false)
+  bidDeadline           DateTime? @db.Timestamp(6)
+  budgetMin             Decimal?  @db.Decimal(12, 2)
+  budgetMax             Decimal?  @db.Decimal(12, 2)
+  
   createdAt           DateTime  @default(now()) @db.Timestamp(6)
   updatedAt           DateTime  @updatedAt
 
   landlord          Landlord           @relation(fields: [landlordId], references: [id], onDelete: Cascade)
-  contractor        Contractor         @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor        Contractor?        @relation(fields: [contractorId], references: [id], onDelete: SetNull)
   maintenanceTicket MaintenanceTicket? @relation(fields: [maintenanceTicketId], references: [id], onDelete: SetNull)
   property          Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   unit              Unit?              @relation(fields: [unitId], references: [id], onDelete: SetNull)
   media             WorkOrderMedia[]
   history           WorkOrderHistory[]
   payment           ContractorPayment?
+  bids              WorkOrderBid[]
+  estimates         ContractorEstimate[]
 
   @@index([landlordId])
   @@index([contractorId])
   @@index([status])
   @@index([propertyId])
+  @@index([isOpenBid])
 }
 
 // WorkOrderMedia - Photos/videos attached to work orders
