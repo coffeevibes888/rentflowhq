@@ -275,14 +275,14 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
   };
 
   return (
-    <main className="w-full px-3 py-4 sm:px-4 sm:py-8 md:px-0">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+    <main className="w-full">
+      <div className="space-y-4">
         {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
             <p className="text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-violet-300 font-medium">Property Management</p>
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white leading-tight">{property.name}</h1>
-            <p className="text-slate-400 text-xs sm:text-sm mt-0.5">
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-white leading-tight">{property.name}</h1>
+            <p className="text-slate-400 text-xs mt-0.5">
               {property.type} • {property.address && typeof property.address === 'object'
                 ? `${(property.address as any).street ?? ''} ${(property.address as any).city ?? ''}`.trim()
                 : ''}
@@ -293,17 +293,17 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
             {property.units.length === 1 ? (
               <Button 
                 variant="outline" 
-                className="border-white/10 text-white text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4"
+                className="border-white/10 text-white text-xs h-8 px-2.5 sm:h-9 sm:px-3"
                 onClick={() => handleCreateInvoice(property.units[0].id)}
               >
-                <Receipt className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline text-white">Create</span> Invoice
+                <Receipt className="w-4 h-4 sm:mr-1.5" />
+                <span className="hidden sm:inline text-white">Invoice</span>
               </Button>
             ) : property.units.length > 1 ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="border-white/10 text-white text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4">
-                    <Receipt className="w-4 h-4 sm:mr-2" />
+                  <Button variant="outline" className="border-white/10 text-white text-xs h-8 px-2.5 sm:h-9 sm:px-3">
+                    <Receipt className="w-4 h-4 sm:mr-1.5" />
                     <span className="hidden sm:inline text-white">Invoice</span> 
                   </Button>
                 </DropdownMenuTrigger>
@@ -337,22 +337,21 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
             {cashoutInfo?.canCashOut && cashoutInfo.hasBankAccount && (
               <Button 
                 variant="outline" 
-                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4"
+                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs h-8 px-2.5 sm:h-9 sm:px-3"
                 onClick={() => setShowCashoutDialog(true)}
               >
-                <ArrowDownToLine className="w-4 h-4 sm:mr-2" />
+                <ArrowDownToLine className="w-4 h-4 sm:mr-1.5" />
                 <span className="hidden sm:inline">Cash Out</span>
               </Button>
             )}
             
-            <Button variant="outline" className="border-white/10 text-white text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4" onClick={() => setExpenseDialogOpen(true)}>
-              <Plus className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Add</span> Expense
+            <Button variant="outline" className="border-white/10 text-white text-xs h-8 px-2.5 sm:h-9 sm:px-3" onClick={() => setExpenseDialogOpen(true)}>
+              <Plus className="w-4 h-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Expense</span>
             </Button>
-            <Button asChild variant="outline" className="border-white/10 text-white text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4">
+            <Button asChild variant="outline" className="border-white/10 text-white text-xs h-8 px-2.5 sm:h-9 sm:px-3">
               <Link href={`/admin/products/${property.id}`}>
-                <span className="hidden sm:inline">Edit Property</span>
-                <span className="sm:hidden">Edit</span>
+                Edit
               </Link>
             </Button>
           </div>
@@ -360,102 +359,102 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full flex overflow-x-auto gap-1 bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 rounded-xl h-auto text-white mobile-scroll-x">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-2.5 py-2 sm:px-4 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
-              <Building2 className="w-4 h-4 sm:mr-2" />
+          <TabsList className="w-full flex overflow-x-auto gap-0.5 sm:gap-1 bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-0.5 sm:p-1 rounded-lg sm:rounded-xl h-auto text-white mobile-scroll-x">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 text-xs whitespace-nowrap flex-shrink-0">
+              <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
               <span className="hidden sm:inline text-white">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="communications" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-2.5 py-2 sm:px-4 text-xs sm:text-sm text-white whitespace-nowrap flex-shrink-0">
-              <MessageCircle className="w-4 h-4 sm:mr-2" />
+            <TabsTrigger value="communications" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 text-xs text-white whitespace-nowrap flex-shrink-0">
+              <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
               <span className="hidden sm:inline text-white font-bold">Comms</span>
             </TabsTrigger>
-            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-2.5 py-2 sm:px-4 text-xs sm:text-sm text-white whitespace-nowrap flex-shrink-0">
-              <Users className="w-4 h-4 sm:mr-2" />
+            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 text-xs text-white whitespace-nowrap flex-shrink-0">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
               <span className="hidden sm:inline text-white font-bold">Tenants</span>
               {activeLeases.length > 0 && (
-                <Badge className="ml-1 sm:ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs px-1.5">{activeLeases.length}</Badge>
+                <Badge className="ml-1 bg-emerald-500/20 text-emerald-300 text-[9px] sm:text-[10px] px-1 sm:px-1.5">{activeLeases.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-2.5 py-2 sm:px-4 text-xs sm:text-sm text-white whitespace-nowrap flex-shrink-0">
-              <BarChart3 className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline text-white font-bold">Financial Reports</span>
+            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 text-xs text-white whitespace-nowrap flex-shrink-0">
+              <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
+              <span className="hidden sm:inline text-white font-bold">Financials</span>
             </TabsTrigger>
           </TabsList>
 
           {/* OVERVIEW TAB */}
-          <TabsContent value="overview" className="mt-6 space-y-6">
+          <TabsContent value="overview" className="mt-4 space-y-4">
             {/* Quick Stats - Gradient Cards */}
-            <div className="relative rounded-3xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md">
+            <div className="relative rounded-xl sm:rounded-2xl border border-white/10 shadow-xl overflow-hidden backdrop-blur-md">
               <div className="absolute inset-0 bg-blue-700" />
-              <div className="relative p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white">Property Overview</h3>
-                  <span className="text-xs text-violet-200/80 bg-white/5 px-2 py-1 rounded-full ring-1 ring-white/10">Live</span>
+              <div className="relative p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm sm:text-base font-bold text-white">Property Overview</h3>
+                  <span className="text-[10px] text-violet-200/80 bg-white/5 px-1.5 py-0.5 rounded-full ring-1 ring-white/10">Live</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                  <div className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm shadow-2xl drop-shadow-2xl">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-black">Total Units</div>
-                      <Home className="h-4 w-4 text-white/90" />
+                      <div className="text-[10px] sm:text-xs text-black">Total Units</div>
+                      <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90" />
                     </div>
-                    <div className="text-2xl font-bold text-white">{property.units.length}</div>
-                    <div className="text-[10px] text-white/80">{property.units.filter((u: any) => u.isAvailable).length} available</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{property.units.length}</div>
+                    <div className="text-[9px] sm:text-[10px] text-white/80">{property.units.filter((u: any) => u.isAvailable).length} available</div>
                   </div>
 
-                  <div className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm shadow-2xl drop-shadow-2xl">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-black">Occupied</div>
-                      <Users className="h-4 w-4 text-white/90" />
+                      <div className="text-[10px] sm:text-xs text-black">Occupied</div>
+                      <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90" />
                     </div>
-                    <div className="text-2xl font-bold text-white">{property.units.filter((u: any) => !u.isAvailable).length}</div>
-                    <div className="text-[10px] text-emerald-100">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{property.units.filter((u: any) => !u.isAvailable).length}</div>
+                    <div className="text-[9px] sm:text-[10px] text-emerald-100">
                       {Math.round((property.units.filter((u: any) => !u.isAvailable).length / property.units.length) * 100)}% occupancy
                     </div>
                   </div>
 
-                  <div className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm shadow-2xl drop-shadow-2xl">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-black">Open Tickets</div>
-                      <Wrench className="h-4 w-4 text-white/90" />
+                      <div className="text-[10px] sm:text-xs text-black">Open Tickets</div>
+                      <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90" />
                     </div>
-                    <div className="text-2xl font-bold text-white">{openTickets.length}</div>
-                    <div className="text-[10px] text-red-100">{allTickets.length} total</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{openTickets.length}</div>
+                    <div className="text-[9px] sm:text-[10px] text-red-100">{allTickets.length} total</div>
                   </div>
 
-                  <div className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm shadow-2xl drop-shadow-2xl">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-black">Monthly Revenue</div>
-                      <DollarSign className="h-4 w-4 text-white/90" />
+                      <div className="text-[10px] sm:text-xs text-black">Monthly Revenue</div>
+                      <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90" />
                     </div>
-                    <div className="text-2xl font-bold text-white">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">
                       {formatCurrency(activeLeases.reduce((sum: number, l: any) => sum + l.rentAmount, 0))}
                     </div>
-                    <div className="text-[10px] text-emerald-100">{activeLeases.length} active leases</div>
+                    <div className="text-[9px] sm:text-[10px] text-emerald-100">{activeLeases.length} active leases</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2 ">
+            <div className="grid gap-4 lg:grid-cols-2">
               {/* Units Overview */}
               <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 text-white">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Building2 className="w-5 h-5" />
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                  <CardTitle className="text-white flex items-center gap-2 text-sm sm:text-base">
+                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     Units
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="p-3 pt-0 sm:p-4 sm:pt-0 md:p-6 md:pt-0 space-y-2 sm:space-y-3">
                   {property.units.map((unit: any) => (
-                    <div key={unit.id} className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm shadow-2xl drop-shadow-2xl text-white">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-black font-semibold">{unit.name}</span>
-                        <Badge variant="outline" className={unit.isAvailable ? 'border-emerald-400/40 text-black' : 'border-green-400/40 text-black'}>
+                    <div key={unit.id} className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl text-white">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-black font-semibold text-sm">{unit.name}</span>
+                        <Badge variant="outline" className={`text-[10px] sm:text-xs ${unit.isAvailable ? 'border-emerald-400/40 text-black' : 'border-green-400/40 text-black'}`}>
                           {unit.isAvailable ? 'Available' : 'Occupied'}
                         </Badge>
                       </div>
-                      <p className="text-xs text-black font-semibold">
+                      <p className="text-[10px] sm:text-xs text-black font-semibold">
                         {unit.type} • {unit.bedrooms ?? '—'} bd • {unit.bathrooms ?? '—'} ba • {formatCurrency(unit.rentAmount)}/mo
                       </p>
                     </div>
@@ -465,37 +464,37 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
               {/* Maintenance Tickets */}
               <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 text-white">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="p-3 sm:p-4 md:p-6 flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <Wrench className="w-5 h-5" />
-                      Maintenance Tickets
+                    <CardTitle className="text-white flex items-center gap-2 text-sm sm:text-base">
+                      <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
+                      Maintenance
                     </CardTitle>
-                    <CardDescription className="text-slate-400">
+                    <CardDescription className="text-slate-400 text-[10px] sm:text-xs">
                       {openTickets.length} open, {allTickets.length} total
                     </CardDescription>
                   </div>
                   <Link href="/admin/maintenance">
-                    <Button variant="outline" size="sm" className="border-white/10 text-white">
+                    <Button variant="outline" size="sm" className="border-white/10 text-white h-7 text-xs">
                       View All
                     </Button>
                   </Link>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="p-3 pt-0 sm:p-4 sm:pt-0 md:p-6 md:pt-0 space-y-2 sm:space-y-3">
                   {allTickets.length === 0 ? (
-                    <p className="text-sm text-slate-400 text-center py-4">No maintenance tickets</p>
+                    <p className="text-xs text-slate-400 text-center py-4">No maintenance tickets</p>
                   ) : (
                     allTickets.slice(0, 5).map((ticket: any) => (
                       <Link 
                         key={ticket.id} 
                         href={`/admin/maintenance/${ticket.id}`}
-                        className="block rounded-lg border border-white/10 bg-slate-800/60 p-4 hover:border-violet-400/40 transition-colors"
+                        className="block rounded-lg border border-white/10 bg-slate-800/60 p-2.5 sm:p-3 hover:border-violet-400/40 transition-colors"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-white truncate">{ticket.title}</p>
-                            <p className="text-xs text-slate-400 truncate">{ticket.description}</p>
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="font-medium text-white truncate text-xs sm:text-sm">{ticket.title}</p>
+                            <p className="text-[10px] sm:text-xs text-slate-400 truncate">{ticket.description}</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">
                               {ticket.tenant?.name} • {new Date(ticket.createdAt).toLocaleDateString()}
                             </p>
                           </div>
@@ -510,23 +509,23 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
           </TabsContent>
 
           {/* COMMUNICATIONS TAB */}
-          <TabsContent value="communications" className="mt-6">
-            <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
+          <TabsContent value="communications" className="mt-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Communications Header */}
               <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-white flex items-center gap-2 text-base sm:text-lg">
-                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                <CardHeader className="p-3 sm:p-4">
+                  <CardTitle className="text-white flex items-center gap-2 text-sm sm:text-base">
+                    <MessageCircle className="w-4 h-4" />
                     Property Communications
                   </CardTitle>
-                  <CardDescription className="text-slate-300 text-xs sm:text-sm">
-                    Message tenants at {property.name} directly from here
+                  <CardDescription className="text-slate-300 text-[10px] sm:text-xs">
+                    Message tenants at {property.name} directly
                   </CardDescription>
                 </CardHeader>
               </Card>
 
               {/* Tenant Communications Component */}
-              <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 backdrop-blur-xl shadow-2xl overflow-hidden p-3 sm:p-4 md:p-6">
+              <div className="rounded-xl border border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 backdrop-blur-xl shadow-xl overflow-hidden p-2.5 sm:p-3 md:p-4">
                 <TenantComms 
                   tenants={tenants.length > 0 ? tenants : activeLeases.map((lease: any) => ({
                     id: lease.tenant?.id || '',
@@ -543,7 +542,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
           </TabsContent>
 
           {/* TENANTS TAB */}
-          <TabsContent value="tenants" className="mt-6 space-y-4 sm:space-y-6">
+          <TabsContent value="tenants" className="mt-4 space-y-3 sm:space-y-4">
             <Card className="border-white/10 bg-slate-900/60 overflow-hidden">
               {/* Browser-style tabs at the top */}
               <Tabs defaultValue="current" className="w-full">
@@ -551,32 +550,32 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                   <TabsList className="h-auto p-0 bg-transparent rounded-none">
                     <TabsTrigger 
                       value="current" 
-                      className="relative px-6 py-3 text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
+                      className="relative px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
                     >
                       Current
                       {activeLeases.length > 0 && (
-                        <Badge className="ml-2 bg-emerald-500/20 text-emerald-300 text-xs">{activeLeases.length}</Badge>
+                        <Badge className="ml-1.5 bg-emerald-500/20 text-emerald-300 text-[10px]">{activeLeases.length}</Badge>
                       )}
                     </TabsTrigger>
                     <TabsTrigger 
                       value="past" 
-                      className="relative px-6 py-3 text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
+                      className="relative px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
                     >
                       Past
                       {pastLeases.length > 0 && (
-                        <Badge className="ml-2 bg-slate-500/20 text-slate-300 text-xs">{pastLeases.length}</Badge>
+                        <Badge className="ml-1.5 bg-slate-500/20 text-slate-300 text-[10px]">{pastLeases.length}</Badge>
                       )}
                     </TabsTrigger>
                   </TabsList>
                 </div>
 
-                <CardContent className="p-4 sm:p-6">
+                <CardContent className="p-2.5 sm:p-4">
                   {/* Current Tenants */}
                   <TabsContent value="current" className="mt-0">
                     {activeLeases.length === 0 ? (
-                      <p className="text-xs sm:text-sm text-slate-400 text-center py-6 sm:py-8">No active tenants</p>
+                      <p className="text-xs text-slate-400 text-center py-6">No active tenants</p>
                     ) : (
-                      <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-2 sm:space-y-3">
                         {activeLeases.map((lease: any) => (
                           <EnhancedTenantCard 
                             key={lease.id} 
@@ -595,15 +594,15 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                   {/* Past Tenants */}
                   <TabsContent value="past" className="mt-0">
                     {pastLeases.length === 0 ? (
-                      <p className="text-xs sm:text-sm text-slate-400 text-center py-6 sm:py-8">No past tenants</p>
+                      <p className="text-xs text-slate-400 text-center py-6">No past tenants</p>
                     ) : (
-                      <div className="space-y-2 sm:space-y-3">
+                      <div className="space-y-2">
                         {pastLeases.map((lease: any) => (
-                          <div key={lease.id} className="rounded-lg border border-white/10 bg-slate-800/40 p-3 sm:p-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div key={lease.id} className="rounded-lg border border-white/10 bg-slate-800/40 p-2.5 sm:p-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                               <div className="min-w-0">
-                                <p className="font-medium text-slate-300 text-sm sm:text-base truncate">{lease.tenant?.name || 'Unknown'}</p>
-                                <p className="text-[10px] sm:text-xs text-slate-500">
+                                <p className="font-medium text-slate-300 text-sm truncate">{lease.tenant?.name || 'Unknown'}</p>
+                                <p className="text-[10px] text-slate-500">
                                   Unit {lease.unitName} • {new Date(lease.startDate).toLocaleDateString()} - {lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'N/A'}
                                 </p>
                               </div>

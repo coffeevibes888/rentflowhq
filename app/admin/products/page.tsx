@@ -96,16 +96,16 @@ const AdminProductsPage = async (props: {
   });
 
   return (
-    <div className='w-full px-4 py-8 md:px-0 space-y-4'>
-      <div className='max-w-6xl mx-auto space-y-4'>
-        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
-          <div className='flex flex-col sm:flex-row sm:items-center gap-3'>
-            <h1 className='text-2xl md:text-3xl font-semibold text-slate-50'>Properties</h1>
+    <div className='w-full space-y-4'>
+      <div className='space-y-4'>
+        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+          <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3'>
+            <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50'>Properties</h1>
             {searchText && (
-              <div className='text-sm text-slate-300/80'>
+              <div className='text-xs sm:text-sm text-slate-300/80'>
                 Filtered by <i>&quot;{searchText}&quot;</i>{' '}
                 <Link href='/admin/products'>
-                  <Button variant='outline' size='sm' className='border-white/10 text-slate-200/90 hover:bg-slate-900/80'>
+                  <Button variant='outline' size='sm' className='border-white/10 text-slate-200/90 hover:bg-slate-900/80 h-7 text-xs'>
                     Remove Filter
                   </Button>
                 </Link>
@@ -113,7 +113,7 @@ const AdminProductsPage = async (props: {
             )}
           </div>
           <div className='flex gap-2'>
-            <Button asChild variant='default' className='w-full sm:w-auto' data-tour="add-property">
+            <Button asChild variant='default' className='w-full sm:w-auto text-sm' data-tour="add-property">
               <Link href='/admin/products/create'>Add Property</Link>
             </Button>
           </div>

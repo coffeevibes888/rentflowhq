@@ -272,155 +272,153 @@ const AdminOverviewPage = async (props: {
   const messagesCountToShow = isAdmin ? Number(openSupportThreads || 0) : unreadThreads;
 
   return (
-    <div className='w-full px-4 py-8 md:px-0'>
-      <div className='max-w-7xl mx-auto space-y-8'>
-        <div>
-          <h1 className='text-3xl md:text-4xl font-semibold text-slate-50 mb-2'>Property Dashboard</h1>
-          <p className='text-sm text-slate-300/80'>High-level snapshot of properties, tenants, and operations.</p>
-        </div>
+    <div className='w-full space-y-4 sm:space-y-6'>
+      <div>
+        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50 mb-1'>Property Dashboard</h1>
+        <p className='text-xs sm:text-sm text-slate-300/80'>High-level snapshot of properties, tenants, and operations.</p>
+      </div>
 
-        {/* Stats Cards - Clickable on mobile */}
-        <div className='relative rounded-3xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md'>
-          <div className='absolute inset-0 bg-blue-700' />
-          <div className='relative p-6'>
-            <div className='flex items-center justify-between mb-4'>
-              <h3 className='text-lg font-bold text-white'>Your Dashboard</h3>
-              <span className='text-xs text-violet-200/80 bg-white/5 px-2 py-1 rounded-full ring-1 ring-white/10'>Live</span>
-            </div>
+      {/* Stats Cards - Clickable on mobile */}
+      <div className='relative rounded-xl sm:rounded-2xl border border-white/10 shadow-xl overflow-hidden backdrop-blur-md'>
+        <div className='absolute inset-0 bg-blue-700' />
+        <div className='relative p-3 sm:p-4 md:p-6'>
+          <div className='flex items-center justify-between mb-3'>
+            <h3 className='text-sm sm:text-base font-bold text-white'>Your Dashboard</h3>
+            <span className='text-[10px] text-violet-200/80 bg-white/5 px-1.5 py-0.5 rounded-full ring-1 ring-white/10'>Live</span>
+          </div>
 
-            <div className='grid grid-cols-2 gap-3 lg:grid-cols-3'>
-              {/* Share Listing Card - Prominent position */}
-              {listingUrl && (
-                <ShareListingCard listingUrl={listingUrl} landlordName={landlordName} />
-              )}
+          <div className='grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3'>
+            {/* Share Listing Card - Prominent position */}
+            {listingUrl && (
+              <ShareListingCard listingUrl={listingUrl} landlordName={landlordName} />
+            )}
 
-              {/* Share Contractor Card */}
-              <ShareContractorCard contractorUrl={contractorUrl} landlordName={landlordName} />
+            {/* Share Contractor Card */}
+            <ShareContractorCard contractorUrl={contractorUrl} landlordName={landlordName} />
 
-              <Link
-                href='/admin/products'
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Total Units</div>
-                  <Building2 className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{totalUnitsSafe}</div>
-                <div className='text-[10px] text-red-200'>{vacantUnits} vacant</div>
-              </Link>
+            <Link
+              href='/admin/products'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-[10px] sm:text-xs text-black'>Total Units</div>
+                <Building2 className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+              </div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{totalUnitsSafe}</div>
+              <div className='text-[9px] sm:text-[10px] text-red-200'>{vacantUnits} vacant</div>
+            </Link>
 
-              <Link
-                href='/admin/revenue'
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Rent This Month</div>
-                  <DollarSign className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{formatCurrency(rentCollectedThisMonth)}</div>
-                <div className='text-[10px] text-yellow-100'>{collectionRate.toFixed(0)}% collected</div>
-              </Link>
+            <Link
+              href='/admin/revenue'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-[10px] sm:text-xs text-black'>Rent This Month</div>
+                <DollarSign className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+              </div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{formatCurrency(rentCollectedThisMonth)}</div>
+              <div className='text-[9px] sm:text-[10px] text-yellow-100'>{collectionRate.toFixed(0)}% collected</div>
+            </Link>
 
-              <Link
-                href='/admin/maintenance'
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Maintenance</div>
-                  <Wrench className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{ticketsCount}</div>
-                <div className='text-[10px] text-red-100'>{urgentTickets} urgent</div>
-              </Link>
+            <Link
+              href='/admin/maintenance'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-[10px] sm:text-xs text-black'>Maintenance</div>
+                <Wrench className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+              </div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{ticketsCount}</div>
+              <div className='text-[9px] sm:text-[10px] text-red-100'>{urgentTickets} urgent</div>
+            </Link>
 
-              <Link
-                href='/admin/applications'
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Applications</div>
-                  <FileText className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{applicationsCount}</div>
-                <div className='text-[10px] text-emerald-100'>Review now</div>
-              </Link>
+            <Link
+              href='/admin/applications'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-[10px] sm:text-xs text-black'>Applications</div>
+                <FileText className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+              </div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{applicationsCount}</div>
+              <div className='text-[9px] sm:text-[10px] text-emerald-100'>Review now</div>
+            </Link>
 
-              <Link
-                href='/admin/payouts'
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Available Balance</div>
-                  <Wallet className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{formatCurrency(availableBalance)}</div>
-                <div className='text-[10px] text-white/90'>Ready to cash out</div>
-              </Link>
+            <Link
+              href='/admin/payouts'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-[10px] sm:text-xs text-black'>Available Balance</div>
+                <Wallet className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+              </div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{formatCurrency(availableBalance)}</div>
+              <div className='text-[9px] sm:text-[10px] text-white/90'>Ready to cash out</div>
+            </Link>
 
-              <Link
-                href={isAdmin ? '/admin/messages' : '/admin/tenant-messages'}
-                className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='text-xs text-black'>Messages</div>
-                  <MessageCircle className='h-4 w-4 text-white/90' />
-                </div>
-                <div className='text-2xl font-bold text-white'>{messagesCountToShow}</div>
-                <div className='text-[10px] text-white/90'>{isAdmin ? 'Open inbox threads' : 'Unread threads'}</div>
-              </Link>
-            </div>
+            <Link
+              href={isAdmin ? '/admin/messages' : '/admin/tenant-messages'}
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-[10px] sm:text-xs text-black'>Messages</div>
+                <MessageCircle className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+              </div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{messagesCountToShow}</div>
+              <div className='text-[9px] sm:text-[10px] text-white/90'>{isAdmin ? 'Open inbox threads' : 'Unread threads'}</div>
+            </Link>
+          </div>
 
-            <div className='mt-4 rounded-xl bg-slate-900/60 p-4 border border-white/10'>
-              <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
-                <div className='space-y-1'>
-                  <div className='text-[10px] text-slate-200/80 uppercase tracking-wide'>Occupied</div>
-                  <div className='text-sm font-semibold text-white'>{occupiedUnitsSafe}</div>
-                </div>
-                <div className='space-y-1'>
-                  <div className='text-[10px] text-slate-200/80 uppercase tracking-wide'>Tenants</div>
-                  <div className='text-sm font-semibold text-white'>{tenantsCount}</div>
-                </div>
-                <div className='space-y-1'>
-                  <div className='text-[10px] text-slate-200/80 uppercase tracking-wide'>Rent (YTD)</div>
-                  <div className='text-sm font-semibold text-white'>{formatCurrency(rentCollectedYtd)}</div>
-                </div>
-                <div className='space-y-1'>
-                  <div className='text-[10px] text-slate-200/80 uppercase tracking-wide'>Properties</div>
-                  <div className='text-sm font-semibold text-white'>{propertiesCount}</div>
-                </div>
+          <div className='mt-3 rounded-lg sm:rounded-xl bg-slate-900/60 p-2.5 sm:p-3 md:p-4 border border-white/10'>
+            <div className='grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4'>
+              <div className='space-y-0.5'>
+                <div className='text-[9px] sm:text-[10px] text-slate-200/80 uppercase tracking-wide'>Occupied</div>
+                <div className='text-xs sm:text-sm font-semibold text-white'>{occupiedUnitsSafe}</div>
+              </div>
+              <div className='space-y-0.5'>
+                <div className='text-[9px] sm:text-[10px] text-slate-200/80 uppercase tracking-wide'>Tenants</div>
+                <div className='text-xs sm:text-sm font-semibold text-white'>{tenantsCount}</div>
+              </div>
+              <div className='space-y-0.5'>
+                <div className='text-[9px] sm:text-[10px] text-slate-200/80 uppercase tracking-wide'>Rent (YTD)</div>
+                <div className='text-xs sm:text-sm font-semibold text-white'>{formatCurrency(rentCollectedYtd)}</div>
+              </div>
+              <div className='space-y-0.5'>
+                <div className='text-[9px] sm:text-[10px] text-slate-200/80 uppercase tracking-wide'>Properties</div>
+                <div className='text-xs sm:text-sm font-semibold text-white'>{propertiesCount}</div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation Cards - Show all sidebar links on mobile (excluding duplicates from stat cards) */}
-        <div className='md:hidden space-y-4'>
-          <div className='grid gap-3'>
-            {adminNavLinks
-              .filter((item) => {
-                // Filter out links that are already shown in the stat cards above
-                const statCardLinks = ['/admin/products', '/admin/applications', '/admin/maintenance'];
-                return !statCardLinks.includes(item.href);
-              })
-              .map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className='rounded-xl border border-white/10 bg-slate-900/60 p-4 flex items-start gap-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer'
-                  >
-                    <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
-                      <Icon className='h-4 w-4' />
-                    </div>
-                    <div className='flex flex-col gap-1'>
-                      <span className='text-sm font-semibold text-slate-50'>{item.title}</span>
-                      <span className='text-xs text-slate-300/80'>{item.description}</span>
-                    </div>
-                  </Link>
-                );
-              })}
-          </div>
+      {/* Mobile Navigation Cards - Show all sidebar links on mobile (excluding duplicates from stat cards) */}
+      <div className='md:hidden space-y-3'>
+        <div className='grid gap-2'>
+          {adminNavLinks
+            .filter((item) => {
+              // Filter out links that are already shown in the stat cards above
+              const statCardLinks = ['/admin/products', '/admin/applications', '/admin/maintenance'];
+              return !statCardLinks.includes(item.href);
+            })
+            .map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className='rounded-lg border border-white/10 bg-slate-900/60 p-3 flex items-start gap-2.5 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer active:scale-[0.98]'
+                >
+                  <div className='h-8 w-8 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
+                    <Icon className='h-4 w-4' />
+                  </div>
+                  <div className='flex flex-col gap-0.5 min-w-0'>
+                    <span className='text-sm font-semibold text-slate-50'>{item.title}</span>
+                    <span className='text-[10px] text-slate-300/80 truncate'>{item.description}</span>
+                  </div>
+                </Link>
+              );
+            })}
         </div>
       </div>
     </div>

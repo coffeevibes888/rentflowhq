@@ -38,111 +38,112 @@ export default async function AdminMaintenancePage() {
   );
 
   return (
-    <main className='w-full px-4 py-8 md:px-0'>
-      <div className='max-w-6xl mx-auto space-y-6'>
-        <div>
-          <h1 className='text-3xl md:text-4xl font-semibold text-slate-50 mb-2'>Maintenance tickets</h1>
-          <p className='text-sm text-slate-300/80'>View and manage work requests from tenants.</p>
-        </div>
+    <main className='w-full space-y-4'>
+      <div>
+        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50 mb-1'>Maintenance tickets</h1>
+        <p className='text-xs text-slate-300/80'>View and manage work requests from tenants.</p>
+      </div>
 
-        <div className='rounded-xl border border-white/10 bg-slate-900/60 shadow-sm overflow-hidden'>
-          <div className='hidden md:block overflow-x-auto'>
-            <table className='min-w-full text-sm'>
-            <thead className='bg-slate-900/80 border-b border-white/10'>
+      <div className='rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 shadow-sm overflow-hidden'>
+        <div className='hidden md:block overflow-x-auto'>
+          <table className='min-w-full text-sm'>
+          <thead className='bg-slate-900/80 border-b border-white/10'>
+            <tr>
+              <th className='px-3 py-2 text-left font-medium text-slate-200/90 text-xs'>Created</th>
+              <th className='px-3 py-2 text-left font-medium text-slate-200/90 text-xs'>Title</th>
+              <th className='px-3 py-2 text-left font-medium text-slate-200/90 text-xs'>Tenant</th>
+              <th className='px-3 py-2 text-left font-medium text-slate-200/90 text-xs'>Priority</th>
+              <th className='px-3 py-2 text-left font-medium text-slate-200/90 text-xs'>Status</th>
+              <th className='px-3 py-2 text-left font-medium text-slate-200/90 text-xs'>Assigned</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tickets.length === 0 && (
               <tr>
-                <th className='px-4 py-2 text-left font-medium text-slate-200/90'>Created</th>
-                <th className='px-4 py-2 text-left font-medium text-slate-200/90'>Title</th>
-                <th className='px-4 py-2 text-left font-medium text-slate-200/90'>Tenant</th>
-                <th className='px-4 py-2 text-left font-medium text-slate-200/90'>Priority</th>
-                <th className='px-4 py-2 text-left font-medium text-slate-200/90'>Status</th>
-                <th className='px-4 py-2 text-left font-medium text-slate-200/90'>Assigned to</th>
+                <td colSpan={6} className='px-3 py-6 text-center text-slate-300/80 text-xs'>
+                  No maintenance tickets yet.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {tickets.length === 0 && (
-                <tr>
-                  <td colSpan={6} className='px-4 py-6 text-center text-slate-300/80'>
-                    No maintenance tickets yet.
-                  </td>
-                </tr>
-              )}
-              {tickets.map((ticket) => {
-                const assignedToName = ticket.assignedToName ?? null;
+            )}
+            {tickets.map((ticket) => {
+              const assignedToName = ticket.assignedToName ?? null;
 
-                return (
-                  <tr key={ticket.id} className='border-t border-white/10 hover:bg-slate-900/80 transition-colors'>
-                  <td className='px-4 py-2 align-top text-xs text-slate-300/80'>
-                    {new Date(ticket.createdAt).toLocaleString()}
-                  </td>
-                  <td className='px-4 py-2 align-top'>
-                    <Link
-                      href={`/admin/maintenance/${ticket.id}`}
-                      className='font-medium text-slate-50 hover:text-violet-200/80 transition-colors'
-                    >
-                      {ticket.title}
-                    </Link>
-                    <p className='text-xs text-slate-300/80 line-clamp-2'>{ticket.description}</p>
-                  </td>
-                  <td className='px-4 py-2 align-top text-xs text-slate-200/90'>
-                    {ticket.tenant?.name || 'Unknown tenant'}
-                    {ticket.tenant?.email && (
-                      <span className='block text-[11px] text-slate-300/80'>{ticket.tenant.email}</span>
-                    )}
-                  </td>
-                  <td className='px-4 py-2 align-top text-xs capitalize text-slate-200/90'>{ticket.priority}</td>
-                  <td className='px-4 py-2 align-top text-xs capitalize text-slate-200/90'>{renderStatusTag(ticket.status)}</td>
-                  <td className='px-4 py-2 align-top text-xs text-slate-200/90'>
-                    {assignedToName || <span className='text-slate-300/80'>Unassigned</span>}
-                  </td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          </div>
-          <div className='md:hidden divide-y divide-white/10'>
-            {tickets.length === 0 ? (
-              <p className='px-4 py-6 text-center text-sm text-slate-400'>No maintenance tickets yet.</p>
-            ) : (
-              tickets.map((ticket) => {
-                const assignedToName = ticket.assignedToName ?? null;
+              return (
+                <tr key={ticket.id} className='border-t border-white/10 hover:bg-slate-900/80 transition-colors'>
+                <td className='px-3 py-2 align-top text-[10px] text-slate-300/80'>
+                  {new Date(ticket.createdAt).toLocaleString()}
+                </td>
+                <td className='px-3 py-2 align-top'>
+                  <Link
+                    href={`/admin/maintenance/${ticket.id}`}
+                    className='font-medium text-slate-50 hover:text-violet-200/80 transition-colors text-xs'
+                  >
+                    {ticket.title}
+                  </Link>
+                  <p className='text-[10px] text-slate-300/80 line-clamp-2'>{ticket.description}</p>
+                </td>
+                <td className='px-3 py-2 align-top text-[10px] text-slate-200/90'>
+                  {ticket.tenant?.name || 'Unknown tenant'}
+                  {ticket.tenant?.email && (
+                    <span className='block text-[10px] text-slate-300/80'>{ticket.tenant.email}</span>
+                  )}
+                </td>
+                <td className='px-3 py-2 align-top text-[10px] capitalize text-slate-200/90'>{ticket.priority}</td>
+                <td className='px-3 py-2 align-top text-[10px] capitalize text-slate-200/90'>{renderStatusTag(ticket.status)}</td>
+                <td className='px-3 py-2 align-top text-[10px] text-slate-200/90'>
+                  {assignedToName || <span className='text-slate-300/80'>Unassigned</span>}
+                </td>
+              </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        </div>
+        <div className='md:hidden divide-y divide-white/10'>
+          {tickets.length === 0 ? (
+            <p className='px-3 py-6 text-center text-xs text-slate-400'>No maintenance tickets yet.</p>
+          ) : (
+            tickets.map((ticket) => {
+              const assignedToName = ticket.assignedToName ?? null;
 
-                return (
-                  <div key={ticket.id} className='flex flex-col gap-3 px-4 py-4'>
-                    <div className='flex items-start justify-between gap-3'>
-                      <div>
-                        <Link
-                          href={`/admin/maintenance/${ticket.id}`}
-                          className='text-base font-semibold text-slate-50 hover:text-violet-200/80 transition-colors'
-                        >
-                          {ticket.title}
-                        </Link>
-                        <p className='text-xs text-slate-300/80 mt-1'>{ticket.description}</p>
-                      </div>
-                      {renderStatusTag(ticket.status)}
+              return (
+                <Link 
+                  key={ticket.id} 
+                  href={`/admin/maintenance/${ticket.id}`}
+                  className='flex flex-col gap-2 p-3 hover:bg-slate-800/40 active:scale-[0.99] transition-all'
+                >
+                  <div className='flex items-start justify-between gap-2'>
+                    <div className='min-w-0 flex-1'>
+                      <p className='text-sm font-semibold text-slate-50 truncate'>
+                        {ticket.title}
+                      </p>
+                      <p className='text-[10px] text-slate-300/80 line-clamp-1 mt-0.5'>{ticket.description}</p>
                     </div>
+                    {renderStatusTag(ticket.status)}
+                  </div>
 
-                    <div className='grid gap-2 text-xs text-slate-300'>
-                      <InfoRow label='Created' value={new Date(ticket.createdAt).toLocaleString()} />
-                      <InfoRow
-                        label='Tenant'
-                        value={
-                          <div>
-                            <p className='text-sm text-slate-100'>{ticket.tenant?.name || 'Unknown tenant'}</p>
-                            {ticket.tenant?.email && <p className='text-xs text-slate-400'>{ticket.tenant.email}</p>}
-                          </div>
-                        }
-                      />
-                      <div className='grid grid-cols-2 gap-2'>
-                        <InfoRow label='Priority' value={ticket.priority} />
-                        <InfoRow label='Assigned' value={assignedToName || 'Unassigned'} />
-                      </div>
+                  <div className='grid grid-cols-2 gap-1.5 text-[10px]'>
+                    <div className='rounded bg-slate-900/40 p-2 border border-white/5'>
+                      <span className='text-slate-400 block'>Tenant</span>
+                      <span className='text-slate-100'>{ticket.tenant?.name || 'Unknown'}</span>
+                    </div>
+                    <div className='rounded bg-slate-900/40 p-2 border border-white/5'>
+                      <span className='text-slate-400 block'>Priority</span>
+                      <span className='text-slate-100 capitalize'>{ticket.priority}</span>
+                    </div>
+                    <div className='rounded bg-slate-900/40 p-2 border border-white/5'>
+                      <span className='text-slate-400 block'>Created</span>
+                      <span className='text-slate-100'>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className='rounded bg-slate-900/40 p-2 border border-white/5'>
+                      <span className='text-slate-400 block'>Assigned</span>
+                      <span className={cn('text-slate-100', !assignedToName && 'text-slate-400')}>{assignedToName || 'Unassigned'}</span>
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
+                </Link>
+              );
+            })
+          )}
         </div>
       </div>
     </main>
@@ -150,8 +151,8 @@ export default async function AdminMaintenancePage() {
 }
 
 const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className='flex flex-col rounded-lg border border-white/5 bg-slate-900/40 p-3'>
-    <span className='text-[11px] uppercase tracking-wide text-slate-400'>{label}</span>
-    <span className={cn('text-sm text-slate-100', typeof value === 'string' && value === 'Unassigned' ? 'text-slate-400' : '')}>{value}</span>
+  <div className='flex flex-col rounded bg-slate-900/40 p-2 border border-white/5'>
+    <span className='text-[9px] uppercase tracking-wide text-slate-400'>{label}</span>
+    <span className={cn('text-xs text-slate-100', typeof value === 'string' && value === 'Unassigned' ? 'text-slate-400' : '')}>{value}</span>
   </div>
 );

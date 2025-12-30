@@ -74,8 +74,8 @@ export default function AdminApplicationsPage() {
 
   if (loading) {
     return (
-      <main className='w-full px-4 py-8 md:px-0'>
-        <div className='max-w-6xl mx-auto flex items-center justify-center py-20'>
+      <main className='w-full'>
+        <div className='flex items-center justify-center py-20'>
           <Loader2 className='w-8 h-8 animate-spin text-violet-400' />
         </div>
       </main>
@@ -83,42 +83,41 @@ export default function AdminApplicationsPage() {
   }
 
   return (
-    <main className='w-full px-4 py-8 md:px-0'>
-      <div className='max-w-6xl mx-auto space-y-6'>
-        {/* Header */}
-        <div>
-          <h1 className='text-2xl sm:text-3xl md:text-4xl font-semibold text-slate-50 mb-1'>
-            Rental Applications
-          </h1>
-          <p className='text-xs sm:text-sm text-slate-300/80'>
-            Review and respond to incoming applications from prospects.
-          </p>
-        </div>
+    <main className='w-full space-y-4'>
+      {/* Header */}
+      <div>
+        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50 mb-1'>
+          Rental Applications
+        </h1>
+        <p className='text-xs text-slate-300/80'>
+          Review and respond to incoming applications.
+        </p>
+      </div>
 
-        {/* Stats Cards */}
-        <div className='grid grid-cols-3 gap-3 sm:gap-4'>
-          <div className='rounded-xl bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 p-3 sm:p-4'>
-            <div className='flex items-center justify-between mb-1 sm:mb-2'>
-              <Clock className='w-4 h-4 sm:w-5 sm:h-5 text-amber-400' />
-              <span className='text-lg sm:text-2xl font-bold text-white'>{pendingApps.length}</span>
-            </div>
-            <p className='text-[10px] sm:text-xs text-amber-200/80'>Pending Review</p>
+      {/* Stats Cards */}
+      <div className='grid grid-cols-3 gap-2'>
+        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 p-2.5 sm:p-3'>
+          <div className='flex items-center justify-between mb-1'>
+            <Clock className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400' />
+            <span className='text-base sm:text-xl font-bold text-white'>{pendingApps.length}</span>
           </div>
-          <div className='rounded-xl bg-gradient-to-r from-emerald-600/20 to-green-600/20 border border-emerald-500/30 p-3 sm:p-4'>
-            <div className='flex items-center justify-between mb-1 sm:mb-2'>
-              <CheckCircle2 className='w-4 h-4 sm:w-5 sm:h-5 text-emerald-400' />
-              <span className='text-lg sm:text-2xl font-bold text-white'>{approvedApps.length}</span>
-            </div>
-            <p className='text-[10px] sm:text-xs text-emerald-200/80'>Approved</p>
-          </div>
-          <div className='rounded-xl bg-gradient-to-r from-red-600/20 to-rose-600/20 border border-red-500/30 p-3 sm:p-4'>
-            <div className='flex items-center justify-between mb-1 sm:mb-2'>
-              <XCircle className='w-4 h-4 sm:w-5 sm:h-5 text-red-400' />
-              <span className='text-lg sm:text-2xl font-bold text-white'>{rejectedApps.length}</span>
-            </div>
-            <p className='text-[10px] sm:text-xs text-red-200/80'>Rejected</p>
-          </div>
+          <p className='text-[9px] sm:text-[10px] text-amber-200/80'>Pending</p>
         </div>
+        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-600/20 to-green-600/20 border border-emerald-500/30 p-2.5 sm:p-3'>
+          <div className='flex items-center justify-between mb-1'>
+            <CheckCircle2 className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400' />
+            <span className='text-base sm:text-xl font-bold text-white'>{approvedApps.length}</span>
+          </div>
+          <p className='text-[9px] sm:text-[10px] text-emerald-200/80'>Approved</p>
+        </div>
+        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-red-600/20 to-rose-600/20 border border-red-500/30 p-2.5 sm:p-3'>
+          <div className='flex items-center justify-between mb-1'>
+            <XCircle className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400' />
+            <span className='text-base sm:text-xl font-bold text-white'>{rejectedApps.length}</span>
+          </div>
+          <p className='text-[9px] sm:text-[10px] text-red-200/80'>Rejected</p>
+        </div>
+      </div>
 
         {/* Applications Card with Tabs */}
         <Card className='border-white/10 bg-slate-900/60 overflow-hidden'>
@@ -128,33 +127,33 @@ export default function AdminApplicationsPage() {
               <TabsList className='h-auto p-0 bg-transparent rounded-none'>
                 <TabsTrigger 
                   value='pending' 
-                  className='relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-amber-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
+                  className='relative px-3 sm:px-5 py-2 text-xs font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-amber-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
                 >
                   Pending
                   {pendingApps.length > 0 && (
-                    <Badge className='ml-2 bg-amber-500/20 text-amber-300 text-[10px] sm:text-xs'>
+                    <Badge className='ml-1.5 bg-amber-500/20 text-amber-300 text-[9px]'>
                       {pendingApps.length}
                     </Badge>
                   )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value='approved' 
-                  className='relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
+                  className='relative px-3 sm:px-5 py-2 text-xs font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
                 >
                   Approved
                   {approvedApps.length > 0 && (
-                    <Badge className='ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs'>
+                    <Badge className='ml-1.5 bg-emerald-500/20 text-emerald-300 text-[9px]'>
                       {approvedApps.length}
                     </Badge>
                   )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value='rejected' 
-                  className='relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-red-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
+                  className='relative px-3 sm:px-5 py-2 text-xs font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-red-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
                 >
                   Rejected
                   {rejectedApps.length > 0 && (
-                    <Badge className='ml-2 bg-red-500/20 text-red-300 text-[10px] sm:text-xs'>
+                    <Badge className='ml-1.5 bg-red-500/20 text-red-300 text-[9px]'>
                       {rejectedApps.length}
                     </Badge>
                   )}
@@ -162,7 +161,7 @@ export default function AdminApplicationsPage() {
               </TabsList>
             </div>
 
-            <CardContent className='p-3 sm:p-6'>
+            <CardContent className='p-2.5 sm:p-4'>
               {/* Pending Applications */}
               <TabsContent value='pending' className='mt-0'>
                 <ApplicationsList 
@@ -195,7 +194,6 @@ export default function AdminApplicationsPage() {
             </CardContent>
           </Tabs>
         </Card>
-      </div>
     </main>
   );
 }
