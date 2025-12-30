@@ -65,6 +65,7 @@ export const adminNavLinks: AdminNavLink[] = [
     description: 'Chat, members & operations',
     href: '/admin/team',
     icon: Users,
+    proOnly: true,
   },
   {
     title: 'Help & Tour',

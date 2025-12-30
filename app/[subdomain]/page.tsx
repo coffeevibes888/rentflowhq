@@ -131,9 +131,17 @@ export default async function SubdomainRootPage({
         <section id="properties" className="w-full py-14 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
-                Available Properties
-              </h2>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-3">
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+                  Available Properties
+                </h2>
+                <Link
+                  href={`/${subdomain}/sign-in`}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 transition-all hover:scale-105 shadow-lg"
+                >
+                  Apply Now
+                </Link>
+              </div>
               <p className="text-lg text-slate-700">
                 Browse our available units and find your perfect home
               </p>

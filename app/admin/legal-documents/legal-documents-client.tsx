@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import PDFFieldEditor from '@/components/admin/pdf-field-editor';
+import LeaseFieldSetupModal from '@/components/admin/lease-field-setup-modal';
 import type { SignatureField } from '@/components/admin/pdf-field-editor';
 
 interface LegalDocument {
@@ -82,6 +83,8 @@ export default function LegalDocumentsClient() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedDocForAssign, setSelectedDocForAssign] = useState<LegalDocument | null>(null);
   const [editingDocument, setEditingDocument] = useState<LegalDocument | null>(null);
+  const [showFieldSetupModal, setShowFieldSetupModal] = useState(false);
+  const [newlyUploadedDoc, setNewlyUploadedDoc] = useState<LegalDocument | null>(null);
   
   const [uploadForm, setUploadForm] = useState({
     name: '',
@@ -162,12 +165,11 @@ export default function LegalDocumentsClient() {
         });
         fetchDocuments();
         
-        // If it's a lease, prompt to configure fields
+        // If it's a lease, show the field setup modal
         if (uploadForm.type === 'lease' && data.document) {
           const doc = data.document as LegalDocument;
-          if (confirm('Would you like to configure signature fields for this lease now?')) {
-            setEditingDocument(doc);
-          }
+          setNewlyUploadedDoc(doc);
+          setShowFieldSetupModal(true);
         }
       } else {
         const error = await res.json();
@@ -729,6 +731,24 @@ export default function LegalDocumentsClient() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Lease Field Setup Modal - shown after uploading a lease */}
+      {newlyUploadedDoc && (
+        <LeaseFieldSetupModal
+          open={showFieldSetupModal}
+          onOpenChange={setShowFieldSetupModal}
+          documentName={newlyUploadedDoc.name}
+          onConfigureFields={() => {
+            setShowFieldSetupModal(false);
+            setEditingDocument(newlyUploadedDoc);
+            setNewlyUploadedDoc(null);
+          }}
+          onSkip={() => {
+            setShowFieldSetupModal(false);
+            setNewlyUploadedDoc(null);
+          }}
+        />
+      )}
     </div>
   );
 }

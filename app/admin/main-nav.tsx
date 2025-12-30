@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import React from 'react';
 import { adminNavLinks } from '@/lib/constants/admin-nav';
 import { useEffect, useState } from 'react';
-import { Settings2 } from 'lucide-react';
+import { Settings2, Crown } from 'lucide-react';
 
 const MainNav = ({
   className,
@@ -40,8 +40,8 @@ const MainNav = ({
     };
   }, []);
 
-  // Filter out proOnly links for free tier users
-  const visibleLinks = adminNavLinks.filter(item => !item.proOnly || isPro);
+  // Show all links - pro-only links will show a badge for non-pro users
+  const visibleLinks = adminNavLinks;
 
   return (
     <nav
@@ -54,6 +54,7 @@ const MainNav = ({
       {visibleLinks.map((item) => {
         const Icon = item.icon;
         const isActive = pathname.startsWith(item.href);
+        const showProBadge = item.proOnly && !isPro;
 
         return (
           <Link
@@ -61,7 +62,7 @@ const MainNav = ({
             href={item.href}
             title={item.title}
             className={cn(
-              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
+              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 overflow-hidden',
               isActive 
                 ? 'bg-gradient-to-r from-violet-600/90 to-purple-600/90 text-white shadow-lg shadow-violet-500/20' 
                 : 'hover:bg-white/20'
@@ -71,11 +72,19 @@ const MainNav = ({
               'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
               isActive ? 'text-white' : '!text-black'
             )} />
-            <div className='flex flex-col min-w-0 nav-text-content'>
-              <span className={cn(
-                'text-sm truncate',
-                isActive ? 'text-white font-semibold' : '!text-black !font-semibold'
-              )}>{item.title}</span>
+            <div className='flex flex-col min-w-0 flex-1 overflow-hidden'>
+              <div className="flex items-center gap-1.5">
+                <span className={cn(
+                  'text-sm truncate',
+                  isActive ? 'text-white font-semibold' : '!text-black !font-semibold'
+                )}>{item.title}</span>
+                {showProBadge && (
+                  <span className="shrink-0 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wide">
+                    <Crown className="h-2 w-2" />
+                    Pro
+                  </span>
+                )}
+              </div>
               <span className={cn(
                 'text-[11px] truncate',
                 isActive ? 'text-violet-200' : '!text-black/60'

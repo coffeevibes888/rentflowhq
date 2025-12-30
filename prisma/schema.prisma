@@ -769,6 +769,9 @@ model Property {
   videoUrl          String?  // Property video URL (uploaded or YouTube/Vimeo)
   virtualTourUrl    String?  // 3D walkthrough URL (Matterport, etc.)
 
+  // Property-level amenities (pool, gym, parking, laundry room, etc.)
+  amenities         String[] @default([])
+
   landlord Landlord? @relation(fields: [landlordId], references: [id], onDelete: SetNull)
   defaultLeaseDocument LegalDocument? @relation("DefaultLeaseDocument", fields: [defaultLeaseDocumentId], references: [id], onDelete: SetNull)
 
@@ -802,6 +805,8 @@ model Unit {
   propertyId   String   @db.Uuid
   name         String   // e.g. 101, 2B, Suite 300
   type         String   // room, apartment, office, house
+  building     String?  // For apartment complexes: Building A, Building B, etc.
+  floor        Int?     // Floor number for multi-story buildings
   bedrooms     Int?
   bathrooms    Decimal? @db.Decimal(3, 1)
   sizeSqFt     Int?
@@ -809,7 +814,7 @@ model Unit {
   isAvailable  Boolean  @default(true)
   availableFrom DateTime?
   images       String[] @default([])
-  amenities    String[] @default([])
+  amenities    String[] @default([]) // Unit-specific amenities (in-unit washer/dryer, balcony, etc.)
   createdAt    DateTime @default(now()) @db.Timestamp(6)
   updatedAt    DateTime @updatedAt
 

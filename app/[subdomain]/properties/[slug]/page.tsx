@@ -126,6 +126,8 @@ export default async function SubdomainPropertyPage({
                   {property.units.length} unit{property.units.length !== 1 ? 's' : ''} available
                 </Badge>
               )}
+              {/* Apply Now button near units available */}
+              <SubdomainApplyButton propertySlug={property.slug} size="sm" />
             </div>
 
             <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">

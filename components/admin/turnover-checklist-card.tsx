@@ -171,7 +171,20 @@ export function TurnoverChecklistCard({ unitId, unitName, onComplete }: Turnover
         body: JSON.stringify({ isAvailable: true }),
       });
 
-      if (!res.ok) throw new Error('Failed to update availability');
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Check if lease is required
+        if (data.requiresLease) {
+          toast({
+            title: 'Lease Required',
+            description: 'You must assign a lease template to this property before listing units. Go to Legal Documents to add one.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        throw new Error(data.message || 'Failed to update availability');
+      }
 
       toast({
         title: 'Unit Available',
@@ -181,7 +194,7 @@ export function TurnoverChecklistCard({ unitId, unitName, onComplete }: Turnover
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to mark unit as available',
+        description: error instanceof Error ? error.message : 'Failed to mark unit as available',
         variant: 'destructive',
       });
     } finally {

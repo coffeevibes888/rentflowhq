@@ -7,9 +7,10 @@ interface OnboardingProviderProps {
   userId: string;
   userCreatedAt: string;
   userRole: string;
+  isPro?: boolean;
 }
 
-export function OnboardingProvider({ userId, userCreatedAt, userRole }: OnboardingProviderProps) {
+export function OnboardingProvider({ userId, userCreatedAt, userRole, isPro = false }: OnboardingProviderProps) {
   const [shouldShowTour, setShouldShowTour] = useState(false);
 
   useEffect(() => {
@@ -36,5 +37,5 @@ export function OnboardingProvider({ userId, userCreatedAt, userRole }: Onboardi
     return null;
   }
 
-  return <LandlordTour userId={userId} isNewUser={true} />;
+  return <LandlordTour userId={userId} isNewUser={true} isPro={isPro} />;
 }

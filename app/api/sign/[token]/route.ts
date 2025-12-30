@@ -74,13 +74,75 @@ export async function GET(
   const tenantName = lease.tenant?.name || 'Tenant';
   const propertyLabel = `${lease.unit.property?.name || 'Property'} - ${lease.unit.name} (${lease.unit.type})`;
 
-  // Check if we have a custom lease document with configured fields
+  // Check if we have a custom lease document
   const legalDoc = lease.legalDocument || sig.document;
-  const hasCustomDocument = legalDoc?.isFieldsConfigured && legalDoc?.fileUrl && legalDoc?.signatureFields;
+  
+  // Log which document we're using for debugging
+  console.log(`[Sign Session] Lease ${lease.id} - legalDocument: ${legalDoc?.name || 'none'}, fileUrl: ${legalDoc?.fileUrl ? 'yes' : 'no'}, isFieldsConfigured: ${legalDoc?.isFieldsConfigured}`);
+  
+  // Use custom PDF if we have a fileUrl (even if fields aren't configured - we'll add default signature area)
+  const hasCustomPdf = legalDoc?.fileUrl;
+  const hasConfiguredFields = legalDoc?.isFieldsConfigured && legalDoc?.signatureFields;
 
-  if (hasCustomDocument) {
+  if (hasCustomPdf) {
     // Return info for custom PDF signing
-    const fields = (legalDoc.signatureFields as unknown as SignatureFieldPosition[]) || [];
+    let fields: SignatureFieldPosition[] = [];
+    
+    if (hasConfiguredFields) {
+      // Use configured fields
+      fields = (legalDoc.signatureFields as unknown as SignatureFieldPosition[]) || [];
+    } else {
+      // No configured fields - add default signature fields at bottom of last page
+      // These will be placed by the PDF signing component
+      fields = [
+        {
+          id: 'default_tenant_sig',
+          type: 'signature',
+          role: 'tenant',
+          page: 1, // Will be adjusted to last page by the signing component
+          x: 100,
+          y: 700, // Near bottom
+          width: 200,
+          height: 50,
+          required: true,
+        },
+        {
+          id: 'default_tenant_date',
+          type: 'date',
+          role: 'tenant',
+          page: 1,
+          x: 350,
+          y: 700,
+          width: 100,
+          height: 30,
+          required: true,
+        },
+        {
+          id: 'default_landlord_sig',
+          type: 'signature',
+          role: 'landlord',
+          page: 1,
+          x: 100,
+          y: 750,
+          width: 200,
+          height: 50,
+          required: true,
+        },
+        {
+          id: 'default_landlord_date',
+          type: 'date',
+          role: 'landlord',
+          page: 1,
+          x: 350,
+          y: 750,
+          width: 100,
+          height: 30,
+          required: true,
+        },
+      ];
+      console.log(`[Sign Session] Using default signature fields for unconfigured PDF`);
+    }
+    
     const roleFields = fields.filter(f => f.role === sig.role);
 
     return NextResponse.json({
@@ -92,6 +154,7 @@ export async function GET(
       documentName: legalDoc.name,
       documentUrl: legalDoc.fileUrl,
       signatureFields: roleFields,
+      useDefaultFields: !hasConfiguredFields, // Flag to tell frontend to adjust field positions
       leaseDetails: {
         landlordName,
         tenantName,
@@ -259,18 +322,52 @@ export async function POST(
     leaseId: lease.id,
   };
 
-  // Check if we have a custom lease document
+  // Check if we have a custom lease document (with or without configured fields)
   const legalDoc = lease.legalDocument || sig.document;
-  const hasCustomDocument = legalDoc?.isFieldsConfigured && legalDoc?.fileUrl && legalDoc?.signatureFields;
+  const hasCustomPdf = legalDoc?.fileUrl;
+  const hasConfiguredFields = legalDoc?.isFieldsConfigured && legalDoc?.signatureFields;
+
+  console.log(`[Sign POST] Lease ${lease.id} - hasCustomPdf: ${hasCustomPdf}, hasConfiguredFields: ${hasConfiguredFields}`);
 
   let stamped;
 
-  if (hasCustomDocument) {
+  if (hasCustomPdf) {
     // Use custom PDF signing
     console.log('Using custom PDF document for signing');
     try {
       const pdfBuffer = await fetchPdfBuffer(legalDoc.fileUrl!);
-      const fields = (legalDoc.signatureFields as unknown as SignatureFieldPosition[]) || [];
+      
+      // Use configured fields or default fields
+      let fields: SignatureFieldPosition[] = [];
+      if (hasConfiguredFields) {
+        fields = (legalDoc.signatureFields as unknown as SignatureFieldPosition[]) || [];
+      } else {
+        // Default fields for unconfigured PDF - signature at bottom
+        fields = [
+          {
+            id: 'default_tenant_sig',
+            type: 'signature',
+            role: 'tenant',
+            page: 1,
+            x: 100,
+            y: 700,
+            width: 200,
+            height: 50,
+            required: true,
+          },
+          {
+            id: 'default_landlord_sig',
+            type: 'signature',
+            role: 'landlord',
+            page: 1,
+            x: 100,
+            y: 750,
+            width: 200,
+            height: 50,
+            required: true,
+          },
+        ];
+      }
 
       stamped = await applySignaturesToPdf({
         pdfBuffer,

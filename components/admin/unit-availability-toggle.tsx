@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,7 @@ export function UnitAvailabilityToggle({
   onToggle,
 }: UnitAvailabilityToggleProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [available, setAvailable] = useState(isAvailable);
   const [showTenantModal, setShowTenantModal] = useState(false);
@@ -74,13 +76,31 @@ export function UnitAvailabilityToggle({
       const data = await res.json();
 
       if (!res.ok) {
+        // Check if lease is required
+        if (data.requiresLease) {
+          toast({
+            title: 'Lease Required',
+            description: 'You must assign a lease template to this property before listing units.',
+            variant: 'destructive',
+            action: (
+              <button
+                onClick={() => router.push('/admin/legal-documents')}
+                className="bg-white text-slate-900 px-3 py-1 rounded text-sm font-medium hover:bg-slate-100"
+              >
+                Add Lease
+              </button>
+            ),
+          });
+          return;
+        }
+        
         // If there's an active tenant and we didn't force terminate
         if (data.hasTenant && !forceTerminate) {
           setPendingAvailability(newValue);
           setShowTenantModal(true);
           return;
         }
-        throw new Error(data.error || 'Failed to update availability');
+        throw new Error(data.error || data.message || 'Failed to update availability');
       }
 
       setAvailable(newValue);

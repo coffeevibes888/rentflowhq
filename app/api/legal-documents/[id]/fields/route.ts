@@ -3,13 +3,16 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 
+// Allowed roles for managing legal documents
+const ALLOWED_ROLES = ['admin', 'landlord', 'property_manager'];
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    if (!session?.user?.id || session.user.role !== 'admin') {
+    if (!session?.user?.id || !ALLOWED_ROLES.includes(session.user.role as string)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -50,7 +53,7 @@ export async function PUT(
 ) {
   try {
     const session = await auth();
-    if (!session?.user?.id || session.user.role !== 'admin') {
+    if (!session?.user?.id || !ALLOWED_ROLES.includes(session.user.role as string)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -46,6 +46,7 @@ import { useToast } from '@/hooks/use-toast';
 import { EnhancedTenantCard } from '@/components/admin/enhanced-tenant-card';
 import { VacantUnitCard } from '@/components/admin/vacant-unit-card';
 import TenantComms from '@/components/admin/tenant-comms';
+import { ApartmentComplexManager } from '@/components/admin/apartment-complex-manager';
 
 interface CashoutInfo {
   canCashOut: boolean;
@@ -274,14 +275,14 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
   };
 
   return (
-    <main className="w-full px-4 py-8 md:px-0">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <main className="w-full px-3 py-4 sm:px-4 sm:py-8 md:px-0">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-black text-2xl font-bold">Property Management</p>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-white">{property.name}</h1>
-            <p className="text-black text-sm">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-violet-300 font-medium">Property Management</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white leading-tight">{property.name}</h1>
+            <p className="text-slate-400 text-xs sm:text-sm mt-0.5">
               {property.type} • {property.address && typeof property.address === 'object'
                 ? `${(property.address as any).street ?? ''} ${(property.address as any).city ?? ''}`.trim()
                 : ''}
@@ -292,7 +293,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
             {property.units.length === 1 ? (
               <Button 
                 variant="outline" 
-                className="border-white/10 text-white text-xs sm:text-sm"
+                className="border-white/10 text-white text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4"
                 onClick={() => handleCreateInvoice(property.units[0].id)}
               >
                 <Receipt className="w-4 h-4 sm:mr-2" />
@@ -301,9 +302,9 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
             ) : property.units.length > 1 ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="border-white/10 text-green text-xs sm:text-sm">
+                  <Button variant="outline" className="border-white/10 text-white text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4">
                     <Receipt className="w-4 h-4 sm:mr-2" />
-                    <span className="hidden sm:inline text-white">Create Invoice</span> 
+                    <span className="hidden sm:inline text-white">Invoice</span> 
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -336,7 +337,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
             {cashoutInfo?.canCashOut && cashoutInfo.hasBankAccount && (
               <Button 
                 variant="outline" 
-                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs sm:text-sm"
+                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4"
                 onClick={() => setShowCashoutDialog(true)}
               >
                 <ArrowDownToLine className="w-4 h-4 sm:mr-2" />
@@ -344,13 +345,13 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </Button>
             )}
             
-            <Button variant="outline" className="border-white/10 text-white text-xs sm:text-sm" onClick={() => setExpenseDialogOpen(true)}>
+            <Button variant="outline" className="border-white/10 text-white text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4" onClick={() => setExpenseDialogOpen(true)}>
               <Plus className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Add</span> Expense
             </Button>
-            <Button asChild variant="outline" className="border-white/10 text-white text-xs sm:text-sm">
+            <Button asChild variant="outline" className="border-white/10 text-white text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4">
               <Link href={`/admin/products/${property.id}`}>
-                <span className="hidden sm:inline ">Edit Property</span>
+                <span className="hidden sm:inline">Edit Property</span>
                 <span className="sm:hidden">Edit</span>
               </Link>
             </Button>
@@ -359,25 +360,25 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full flex flex-wrap gap-1 bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 rounded-xl h-auto text-white">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4">
+          <TabsList className="w-full flex overflow-x-auto gap-1 bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 rounded-xl h-auto text-white mobile-scroll-x">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-2.5 py-2 sm:px-4 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
               <Building2 className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline text-white">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="communications" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
+            <TabsTrigger value="communications" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-2.5 py-2 sm:px-4 text-xs sm:text-sm text-white whitespace-nowrap flex-shrink-0">
               <MessageCircle className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline text-white font-bold">Communications</span>
+              <span className="hidden sm:inline text-white font-bold">Comms</span>
             </TabsTrigger>
-            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
+            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-2.5 py-2 sm:px-4 text-xs sm:text-sm text-white whitespace-nowrap flex-shrink-0">
               <Users className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline text-white font-bold">Tenants</span>
               {activeLeases.length > 0 && (
-                <Badge className="ml-1 sm:ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs">{activeLeases.length}</Badge>
+                <Badge className="ml-1 sm:ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs px-1.5">{activeLeases.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm sm:px-4 text-white">
+            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-2.5 py-2 sm:px-4 text-xs sm:text-sm text-white whitespace-nowrap flex-shrink-0">
               <BarChart3 className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline text-white font-bold">Financials</span>
+              <span className="hidden sm:inline text-white font-bold">Financial Reports</span>
             </TabsTrigger>
           </TabsList>
 
@@ -651,69 +652,6 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                   </CardContent>
                 </Card>
 
-                {/* Quarterly Reports */}
-                <Card className="border-white/10 bg-slate-900/60 h-fit">
-                  <CardHeader className="pb-2 lg:pb-4">
-                    <CardTitle className="text-white text-lg flex items-center gap-2">
-                      <PieChart className="w-4 h-4" />
-                      Quarterly
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-2 lg:p-4">
-                    <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-                      {[1, 2, 3, 4].map(q => (
-                        <button
-                          key={q}
-                          onClick={() => setSelectedQuarter(q)}
-                          className={`text-left px-3 py-2 rounded-lg transition-colors text-sm ${
-                            selectedQuarter === q
-                              ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white' 
-                              : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-                          }`}
-                        >
-                          Q{q} {selectedYear}
-                        </button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Investor Reports */}
-                <Card className="border-violet-500/30 bg-gradient-to-br from-violet-900/40 to-purple-900/40 h-fit">
-                  <CardHeader className="pb-2 lg:pb-4">
-                    <CardTitle className="text-white text-lg flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-violet-400" />
-                      Investor Reports
-                    </CardTitle>
-                    <CardDescription className="text-violet-200/70 text-xs">
-                      Professional reports with charts
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2 lg:p-4 space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-violet-400/30 text-violet-200 hover:bg-violet-500/20 justify-start"
-                      onClick={() => handleViewInvestorReport('yearly')}
-                      disabled={loadingReport}
-                    >
-                      {loadingReport ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
-                      {selectedYear} Annual Report
-                    </Button>
-                    {selectedQuarter && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-violet-400/30 text-violet-200 hover:bg-violet-500/20 justify-start"
-                        onClick={() => handleViewInvestorReport('quarterly', selectedQuarter)}
-                        disabled={loadingReport}
-                      >
-                        {loadingReport ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
-                        Q{selectedQuarter} {selectedYear} Report
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
               </div>
 
               {/* Financial Summary */}
@@ -749,17 +687,22 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                             <FileSpreadsheet className="w-4 h-4 mr-2" />
                             Export as CSV
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-slate-700" />
-                          <DropdownMenuItem 
-                            onClick={() => handleViewInvestorReport(selectedQuarter ? 'quarterly' : 'yearly', selectedQuarter || undefined)} 
-                            disabled={loadingReport}
-                            className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
-                          >
-                            <PieChart className="w-4 h-4 mr-2" />
-                            View Investor Report
-                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="border-orange-500/30 bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:opacity-90 text-xs sm:text-sm"
+                        onClick={() => handleViewInvestorReport(selectedQuarter ? 'quarterly' : 'yearly', selectedQuarter || undefined)}
+                        disabled={loadingReport}
+                      >
+                        {loadingReport ? (
+                          <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
+                        ) : (
+                          <PieChart className="w-4 h-4 sm:mr-2" />
+                        )}
+                        <span className="hidden sm:inline">Investor Report</span>
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -772,21 +715,63 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                   </CardContent>
                 </Card>
 
-                {/* Monthly Breakdown */}
+                {/* Financial Reports with Browser Tabs */}
                 <Card className="border-white/10 bg-slate-900/60">
-                  <CardHeader>
-                    <CardTitle className="text-white">
-                      Monthly Breakdown - {selectedQuarter ? `Q${selectedQuarter} ` : ''}{selectedYear}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <MonthlyBreakdown 
-                      year={selectedYear}
-                      quarter={selectedQuarter}
-                      rentPayments={rentPayments}
-                      expenses={property.expenses}
-                    />
-                  </CardContent>
+                  <Tabs defaultValue="monthly" className="w-full">
+                    <div className="border-b border-white/10 bg-slate-800/40">
+                      <TabsList className="h-auto p-0 bg-transparent rounded-none w-full justify-start">
+                        <TabsTrigger 
+                          value="monthly" 
+                          className="relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
+                        >
+                          Monthly
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="quarterly" 
+                          className="relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
+                        >
+                          Quarterly
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="yearly" 
+                          className="relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
+                        >
+                          Yearly
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+
+                    <CardContent className="p-4 sm:p-6">
+                      {/* Monthly View */}
+                      <TabsContent value="monthly" className="mt-0">
+                        <MonthlyBreakdown 
+                          year={selectedYear}
+                          quarter={selectedQuarter}
+                          rentPayments={rentPayments}
+                          expenses={property.expenses}
+                          showOnlyWithData={true}
+                        />
+                      </TabsContent>
+
+                      {/* Quarterly View */}
+                      <TabsContent value="quarterly" className="mt-0">
+                        <QuarterlyBreakdown 
+                          year={selectedYear}
+                          rentPayments={rentPayments}
+                          expenses={property.expenses}
+                        />
+                      </TabsContent>
+
+                      {/* Yearly View */}
+                      <TabsContent value="yearly" className="mt-0">
+                        <YearlyBreakdown 
+                          currentYear={selectedYear}
+                          rentPayments={rentPayments}
+                          expenses={property.expenses}
+                        />
+                      </TabsContent>
+                    </CardContent>
+                  </Tabs>
                 </Card>
               </div>
             </div>
@@ -803,6 +788,9 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
           onExportCsv={handleExportCSV}
           exportingPdf={exportingPdf}
           exportingCsv={exportingCsv}
+          selectedYear={selectedYear}
+          onExportYearly={() => handleViewInvestorReport('yearly')}
+          onExportQuarterly={(quarter) => handleViewInvestorReport('quarterly', quarter)}
         />
       )}
 
@@ -1192,12 +1180,14 @@ function MonthlyBreakdown({
   year,
   quarter,
   rentPayments, 
-  expenses 
+  expenses,
+  showOnlyWithData = false
 }: { 
   year: number;
   quarter?: number | null;
   rentPayments: any[]; 
   expenses: any[];
+  showOnlyWithData?: boolean;
 }) {
   const allMonths = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -1233,8 +1223,22 @@ function MonthlyBreakdown({
       expenses: expenseTotal,
       net: income - expenseTotal,
       paymentCount: monthPayments.filter(p => p.status === 'paid').length,
+      hasData: income > 0 || expenseTotal > 0,
     };
   });
+
+  // Filter to only show months with data if requested
+  const displayData = showOnlyWithData 
+    ? monthlyData.filter(d => d.hasData)
+    : monthlyData;
+
+  if (displayData.length === 0) {
+    return (
+      <div className="text-center py-8 text-slate-400">
+        <p>No financial data for {year}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -1248,7 +1252,7 @@ function MonthlyBreakdown({
           </tr>
         </thead>
         <tbody>
-          {monthlyData.map((data) => (
+          {displayData.map((data) => (
             <tr key={data.month} className="border-b border-white/5 hover:bg-white/5">
               <td className="py-3 px-2 text-white">{data.month}</td>
               <td className="py-3 px-2 text-right text-emerald-400">
@@ -1267,19 +1271,212 @@ function MonthlyBreakdown({
           <tr className="border-t border-white/20">
             <td className="py-3 px-2 text-white font-semibold">Total</td>
             <td className="py-3 px-2 text-right text-emerald-400 font-semibold">
-              {formatCurrency(monthlyData.reduce((sum, d) => sum + d.income, 0))}
+              {formatCurrency(displayData.reduce((sum, d) => sum + d.income, 0))}
             </td>
             <td className="py-3 px-2 text-right text-red-400 font-semibold">
-              {formatCurrency(monthlyData.reduce((sum, d) => sum + d.expenses, 0))}
+              {formatCurrency(displayData.reduce((sum, d) => sum + d.expenses, 0))}
             </td>
             <td className={`py-3 px-2 text-right font-semibold ${
-              monthlyData.reduce((sum, d) => sum + d.net, 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+              displayData.reduce((sum, d) => sum + d.net, 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
             }`}>
-              {formatCurrency(monthlyData.reduce((sum, d) => sum + d.net, 0))}
+              {formatCurrency(displayData.reduce((sum, d) => sum + d.net, 0))}
             </td>
           </tr>
         </tfoot>
       </table>
+    </div>
+  );
+}
+
+// Quarterly Breakdown Component
+function QuarterlyBreakdown({ 
+  year,
+  rentPayments, 
+  expenses 
+}: { 
+  year: number;
+  rentPayments: any[]; 
+  expenses: any[];
+}) {
+  const quarters = [
+    { label: 'Q1', months: [0, 1, 2], name: 'Jan - Mar' },
+    { label: 'Q2', months: [3, 4, 5], name: 'Apr - Jun' },
+    { label: 'Q3', months: [6, 7, 8], name: 'Jul - Sep' },
+    { label: 'Q4', months: [9, 10, 11], name: 'Oct - Dec' },
+  ];
+
+  const quarterlyData = quarters.map(q => {
+    const quarterPayments = rentPayments.filter(p => {
+      const date = new Date(p.dueDate);
+      return date.getFullYear() === year && q.months.includes(date.getMonth());
+    });
+    
+    const quarterExpenses = expenses.filter((e: any) => {
+      const date = new Date(e.incurredAt || e.date || e.createdAt);
+      return date.getFullYear() === year && q.months.includes(date.getMonth());
+    });
+
+    const income = quarterPayments
+      .filter(p => p.status === 'paid')
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+    
+    const expenseTotal = quarterExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
+
+    return {
+      ...q,
+      income,
+      expenses: expenseTotal,
+      net: income - expenseTotal,
+      hasData: income > 0 || expenseTotal > 0,
+    };
+  });
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {quarterlyData.map((q) => (
+        <div 
+          key={q.label}
+          className={`rounded-xl p-4 border ${
+            q.hasData 
+              ? 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-white/10' 
+              : 'bg-slate-900/40 border-white/5'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <span className="text-lg font-bold text-white">{q.label}</span>
+              <span className="text-xs text-slate-400 ml-2">{q.name}</span>
+            </div>
+            {q.hasData && (
+              <Badge className={`${q.net >= 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                {q.net >= 0 ? '+' : ''}{formatCurrency(q.net)}
+              </Badge>
+            )}
+          </div>
+          {q.hasData ? (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Income</span>
+                <span className="text-emerald-400 font-medium">{formatCurrency(q.income)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Expenses</span>
+                <span className="text-red-400 font-medium">{formatCurrency(q.expenses)}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No data</p>
+          )}
+        </div>
+      ))}
+      
+      {/* Yearly Total */}
+      <div className="sm:col-span-2 rounded-xl p-4 bg-gradient-to-r from-violet-900/40 to-purple-900/40 border border-violet-500/30">
+        <div className="flex items-center justify-between">
+          <span className="text-lg font-bold text-white">{year} Total</span>
+          <div className="flex gap-4 text-sm">
+            <span className="text-emerald-400">
+              Income: {formatCurrency(quarterlyData.reduce((sum, q) => sum + q.income, 0))}
+            </span>
+            <span className="text-red-400">
+              Expenses: {formatCurrency(quarterlyData.reduce((sum, q) => sum + q.expenses, 0))}
+            </span>
+            <span className={`font-bold ${
+              quarterlyData.reduce((sum, q) => sum + q.net, 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+            }`}>
+              Net: {formatCurrency(quarterlyData.reduce((sum, q) => sum + q.net, 0))}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Yearly Breakdown Component
+function YearlyBreakdown({ 
+  currentYear,
+  rentPayments, 
+  expenses 
+}: { 
+  currentYear: number;
+  rentPayments: any[]; 
+  expenses: any[];
+}) {
+  // Show last 5 years
+  const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3, currentYear - 4];
+
+  const yearlyData = years.map(year => {
+    const yearPayments = rentPayments.filter(p => {
+      const date = new Date(p.dueDate);
+      return date.getFullYear() === year;
+    });
+    
+    const yearExpenses = expenses.filter((e: any) => {
+      const date = new Date(e.incurredAt || e.date || e.createdAt);
+      return date.getFullYear() === year;
+    });
+
+    const income = yearPayments
+      .filter(p => p.status === 'paid')
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+    
+    const expenseTotal = yearExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
+
+    return {
+      year,
+      income,
+      expenses: expenseTotal,
+      net: income - expenseTotal,
+      hasData: income > 0 || expenseTotal > 0,
+    };
+  }).filter(y => y.hasData);
+
+  if (yearlyData.length === 0) {
+    return (
+      <div className="text-center py-8 text-slate-400">
+        <p>No financial data available</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {yearlyData.map((y, idx) => (
+        <div 
+          key={y.year}
+          className={`rounded-xl p-4 border ${
+            idx === 0 
+              ? 'bg-gradient-to-r from-violet-900/40 to-purple-900/40 border-violet-500/30' 
+              : 'bg-slate-800/60 border-white/10'
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold text-white">{y.year}</span>
+              {idx === 0 && (
+                <Badge className="bg-violet-500/20 text-violet-300 text-xs">Current</Badge>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">Income:</span>
+                <span className="text-emerald-400 font-semibold">{formatCurrency(y.income)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">Expenses:</span>
+                <span className="text-red-400 font-semibold">{formatCurrency(y.expenses)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">Net:</span>
+                <span className={`font-bold ${y.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {formatCurrency(y.net)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -1292,7 +1489,11 @@ function InvestorReportModal({
   onExportPdf, 
   onExportCsv,
   exportingPdf,
-  exportingCsv
+  exportingCsv,
+  selectedYear,
+  onExportMonthly,
+  onExportQuarterly,
+  onExportYearly,
 }: { 
   data: any; 
   onClose: () => void;
@@ -1300,8 +1501,13 @@ function InvestorReportModal({
   onExportCsv: () => void;
   exportingPdf: boolean;
   exportingCsv: boolean;
+  selectedYear?: number;
+  onExportMonthly?: () => void;
+  onExportQuarterly?: (quarter: number) => void;
+  onExportYearly?: () => void;
 }) {
   const { executiveSummary, portfolio, propertyPerformance, charts, collectionSummary, leaseSummary } = data;
+  const year = selectedYear || new Date().getFullYear();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1314,29 +1520,80 @@ function InvestorReportModal({
       {/* Modal */}
       <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-violet-500/30 bg-slate-900 shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-white/10 bg-gradient-to-r from-violet-900 to-purple-900">
+        <div className="sticky top-0 z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 border-b border-white/10 bg-gradient-to-r from-violet-900 to-purple-900">
           <div>
-            <h2 className="text-2xl font-bold text-white">Investor Report</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Investor Report</h2>
             <p className="text-sm text-violet-200">{data.periodLabel}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onExportCsv}
-              disabled={exportingCsv}
-              className="border-violet-400/30 text-violet-200 hover:bg-violet-500/20"
-            >
-              {exportingCsv ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
-              CSV
-            </Button>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Download Options Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-violet-400/30 text-violet-200 hover:bg-violet-500/20"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Reports
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-white w-56">
+                <DropdownMenuItem 
+                  onClick={onExportYearly}
+                  className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  {year} Annual Report (PDF)
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-slate-700" />
+                <DropdownMenuItem 
+                  onClick={() => onExportQuarterly?.(1)}
+                  className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Q1 {year} Report (PDF)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onExportQuarterly?.(2)}
+                  className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Q2 {year} Report (PDF)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onExportQuarterly?.(3)}
+                  className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Q3 {year} Report (PDF)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onExportQuarterly?.(4)}
+                  className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Q4 {year} Report (PDF)
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-slate-700" />
+                <DropdownMenuItem 
+                  onClick={onExportCsv}
+                  disabled={exportingCsv}
+                  className="cursor-pointer text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Export as CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <Button
               onClick={onExportPdf}
               disabled={exportingPdf}
               className="bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:opacity-90"
             >
               {exportingPdf ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-              Download PDF
+              <span className="hidden sm:inline">Download</span> PDF
             </Button>
             <button 
               onClick={onClose}
@@ -1403,50 +1660,153 @@ function InvestorReportModal({
             </CardContent>
           </Card>
 
-          {/* Monthly Trend Chart */}
+          {/* Performance Charts with Browser Tabs */}
           <Card className="border-white/10 bg-slate-800/60">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-violet-400" />
-                Monthly Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48 flex items-end gap-2">
-                {charts.monthlyTrend.map((m: any, i: number) => {
-                  const maxVal = Math.max(...charts.monthlyTrend.map((x: any) => Math.max(x.income, x.expenses)), 1);
-                  const incomeHeight = (m.income / maxVal) * 100;
-                  const expenseHeight = (m.expenses / maxVal) * 100;
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                      <div className="flex gap-1 items-end h-36 w-full justify-center">
-                        <div 
-                          className="w-3 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t"
-                          style={{ height: `${incomeHeight}%`, minHeight: m.income > 0 ? '4px' : '0' }}
-                          title={`Income: ${formatCurrency(m.income)}`}
-                        />
-                        <div 
-                          className="w-3 bg-gradient-to-t from-red-600 to-red-400 rounded-t"
-                          style={{ height: `${expenseHeight}%`, minHeight: m.expenses > 0 ? '4px' : '0' }}
-                          title={`Expenses: ${formatCurrency(m.expenses)}`}
-                        />
+            <Tabs defaultValue="monthly" className="w-full">
+              <div className="border-b border-white/10 bg-slate-900/40">
+                <TabsList className="h-auto p-0 bg-transparent rounded-none w-full justify-start">
+                  <TabsTrigger 
+                    value="monthly" 
+                    className="relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:bg-slate-800/60 hover:text-white transition-colors"
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Monthly
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="quarterly" 
+                    className="relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:bg-slate-800/60 hover:text-white transition-colors"
+                  >
+                    <PieChart className="w-4 h-4 mr-2" />
+                    Quarterly
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="yearly" 
+                    className="relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:text-white data-[state=active]:bg-slate-800/60 hover:text-white transition-colors"
+                  >
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Yearly
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <CardContent className="p-4 sm:p-6">
+                {/* Monthly View */}
+                <TabsContent value="monthly" className="mt-0">
+                  <div className="h-48 flex items-end gap-2">
+                    {charts.monthlyTrend.map((m: any, i: number) => {
+                      const maxVal = Math.max(...charts.monthlyTrend.map((x: any) => Math.max(x.income, x.expenses)), 1);
+                      const incomeHeight = (m.income / maxVal) * 100;
+                      const expenseHeight = (m.expenses / maxVal) * 100;
+                      return (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                          <div className="flex gap-1 items-end h-36 w-full justify-center">
+                            <div 
+                              className="w-3 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t"
+                              style={{ height: `${incomeHeight}%`, minHeight: m.income > 0 ? '4px' : '0' }}
+                              title={`Income: ${formatCurrency(m.income)}`}
+                            />
+                            <div 
+                              className="w-3 bg-gradient-to-t from-red-600 to-red-400 rounded-t"
+                              style={{ height: `${expenseHeight}%`, minHeight: m.expenses > 0 ? '4px' : '0' }}
+                              title={`Expenses: ${formatCurrency(m.expenses)}`}
+                            />
+                          </div>
+                          <span className="text-[10px] text-slate-400">{m.month}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-center gap-6 mt-4 text-xs">
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded bg-emerald-500" />
+                      Income
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded bg-red-500" />
+                      Expenses
+                    </span>
+                  </div>
+                </TabsContent>
+
+                {/* Quarterly View */}
+                <TabsContent value="quarterly" className="mt-0">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map(q => {
+                      const quarterMonths = charts.monthlyTrend.slice((q - 1) * 3, q * 3);
+                      const quarterIncome = quarterMonths.reduce((sum: number, m: any) => sum + m.income, 0);
+                      const quarterExpenses = quarterMonths.reduce((sum: number, m: any) => sum + m.expenses, 0);
+                      const quarterNet = quarterIncome - quarterExpenses;
+                      return (
+                        <div key={q} className="p-4 rounded-xl bg-slate-900/60 border border-white/5">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-lg font-bold text-white">Q{q}</span>
+                            <Badge className={quarterNet >= 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}>
+                              {quarterNet >= 0 ? '+' : ''}{formatCurrency(quarterNet)}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Income</span>
+                              <span className="text-emerald-400">{formatCurrency(quarterIncome)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-400">Expenses</span>
+                              <span className="text-red-400">{formatCurrency(quarterExpenses)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <span className="text-sm text-slate-300">Annual Total</span>
+                      <div className="flex gap-4 text-sm">
+                        <span className="text-emerald-400">
+                          Income: {formatCurrency(charts.monthlyTrend.reduce((sum: number, m: any) => sum + m.income, 0))}
+                        </span>
+                        <span className="text-red-400">
+                          Expenses: {formatCurrency(charts.monthlyTrend.reduce((sum: number, m: any) => sum + m.expenses, 0))}
+                        </span>
                       </div>
-                      <span className="text-[10px] text-slate-400">{m.month}</span>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="flex justify-center gap-6 mt-4 text-xs">
-                <span className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-emerald-500" />
-                  Income
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-red-500" />
-                  Expenses
-                </span>
-              </div>
-            </CardContent>
+                  </div>
+                </TabsContent>
+
+                {/* Yearly View */}
+                <TabsContent value="yearly" className="mt-0">
+                  <div className="space-y-4">
+                    {[year, year - 1, year - 2].map((y, idx) => {
+                      const isCurrentYear = y === year;
+                      const yearIncome = isCurrentYear ? charts.monthlyTrend.reduce((sum: number, m: any) => sum + m.income, 0) : 0;
+                      const yearExpenses = isCurrentYear ? charts.monthlyTrend.reduce((sum: number, m: any) => sum + m.expenses, 0) : 0;
+                      const yearNet = yearIncome - yearExpenses;
+                      return (
+                        <div key={y} className={`p-4 rounded-xl border ${isCurrentYear ? 'bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30' : 'bg-slate-900/60 border-white/5'}`}>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <span className={`text-xl font-bold ${isCurrentYear ? 'text-orange-400' : 'text-white'}`}>{y}</span>
+                              {isCurrentYear && <Badge className="bg-orange-500/20 text-orange-300">Current</Badge>}
+                            </div>
+                            {isCurrentYear ? (
+                              <div className="flex flex-wrap gap-4 text-sm">
+                                <span className="text-emerald-400">Income: {formatCurrency(yearIncome)}</span>
+                                <span className="text-red-400">Expenses: {formatCurrency(yearExpenses)}</span>
+                                <span className={yearNet >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                                  Net: {yearNet >= 0 ? '+' : ''}{formatCurrency(yearNet)}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-slate-500">No data available</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </TabsContent>
+              </CardContent>
+            </Tabs>
           </Card>
 
           {/* Collection & Lease Summary */}

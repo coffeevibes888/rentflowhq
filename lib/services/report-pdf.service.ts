@@ -504,7 +504,7 @@ function generateInvestorReportHtml(data: InvestorReportData): string {
     <div class="section">
       <div class="section-title">Monthly Performance</div>
       <div class="chart-container">
-        <div class="chart-title">Income vs Expenses</div>
+        <div class="chart-title">Income vs Expenses by Month</div>
         <div class="bar-chart">
           ${charts.monthlyTrend.map(m => `
             <div class="bar-group">
@@ -519,6 +519,49 @@ function generateInvestorReportHtml(data: InvestorReportData): string {
         <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-size: 9px;">
           <span><span style="display: inline-block; width: 10px; height: 10px; background: #10b981; border-radius: 2px; margin-right: 4px;"></span>Income</span>
           <span><span style="display: inline-block; width: 10px; height: 10px; background: #ef4444; border-radius: 2px; margin-right: 4px;"></span>Expenses</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quarterly Breakdown -->
+    <div class="section">
+      <div class="section-title">Quarterly Breakdown</div>
+      <div class="stats-row">
+        ${[1, 2, 3, 4].map(q => {
+          const quarterMonths = charts.monthlyTrend.slice((q - 1) * 3, q * 3);
+          const quarterIncome = quarterMonths.reduce((sum: number, m: any) => sum + m.income, 0);
+          const quarterExpenses = quarterMonths.reduce((sum: number, m: any) => sum + m.expenses, 0);
+          const quarterNet = quarterIncome - quarterExpenses;
+          return `
+            <div class="stat-box" style="text-align: left; padding: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 14px; font-weight: 700; color: #1e293b;">Q${q}</span>
+                <span style="font-size: 11px; font-weight: 600; color: ${quarterNet >= 0 ? '#10b981' : '#ef4444'};">
+                  ${quarterNet >= 0 ? '+' : ''}${formatCurrency(quarterNet)}
+                </span>
+              </div>
+              <div style="font-size: 9px; color: #64748b;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                  <span>Income:</span>
+                  <span style="color: #10b981;">${formatCurrency(quarterIncome)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span>Expenses:</span>
+                  <span style="color: #ef4444;">${formatCurrency(quarterExpenses)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div style="background: linear-gradient(90deg, #f97316, #f59e0b); padding: 12px 15px; border-radius: 8px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; color: white; font-size: 11px;">
+          <span style="font-weight: 600;">Annual Total</span>
+          <div style="display: flex; gap: 15px;">
+            <span>Income: ${formatCurrency(charts.monthlyTrend.reduce((sum: number, m: any) => sum + m.income, 0))}</span>
+            <span>Expenses: ${formatCurrency(charts.monthlyTrend.reduce((sum: number, m: any) => sum + m.expenses, 0))}</span>
+            <span style="font-weight: 700;">Net: ${formatCurrency(charts.monthlyTrend.reduce((sum: number, m: any) => sum + m.income - m.expenses, 0))}</span>
+          </div>
         </div>
       </div>
     </div>

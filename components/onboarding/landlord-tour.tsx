@@ -6,7 +6,8 @@ import { SpotlightTour, TourStep } from './spotlight-tour';
 const STORAGE_KEY = 'landlord-tour-completed';
 
 // Define the tour steps with actual selectors
-const LANDLORD_TOUR_STEPS: TourStep[] = [
+// Steps marked with proOnly will be skipped for non-pro users
+const LANDLORD_TOUR_STEPS: (TourStep & { proOnly?: boolean })[] = [
   {
     id: 'properties-nav',
     title: 'Your Properties',
@@ -62,6 +63,7 @@ const LANDLORD_TOUR_STEPS: TourStep[] = [
     targetSelector: 'a[href="/admin/contractors"]',
     route: '/admin/contractors',
     position: 'right',
+    proOnly: true, // Skip this step for non-pro users
   },
   {
     id: 'payouts-nav',
@@ -76,11 +78,15 @@ const LANDLORD_TOUR_STEPS: TourStep[] = [
 interface LandlordTourProps {
   userId: string;
   isNewUser?: boolean;
+  isPro?: boolean;
 }
 
-export function LandlordTour({ userId, isNewUser = false }: LandlordTourProps) {
+export function LandlordTour({ userId, isNewUser = false, isPro = false }: LandlordTourProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Filter steps based on subscription tier
+  const filteredSteps = LANDLORD_TOUR_STEPS.filter(step => !step.proOnly || isPro);
 
   useEffect(() => {
     setMounted(true);
@@ -112,7 +118,7 @@ export function LandlordTour({ userId, isNewUser = false }: LandlordTourProps) {
 
   return (
     <SpotlightTour
-      steps={LANDLORD_TOUR_STEPS}
+      steps={filteredSteps}
       isOpen={isOpen}
       onComplete={handleComplete}
       onSkip={handleSkip}
@@ -122,7 +128,7 @@ export function LandlordTour({ userId, isNewUser = false }: LandlordTourProps) {
 }
 
 // Button to manually restart the tour
-export function RestartTourButton({ userId }: { userId: string }) {
+export function RestartTourButton({ userId, isPro = false }: { userId: string; isPro?: boolean }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

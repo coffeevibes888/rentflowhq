@@ -482,6 +482,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                             name: true,
                             isFieldsConfigured: true,
                             signatureFields: true,
+                            fileUrl: true,
                           },
                         },
                         landlord: {
@@ -490,16 +491,18 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                       },
                     });
 
-                    // First try property's default lease, then fall back to any configured lease from landlord
+                    // Use property's assigned lease document, or fall back to landlord's configured lease
                     let legalDocumentId: string | null = null;
-                    let leaseDocument: { id: string; name: string; isFieldsConfigured: boolean; signatureFields: any } | null = null;
+                    let leaseDocument: { id: string; name: string; isFieldsConfigured: boolean; signatureFields: any; fileUrl?: string | null } | null = null;
 
-                    if (propertyWithLease?.defaultLeaseDocument?.isFieldsConfigured) {
-                      // Use property's default lease
+                    // PRIORITY 1: Use property's assigned default lease (even if fields not configured - signing will use HTML template)
+                    if (propertyWithLease?.defaultLeaseDocument) {
                       legalDocumentId = propertyWithLease.defaultLeaseDocument.id;
                       leaseDocument = propertyWithLease.defaultLeaseDocument;
-                    } else if (propertyWithLease?.landlord?.id) {
-                      // Fall back to any configured lease document from the landlord
+                      console.log(`[Lease Assignment] Using property's assigned lease: ${leaseDocument.name} (configured: ${leaseDocument.isFieldsConfigured})`);
+                    } 
+                    // PRIORITY 2: Fall back to landlord's most recent CONFIGURED lease (with signature fields)
+                    else if (propertyWithLease?.landlord?.id) {
                       const fallbackLease = await tx.legalDocument.findFirst({
                         where: {
                           landlordId: propertyWithLease.landlord.id,
@@ -512,13 +515,17 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                           name: true,
                           isFieldsConfigured: true,
                           signatureFields: true,
+                          fileUrl: true,
                         },
-                        orderBy: { createdAt: 'desc' }, // Use most recent
+                        orderBy: { createdAt: 'desc' },
                       });
 
                       if (fallbackLease) {
                         legalDocumentId = fallbackLease.id;
                         leaseDocument = fallbackLease;
+                        console.log(`[Lease Assignment] No property lease assigned, using landlord's configured lease: ${leaseDocument.name}`);
+                      } else {
+                        console.log(`[Lease Assignment] No configured lease found, will use generic HTML template`);
                       }
                     }
 

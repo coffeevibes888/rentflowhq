@@ -45,6 +45,19 @@ const AdminSettingsPage = async () => {
             </Link>
           </div>
 
+          <div className='rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/10 backdrop-blur-xl p-5 space-y-3'>
+            <h2 className='text-lg font-semibold text-white'>Amenities</h2>
+            <p className='text-sm text-slate-300/80'>
+              Manage property and unit amenities like washer/dryer, pool, gym, and more.
+            </p>
+            <Link
+              href='/admin/settings/amenities'
+              className='inline-flex items-center justify-center rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500'
+            >
+              Manage Amenities
+            </Link>
+          </div>
+
           <div className='rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl p-5 space-y-3'>
             <h2 className='text-lg font-semibold text-white'>Branding & Portal</h2>
             <p className='text-sm text-slate-300/80'>

@@ -2,6 +2,8 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import LandlordOnboardingClient from './landlord-onboarding-client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function LandlordOnboardingPage() {
   let session;
   try {

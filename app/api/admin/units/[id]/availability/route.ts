@@ -32,7 +32,14 @@ export async function PATCH(
     const unit = await prisma.unit.findFirst({
       where: { id: unitId },
       include: {
-        property: { select: { id: true, landlordId: true } },
+        property: { 
+          select: { 
+            id: true, 
+            landlordId: true,
+            defaultLeaseDocumentId: true,
+            name: true,
+          } 
+        },
         leases: {
           where: { status: 'active' },
           include: {
@@ -48,6 +55,17 @@ export async function PATCH(
     }
     if (unit.property?.landlordId !== landlordId) {
       return NextResponse.json({ message: 'Unauthorized access to this unit' }, { status: 403 });
+    }
+
+    // If trying to make available, check if property has a lease assigned
+    if (isAvailable && !unit.property?.defaultLeaseDocumentId) {
+      return NextResponse.json({
+        success: false,
+        requiresLease: true,
+        propertyId: unit.property?.id,
+        propertyName: unit.property?.name,
+        message: 'A lease template must be assigned to this property before listing units. Go to Legal Documents to upload and assign a lease.',
+      }, { status: 400 });
     }
 
     const activeLease = unit.leases[0];

@@ -169,14 +169,14 @@ export function SpotlightTour({ steps, isOpen, onComplete, onSkip, storageKey }:
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed z-[9998] pointer-events-none rounded-lg"
+            className="fixed z-[9998] pointer-events-none rounded-xl"
             style={{
-              top: targetRect.top - 6,
-              left: targetRect.left - 6,
-              width: targetRect.width + 12,
-              height: targetRect.height + 12,
+              top: targetRect.top - 4,
+              left: targetRect.left - 4,
+              width: targetRect.width + 8,
+              height: targetRect.height + 8,
               border: '2px solid rgb(139, 92, 246)',
-              boxShadow: '0 0 0 4px rgba(139, 92, 246, 0.25), 0 0 20px rgba(139, 92, 246, 0.3)',
+              boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.25), 0 0 15px rgba(139, 92, 246, 0.3)',
             }}
           />
           
@@ -185,15 +185,15 @@ export function SpotlightTour({ steps, isOpen, onComplete, onSkip, storageKey }:
             initial={{ opacity: 0 }}
             animate={{ 
               opacity: [0.6, 0, 0.6],
-              scale: [1, 1.08, 1],
+              scale: [1, 1.05, 1],
             }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="fixed z-[9997] pointer-events-none rounded-lg"
+            className="fixed z-[9997] pointer-events-none rounded-xl"
             style={{
-              top: targetRect.top - 10,
-              left: targetRect.left - 10,
-              width: targetRect.width + 20,
-              height: targetRect.height + 20,
+              top: targetRect.top - 6,
+              left: targetRect.left - 6,
+              width: targetRect.width + 12,
+              height: targetRect.height + 12,
               border: '2px solid rgba(139, 92, 246, 0.5)',
             }}
           />
