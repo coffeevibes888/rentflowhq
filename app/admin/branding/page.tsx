@@ -131,7 +131,7 @@ const AdminBrandingPage = async (props: {
         </div>
 
         {/* Logo Section */}
-        <section className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+        <section data-tour="logo-upload" className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
           <div className='flex-1 space-y-4'>
             <div className='space-y-1'>
               <h2 className='text-sm font-semibold text-black'>Logo</h2>

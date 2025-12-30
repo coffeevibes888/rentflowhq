@@ -8,6 +8,7 @@ import MobileMenu from '@/components/mobile/mobile-menu';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { SubscriptionProvider } from '@/components/subscription/subscription-provider';
 import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
+import { OnboardingWrapper } from '@/components/onboarding/onboarding-wrapper';
 
 export default function AdminLayout({
   children,
@@ -50,6 +51,7 @@ export default function AdminLayout({
           </div>
           <Footer />
         </div>
+        <OnboardingWrapper />
       </SubscriptionProvider>
     </SessionProviderWrapper>
   );

@@ -113,7 +113,7 @@ const AdminProductsPage = async (props: {
             )}
           </div>
           <div className='flex gap-2'>
-            <Button asChild variant='default' className='w-full sm:w-auto'>
+            <Button asChild variant='default' className='w-full sm:w-auto' data-tour="add-property">
               <Link href='/admin/products/create'>Add Property</Link>
             </Button>
           </div>

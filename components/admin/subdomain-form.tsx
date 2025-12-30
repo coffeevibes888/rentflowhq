@@ -33,7 +33,7 @@ export default function SubdomainForm({ currentSubdomain, baseUrl }: SubdomainFo
   };
 
   return (
-    <form action={handleSubmit} className='space-y-3'>
+    <form action={handleSubmit} className='space-y-3' data-tour="subdomain">
       {error && (
         <div className='rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800'>
           {error}

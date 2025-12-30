@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -33,6 +32,7 @@ import { DepartureModal } from './departure-modal';
 import { TerminateLeaseModal } from './terminate-lease-modal';
 import { DepositDispositionModal } from './deposit-disposition-modal';
 import { EvictionHistoryPanel } from './eviction-history-panel';
+import { TenantDocumentsModal } from './tenant-documents-modal';
 import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedTenantCardProps {
@@ -112,6 +112,7 @@ export function EnhancedTenantCard({
   const [showTerminateModal, setShowTerminateModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [signingLoading, setSigningLoading] = useState(false);
   const [showLeaseViewer, setShowLeaseViewer] = useState(false);
   const [leaseHtml, setLeaseHtml] = useState<string | null>(null);
@@ -528,17 +529,16 @@ export function EnhancedTenantCard({
                     </Button>
                   )}
                   {tenant?.applicationId && (
-                    <Link href={`/admin/applications/${tenant.applicationId}`}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-white/10 text-black text-xs sm:text-sm"
-                      >
-                        <FileText className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">View ID & Documents</span>
-                        <span className="sm:hidden">Docs</span>
-                      </Button>
-                    </Link>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowDocumentsModal(true)}
+                      className="border-white/10 text-black text-xs sm:text-sm"
+                    >
+                      <FileText className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">View ID & Documents</span>
+                      <span className="sm:hidden">Docs</span>
+                    </Button>
                   )}
                 </div>
               </TabsContent>
@@ -655,19 +655,15 @@ export function EnhancedTenantCard({
                     )}
                   </Button>
                   {tenant?.applicationId && (
-                    <Link
-                      href={`/admin/applications/${tenant.applicationId}`}
-                      className="block"
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowDocumentsModal(true)}
+                      className="w-full justify-start border-white/10 text-slate-300 hover:bg-slate-800"
                     >
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full justify-start border-white/10 text-slate-300 hover:bg-slate-800"
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Application Documents
-                      </Button>
-                    </Link>
+                      <FileText className="w-4 h-4 mr-2" />
+                      ID & Income Documents
+                    </Button>
                   )}
                 </div>
               </TabsContent>
@@ -856,6 +852,15 @@ export function EnhancedTenantCard({
         leaseId={lease.id}
         tenantName={tenant?.name || 'Unknown'}
       />
+
+      {tenant?.applicationId && (
+        <TenantDocumentsModal
+          isOpen={showDocumentsModal}
+          onClose={() => setShowDocumentsModal(false)}
+          applicationId={tenant.applicationId}
+          tenantName={tenant?.name || 'Tenant'}
+        />
+      )}
 
       {/* Lease Viewer Modal */}
       {showLeaseViewer && (

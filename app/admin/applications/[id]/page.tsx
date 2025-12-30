@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getDecryptedSsn, formatSsn } from '@/lib/utils/ssn-utils';
-import { getSignedCloudinaryUrl } from '@/lib/cloudinary';
-import { DocumentService } from '@/lib/services/document.service';
+import { ApplicationDocumentViewer } from '@/components/admin/application-document-viewer';
 
 interface AdminApplicationDetailPageProps {
   params: Promise<{ id: string }>;
@@ -143,55 +142,6 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
     revalidatePath(`/admin/applications/${application.id}`);
   };
 
-  const openApplicationDocument = async (formData: FormData) => {
-    'use server';
-
-    const documentId = formData.get('documentId');
-    if (typeof documentId !== 'string' || !documentId) {
-      return;
-    }
-
-    const prismaAny = prisma as any;
-    const doc = await prismaAny.applicationDocument.findUnique({
-      where: { id: documentId },
-      select: {
-        id: true,
-        applicationId: true,
-        cloudinaryPublicId: true,
-        cloudinaryResourceType: true,
-      },
-    });
-
-    if (!doc || doc.applicationId !== application.id) {
-      return;
-    }
-
-    const url = getSignedCloudinaryUrl({
-      publicId: doc.cloudinaryPublicId,
-      resourceType: doc.cloudinaryResourceType,
-      expiresInSeconds: 60 * 10,
-    });
-
-    redirect(url);
-  };
-
-  const openVerificationDocument = async (formData: FormData) => {
-    'use server';
-
-    const documentId = formData.get('documentId');
-    if (typeof documentId !== 'string' || !documentId) {
-      return;
-    }
-
-    try {
-      const url = await DocumentService.getSecureUrl(documentId, 600); // 10 minutes
-      redirect(url);
-    } catch (error) {
-      console.error('Failed to get secure URL:', error);
-      return;
-    }
-  };
-
   return (
     <main className='w-full px-4 py-8 md:px-0'>
       <div className='max-w-3xl mx-auto space-y-6'>
@@ -326,98 +276,24 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               </div>
             )}
 
-            {/* Verification Documents (ID & Income) */}
-            {verificationDocuments.length > 0 && (
-              <div className='mt-4 space-y-2'>
-                <p className='font-semibold text-slate-900 text-sm'>ID & Income Documents</p>
-                <div className='space-y-2'>
-                  {verificationDocuments.map((doc) => {
-                    // Map status to user-friendly display
-                    const getStatusDisplay = (status: string) => {
-                      switch (status) {
-                        case 'verified': return { text: 'Approved', color: 'text-green-600' };
-                        case 'rejected': return { text: 'Rejected', color: 'text-red-600' };
-                        case 'processing': 
-                        case 'pending':
-                        case 'needs_review':
-                        default: return { text: 'Needs Review', color: 'text-amber-600' };
-                      }
-                    };
-                    const statusDisplay = getStatusDisplay(doc.verificationStatus);
-                    const needsReview = !['verified', 'rejected'].includes(doc.verificationStatus);
-                    
-                    return (
-                      <div
-                        key={doc.id}
-                        className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
-                          doc.verificationStatus === 'verified' 
-                            ? 'border-green-200 bg-green-50' 
-                            : doc.verificationStatus === 'rejected'
-                            ? 'border-red-200 bg-red-50'
-                            : 'border-amber-200 bg-amber-50'
-                        }`}
-                      >
-                        <div className='min-w-0'>
-                          <p className='text-xs font-medium text-slate-900 truncate'>{doc.originalFileName}</p>
-                          <p className='text-[11px] text-slate-500'>
-                            {doc.category === 'identity' ? '🪪 ID' : '💰 Income'} • {String(doc.docType).replace(/_/g, ' ')} • 
-                            <span className={`font-medium ${statusDisplay.color}`}>
-                              {' '}{statusDisplay.text}
-                            </span>
-                          </p>
-                        </div>
-
-                        <div className='flex items-center gap-2'>
-                          <form action={openVerificationDocument}>
-                            <input type='hidden' name='documentId' value={doc.id} />
-                            <button
-                              type='submit'
-                              className='inline-flex items-center justify-center rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-blue-700'
-                            >
-                              View
-                            </button>
-                          </form>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className='mt-4 space-y-2'>
-              <p className='font-semibold text-slate-900 text-sm'>Other documents</p>
-              {applicationDocuments.length === 0 ? (
-                <p className='text-xs text-slate-500'>No additional documents uploaded.</p>
-              ) : (
-                <div className='space-y-2'>
-                  {applicationDocuments.map((doc: ApplicationDocumentRow) => (
-                    <div
-                      key={doc.id}
-                      className='flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2'
-                    >
-                      <div className='min-w-0'>
-                        <p className='text-xs font-medium text-slate-900 truncate'>{doc.originalFileName}</p>
-                        <p className='text-[11px] text-slate-500'>
-                          {String(doc.category).replace(/_/g, ' ')} • {String(doc.docType).replace(/_/g, ' ')} •{' '}
-                          {doc.status}
-                        </p>
-                      </div>
-
-                      <form action={openApplicationDocument}>
-                        <input type='hidden' name='documentId' value={doc.id} />
-                        <button
-                          type='submit'
-                          className='inline-flex items-center justify-center rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-slate-800'
-                        >
-                          View
-                        </button>
-                      </form>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Documents Section - Client Component */}
+            <ApplicationDocumentViewer
+              verificationDocuments={verificationDocuments.map(doc => ({
+                id: doc.id,
+                originalFileName: doc.originalFileName,
+                category: doc.category,
+                docType: doc.docType,
+                verificationStatus: doc.verificationStatus,
+              }))}
+              applicationDocuments={applicationDocuments.map(doc => ({
+                id: doc.id,
+                originalFileName: doc.originalFileName,
+                category: doc.category,
+                docType: doc.docType,
+                status: doc.status,
+              }))}
+              applicationId={application.id}
+            />
           </section>
 
           <section className='space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm'>
