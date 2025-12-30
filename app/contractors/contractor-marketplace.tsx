@@ -6,12 +6,25 @@ import { useRouter } from 'next/navigation';
 import {
   Star, Shield, Clock, Wrench, Users, Briefcase,
   Calendar, MapPin, Building2, ChevronRight, Loader2,
-  LucideIcon,
+  Zap, Paintbrush, Thermometer, Hammer, Leaf, Home, Settings, Droplets,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ContractorSearch from './contractor-search';
+
+// Define specialties with icons inside the client component
+const SPECIALTIES = [
+  { name: 'Plumbing', icon: Droplets },
+  { name: 'Electrical', icon: Zap },
+  { name: 'HVAC', icon: Thermometer },
+  { name: 'Carpentry', icon: Hammer },
+  { name: 'Painting', icon: Paintbrush },
+  { name: 'Roofing', icon: Home },
+  { name: 'Landscaping', icon: Leaf },
+  { name: 'General Repairs', icon: Wrench },
+  { name: 'Appliance Repair', icon: Settings },
+];
 
 interface Contractor {
   id: string;
@@ -22,7 +35,7 @@ interface Contractor {
   completedJobs: number;
   rating: number;
   responseTime: string;
-  user: { id: string; name: string; image: string | null } | null;
+  user: { id: string; name: string | null; image: string | null } | null;
 }
 
 interface OpenJob {
@@ -41,11 +54,6 @@ interface OpenJob {
   createdAt: string;
 }
 
-interface Specialty {
-  name: string;
-  icon: LucideIcon;
-}
-
 interface ContractorMarketplaceProps {
   initialView: 'contractors' | 'jobs';
   contractors: Contractor[];
@@ -55,7 +63,6 @@ interface ContractorMarketplaceProps {
     specialty?: string;
     sort?: string;
   };
-  specialties: Specialty[];
 }
 
 const priorityColors: Record<string, string> = {
@@ -70,7 +77,6 @@ export default function ContractorMarketplace({
   contractors,
   openJobsCount,
   searchParams,
-  specialties,
 }: ContractorMarketplaceProps) {
   const router = useRouter();
   const [view, setView] = useState<'contractors' | 'jobs'>(initialView);
@@ -78,6 +84,7 @@ export default function ContractorMarketplace({
   const [loadingJobs, setLoadingJobs] = useState(false);
 
   const { q, specialty, sort } = searchParams;
+  const specialties = SPECIALTIES;
 
   useEffect(() => {
     if (view === 'jobs') {
