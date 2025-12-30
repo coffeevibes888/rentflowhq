@@ -1,0 +1,128 @@
+'use client';
+
+import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { User, Bell, DollarSign, HelpCircle, CreditCard, Crown, ArrowRight } from 'lucide-react';
+import { ProfileSettings } from './profile-settings';
+import { NotificationSettings } from './notification-settings';
+import { FeeSettings } from './fee-settings';
+import { HelpAndTour } from './help-and-tour';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+
+interface LandlordSettingsClientProps {
+  landlord: {
+    id: string;
+    name: string;
+    companyName?: string | null;
+    companyEmail?: string | null;
+    companyPhone?: string | null;
+    companyAddress?: string | null;
+    logoUrl?: string | null;
+    aboutPhoto?: string | null;
+  };
+  isPro: boolean;
+}
+
+export function LandlordSettingsClient({ landlord, isPro }: LandlordSettingsClientProps) {
+  const [activeTab, setActiveTab] = useState('profile');
+
+  return (
+    <div className="space-y-5">
+      {/* Subscription & Getting Started Banner */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link href="/admin/settings/subscription" className="block">
+          <div className="rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10 p-4 sm:p-5 hover:border-amber-500/50 transition-all group">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-white">Manage Subscription</h3>
+                  <p className="text-xs text-slate-400">View plan, billing & usage</p>
+                </div>
+              </div>
+              <Button size="sm" className="bg-amber-600 hover:bg-amber-500 text-white">
+                <span className="hidden sm:inline mr-1">Manage</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </Link>
+
+        {!isPro && (
+          <Link href="/admin/settings/subscription" className="block">
+            <div className="rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/10 p-4 sm:p-5 hover:border-violet-500/50 transition-all group">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center">
+                    <Crown className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-white">Upgrade to Pro</h3>
+                    <p className="text-xs text-slate-400">Unlock all features</p>
+                  </div>
+                </div>
+                <Button size="sm" className="bg-violet-600 hover:bg-violet-500 text-white">
+                  <span className="hidden sm:inline mr-1">Upgrade</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </Link>
+        )}
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full grid grid-cols-4 gap-1 bg-slate-900/60 border border-white/10 p-1 rounded-xl h-auto">
+          <TabsTrigger 
+            value="profile" 
+            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+          >
+            <User className="w-4 h-4" />
+            <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="notifications" 
+            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="hidden sm:inline">Notifications</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="fees" 
+            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+          >
+            <DollarSign className="w-4 h-4" />
+            <span className="hidden sm:inline">Fees</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="help" 
+            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+          >
+            <HelpCircle className="w-4 h-4" />
+            <span className="hidden sm:inline">Help</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile" className="mt-4">
+          <ProfileSettings landlord={landlord} />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-4">
+          <NotificationSettings />
+        </TabsContent>
+
+        <TabsContent value="fees" className="mt-4">
+          <FeeSettings isPro={isPro} />
+        </TabsContent>
+
+        <TabsContent value="help" className="mt-4">
+          <HelpAndTour />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

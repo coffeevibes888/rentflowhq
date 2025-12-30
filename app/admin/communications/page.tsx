@@ -2,7 +2,9 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
 import TenantComms from '@/components/admin/tenant-comms';
+import { RentAutomationSettings } from '@/components/admin/rent-automation-settings';
 import { headers } from 'next/headers';
+import { getCurrentLandlordSubscription } from '@/lib/actions/subscription.actions';
 
 type ThreadWithMessages = {
   id: string;
@@ -39,6 +41,13 @@ export default async function AdminCommunicationsPage() {
       : null;
 
   const landlordId = landlord?.id ?? null;
+
+  // Get subscription to check if Pro
+  let isPro = false;
+  const subResult = await getCurrentLandlordSubscription();
+  if (subResult.success && subResult.subscription) {
+    isPro = subResult.subscription.tier === 'pro' || subResult.subscription.tier === 'enterprise';
+  }
 
   const threads = (await prisma.thread.findMany({
     where: {
@@ -159,6 +168,24 @@ export default async function AdminCommunicationsPage() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Rent Automation Settings - Pro Feature */}
+      <section className="rounded-xl sm:rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-xl shadow-[0_20px_70px_rgba(15,23,42,0.35)] overflow-hidden">
+        <div className="border-b border-white/10 px-3 sm:px-5 py-3 sm:py-4">
+          <div className="space-y-0.5 sm:space-y-1">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-slate-300/80">
+              Automation
+            </p>
+            <h2 className="text-base sm:text-lg font-semibold text-slate-50">Rent Automation</h2>
+            <p className="text-[10px] sm:text-xs text-slate-400/90">
+              Automatic rent reminders and late fee application.
+            </p>
+          </div>
+        </div>
+        <div className="p-3 sm:p-5">
+          <RentAutomationSettings isPro={isPro} />
         </div>
       </section>
 

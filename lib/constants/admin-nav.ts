@@ -1,4 +1,4 @@
-import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, HelpCircle } from 'lucide-react';
+import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings } from 'lucide-react';
 
 export interface AdminNavLink {
   title: string;
@@ -68,9 +68,9 @@ export const adminNavLinks: AdminNavLink[] = [
     proOnly: true,
   },
   {
-    title: 'Help & Tour',
-    description: 'Get started guide',
-    href: '/admin/onboarding',
-    icon: HelpCircle,
+    title: 'Settings',
+    description: 'Profile, fees & preferences',
+    href: '/admin/settings',
+    icon: Settings,
   },
 ];

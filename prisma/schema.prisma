@@ -582,6 +582,30 @@ model Landlord {
   freeBackgroundChecks   Boolean    @default(false)
   freeEmploymentVerification Boolean @default(false)
 
+  // Notification Settings
+  notificationEmail         String?
+  notifyNewApplications     Boolean  @default(true)
+  notifyMaintenanceTickets  Boolean  @default(true)
+  notifyLatePayments        Boolean  @default(true)
+  notifyLeaseExpiring       Boolean  @default(true)
+  notifyNewMessages         Boolean  @default(true)
+  emailInvitesEnabled       Boolean  @default(true)
+  smsInvitesEnabled         Boolean  @default(false)
+
+  // Fee Settings
+  petDepositAmount          Decimal? @db.Decimal(12, 2)
+  petDepositEnabled         Boolean  @default(false)
+  petRentAmount             Decimal? @db.Decimal(12, 2)
+  petRentEnabled            Boolean  @default(false)
+  cleaningFeeAmount         Decimal? @db.Decimal(12, 2)
+  cleaningFeeEnabled        Boolean  @default(false)
+  applicationFeeAmount      Decimal? @db.Decimal(12, 2)
+  applicationFeeEnabled     Boolean  @default(true)
+  securityDepositMonths     Decimal  @default(1) @db.Decimal(3, 1)
+  lastMonthRentRequired     Boolean  @default(true)
+  feeApplyToAll             Boolean  @default(true)
+  feeSelectedProperties     String[] @default([])
+
   owner      User?      @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
   properties Property[]
   payouts    Payout[]

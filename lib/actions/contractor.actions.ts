@@ -222,6 +222,9 @@ export async function getWorkOrders(filters?: {
             contractorId: true,
           },
         },
+        _count: {
+          select: { bids: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -409,6 +412,76 @@ export async function updateWorkOrderStatus(data: {
   } catch (error) {
     console.error('Failed to update work order status:', error);
     return { success: false, message: 'Failed to update work order status' };
+  }
+}
+
+export async function updateWorkOrder(id: string, data: {
+  contractorId?: string;
+  propertyId?: string;
+  unitId?: string;
+  title?: string;
+  description?: string;
+  priority?: string;
+  agreedPrice?: number;
+  scheduledDate?: string;
+  notes?: string;
+  isOpenForBids?: boolean;
+  budgetMin?: number;
+  budgetMax?: number;
+  status?: string;
+}) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const existing = await prisma.workOrder.findFirst({
+      where: {
+        id,
+        landlordId: landlordResult.landlord.id,
+      },
+    });
+
+    if (!existing) {
+      return { success: false, message: 'Work order not found' };
+    }
+
+    // Only allow editing draft work orders or updating certain fields
+    if (existing.status !== 'draft' && !data.status) {
+      return { success: false, message: 'Can only edit draft work orders' };
+    }
+
+    const updateData: any = {};
+    
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.priority !== undefined) updateData.priority = data.priority;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+    if (data.propertyId !== undefined) updateData.propertyId = data.propertyId;
+    if (data.unitId !== undefined) updateData.unitId = data.unitId || null;
+    if (data.contractorId !== undefined) updateData.contractorId = data.contractorId || null;
+    if (data.agreedPrice !== undefined) updateData.agreedPrice = data.agreedPrice;
+    if (data.scheduledDate !== undefined) updateData.scheduledDate = data.scheduledDate ? new Date(data.scheduledDate) : null;
+    if (data.isOpenForBids !== undefined) updateData.isOpenBid = data.isOpenForBids;
+    if (data.budgetMin !== undefined) updateData.budgetMin = data.budgetMin;
+    if (data.budgetMax !== undefined) updateData.budgetMax = data.budgetMax;
+    if (data.status !== undefined) updateData.status = data.status;
+
+    await prisma.workOrder.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return { success: true, message: 'Work order updated successfully' };
+  } catch (error) {
+    console.error('Failed to update work order:', error);
+    return { success: false, message: 'Failed to update work order' };
   }
 }
 

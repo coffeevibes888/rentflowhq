@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getWorkOrder } from '@/lib/actions/contractor.actions';
+import { getWorkOrder, updateWorkOrder } from '@/lib/actions/contractor.actions';
 
 export async function GET(
   request: NextRequest,
@@ -13,4 +13,23 @@ export async function GET(
   }
 
   return NextResponse.json({ workOrder: result.workOrder });
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const result = await updateWorkOrder(id, body);
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ message: result.message });
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
 }

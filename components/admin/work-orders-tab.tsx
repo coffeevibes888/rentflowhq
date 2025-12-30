@@ -33,6 +33,7 @@ import {
   Globe,
   Send,
   Users,
+  Pencil,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
@@ -49,13 +50,15 @@ interface WorkOrder {
   completedAt: string | null;
   notes: string | null;
   isOpenForBids: boolean;
-  contractor: { name: string; email: string } | null;
-  property: { name: string };
-  unit: { name: string } | null;
+  contractor: { id: string; name: string; email: string } | null;
+  property: { id: string; name: string };
+  unit: { id: string; name: string } | null;
   maintenanceTicket: { title: string } | null;
   mediaCount: number;
   createdAt: string;
   _count?: { bids: number };
+  budgetMin?: string | null;
+  budgetMax?: string | null;
 }
 
 interface Contractor {
@@ -94,6 +97,7 @@ export default function WorkOrdersTab() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingWorkOrder, setEditingWorkOrder] = useState<WorkOrder | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const { toast } = useToast();
@@ -196,32 +200,46 @@ export default function WorkOrdersTab() {
         payload.status = 'assigned';
       }
 
-      const res = await fetch('/api/work-orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      let res;
+      if (editingWorkOrder) {
+        // Update existing work order
+        res = await fetch(`/api/work-orders/${editingWorkOrder.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // Create new work order
+        res = await fetch('/api/work-orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to create work order');
+        throw new Error(data.error || `Failed to ${editingWorkOrder ? 'update' : 'create'} work order`);
       }
 
       toast({
         title: 'Success',
-        description: isMarketplace 
-          ? 'Work order posted to marketplace for bidding' 
-          : 'Work order created and assigned',
+        description: editingWorkOrder 
+          ? 'Work order updated successfully'
+          : isMarketplace 
+            ? 'Work order posted to marketplace for bidding' 
+            : 'Work order created and assigned',
       });
 
       setIsCreateOpen(false);
+      setEditingWorkOrder(null);
       resetForm();
       fetchWorkOrders();
     } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to create work order',
+        description: error instanceof Error ? error.message : `Failed to ${editingWorkOrder ? 'update' : 'create'} work order`,
         variant: 'destructive',
       });
     } finally {
@@ -295,6 +313,7 @@ export default function WorkOrdersTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
             <SelectItem value="open">Open for Bids</SelectItem>
             <SelectItem value="assigned">Assigned</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
@@ -305,7 +324,10 @@ export default function WorkOrdersTab() {
 
         <Dialog open={isCreateOpen} onOpenChange={(open) => {
           setIsCreateOpen(open);
-          if (!open) resetForm();
+          if (!open) {
+            resetForm();
+            setEditingWorkOrder(null);
+          }
         }}>
           <DialogTrigger asChild>
             <Button>
@@ -315,7 +337,7 @@ export default function WorkOrdersTab() {
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create Work Order</DialogTitle>
+              <DialogTitle>{editingWorkOrder ? 'Edit Work Order' : 'Create Work Order'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateWorkOrder} className="space-y-4">
               {/* Assignment Type */}
@@ -637,6 +659,33 @@ export default function WorkOrdersTab() {
                 </div>
 
                 <div className="flex gap-2 pt-2">
+                  {wo.status === 'draft' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingWorkOrder(wo);
+                        setFormData({
+                          assignmentType: wo.isOpenForBids ? 'marketplace' : 'direct',
+                          contractorId: wo.contractor?.id || '',
+                          propertyId: wo.property?.id || '',
+                          unitId: wo.unit?.id || '',
+                          title: wo.title,
+                          description: wo.description,
+                          priority: wo.priority,
+                          agreedPrice: wo.agreedPrice || '',
+                          budgetMin: wo.budgetMin || '',
+                          budgetMax: wo.budgetMax || '',
+                          scheduledDate: wo.scheduledDate ? new Date(wo.scheduledDate).toISOString().slice(0, 16) : '',
+                          notes: wo.notes || '',
+                        });
+                        setIsCreateOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4 mr-1" />
+                      Edit Draft
+                    </Button>
+                  )}
                   {wo.status === 'open' && wo._count && wo._count.bids > 0 && (
                     <Button
                       size="sm"

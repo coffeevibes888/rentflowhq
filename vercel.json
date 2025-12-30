@@ -3,6 +3,42 @@
     "app/api/sign/[token]/route.ts": {
       "maxDuration": 60,
       "memory": 1024
+    },
+    "app/api/cron/rent-reminders/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/late-fees/route.ts": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/rent-reminders",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/late-fees",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/lease-signing-reminders",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/check-verification-expiration",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-expired-documents",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/release-pending-balances",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/check-unit-limits",
+      "schedule": "0 5 * * *"
+    }
+  ]
 }
