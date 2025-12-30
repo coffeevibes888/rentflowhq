@@ -380,16 +380,20 @@ export const WORK_ORDER_STATUSES = ['draft', 'assigned', 'in_progress', 'complet
 
 // Schema for creating a work order
 export const workOrderSchema = z.object({
-  contractorId: z.string().uuid('Invalid contractor ID'),
+  contractorId: z.string().uuid('Invalid contractor ID').optional(), // Optional for marketplace posts
   maintenanceTicketId: z.string().uuid('Invalid maintenance ticket ID').optional(),
   propertyId: z.string().uuid('Invalid property ID'),
   unitId: z.string().uuid('Invalid unit ID').optional(),
   title: z.string().min(3, 'Title must be at least 3 characters').max(200),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   priority: z.enum(WORK_ORDER_PRIORITIES),
-  agreedPrice: z.coerce.number().positive('Price must be greater than 0'),
+  agreedPrice: z.coerce.number().positive('Price must be greater than 0').optional(), // Optional for marketplace
+  budgetMin: z.coerce.number().positive().optional(), // For marketplace posts
+  budgetMax: z.coerce.number().positive().optional(), // For marketplace posts
   scheduledDate: z.string().datetime('Invalid scheduled date').optional(),
   notes: z.string().max(1000, 'Notes must be less than 1000 characters').optional(),
+  isOpenForBids: z.boolean().optional(), // True for marketplace posts
+  status: z.enum(WORK_ORDER_STATUSES).optional(),
 });
 
 // Schema for updating a work order

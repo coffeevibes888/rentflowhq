@@ -25,6 +25,7 @@ import {
   FileCheck,
   AlertCircle,
   Plus,
+  Banknote,
 } from 'lucide-react';
 import { TenantActionsMenu } from './tenant-actions-menu';
 import { EvictionNoticeModal } from './eviction-notice-modal';
@@ -78,13 +79,32 @@ export function EnhancedTenantCard({
   // Check if tenant has signed but landlord hasn't
   const tenantSignature = lease.signatureRequests?.find((sr: any) => sr.role === 'tenant');
   const landlordSignature = lease.signatureRequests?.find((sr: any) => sr.role === 'landlord');
-  const tenantSigned = tenantSignature?.status === 'signed';
-  const landlordSigned = landlordSignature?.status === 'signed';
-  const needsLandlordSignature = tenantSigned && !landlordSigned;
+  const initialTenantSigned = tenantSignature?.status === 'signed' || !!lease.tenantSignedAt;
+  const initialLandlordSigned = landlordSignature?.status === 'signed' || !!lease.landlordSignedAt;
   const isPendingSignature = lease.status === 'pending_signature';
 
   // Get signed PDF URL from signature requests (initial value)
   const initialSignedPdfUrl = landlordSignature?.signedPdfUrl || tenantSignature?.signedPdfUrl;
+  
+  // Track signature states that can be updated from API responses
+  const [tenantSigned, setTenantSigned] = useState(initialTenantSigned);
+  const [landlordSigned, setLandlordSigned] = useState(initialLandlordSigned);
+  const needsLandlordSignature = tenantSigned && !landlordSigned;
+  
+  // Use proxy URL for PDF access (handles authentication)
+  // If there's a signed PDF, use the proxy endpoint
+  const [signedPdfUrl, setSignedPdfUrl] = useState<string | null>(
+    initialSignedPdfUrl ? `/api/leases/${lease.id}/pdf` : null
+  );
+  
+  // Update signature states when lease prop changes
+  useEffect(() => {
+    setTenantSigned(tenantSignature?.status === 'signed' || !!lease.tenantSignedAt);
+    setLandlordSigned(landlordSignature?.status === 'signed' || !!lease.landlordSignedAt);
+    // Update PDF URL if signature status changes
+    const hasSigned = landlordSignature?.signedPdfUrl || tenantSignature?.signedPdfUrl;
+    setSignedPdfUrl(hasSigned ? `/api/leases/${lease.id}/pdf` : null);
+  }, [lease.id, lease.tenantSignedAt, lease.landlordSignedAt, tenantSignature?.status, landlordSignature?.status, tenantSignature?.signedPdfUrl, landlordSignature?.signedPdfUrl]);
 
   // Modal states
   const [showEvictionModal, setShowEvictionModal] = useState(false);
@@ -96,7 +116,6 @@ export function EnhancedTenantCard({
   const [showLeaseViewer, setShowLeaseViewer] = useState(false);
   const [leaseHtml, setLeaseHtml] = useState<string | null>(null);
   const [loadingLeaseHtml, setLoadingLeaseHtml] = useState(false);
-  const [signedPdfUrl, setSignedPdfUrl] = useState<string | null>(initialSignedPdfUrl || null);
 
   // Invoice states
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
@@ -110,6 +129,12 @@ export function EnhancedTenantCard({
 
   // Tab state for expanded content
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Cash payment state
+  const [showCashPaymentForm, setShowCashPaymentForm] = useState(false);
+  const [cashPaymentAmount, setCashPaymentAmount] = useState('');
+  const [cashPaymentNote, setCashPaymentNote] = useState('');
+  const [submittingCashPayment, setSubmittingCashPayment] = useState(false);
 
   const handleRefresh = () => {
     onRefresh?.();
@@ -188,26 +213,72 @@ export function EnhancedTenantCard({
     }
   };
 
+  // Handle cash payment recording
+  const handleRecordCashPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cashPaymentAmount || parseFloat(cashPaymentAmount) <= 0) {
+      toast({ variant: 'destructive', description: 'Please enter a valid amount' });
+      return;
+    }
+
+    setSubmittingCashPayment(true);
+    try {
+      const res = await fetch('/api/rent-payments/cash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leaseId: lease.id,
+          amount: parseFloat(cashPaymentAmount),
+          note: cashPaymentNote || 'Cash payment received',
+        }),
+      });
+
+      if (res.ok) {
+        toast({ description: 'Cash payment recorded successfully' });
+        setCashPaymentAmount('');
+        setCashPaymentNote('');
+        setShowCashPaymentForm(false);
+        handleRefresh();
+      } else {
+        const data = await res.json();
+        toast({ variant: 'destructive', description: data.message || 'Failed to record payment' });
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', description: 'Failed to record payment' });
+    } finally {
+      setSubmittingCashPayment(false);
+    }
+  };
+
   // Load lease HTML for viewing
   const handleViewLeaseDocument = async () => {
     setShowLeaseViewer(true);
-    if (!leaseHtml && !signedPdfUrl) {
-      setLoadingLeaseHtml(true);
-      try {
-        const res = await fetch(`/api/leases/${lease.id}/preview`);
-        if (res.ok) {
-          const data = await res.json();
-          setLeaseHtml(data.html);
-          // Update signedPdfUrl from API response if available
-          if (data.signedPdfUrl) {
-            setSignedPdfUrl(data.signedPdfUrl);
-          }
+    setLoadingLeaseHtml(true);
+    try {
+      const res = await fetch(`/api/leases/${lease.id}/preview`);
+      if (res.ok) {
+        const data = await res.json();
+        setLeaseHtml(data.html);
+        // Update signedPdfUrl from API response if available
+        if (data.signedPdfUrl) {
+          setSignedPdfUrl(data.signedPdfUrl);
         }
-      } catch (error) {
-        console.error('Failed to load lease:', error);
-      } finally {
-        setLoadingLeaseHtml(false);
+        // Update signature states from API response
+        if (data.tenantSigned !== undefined) {
+          setTenantSigned(data.tenantSigned);
+        }
+        if (data.landlordSigned !== undefined) {
+          setLandlordSigned(data.landlordSigned);
+        }
+        // If landlord has signed (from fresh API data), trigger a refresh
+        if (data.landlordSigned && !landlordSigned) {
+          handleRefresh();
+        }
       }
+    } catch (error) {
+      console.error('Failed to load lease:', error);
+    } finally {
+      setLoadingLeaseHtml(false);
     }
   };
 
@@ -474,6 +545,71 @@ export function EnhancedTenantCard({
 
               {/* Payments Tab */}
               <TabsContent value="payments" className="p-4 space-y-4 mt-0">
+                {/* Record Cash Payment Button */}
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-white">Payments</h4>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowCashPaymentForm(!showCashPaymentForm)}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-xs"
+                  >
+                    <Banknote className="w-3 h-3 mr-1" />
+                    Record Cash
+                  </Button>
+                </div>
+
+                {/* Cash Payment Form */}
+                {showCashPaymentForm && (
+                  <form onSubmit={handleRecordCashPayment} className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 space-y-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Banknote className="w-4 h-4 text-emerald-400" />
+                      <span className="text-sm font-medium text-white">Record Cash Payment</span>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400">Amount ($)</label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        required
+                        value={cashPaymentAmount}
+                        onChange={(e) => setCashPaymentAmount(e.target.value)}
+                        className="bg-slate-900/60 border-white/10 text-white text-sm h-9"
+                        placeholder={formatCurrency(Number(lease.rentAmount))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400">Note (optional)</label>
+                      <Input
+                        value={cashPaymentNote}
+                        onChange={(e) => setCashPaymentNote(e.target.value)}
+                        className="bg-slate-900/60 border-white/10 text-white text-sm h-9"
+                        placeholder="e.g. Cash received in person"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={submittingCashPayment}
+                        className="bg-emerald-600 hover:bg-emerald-500"
+                      >
+                        {submittingCashPayment ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+                        Record Payment
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowCashPaymentForm(false)}
+                        className="border-white/10 text-slate-300"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
                 <div className="rounded-lg border border-white/10 bg-slate-900/40 p-3 sm:p-4">
                   <h4 className="text-sm font-medium text-white mb-3">
                     Payment History
@@ -733,32 +869,19 @@ export function EnhancedTenantCard({
             <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-white/10 bg-slate-900">
               <div>
                 <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                  {signedPdfUrl && <FileCheck className="w-5 h-5 text-emerald-400" />}
+                  {(tenantSigned || landlordSigned) && <FileCheck className="w-5 h-5 text-emerald-400" />}
                   Lease Agreement
                 </h2>
                 <p className="text-sm text-slate-400">
                   {tenant?.name} • Unit {lease.unitName}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                {signedPdfUrl && (
-                  <a
-                    href={signedPdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-emerald-500/20 text-emerald-300 rounded-lg hover:bg-emerald-500/30"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    Download PDF
-                  </a>
-                )}
-                <button 
-                  onClick={() => setShowLeaseViewer(false)}
-                  className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
-                >
-                  <X className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
+              <button 
+                onClick={() => setShowLeaseViewer(false)}
+                className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
             </div>
 
             {/* Content */}
@@ -767,61 +890,72 @@ export function EnhancedTenantCard({
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
                 </div>
-              ) : signedPdfUrl ? (
-                <div className="space-y-4">
-                  {/* Signature Status */}
-                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <FileCheck className="w-6 h-6 text-emerald-400" />
-                      <h3 className="font-semibold text-white">Fully Executed Lease</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                      {tenantSigned && tenantSignature?.signedAt && (
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-emerald-500/20 text-emerald-300">Tenant</Badge>
-                          <span className="text-slate-300">
-                            Signed {new Date(tenantSignature.signedAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-                      {landlordSigned && landlordSignature?.signedAt && (
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-emerald-500/20 text-emerald-300">Landlord</Badge>
-                          <span className="text-slate-300">
-                            Signed {new Date(landlordSignature.signedAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* PDF Viewer */}
-                  <div className="rounded-xl border border-white/10 overflow-hidden">
-                    <iframe
-                      src={signedPdfUrl}
-                      className="w-full h-[600px]"
-                      title="Signed Lease PDF"
-                    />
-                  </div>
-                  <p className="text-xs text-slate-500 text-center">
-                    If the PDF doesn&apos;t load, click &quot;Download PDF&quot; above to view it directly.
-                  </p>
-                </div>
-              ) : leaseHtml ? (
-                <div className="rounded-xl border border-white/10 bg-white p-6">
-                  <div
-                    className="prose prose-sm max-w-none text-gray-800"
-                    style={{ fontSize: '14px', lineHeight: '1.6' }}
-                    dangerouslySetInnerHTML={{ __html: leaseHtml }}
-                  />
-                </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">Lease Not Available</h3>
-                  <p className="text-sm text-slate-400">
-                    The lease document could not be loaded. Please try again later.
-                  </p>
+                <div className="space-y-4">
+                  {/* Signature Status - only show if someone has signed */}
+                  {(tenantSigned || landlordSigned) && (
+                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <FileCheck className="w-6 h-6 text-emerald-400" />
+                        <h3 className="font-semibold text-white">
+                          {tenantSigned && landlordSigned ? 'Fully Executed Lease' : 'Partially Signed'}
+                        </h3>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        {tenantSigned && (
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-emerald-500/20 text-emerald-300">Tenant</Badge>
+                            <span className="text-slate-300">
+                              Signed {tenantSignature?.signedAt ? new Date(tenantSignature.signedAt).toLocaleDateString() : lease.tenantSignedAt ? new Date(lease.tenantSignedAt).toLocaleDateString() : ''}
+                            </span>
+                          </div>
+                        )}
+                        {landlordSigned && (
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-emerald-500/20 text-emerald-300">Landlord</Badge>
+                            <span className="text-slate-300">
+                              Signed {landlordSignature?.signedAt ? new Date(landlordSignature.signedAt).toLocaleDateString() : lease.landlordSignedAt ? new Date(lease.landlordSignedAt).toLocaleDateString() : ''}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {signedPdfUrl && (
+                        <div className="mt-4 pt-3 border-t border-emerald-500/20">
+                          <a
+                            href={signedPdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            Download Signed PDF
+                          </a>
+                          <p className="text-xs text-emerald-300/70 mt-2">
+                            The PDF contains actual signatures and an audit log
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Lease Content */}
+                  {leaseHtml ? (
+                    <div className="rounded-xl border border-white/10 bg-white p-6">
+                      <div
+                        className="prose prose-sm max-w-none text-gray-800"
+                        style={{ fontSize: '14px', lineHeight: '1.6' }}
+                        dangerouslySetInnerHTML={{ __html: leaseHtml }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
+                      <h3 className="text-lg font-semibold text-white mb-2">Lease Not Available</h3>
+                      <p className="text-sm text-slate-400">
+                        The lease document could not be loaded. Please try again later.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

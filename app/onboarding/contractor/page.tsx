@@ -3,10 +3,16 @@ import { redirect } from 'next/navigation';
 import ContractorOnboardingClient from './contractor-onboarding-client';
 
 export default async function ContractorOnboardingPage() {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error('Auth error in contractor onboarding:', error);
+    return redirect('/sign-in?callbackUrl=/onboarding');
+  }
 
   if (!session?.user) {
-    return redirect('/sign-in');
+    return redirect('/sign-in?callbackUrl=/onboarding');
   }
 
   if (session.user.onboardingCompleted && session.user.role === 'contractor') {

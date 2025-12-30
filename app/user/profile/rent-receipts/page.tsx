@@ -33,6 +33,25 @@ export default async function UserProfileRentReceiptsPage() {
         orderBy: { dueDate: 'desc' },
       },
     },
+    select: {
+      id: true,
+      status: true,
+      rentAmount: true,
+      billingDayOfMonth: true,
+      startDate: true,
+      endDate: true,
+      tenantSignedAt: true,
+      landlordSignedAt: true,
+      unit: {
+        select: {
+          name: true,
+          property: { select: { name: true } },
+        },
+      },
+      rentPayments: {
+        orderBy: { dueDate: 'desc' },
+      },
+    },
   });
 
   // Move-in payments (first month, last month, security deposit) - show regardless of due date
@@ -96,7 +115,7 @@ export default async function UserProfileRentReceiptsPage() {
         ) : (
           <>
             {/* Pending Signature Notice */}
-            {lease.status === 'pending_signature' && (
+            {lease.status === 'pending_signature' && !lease.tenantSignedAt && (
               <div className='backdrop-blur-md bg-amber-500/20 border border-amber-400/50 rounded-xl px-6 py-4 shadow-lg'>
                 <div className='flex items-start gap-3'>
                   <div className='rounded-full bg-amber-500/30 p-2 mt-0.5'>
@@ -109,6 +128,26 @@ export default async function UserProfileRentReceiptsPage() {
                     <p className='text-sm text-amber-200/80 mt-1'>
                       Your application has been approved! You can pay your move-in costs below. Don&apos;t forget to{' '}
                       <a href='/user/profile/lease' className='underline hover:text-amber-100'>sign your lease</a> to complete the process.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Waiting for Landlord Signature Notice */}
+            {lease.status === 'pending_signature' && lease.tenantSignedAt && !lease.landlordSignedAt && (
+              <div className='backdrop-blur-md bg-blue-500/20 border border-blue-400/50 rounded-xl px-6 py-4 shadow-lg'>
+                <div className='flex items-start gap-3'>
+                  <div className='rounded-full bg-blue-500/30 p-2 mt-0.5'>
+                    <svg className='h-5 w-5 text-blue-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='text-base font-semibold text-blue-100'>You&apos;ve Signed! Waiting for Landlord</h3>
+                    <p className='text-sm text-blue-200/80 mt-1'>
+                      Great job! You signed your lease on {new Date(lease.tenantSignedAt).toLocaleDateString()}. 
+                      We&apos;re waiting for the landlord to countersign. You&apos;ll be notified once it&apos;s complete.
                     </p>
                   </div>
                 </div>

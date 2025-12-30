@@ -132,13 +132,32 @@ export function getOptimizedCloudinaryUrl(
 
 /**
  * Extract public ID from a Cloudinary URL
- * Example: https://res.cloudinary.com/cloud/image/upload/v123/folder/image.jpg
- * Returns: folder/image
+ * Handles both upload and authenticated URLs:
+ * - https://res.cloudinary.com/cloud/image/upload/v123/folder/image.jpg
+ * - https://res.cloudinary.com/cloud/raw/authenticated/s--xxx--/v1/folder/file.pdf
+ * Returns: folder/image or folder/file
  */
 export function extractPublicIdFromUrl(cloudinaryUrl: string): string | null {
   try {
-    const match = cloudinaryUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/);
-    return match ? match[1] : null;
+    // Handle authenticated URLs (e.g., /raw/authenticated/s--xxx--/v1/folder/file.pdf)
+    const authMatch = cloudinaryUrl.match(/\/authenticated\/s--[^/]+--\/v\d+\/(.+?)(?:\.\w+)?$/);
+    if (authMatch) {
+      return authMatch[1];
+    }
+    
+    // Handle standard upload URLs (e.g., /upload/v123/folder/image.jpg)
+    const uploadMatch = cloudinaryUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/);
+    if (uploadMatch) {
+      return uploadMatch[1];
+    }
+    
+    // Handle URLs without version (e.g., /raw/upload/folder/file.pdf)
+    const simpleMatch = cloudinaryUrl.match(/\/(?:upload|authenticated)\/(.+?)(?:\.\w+)?$/);
+    if (simpleMatch) {
+      return simpleMatch[1];
+    }
+    
+    return null;
   } catch {
     return null;
   }

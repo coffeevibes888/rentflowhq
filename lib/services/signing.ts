@@ -124,17 +124,20 @@ export async function stampSignatureOnPdf(opts: {
         resource_type: 'raw',
         public_id: `${opts.leaseId || 'lease'}-signed-${Date.now()}`,
         format: 'pdf',
+        type: 'upload', // Public access - no authentication required
       }),
       uploadToCloudinary(Buffer.from(JSON.stringify(opts.audit, null, 2)), {
         folder: `signed-leases/${opts.landlordId || 'unknown'}`,
         resource_type: 'raw',
         public_id: `${opts.leaseId || 'lease'}-audit-${Date.now()}`,
         format: 'txt',
+        type: 'upload', // Public access
       }),
     ]);
     signedPdfUrl = signedUpload.secure_url;
     auditLogUrl = auditUpload.secure_url;
     console.log('Signing - Cloudinary upload successful');
+    console.log('Signing - PDF URL:', signedPdfUrl);
   } catch (uploadError: any) {
     console.error('Cloudinary upload failed:', uploadError);
     console.error('Cloudinary error details:', JSON.stringify(uploadError, null, 2));

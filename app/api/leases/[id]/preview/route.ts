@@ -3,7 +3,6 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
-import { getSignedUrlFromStoredUrl } from '@/lib/cloudinary';
 
 export async function GET(
   request: NextRequest,
@@ -55,7 +54,7 @@ export async function GET(
     const property = lease.unit.property;
     const address = property.address as any;
 
-    const html = renderDocuSignReadyLeaseHtml({
+    let html = renderDocuSignReadyLeaseHtml({
       propertyLabel: address
         ? `${address.street || ''}, ${address.city || ''}, ${address.state || ''} ${address.zip || ''}`
         : property.name,
@@ -68,10 +67,50 @@ export async function GET(
       todayDate: new Date().toISOString().split('T')[0],
     });
 
-    // Get signed PDF URL if available
+    // Get signature requests
+    const tenantSigRequest = lease.signatureRequests?.find(sr => sr.role === 'tenant' && sr.status === 'signed');
+    const landlordSigRequest = lease.signatureRequests?.find(sr => sr.role === 'landlord' && sr.status === 'signed');
+
+    // Replace placeholders with signature indicators for signed leases
+    if (tenantSigRequest) {
+      const tenantSignedDate = tenantSigRequest.signedAt 
+        ? new Date(tenantSigRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'N/A';
+      
+      // Replace tenant signature placeholder
+      const tenantSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px;">
+        <span style="color: #166534; font-size: 14px; font-weight: 500;">✓ Signed by ${tenantSigRequest.signerName || lease.tenant?.name || 'Tenant'}</span>
+        <span style="color: #166534; font-size: 12px; display: block;">${tenantSignedDate}</span>
+      </div>`;
+      html = html.replace('/sig_tenant/', tenantSigHtml);
+      
+      // Replace tenant initials placeholders
+      for (let i = 1; i <= 6; i++) {
+        const initPlaceholder = `/init${i}/`;
+        if (html.includes(initPlaceholder)) {
+          const initialHtml = `<span style="display: inline-block; padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px; font-weight: 500;">✓ Initialed</span>`;
+          html = html.replace(initPlaceholder, initialHtml);
+        }
+      }
+    }
+
+    if (landlordSigRequest) {
+      const landlordSignedDate = landlordSigRequest.signedAt 
+        ? new Date(landlordSigRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'N/A';
+      
+      // Replace landlord signature placeholder
+      const landlordSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px;">
+        <span style="color: #1e40af; font-size: 14px; font-weight: 500;">✓ Signed by ${landlordSigRequest.signerName || property.landlord?.name || 'Landlord'}</span>
+        <span style="color: #1e40af; font-size: 12px; display: block;">${landlordSignedDate}</span>
+      </div>`;
+      html = html.replace('/sig_landlord/', landlordSigHtml);
+    }
+
+    // Check if there's a signed PDF available
     const signedRequest = lease.signatureRequests?.find(sr => sr.status === 'signed' && sr.signedPdfUrl);
-    const rawPdfUrl = signedRequest?.signedPdfUrl || null;
-    const signedPdfUrl = rawPdfUrl ? getSignedUrlFromStoredUrl(rawPdfUrl) : null;
+    // Use proxy URL for PDF access (handles both authenticated and public URLs)
+    const signedPdfUrl = signedRequest?.signedPdfUrl ? `/api/leases/${leaseId}/pdf` : null;
 
     return NextResponse.json({ 
       html,

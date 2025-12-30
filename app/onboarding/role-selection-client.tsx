@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Home, Building2, Key, Wrench, Users, 
+  Home, Building2, Key, Wrench, Users, HousePlus,
   ChevronRight, Sparkles 
 } from 'lucide-react';
 
@@ -13,6 +13,16 @@ interface RoleSelectionClientProps {
 }
 
 const roles = [
+  {
+    id: 'homeowner',
+    title: "I'm a homeowner",
+    description: 'Hire contractors for repairs, renovations, and home maintenance',
+    icon: HousePlus,
+    color: 'from-sky-500 to-blue-500',
+    bgColor: 'bg-sky-500/10',
+    borderColor: 'border-sky-500/30',
+    hoverBorder: 'hover:border-sky-500/60',
+  },
   {
     id: 'tenant',
     title: "I'm looking to rent",

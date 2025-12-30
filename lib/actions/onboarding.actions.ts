@@ -13,7 +13,16 @@ export async function roleOnboardingAction(prevState: unknown, formData: FormDat
       return { success: false, message: 'Not authenticated', role: null };
     }
 
-    const role = formData.get('role') === 'tenant' ? 'tenant' : 'landlord';
+    const roleValue = formData.get('role') as string;
+    let role: 'tenant' | 'landlord' | 'homeowner';
+    
+    if (roleValue === 'tenant') {
+      role = 'tenant';
+    } else if (roleValue === 'homeowner') {
+      role = 'homeowner';
+    } else {
+      role = 'landlord';
+    }
 
     const unitsEstimateRange = (formData.get('unitsEstimateRange') || undefined) as
       | '0-10'
@@ -25,6 +34,11 @@ export async function roleOnboardingAction(prevState: unknown, formData: FormDat
     const ownsProperties = formData.get('ownsProperties') === 'on';
     const managesForOthers = formData.get('managesForOthers') === 'on';
     const useSubdomain = formData.get('useSubdomain') === 'on';
+    
+    // Homeowner-specific fields
+    const homeType = (formData.get('homeType') || undefined) as string | undefined;
+    const interestedServices = (formData.get('interestedServices') || '') as string;
+    const projectTimeline = (formData.get('projectTimeline') || undefined) as string | undefined;
 
     const result = await setUserRoleAndLandlordIntake({
       role,
@@ -32,6 +46,10 @@ export async function roleOnboardingAction(prevState: unknown, formData: FormDat
       ownsProperties,
       managesForOthers,
       useSubdomain,
+      // Homeowner fields
+      homeType,
+      interestedServices: interestedServices ? interestedServices.split(',').filter(Boolean) : undefined,
+      projectTimeline,
     });
 
     if (!result.success) {
@@ -45,6 +63,8 @@ export async function roleOnboardingAction(prevState: unknown, formData: FormDat
 
     if (role === 'tenant') {
       redirect('/user/applications');
+    } else if (role === 'homeowner') {
+      redirect('/homeowner/dashboard');
     } else {
       redirect('/admin/onboarding');
     }

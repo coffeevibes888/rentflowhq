@@ -104,7 +104,7 @@ export async function GET(
   }
 
   // Fall back to HTML template
-  const leaseHtml = renderDocuSignReadyLeaseHtml({
+  let leaseHtml = renderDocuSignReadyLeaseHtml({
     landlordName,
     tenantName,
     propertyLabel,
@@ -116,6 +116,42 @@ export async function GET(
     billingDayOfMonth: String(lease.billingDayOfMonth),
     todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
   });
+
+  // If landlord is signing and tenant has already signed, fetch tenant's signature data
+  // and embed it into the HTML so landlord can see what tenant signed
+  if (sig.role === 'landlord') {
+    const tenantSignatureRequest = await prisma.documentSignatureRequest.findFirst({
+      where: { 
+        leaseId: lease.id, 
+        role: 'tenant', 
+        status: 'signed'
+      },
+      select: { 
+        signedPdfUrl: true,
+        signerName: true,
+        signedAt: true
+      }
+    });
+    
+    if (tenantSignatureRequest) {
+      // Add a visual indicator that tenant has signed (since we can't embed their actual signature in HTML)
+      const tenantSignedInfo = `<div style="padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; margin: 8px 0; display: inline-block;">
+        <span style="color: #166534; font-size: 14px;">✓ Signed by ${tenantSignatureRequest.signerName || tenantName} on ${tenantSignatureRequest.signedAt ? new Date(tenantSignatureRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
+      </div>`;
+      
+      // Replace tenant signature placeholder with signed indicator
+      leaseHtml = leaseHtml.replace('/sig_tenant/', tenantSignedInfo);
+      
+      // Replace tenant initials with signed indicators
+      for (let i = 1; i <= 6; i++) {
+        const initPlaceholder = `/init${i}/`;
+        if (leaseHtml.includes(initPlaceholder)) {
+          const initialIndicator = `<span style="padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px;">✓</span>`;
+          leaseHtml = leaseHtml.replace(initPlaceholder, initialIndicator);
+        }
+      }
+    }
+  }
 
   return NextResponse.json({
     leaseId: lease.id,

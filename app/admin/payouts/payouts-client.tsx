@@ -9,7 +9,6 @@ import {
   ArrowDownToLine,
   Clock,
   CheckCircle2,
-  Shield,
   Building2,
   TrendingUp,
   AlertCircle,
@@ -295,8 +294,11 @@ export default function PayoutsClient({
                 )}
               </CardContent>
             </Card>
+          </div>
 
-            {/* Property Bank Accounts */}
+          {/* Right Column - Info */}
+          <div className="space-y-6">
+            {/* Property Bank Accounts - moved here for better layout */}
             {connectStatus?.canReceivePayouts && (
               <PropertyBankManager
                 properties={properties}
@@ -304,89 +306,6 @@ export default function PayoutsClient({
                 onAccountRemoved={() => window.location.reload()}
               />
             )}
-          </div>
-
-          {/* Right Column - Info */}
-          <div className="space-y-6">
-            {/* How Payouts Work */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-violet-500" />
-                  How Payouts Work
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-emerald-600">1</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Tenant pays rent</p>
-                      <p className="text-xs text-slate-500">
-                        Payment is processed and added to your balance
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-emerald-600">2</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Balance becomes available</p>
-                      <p className="text-xs text-slate-500">
-                        After a short hold period for security
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="h-6 w-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-emerald-600">3</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Cash out anytime</p>
-                      <p className="text-xs text-slate-500">
-                        Funds arrive in 2-3 business days
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t">
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <Shield className="h-3 w-3" />
-                    <span>Bank-level encryption</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
-                    <CheckCircle2 className="h-3 w-3" />
-                    <span>Powered by Stripe</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cash Payments Link */}
-            <Card className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-dashed">
-              <CardContent className="pt-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-slate-600" />
-                    <p className="font-medium text-sm">Cash-paying tenants?</p>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    Generate barcodes for Walmart, 7-Eleven and other locations so tenants can pay rent with cash.
-                  </p>
-                  <Link href="/admin/cash-collection">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Manage Cash Payments
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

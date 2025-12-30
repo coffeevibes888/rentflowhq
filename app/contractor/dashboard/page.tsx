@@ -1,8 +1,9 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
-import { Wrench, ClipboardList, DollarSign, Building2, Clock, TrendingUp } from 'lucide-react';
+import { Wrench, ClipboardList, DollarSign, Building2, Clock, TrendingUp, Briefcase, Gavel } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
 
@@ -60,6 +61,36 @@ export default async function ContractorDashboardPage() {
   const totalEarnings = completedOrders.reduce((sum, o) => 
     sum + Number(o.actualCost || o.agreedPrice || 0), 0
   );
+
+  // Get contractor's bids
+  const myBids = await prisma.workOrderBid.findMany({
+    where: {
+      contractorId: { in: contractors.map(c => c.id) },
+      status: 'pending',
+    },
+    include: {
+      workOrder: {
+        select: {
+          id: true,
+          title: true,
+          budgetMin: true,
+          budgetMax: true,
+          property: { select: { name: true } },
+          landlord: { select: { name: true, companyName: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  });
+
+  // Get count of open jobs in marketplace
+  const openJobsCount = await prisma.workOrder.count({
+    where: {
+      isOpenBid: true,
+      status: 'open',
+    },
+  });
 
   const stats = [
     {
@@ -130,57 +161,145 @@ export default async function ContractorDashboardPage() {
         })}
       </div>
 
-      {/* Active Work Orders */}
-      <Card className="bg-white/80 backdrop-blur-sm border-white/20">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-slate-900">Active Work Orders</CardTitle>
-          <Link href="/contractor/work-orders" className="text-sm text-violet-600 hover:text-violet-500">
-            View all →
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {allActiveOrders.length === 0 ? (
-            <div className="text-center py-8">
-              <ClipboardList className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-              <p className="text-slate-500">No active work orders</p>
-              <p className="text-sm text-slate-400 mt-1">
-                Work orders will appear here when assigned by property managers
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {allActiveOrders.map((order) => (
-                <Link
-                  key={order.id}
-                  href={`/contractor/work-orders/${order.id}`}
-                  className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 truncate">{order.title}</p>
-                    <p className="text-sm text-slate-500 truncate">
-                      {order.property.name} • {order.landlordName}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-emerald-600 font-medium">
-                      {formatCurrency(Number(order.agreedPrice))}
-                    </span>
-                    <span className={`
-                      px-2 py-1 rounded text-xs font-medium whitespace-nowrap
-                      ${order.status === 'assigned' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}
-                    `}>
-                      {order.status.replace('_', ' ')}
-                    </span>
-                  </div>
+      {/* Open Jobs Banner */}
+      {openJobsCount > 0 && (
+        <Link href="/contractors?view=jobs">
+          <Card className="bg-gradient-to-r from-cyan-500 to-blue-600 border-white/20 hover:opacity-95 transition-opacity cursor-pointer">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-white/20">
+                  <Briefcase className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-white">{openJobsCount} Open Jobs Available</p>
+                  <p className="text-sm text-white/80">Browse and bid on new opportunities</p>
+                </div>
+              </div>
+              <Badge className="bg-white text-blue-600 hover:bg-white/90">Browse Jobs →</Badge>
+            </CardContent>
+          </Card>
+        </Link>
+      )}
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Active Work Orders */}
+        <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-slate-900">Active Work Orders</CardTitle>
+            <Link href="/contractor/work-orders" className="text-sm text-violet-600 hover:text-violet-500">
+              View all →
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {allActiveOrders.length === 0 ? (
+              <div className="text-center py-8">
+                <ClipboardList className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+                <p className="text-slate-500">No active work orders</p>
+                <p className="text-sm text-slate-400 mt-1">
+                  Work orders will appear here when assigned
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {allActiveOrders.map((order) => (
+                  <Link
+                    key={order.id}
+                    href={`/contractor/work-orders/${order.id}`}
+                    className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 truncate">{order.title}</p>
+                      <p className="text-sm text-slate-500 truncate">
+                        {order.property.name} • {order.landlordName}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-emerald-600 font-medium">
+                        {formatCurrency(Number(order.agreedPrice || 0))}
+                      </span>
+                      <span className={`
+                        px-2 py-1 rounded text-xs font-medium whitespace-nowrap
+                        ${order.status === 'assigned' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}
+                      `}>
+                        {order.status.replace('_', ' ')}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* My Bids */}
+        <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-slate-900 flex items-center gap-2">
+              <Gavel className="h-5 w-5 text-cyan-600" />
+              My Pending Bids
+            </CardTitle>
+            <Link href="/contractors?view=jobs" className="text-sm text-cyan-600 hover:text-cyan-500">
+              Find more jobs →
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {myBids.length === 0 ? (
+              <div className="text-center py-8">
+                <Gavel className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+                <p className="text-slate-500">No pending bids</p>
+                <p className="text-sm text-slate-400 mt-1">
+                  Browse open jobs and submit bids to grow your business
+                </p>
+                <Link href="/contractors?view=jobs">
+                  <Badge className="mt-4 bg-cyan-100 text-cyan-700 hover:bg-cyan-200 cursor-pointer">
+                    Browse Open Jobs
+                  </Badge>
                 </Link>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myBids.map((bid) => (
+                  <div
+                    key={bid.id}
+                    className="p-3 rounded-lg bg-slate-50 border border-slate-100"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 truncate">{bid.workOrder.title}</p>
+                        <p className="text-sm text-slate-500 truncate">
+                          {bid.workOrder.property.name} • {bid.workOrder.landlord.companyName || bid.workOrder.landlord.name}
+                        </p>
+                      </div>
+                      <Badge className="bg-amber-100 text-amber-700">Pending</Badge>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 text-sm">
+                      <span className="text-slate-500">
+                        Budget: {bid.workOrder.budgetMin && bid.workOrder.budgetMax 
+                          ? `${formatCurrency(Number(bid.workOrder.budgetMin))} - ${formatCurrency(Number(bid.workOrder.budgetMax))}`
+                          : 'TBD'}
+                      </span>
+                      <span className="font-semibold text-cyan-600">
+                        Your bid: {formatCurrency(Number(bid.amount))}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Link href="/contractors?view=jobs">
+          <Card className="bg-gradient-to-r from-cyan-500 to-blue-500 border-white/20 hover:opacity-90 transition-opacity cursor-pointer shadow-xl">
+            <CardContent className="p-4 text-center">
+              <Briefcase className="h-8 w-8 mx-auto text-white mb-2" />
+              <p className="text-sm font-medium text-white">Browse Jobs</p>
+            </CardContent>
+          </Card>
+        </Link>
         <Link href="/contractor/estimates">
           <Card className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-white/20 hover:opacity-90 transition-opacity cursor-pointer shadow-xl">
             <CardContent className="p-4 text-center">

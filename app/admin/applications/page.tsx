@@ -3,16 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatCurrency, cn } from '@/lib/utils';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  FileText, 
   Clock, 
   CheckCircle2, 
   XCircle, 
-  Users,
   Building2,
   DollarSign,
   Calendar,
@@ -123,57 +121,48 @@ export default function AdminApplicationsPage() {
         </div>
 
         {/* Applications Card with Tabs */}
-        <Card className='border-white/10 bg-slate-900/60'>
-          <CardHeader className='p-4 sm:p-6 pb-2 sm:pb-4'>
-            <CardTitle className='text-white flex items-center gap-2 text-base sm:text-lg'>
-              <FileText className='w-4 h-4 sm:w-5 sm:h-5' />
-              Applications
-            </CardTitle>
-            <CardDescription className='text-slate-400 text-xs sm:text-sm'>
-              {applications.length} total application{applications.length !== 1 ? 's' : ''}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='p-3 sm:p-6 pt-0'>
-            <Tabs defaultValue='pending' className='w-full'>
-              <TabsList className='w-full grid grid-cols-3 bg-slate-800/60 border border-white/10 p-1 rounded-lg h-auto mb-4'>
+        <Card className='border-white/10 bg-slate-900/60 overflow-hidden'>
+          <Tabs defaultValue='pending' className='w-full'>
+            {/* Browser-style tabs at the top */}
+            <div className='border-b border-white/10 bg-slate-800/40'>
+              <TabsList className='h-auto p-0 bg-transparent rounded-none'>
                 <TabsTrigger 
                   value='pending' 
-                  className='data-[state=active]:bg-amber-600 data-[state=active]:text-white rounded-md px-2 sm:px-3 py-2 text-[10px] sm:text-sm text-slate-300'
+                  className='relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-amber-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
                 >
-                  <Clock className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2' />
-                  <span className='hidden xs:inline'>Pending</span>
+                  Pending
                   {pendingApps.length > 0 && (
-                    <Badge className='ml-1 sm:ml-2 bg-amber-500/20 text-amber-300 text-[9px] sm:text-xs'>
+                    <Badge className='ml-2 bg-amber-500/20 text-amber-300 text-[10px] sm:text-xs'>
                       {pendingApps.length}
                     </Badge>
                   )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value='approved' 
-                  className='data-[state=active]:bg-emerald-600 data-[state=active]:text-white rounded-md px-2 sm:px-3 py-2 text-[10px] sm:text-sm text-slate-300'
+                  className='relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
                 >
-                  <CheckCircle2 className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2' />
-                  <span className='hidden xs:inline'>Approved</span>
+                  Approved
                   {approvedApps.length > 0 && (
-                    <Badge className='ml-1 sm:ml-2 bg-emerald-500/20 text-emerald-300 text-[9px] sm:text-xs'>
+                    <Badge className='ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs'>
                       {approvedApps.length}
                     </Badge>
                   )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value='rejected' 
-                  className='data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-md px-2 sm:px-3 py-2 text-[10px] sm:text-sm text-slate-300'
+                  className='relative px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-red-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
                 >
-                  <XCircle className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2' />
-                  <span className='hidden xs:inline'>Rejected</span>
+                  Rejected
                   {rejectedApps.length > 0 && (
-                    <Badge className='ml-1 sm:ml-2 bg-red-500/20 text-red-300 text-[9px] sm:text-xs'>
+                    <Badge className='ml-2 bg-red-500/20 text-red-300 text-[10px] sm:text-xs'>
                       {rejectedApps.length}
                     </Badge>
                   )}
                 </TabsTrigger>
               </TabsList>
+            </div>
 
+            <CardContent className='p-3 sm:p-6'>
               {/* Pending Applications */}
               <TabsContent value='pending' className='mt-0'>
                 <ApplicationsList 
@@ -203,8 +192,8 @@ export default function AdminApplicationsPage() {
                   statusColor='red'
                 />
               </TabsContent>
-            </Tabs>
-          </CardContent>
+            </CardContent>
+          </Tabs>
         </Card>
       </div>
     </main>
@@ -253,12 +242,6 @@ function ApplicationCard({
   formatUnitLabel: (app: Application) => string;
   statusColor: 'amber' | 'emerald' | 'red';
 }) {
-  const statusColors = {
-    amber: 'border-amber-500/30 bg-amber-500/10',
-    emerald: 'border-emerald-500/30 bg-emerald-500/10',
-    red: 'border-red-500/30 bg-red-500/10',
-  };
-
   const badgeColors = {
     amber: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
     emerald: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',

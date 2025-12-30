@@ -3,10 +3,16 @@ import { redirect } from 'next/navigation';
 import RoleSelectionClient from './role-selection-client';
 
 export default async function OnboardingPage() {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error('Auth error in onboarding:', error);
+    return redirect('/sign-in?callbackUrl=/onboarding');
+  }
 
   if (!session?.user) {
-    return redirect('/sign-in');
+    return redirect('/sign-in?callbackUrl=/onboarding');
   }
 
   // If onboarding is already completed, redirect to appropriate dashboard
@@ -21,6 +27,8 @@ export default async function OnboardingPage() {
         return redirect('/agent/dashboard');
       case 'contractor':
         return redirect('/contractor/dashboard');
+      case 'homeowner':
+        return redirect('/homeowner/dashboard');
       default:
         return redirect('/');
     }

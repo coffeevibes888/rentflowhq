@@ -15,18 +15,21 @@ import { CheckCircle2, ArrowRight, Shield, Zap, Eye, EyeOff, AlertCircle } from 
 import Link from "next/link";
 import { VerificationWizard } from "@/components/tenant/verification-wizard";
 
+const phoneRegex = /^(\+1|1)?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/;
+const ssnRegex = /^\d{3}-?\d{2}-?\d{4}$/;
+
 const applicationSchema = z.object({
-  fullName: z.string().min(3, "Name is required"),
+  fullName: z.string().min(2, "Full name must be at least 2 characters").max(100),
   age: z.string().optional(),
   email: z.string().email("Valid email is required"),
-  phone: z.string().min(7, "Phone number is required"),
-  currentAddress: z.string().min(5, "Current address is required"),
-  currentEmployer: z.string().min(2, "Current employer is required"),
+  phone: z.string().regex(phoneRegex, "Phone format: (555) 123-4567"),
+  currentAddress: z.string().min(5, "Current address must be at least 5 characters"),
+  currentEmployer: z.string().min(2, "Current employer must be at least 2 characters"),
   monthlySalary: z.string().optional(),
   yearlySalary: z.string().optional(),
   hasPets: z.string().optional(),
   petCount: z.string().optional(),
-  ssn: z.string().min(4, "SSN is required"),
+  ssn: z.string().regex(ssnRegex, "SSN format: XXX-XX-XXXX or XXXXXXXXX"),
   notes: z.string().optional(),
 });
 
@@ -337,7 +340,7 @@ export default function SubdomainApplicationPage() {
                         <FormLabel className="text-slate-200">Phone number</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Mobile phone" 
+                            placeholder="(555) 123-4567" 
                             {...field}
                             className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
                           />
@@ -489,7 +492,7 @@ export default function SubdomainApplicationPage() {
                       <FormControl>
                         <div className="relative">
                           <Input 
-                            placeholder="Social Security Number" 
+                            placeholder="XXX-XX-XXXX" 
                             type={showSsn ? "text" : "password"}
                             {...field}
                             className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400 pr-10"

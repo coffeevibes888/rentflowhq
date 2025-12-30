@@ -10,14 +10,31 @@ import { signInWithCredentials } from '@/lib/actions/user.actions';
 import { useSearchParams } from 'next/navigation';
 import OAuthButtons from '@/components/auth/oauth-buttons';
 
-const CredentialsSignInForm = () => {
+interface CredentialsSignInFormProps {
+  callbackUrl?: string;
+  fromProperty?: boolean;
+  propertySlug?: string;
+  subdomain?: string;
+}
+
+const CredentialsSignInForm = ({ 
+  callbackUrl: propCallbackUrl,
+  fromProperty,
+  propertySlug,
+  subdomain,
+}: CredentialsSignInFormProps = {}) => {
   const [data, action] = useActionState(signInWithCredentials, {
     success: false,
     message: '',
   });
 
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const callbackUrl = propCallbackUrl || searchParams.get('callbackUrl') || '/';
+  
+  // Build sign-up URL with property params if applicable
+  const signUpUrl = fromProperty && propertySlug && subdomain
+    ? `/sign-up?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
+    : '/sign-up';
 
   const SignInButton = () => {
     const { pending } = useFormStatus();
@@ -74,7 +91,7 @@ const CredentialsSignInForm = () => {
 
           <div className='text-sm text-center text-muted-foreground'>
             Don&apos;t have an account?{' '}
-            <Link href='/sign-up' target='_self' className='link'>
+            <Link href={signUpUrl} target='_self' className='link'>
               Sign Up
             </Link>
           </div>

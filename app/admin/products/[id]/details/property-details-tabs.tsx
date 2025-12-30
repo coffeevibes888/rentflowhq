@@ -543,41 +543,33 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
           {/* TENANTS TAB */}
           <TabsContent value="tenants" className="mt-6 space-y-4 sm:space-y-6">
-            <Card className="border-white/10 bg-slate-900/60">
-              <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
-                <CardTitle className="text-white flex items-center gap-2 text-base sm:text-lg">
-                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Tenants
-                </CardTitle>
-                <CardDescription className="text-slate-400 text-xs sm:text-sm">
-                  Manage current and past tenants at this property
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6 pt-0">
-                <Tabs defaultValue="current" className="w-full">
-                  <TabsList className="w-full grid grid-cols-2 bg-slate-800/60 border border-white/10 p-1 rounded-lg h-auto mb-4">
+            <Card className="border-white/10 bg-slate-900/60 overflow-hidden">
+              {/* Browser-style tabs at the top */}
+              <Tabs defaultValue="current" className="w-full">
+                <div className="border-b border-white/10 bg-slate-800/40">
+                  <TabsList className="h-auto p-0 bg-transparent rounded-none">
                     <TabsTrigger 
                       value="current" 
-                      className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md px-3 py-2 text-xs sm:text-sm text-slate-300"
+                      className="relative px-6 py-3 text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
                     >
-                      <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                       Current
                       {activeLeases.length > 0 && (
-                        <Badge className="ml-1.5 sm:ml-2 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs">{activeLeases.length}</Badge>
+                        <Badge className="ml-2 bg-emerald-500/20 text-emerald-300 text-xs">{activeLeases.length}</Badge>
                       )}
                     </TabsTrigger>
                     <TabsTrigger 
                       value="past" 
-                      className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md px-3 py-2 text-xs sm:text-sm text-slate-300"
+                      className="relative px-6 py-3 text-sm font-medium text-slate-400 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors"
                     >
-                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                       Past
                       {pastLeases.length > 0 && (
-                        <Badge className="ml-1.5 sm:ml-2 bg-slate-500/20 text-slate-300 text-[10px] sm:text-xs">{pastLeases.length}</Badge>
+                        <Badge className="ml-2 bg-slate-500/20 text-slate-300 text-xs">{pastLeases.length}</Badge>
                       )}
                     </TabsTrigger>
                   </TabsList>
+                </div>
 
+                <CardContent className="p-4 sm:p-6">
                   {/* Current Tenants */}
                   <TabsContent value="current" className="mt-0">
                     {activeLeases.length === 0 ? (
@@ -623,8 +615,8 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                       </div>
                     )}
                   </TabsContent>
-                </Tabs>
-              </CardContent>
+                </CardContent>
+              </Tabs>
             </Card>
           </TabsContent>
 

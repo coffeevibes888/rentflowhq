@@ -7,6 +7,7 @@ import {
   Palette, 
   Camera,
   Clock,
+  Briefcase,
   LucideIcon 
 } from 'lucide-react';
 
@@ -23,6 +24,12 @@ export const contractorNavLinks: ContractorNavLink[] = [
     description: 'Overview of your work',
     href: '/contractor/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    title: 'Browse Jobs',
+    description: 'Find open jobs & bid',
+    href: '/contractors?view=jobs',
+    icon: Briefcase,
   },
   {
     title: 'Work Orders',

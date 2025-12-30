@@ -21,6 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Plus,
   ClipboardList,
@@ -29,6 +30,9 @@ import {
   DollarSign,
   Calendar,
   User,
+  Globe,
+  Send,
+  Users,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
@@ -44,18 +48,21 @@ interface WorkOrder {
   scheduledDate: string | null;
   completedAt: string | null;
   notes: string | null;
-  contractor: { name: string; email: string };
+  isOpenForBids: boolean;
+  contractor: { name: string; email: string } | null;
   property: { name: string };
   unit: { name: string } | null;
   maintenanceTicket: { title: string } | null;
   mediaCount: number;
   createdAt: string;
+  _count?: { bids: number };
 }
 
 interface Contractor {
   id: string;
   name: string;
   email: string;
+  specialties: string[];
 }
 
 interface Property {
@@ -66,6 +73,7 @@ interface Property {
 
 const statusColors: Record<string, string> = {
   draft: 'bg-gray-500',
+  open: 'bg-cyan-500',
   assigned: 'bg-blue-500',
   in_progress: 'bg-yellow-500',
   completed: 'bg-green-500',
@@ -92,6 +100,7 @@ export default function WorkOrdersTab() {
 
   // Form state
   const [formData, setFormData] = useState({
+    assignmentType: 'direct', // 'direct' or 'marketplace'
     contractorId: '',
     propertyId: '',
     unitId: '',
@@ -99,6 +108,8 @@ export default function WorkOrdersTab() {
     description: '',
     priority: 'medium',
     agreedPrice: '',
+    budgetMin: '',
+    budgetMax: '',
     scheduledDate: '',
     notes: '',
   });
@@ -160,15 +171,35 @@ export default function WorkOrdersTab() {
     setSubmitting(true);
 
     try {
+      const isMarketplace = formData.assignmentType === 'marketplace';
+      
+      const payload: any = {
+        propertyId: formData.propertyId,
+        unitId: formData.unitId || undefined,
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        scheduledDate: formData.scheduledDate || undefined,
+        notes: formData.notes || undefined,
+        isOpenForBids: isMarketplace,
+      };
+
+      if (isMarketplace) {
+        // For marketplace, use budget range
+        payload.budgetMin = formData.budgetMin ? parseFloat(formData.budgetMin) : undefined;
+        payload.budgetMax = formData.budgetMax ? parseFloat(formData.budgetMax) : undefined;
+        payload.status = 'open';
+      } else {
+        // For direct assignment
+        payload.contractorId = formData.contractorId;
+        payload.agreedPrice = parseFloat(formData.agreedPrice);
+        payload.status = 'assigned';
+      }
+
       const res = await fetch('/api/work-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          agreedPrice: parseFloat(formData.agreedPrice),
-          scheduledDate: formData.scheduledDate || undefined,
-          unitId: formData.unitId || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -179,21 +210,13 @@ export default function WorkOrdersTab() {
 
       toast({
         title: 'Success',
-        description: 'Work order created',
+        description: isMarketplace 
+          ? 'Work order posted to marketplace for bidding' 
+          : 'Work order created and assigned',
       });
 
       setIsCreateOpen(false);
-      setFormData({
-        contractorId: '',
-        propertyId: '',
-        unitId: '',
-        title: '',
-        description: '',
-        priority: 'medium',
-        agreedPrice: '',
-        scheduledDate: '',
-        notes: '',
-      });
+      resetForm();
       fetchWorkOrders();
     } catch (error) {
       toast({
@@ -204,6 +227,23 @@ export default function WorkOrdersTab() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      assignmentType: 'direct',
+      contractorId: '',
+      propertyId: '',
+      unitId: '',
+      title: '',
+      description: '',
+      priority: 'medium',
+      agreedPrice: '',
+      budgetMin: '',
+      budgetMax: '',
+      scheduledDate: '',
+      notes: '',
+    });
   };
 
   const updateStatus = async (workOrderId: string, newStatus: string) => {
@@ -236,6 +276,7 @@ export default function WorkOrdersTab() {
   };
 
   const selectedProperty = properties.find((p) => p.id === formData.propertyId);
+  const isMarketplace = formData.assignmentType === 'marketplace';
 
   if (loading) {
     return (
@@ -254,6 +295,7 @@ export default function WorkOrdersTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="open">Open for Bids</SelectItem>
             <SelectItem value="assigned">Assigned</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
@@ -261,11 +303,14 @@ export default function WorkOrdersTab() {
           </SelectContent>
         </Select>
 
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) resetForm();
+        }}>
           <DialogTrigger asChild>
-            <Button disabled={contractors.length === 0}>
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Create Work Order
+              New Work Order
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -273,24 +318,79 @@ export default function WorkOrdersTab() {
               <DialogTitle>Create Work Order</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateWorkOrder} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Contractor *</Label>
-                <Select
-                  value={formData.contractorId}
-                  onValueChange={(v) => setFormData({ ...formData, contractorId: v })}
+              {/* Assignment Type */}
+              <div className="space-y-3">
+                <Label>How would you like to assign this job?</Label>
+                <RadioGroup
+                  value={formData.assignmentType}
+                  onValueChange={(v) => setFormData({ ...formData, assignmentType: v, contractorId: '' })}
+                  className="grid grid-cols-2 gap-3"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select contractor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contractors.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <div className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    formData.assignmentType === 'direct' 
+                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-950' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}>
+                    <RadioGroupItem value="direct" id="direct" />
+                    <Label htmlFor="direct" className="cursor-pointer flex items-center gap-2">
+                      <Send className="h-4 w-4" />
+                      <div>
+                        <p className="font-medium">Direct Assign</p>
+                        <p className="text-xs text-muted-foreground">Send to a contractor</p>
+                      </div>
+                    </Label>
+                  </div>
+                  <div className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    formData.assignmentType === 'marketplace' 
+                      ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}>
+                    <RadioGroupItem value="marketplace" id="marketplace" />
+                    <Label htmlFor="marketplace" className="cursor-pointer flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <div>
+                        <p className="font-medium">Post for Bids</p>
+                        <p className="text-xs text-muted-foreground">Let contractors bid</p>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
+
+              {/* Contractor Selection (only for direct) */}
+              {!isMarketplace && (
+                <div className="space-y-2">
+                  <Label>Contractor *</Label>
+                  {contractors.length === 0 ? (
+                    <p className="text-sm text-muted-foreground p-3 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200">
+                      No contractors in your directory. Add contractors first or post to marketplace for bids.
+                    </p>
+                  ) : (
+                    <Select
+                      value={formData.contractorId}
+                      onValueChange={(v) => setFormData({ ...formData, contractorId: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select contractor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {contractors.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            <div className="flex flex-col">
+                              <span>{c.name}</span>
+                              {c.specialties?.length > 0 && (
+                                <span className="text-xs text-muted-foreground">
+                                  {c.specialties.slice(0, 2).join(', ')}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Property *</Label>
@@ -333,11 +433,12 @@ export default function WorkOrdersTab() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">Job Title *</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="e.g., Fix leaking faucet in bathroom"
                   required
                 />
               </div>
@@ -348,6 +449,7 @@ export default function WorkOrdersTab() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe the work needed in detail..."
                   rows={3}
                   required
                 />
@@ -372,22 +474,46 @@ export default function WorkOrdersTab() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="agreedPrice">Agreed Price *</Label>
-                  <Input
-                    id="agreedPrice"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.agreedPrice}
-                    onChange={(e) => setFormData({ ...formData, agreedPrice: e.target.value })}
-                    required
-                  />
-                </div>
+                {isMarketplace ? (
+                  <div className="space-y-2">
+                    <Label>Budget Range</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="Min"
+                        value={formData.budgetMin}
+                        onChange={(e) => setFormData({ ...formData, budgetMin: e.target.value })}
+                      />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="Max"
+                        value={formData.budgetMax}
+                        onChange={(e) => setFormData({ ...formData, budgetMax: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="agreedPrice">Agreed Price *</Label>
+                    <Input
+                      id="agreedPrice"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.agreedPrice}
+                      onChange={(e) => setFormData({ ...formData, agreedPrice: e.target.value })}
+                      required={!isMarketplace}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="scheduledDate">Scheduled Date</Label>
+                <Label htmlFor="scheduledDate">Preferred Date (optional)</Label>
                 <Input
                   id="scheduledDate"
                   type="datetime-local"
@@ -397,25 +523,37 @@ export default function WorkOrdersTab() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">Additional Notes</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Any special instructions or access details..."
                   rows={2}
                 />
               </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={submitting || !formData.contractorId || !formData.propertyId}
+                  disabled={submitting || !formData.propertyId || !formData.title || (!isMarketplace && !formData.contractorId)}
+                  className={isMarketplace ? 'bg-cyan-600 hover:bg-cyan-700' : ''}
                 >
                   {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Create Work Order
+                  {isMarketplace ? (
+                    <>
+                      <Globe className="h-4 w-4 mr-2" />
+                      Post for Bids
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Assign to Contractor
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
@@ -429,18 +567,12 @@ export default function WorkOrdersTab() {
             <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No work orders yet</h3>
             <p className="text-muted-foreground mb-4">
-              Create work orders to assign jobs to your contractors
+              Create work orders to assign jobs to contractors or post them for bidding
             </p>
-            {contractors.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Add contractors to your directory first
-              </p>
-            ) : (
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First Work Order
-              </Button>
-            )}
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Your First Work Order
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -458,7 +590,7 @@ export default function WorkOrdersTab() {
                       {wo.priority}
                     </Badge>
                     <Badge className={statusColors[wo.status]}>
-                      {wo.status.replace('_', ' ')}
+                      {wo.status === 'open' ? 'Open for Bids' : wo.status.replace('_', ' ')}
                     </Badge>
                   </div>
                 </div>
@@ -466,8 +598,24 @@ export default function WorkOrdersTab() {
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>{wo.contractor.name}</span>
+                    {wo.contractor ? (
+                      <>
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span>{wo.contractor.name}</span>
+                      </>
+                    ) : wo.isOpenForBids ? (
+                      <>
+                        <Users className="h-4 w-4 text-cyan-500" />
+                        <span className="text-cyan-600">
+                          {wo._count?.bids || 0} bid{(wo._count?.bids || 0) !== 1 ? 's' : ''}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Unassigned</span>
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -478,7 +626,7 @@ export default function WorkOrdersTab() {
                   </div>
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span>{formatCurrency(parseFloat(wo.agreedPrice))}</span>
+                    <span>{wo.agreedPrice ? formatCurrency(parseFloat(wo.agreedPrice)) : 'TBD'}</span>
                   </div>
                   {wo.scheduledDate && (
                     <div className="flex items-center gap-2">
@@ -489,6 +637,18 @@ export default function WorkOrdersTab() {
                 </div>
 
                 <div className="flex gap-2 pt-2">
+                  {wo.status === 'open' && wo._count && wo._count.bids > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        window.location.href = `/admin/contractors?viewBids=${wo.id}`;
+                      }}
+                    >
+                      <Users className="h-4 w-4 mr-1" />
+                      View Bids ({wo._count.bids})
+                    </Button>
+                  )}
                   {wo.status === 'assigned' && (
                     <Button
                       size="sm"
@@ -511,7 +671,6 @@ export default function WorkOrdersTab() {
                     <Button
                       size="sm"
                       onClick={() => {
-                        // Navigate to payment or trigger payment modal
                         window.location.href = `/admin/contractors?pay=${wo.id}`;
                       }}
                     >

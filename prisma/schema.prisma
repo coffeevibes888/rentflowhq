@@ -106,6 +106,9 @@ model User {
 
   // Real Estate Agent
   agentProfile         Agent?
+  
+  // Homeowner
+  homeownerProfile     Homeowner?
 }
 
 model Account {
@@ -620,6 +623,74 @@ model Landlord {
   // Hiring (Enterprise)
   jobPostings JobPosting[]
   jobApplicants JobApplicant[]
+}
+
+// Homeowner - A homeowner who hires contractors for their home
+model Homeowner {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String   @unique @db.Uuid
+  homeType           String?  // single_family, townhouse, condo, multi_family
+  interestedServices String[] @default([])
+  projectTimeline    String?  // urgent, this_week, this_month, planning
+  address            Json?    @db.Json
+  createdAt          DateTime @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workOrders HomeownerWorkOrder[]
+
+  @@index([userId])
+}
+
+// HomeownerWorkOrder - Work orders created by homeowners
+model HomeownerWorkOrder {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  homeownerId         String    @db.Uuid
+  contractorId        String?   @db.Uuid
+  title               String
+  description         String
+  category            String    // plumbing, electrical, hvac, painting, landscaping, general
+  status              String    @default("open") // open, assigned, in_progress, completed, cancelled
+  priority            String    @default("medium") // low, medium, high, urgent
+  budgetMin           Decimal?  @db.Decimal(12, 2)
+  budgetMax           Decimal?  @db.Decimal(12, 2)
+  agreedPrice         Decimal?  @db.Decimal(12, 2)
+  scheduledDate       DateTime? @db.Timestamp(6)
+  completedAt         DateTime? @db.Timestamp(6)
+  address             Json?     @db.Json
+  images              String[]  @default([])
+  notes               String?
+  isOpenBid           Boolean   @default(true)
+  bidDeadline         DateTime? @db.Timestamp(6)
+  createdAt           DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime  @updatedAt
+
+  homeowner  Homeowner @relation(fields: [homeownerId], references: [id], onDelete: Cascade)
+  bids       HomeownerWorkOrderBid[]
+
+  @@index([homeownerId])
+  @@index([status])
+  @@index([isOpenBid])
+}
+
+// HomeownerWorkOrderBid - Contractor bids on homeowner jobs
+model HomeownerWorkOrderBid {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId       String    @db.Uuid
+  contractorId      String    @db.Uuid
+  amount            Decimal   @db.Decimal(12, 2)
+  estimatedHours    Decimal?  @db.Decimal(6, 2)
+  proposedStartDate DateTime? @db.Timestamp(6)
+  message           String?
+  status            String    @default("pending") // pending, accepted, declined, withdrawn
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt
+
+  workOrder  HomeownerWorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@unique([workOrderId, contractorId])
+  @@index([workOrderId])
+  @@index([contractorId])
 }
 
 model QuickBooksConnection {

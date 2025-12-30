@@ -719,11 +719,15 @@ export async function updatePhoneNumber(phoneNumber: string) {
 }
 
 export async function setUserRoleAndLandlordIntake(data: {
-  role: 'tenant' | 'landlord';
+  role: 'tenant' | 'landlord' | 'homeowner';
   unitsEstimateRange?: '0-10' | '11-50' | '51-200' | '200+';
   ownsProperties?: boolean;
   managesForOthers?: boolean;
   useSubdomain?: boolean;
+  // Homeowner-specific fields
+  homeType?: string;
+  interestedServices?: string[];
+  projectTimeline?: string;
 }) {
   try {
     const session = await auth();
@@ -736,7 +740,10 @@ export async function setUserRoleAndLandlordIntake(data: {
 
     await prisma.user.update({
       where: { id: userId },
-      data: { role: data.role },
+      data: { 
+        role: data.role,
+        onboardingCompleted: true,
+      },
     });
 
     if (data.role === 'landlord') {
@@ -783,6 +790,33 @@ export async function setUserRoleAndLandlordIntake(data: {
           useSubdomain: data.useSubdomain ?? true,
         },
       });
+    }
+    
+    if (data.role === 'homeowner') {
+      // Create or update homeowner profile
+      const existingHomeowner = await prisma.homeowner.findUnique({
+        where: { userId },
+      });
+      
+      if (existingHomeowner) {
+        await prisma.homeowner.update({
+          where: { userId },
+          data: {
+            homeType: data.homeType,
+            interestedServices: data.interestedServices || [],
+            projectTimeline: data.projectTimeline,
+          },
+        });
+      } else {
+        await prisma.homeowner.create({
+          data: {
+            userId,
+            homeType: data.homeType,
+            interestedServices: data.interestedServices || [],
+            projectTimeline: data.projectTimeline,
+          },
+        });
+      }
     }
 
     return { success: true, message: 'Onboarding preferences saved' };

@@ -224,12 +224,14 @@ export async function applySignaturesToPdf(opts: {
         resource_type: 'raw',
         public_id: `${leaseId || 'lease'}-signed-${Date.now()}`,
         format: 'pdf',
+        type: 'upload', // Public access - no authentication required
       }),
       uploadToCloudinary(Buffer.from(JSON.stringify(audit, null, 2)), {
         folder: `signed-leases/${landlordId || 'unknown'}`,
         resource_type: 'raw',
         public_id: `${leaseId || 'lease'}-audit-${Date.now()}`,
         format: 'txt',
+        type: 'upload', // Public access
       }),
     ]);
     signedPdfUrl = signedUpload.secure_url;

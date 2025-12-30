@@ -2,102 +2,15 @@
 
 import { prisma } from '@/db/prisma';
 import { auth } from '@/auth';
-import { formatError } from '../utils';
-import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
-import {
-  contractorSchema,
-  updateContractorSchema,
-  workOrderSchema,
-  workOrderStatusSchema,
-  contractorPaymentSchema,
-  workOrderMediaSchema,
-  CONTRACTOR_PLATFORM_FEE_PERCENT,
-} from '../validators';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
-import { normalizeTier } from '../config/subscription-tiers';
 
-// Helper to check PRO tier access
-async function checkProTierAccess(landlordId: string) {
-  const landlord = await prisma.landlord.findUnique({
-    where: { id: landlordId },
-    select: { subscriptionTier: true },
-  });
-  
-  if (!landlord) {
-    throw new Error('Landlord not found');
-  }
-  
-  const tier = normalizeTier(landlord.subscriptionTier);
-  if (tier === 'free') {
-    throw new Error('Contractor management requires a PRO subscription');
-  }
-  
-  return true;
-}
+// ============= CONTRACTOR CRUD =============
 
-// ============= CONTRACTOR DIRECTORY =============
-
-// Add contractor to directory
-export async function addContractor(data: z.infer<typeof contractorSchema>) {
+export async function getContractors(search?: string) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
-
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
-    }
-
-    const landlord = landlordResult.landlord;
-    await checkProTierAccess(landlord.id);
-
-    const validatedData = contractorSchema.parse(data);
-
-    const existing = await prisma.contractor.findUnique({
-      where: {
-        landlordId_email: {
-          landlordId: landlord.id,
-          email: validatedData.email,
-        },
-      },
-    });
-
-    if (existing) {
-      return { success: false, message: 'A contractor with this email already exists' };
-    }
-
-    const contractor = await prisma.contractor.create({
-      data: {
-        landlordId: landlord.id,
-        name: validatedData.name,
-        email: validatedData.email,
-        phone: validatedData.phone || null,
-        specialties: validatedData.specialties,
-        notes: validatedData.notes || null,
-      },
-    });
-
-    revalidatePath('/admin/contractors');
-    return { success: true, message: 'Contractor added', contractorId: contractor.id };
-  } catch (error) {
-    return { success: false, message: formatError(error) };
-  }
-}
-
-// Get all contractors
-export async function getContractors(search?: string) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated', contractors: [] };
-    }
-
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return { success: false, message: landlordResult.message, contractors: [] };
     }
 
     const contractors = await prisma.contractor.findMany({
@@ -107,51 +20,41 @@ export async function getContractors(search?: string) {
           OR: [
             { name: { contains: search, mode: 'insensitive' } },
             { email: { contains: search, mode: 'insensitive' } },
+            { specialties: { hasSome: [search] } },
           ],
         }),
       },
-      orderBy: { name: 'asc' },
-      include: { _count: { select: { workOrders: true } } },
+      orderBy: { createdAt: 'desc' },
     });
 
-    return {
-      success: true,
-      contractors: contractors.map((c) => ({
-        id: c.id,
-        name: c.name,
-        email: c.email,
-        phone: c.phone,
-        specialties: c.specialties,
-        isPaymentReady: c.isPaymentReady,
-        stripeOnboardingStatus: c.stripeOnboardingStatus,
-        notes: c.notes,
-        workOrderCount: c._count.workOrders,
-        createdAt: c.createdAt,
-      })),
-    };
+    return { success: true, contractors };
   } catch (error) {
-    return { success: false, message: formatError(error), contractors: [] };
+    console.error('Failed to get contractors:', error);
+    return { success: false, message: 'Failed to get contractors' };
   }
 }
 
-// Get single contractor
-export async function getContractor(contractorId: string) {
+export async function getContractor(id: string) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
-
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
     }
 
     const contractor = await prisma.contractor.findFirst({
-      where: { id: contractorId, landlordId: landlordResult.landlord.id },
+      where: {
+        id,
+        landlordId: landlordResult.landlord.id,
+      },
       include: {
-        workOrders: { orderBy: { createdAt: 'desc' }, take: 10 },
-        payments: { orderBy: { createdAt: 'desc' }, take: 10 },
+        workOrders: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        },
+        payments: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        },
       },
     });
 
@@ -161,160 +64,137 @@ export async function getContractor(contractorId: string) {
 
     return { success: true, contractor };
   } catch (error) {
-    return { success: false, message: formatError(error) };
+    console.error('Failed to get contractor:', error);
+    return { success: false, message: 'Failed to get contractor' };
   }
 }
 
-// Update contractor
-export async function updateContractor(data: z.infer<typeof updateContractorSchema>) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
 
+export async function addContractor(data: {
+  name: string;
+  email: string;
+  phone?: string;
+  specialties?: string[];
+  notes?: string;
+}) {
+  try {
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
     }
 
-    const validatedData = updateContractorSchema.parse(data);
-
-    const contractor = await prisma.contractor.findFirst({
-      where: { id: validatedData.id, landlordId: landlordResult.landlord.id },
+    const contractor = await prisma.contractor.create({
+      data: {
+        landlordId: landlordResult.landlord.id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        specialties: data.specialties || [],
+        notes: data.notes,
+      },
     });
 
-    if (!contractor) {
+    return {
+      success: true,
+      message: 'Contractor added successfully',
+      contractorId: contractor.id,
+    };
+  } catch (error: any) {
+    console.error('Failed to add contractor:', error);
+    if (error.code === 'P2002') {
+      return { success: false, message: 'A contractor with this email already exists' };
+    }
+    return { success: false, message: 'Failed to add contractor' };
+  }
+}
+
+export async function updateContractor(data: {
+  id: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  specialties?: string[];
+  notes?: string;
+}) {
+  try {
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const existing = await prisma.contractor.findFirst({
+      where: {
+        id: data.id,
+        landlordId: landlordResult.landlord.id,
+      },
+    });
+
+    if (!existing) {
       return { success: false, message: 'Contractor not found' };
     }
 
     await prisma.contractor.update({
-      where: { id: validatedData.id },
+      where: { id: data.id },
       data: {
-        name: validatedData.name,
-        email: validatedData.email,
-        phone: validatedData.phone || null,
-        specialties: validatedData.specialties,
-        notes: validatedData.notes || null,
+        ...(data.name && { name: data.name }),
+        ...(data.email && { email: data.email }),
+        ...(data.phone !== undefined && { phone: data.phone }),
+        ...(data.specialties && { specialties: data.specialties }),
+        ...(data.notes !== undefined && { notes: data.notes }),
       },
     });
 
-    revalidatePath('/admin/contractors');
-    return { success: true, message: 'Contractor updated' };
-  } catch (error) {
-    return { success: false, message: formatError(error) };
+    return { success: true, message: 'Contractor updated successfully' };
+  } catch (error: any) {
+    console.error('Failed to update contractor:', error);
+    if (error.code === 'P2002') {
+      return { success: false, message: 'A contractor with this email already exists' };
+    }
+    return { success: false, message: 'Failed to update contractor' };
   }
 }
 
-// Delete contractor
-export async function deleteContractor(contractorId: string) {
+export async function deleteContractor(id: string) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
-
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
     }
 
-    const contractor = await prisma.contractor.findFirst({
-      where: { id: contractorId, landlordId: landlordResult.landlord.id },
+    const existing = await prisma.contractor.findFirst({
+      where: {
+        id,
+        landlordId: landlordResult.landlord.id,
+      },
     });
 
-    if (!contractor) {
+    if (!existing) {
       return { success: false, message: 'Contractor not found' };
     }
 
-    await prisma.contractor.delete({ where: { id: contractorId } });
-    revalidatePath('/admin/contractors');
-    return { success: true, message: 'Contractor removed' };
+    await prisma.contractor.delete({
+      where: { id },
+    });
+
+    return { success: true, message: 'Contractor deleted successfully' };
   } catch (error) {
-    return { success: false, message: formatError(error) };
+    console.error('Failed to delete contractor:', error);
+    return { success: false, message: 'Failed to delete contractor' };
   }
 }
 
 
 // ============= WORK ORDERS =============
 
-// Create work order
-export async function createWorkOrder(data: z.infer<typeof workOrderSchema>) {
+export async function getWorkOrders(filters?: {
+  status?: string;
+  contractorId?: string;
+  propertyId?: string;
+}) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
-
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
-    }
-
-    const landlord = landlordResult.landlord;
-    await checkProTierAccess(landlord.id);
-
-    const validatedData = workOrderSchema.parse(data);
-
-    const contractor = await prisma.contractor.findFirst({
-      where: { id: validatedData.contractorId, landlordId: landlord.id },
-    });
-    if (!contractor) {
-      return { success: false, message: 'Contractor not found' };
-    }
-
-    const property = await prisma.property.findFirst({
-      where: { id: validatedData.propertyId, landlordId: landlord.id },
-    });
-    if (!property) {
-      return { success: false, message: 'Property not found' };
-    }
-
-    const workOrder = await prisma.workOrder.create({
-      data: {
-        landlordId: landlord.id,
-        contractorId: validatedData.contractorId,
-        maintenanceTicketId: validatedData.maintenanceTicketId || null,
-        propertyId: validatedData.propertyId,
-        unitId: validatedData.unitId || null,
-        title: validatedData.title,
-        description: validatedData.description,
-        priority: validatedData.priority,
-        agreedPrice: validatedData.agreedPrice,
-        scheduledDate: validatedData.scheduledDate ? new Date(validatedData.scheduledDate) : null,
-        notes: validatedData.notes || null,
-        status: 'assigned',
-      },
-    });
-
-    await prisma.workOrderHistory.create({
-      data: {
-        workOrderId: workOrder.id,
-        changedById: session.user.id,
-        previousStatus: 'draft',
-        newStatus: 'assigned',
-        notes: 'Work order created',
-      },
-    });
-
-    revalidatePath('/admin/contractors');
-    return { success: true, message: 'Work order created', workOrderId: workOrder.id };
-  } catch (error) {
-    return { success: false, message: formatError(error) };
-  }
-}
-
-// Get work orders
-export async function getWorkOrders(filters?: { status?: string; contractorId?: string; propertyId?: string }) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated', workOrders: [] };
-    }
-
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return { success: false, message: landlordResult.message, workOrders: [] };
     }
 
     const workOrders = await prisma.workOrder.findMany({
@@ -324,64 +204,70 @@ export async function getWorkOrders(filters?: { status?: string; contractorId?: 
         ...(filters?.contractorId && { contractorId: filters.contractorId }),
         ...(filters?.propertyId && { propertyId: filters.propertyId }),
       },
-      orderBy: { createdAt: 'desc' },
       include: {
-        contractor: { select: { name: true, email: true } },
-        property: { select: { name: true } },
-        unit: { select: { name: true } },
-        maintenanceTicket: { select: { title: true } },
-        _count: { select: { media: true } },
+        contractor: {
+          select: { id: true, name: true, email: true },
+        },
+        property: {
+          select: { id: true, name: true },
+        },
+        unit: {
+          select: { id: true, name: true },
+        },
+        bids: {
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+            contractorId: true,
+          },
+        },
       },
+      orderBy: { createdAt: 'desc' },
     });
 
-    return {
-      success: true,
-      workOrders: workOrders.map((wo) => ({
-        id: wo.id,
-        title: wo.title,
-        description: wo.description,
-        status: wo.status,
-        priority: wo.priority,
-        agreedPrice: wo.agreedPrice.toString(),
-        actualCost: wo.actualCost?.toString() || null,
-        scheduledDate: wo.scheduledDate,
-        completedAt: wo.completedAt,
-        notes: wo.notes,
-        contractor: wo.contractor,
-        property: wo.property,
-        unit: wo.unit,
-        maintenanceTicket: wo.maintenanceTicket,
-        mediaCount: wo._count.media,
-        createdAt: wo.createdAt,
-      })),
-    };
+    return { success: true, workOrders };
   } catch (error) {
-    return { success: false, message: formatError(error), workOrders: [] };
+    console.error('Failed to get work orders:', error);
+    return { success: false, message: 'Failed to get work orders' };
   }
 }
 
-// Get single work order
-export async function getWorkOrder(workOrderId: string) {
+export async function getWorkOrder(id: string) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
-
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
     }
 
     const workOrder = await prisma.workOrder.findFirst({
-      where: { id: workOrderId, landlordId: landlordResult.landlord.id },
+      where: {
+        id,
+        landlordId: landlordResult.landlord.id,
+      },
       include: {
         contractor: true,
         property: true,
         unit: true,
-        maintenanceTicket: true,
-        media: { orderBy: { createdAt: 'asc' }, include: { uploader: { select: { name: true } } } },
-        history: { orderBy: { createdAt: 'desc' }, include: { changedBy: { select: { name: true } } } },
+        media: {
+          orderBy: { createdAt: 'desc' },
+        },
+        history: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            changedBy: {
+              select: { name: true, email: true },
+            },
+          },
+        },
+        bids: {
+          include: {
+            contractor: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
         payment: true,
       },
     });
@@ -392,12 +278,28 @@ export async function getWorkOrder(workOrderId: string) {
 
     return { success: true, workOrder };
   } catch (error) {
-    return { success: false, message: formatError(error) };
+    console.error('Failed to get work order:', error);
+    return { success: false, message: 'Failed to get work order' };
   }
 }
 
-// Update work order status
-export async function updateWorkOrderStatus(data: z.infer<typeof workOrderStatusSchema>) {
+
+export async function createWorkOrder(data: {
+  contractorId?: string;
+  propertyId: string;
+  unitId?: string;
+  maintenanceTicketId?: string;
+  title: string;
+  description: string;
+  priority?: string;
+  agreedPrice?: number;
+  scheduledDate?: string;
+  notes?: string;
+  isOpenBid?: boolean;
+  budgetMin?: number;
+  budgetMax?: number;
+  bidDeadline?: string;
+}) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -409,423 +311,414 @@ export async function updateWorkOrderStatus(data: z.infer<typeof workOrderStatus
       return { success: false, message: landlordResult.message };
     }
 
-    const validatedData = workOrderStatusSchema.parse(data);
+    // Determine initial status based on whether it's an open bid or direct assignment
+    const initialStatus = data.isOpenBid ? 'open' : (data.contractorId ? 'assigned' : 'draft');
+
+    const workOrder = await prisma.workOrder.create({
+      data: {
+        landlordId: landlordResult.landlord.id,
+        contractorId: data.contractorId || null,
+        propertyId: data.propertyId,
+        unitId: data.unitId || null,
+        maintenanceTicketId: data.maintenanceTicketId || null,
+        title: data.title,
+        description: data.description,
+        status: initialStatus,
+        priority: data.priority || 'medium',
+        agreedPrice: data.agreedPrice ? data.agreedPrice : null,
+        scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
+        notes: data.notes || null,
+        isOpenBid: data.isOpenBid || false,
+        budgetMin: data.budgetMin ? data.budgetMin : null,
+        budgetMax: data.budgetMax ? data.budgetMax : null,
+        bidDeadline: data.bidDeadline ? new Date(data.bidDeadline) : null,
+      },
+    });
+
+    // Create initial history entry
+    await prisma.workOrderHistory.create({
+      data: {
+        workOrderId: workOrder.id,
+        changedById: session.user.id,
+        previousStatus: 'none',
+        newStatus: initialStatus,
+        notes: 'Work order created',
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Work order created successfully',
+      workOrderId: workOrder.id,
+    };
+  } catch (error) {
+    console.error('Failed to create work order:', error);
+    return { success: false, message: 'Failed to create work order' };
+  }
+}
+
+export async function updateWorkOrderStatus(data: {
+  id: string;
+  status: string;
+  notes?: string;
+}) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const existing = await prisma.workOrder.findFirst({
+      where: {
+        id: data.id,
+        landlordId: landlordResult.landlord.id,
+      },
+    });
+
+    if (!existing) {
+      return { success: false, message: 'Work order not found' };
+    }
+
+    const updateData: any = { status: data.status };
+    if (data.status === 'completed') {
+      updateData.completedAt = new Date();
+    }
+
+    await prisma.$transaction([
+      prisma.workOrder.update({
+        where: { id: data.id },
+        data: updateData,
+      }),
+      prisma.workOrderHistory.create({
+        data: {
+          workOrderId: data.id,
+          changedById: session.user.id,
+          previousStatus: existing.status,
+          newStatus: data.status,
+          notes: data.notes || null,
+        },
+      }),
+    ]);
+
+    return { success: true, message: 'Work order status updated' };
+  } catch (error) {
+    console.error('Failed to update work order status:', error);
+    return { success: false, message: 'Failed to update work order status' };
+  }
+}
+
+
+// ============= WORK ORDER MEDIA =============
+
+export async function getWorkOrderMedia(workOrderId: string) {
+  try {
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
 
     const workOrder = await prisma.workOrder.findFirst({
-      where: { id: validatedData.id, landlordId: landlordResult.landlord.id },
+      where: {
+        id: workOrderId,
+        landlordId: landlordResult.landlord.id,
+      },
     });
 
     if (!workOrder) {
       return { success: false, message: 'Work order not found' };
     }
 
-    const validTransitions: Record<string, string[]> = {
-      draft: ['assigned', 'cancelled'],
-      assigned: ['in_progress', 'cancelled'],
-      in_progress: ['completed', 'cancelled'],
-      completed: ['paid'],
-      paid: [],
-      cancelled: [],
-    };
-
-    if (!validTransitions[workOrder.status]?.includes(validatedData.status)) {
-      return { success: false, message: `Cannot transition from ${workOrder.status} to ${validatedData.status}` };
-    }
-
-    const updateData: Record<string, unknown> = { status: validatedData.status };
-    if (validatedData.status === 'completed') {
-      updateData.completedAt = new Date();
-    }
-
-    await prisma.workOrder.update({ where: { id: validatedData.id }, data: updateData });
-
-    await prisma.workOrderHistory.create({
-      data: {
-        workOrderId: validatedData.id,
-        changedById: session.user.id,
-        previousStatus: workOrder.status,
-        newStatus: validatedData.status,
-        notes: validatedData.notes || null,
+    const media = await prisma.workOrderMedia.findMany({
+      where: { workOrderId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        uploader: {
+          select: { name: true, email: true },
+        },
       },
     });
 
-    if (validatedData.status === 'completed' && workOrder.maintenanceTicketId) {
-      await prisma.maintenanceTicket.update({
-        where: { id: workOrder.maintenanceTicketId },
-        data: { status: 'resolved', resolvedAt: new Date() },
-      });
+    return { success: true, media };
+  } catch (error) {
+    console.error('Failed to get work order media:', error);
+    return { success: false, message: 'Failed to get work order media' };
+  }
+}
+
+export async function addWorkOrderMedia(data: {
+  workOrderId: string;
+  type: string;
+  url: string;
+  thumbnailUrl?: string;
+  caption?: string;
+  phase?: string;
+}) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
     }
 
-    revalidatePath('/admin/contractors');
-    return { success: true, message: `Work order marked as ${validatedData.status}` };
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const workOrder = await prisma.workOrder.findFirst({
+      where: {
+        id: data.workOrderId,
+        landlordId: landlordResult.landlord.id,
+      },
+    });
+
+    if (!workOrder) {
+      return { success: false, message: 'Work order not found' };
+    }
+
+    const media = await prisma.workOrderMedia.create({
+      data: {
+        workOrderId: data.workOrderId,
+        uploadedById: session.user.id,
+        uploaderRole: 'landlord',
+        type: data.type,
+        url: data.url,
+        thumbnailUrl: data.thumbnailUrl || null,
+        caption: data.caption || null,
+        phase: data.phase || 'before',
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Media added successfully',
+      mediaId: media.id,
+    };
   } catch (error) {
-    return { success: false, message: formatError(error) };
+    console.error('Failed to add work order media:', error);
+    return { success: false, message: 'Failed to add work order media' };
+  }
+}
+
+export async function deleteWorkOrderMedia(mediaId: string) {
+  try {
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const media = await prisma.workOrderMedia.findFirst({
+      where: { id: mediaId },
+      include: {
+        workOrder: {
+          select: { landlordId: true },
+        },
+      },
+    });
+
+    if (!media || media.workOrder.landlordId !== landlordResult.landlord.id) {
+      return { success: false, message: 'Media not found' };
+    }
+
+    await prisma.workOrderMedia.delete({
+      where: { id: mediaId },
+    });
+
+    return { success: true, message: 'Media deleted successfully' };
+  } catch (error) {
+    console.error('Failed to delete work order media:', error);
+    return { success: false, message: 'Failed to delete work order media' };
   }
 }
 
 
 // ============= CONTRACTOR PAYMENTS =============
 
-// Pay contractor for completed work order
-export async function payContractor(data: z.infer<typeof contractorPaymentSchema>) {
+export async function getContractorPayments(filters?: {
+  contractorId?: string;
+  startDate?: string;
+  endDate?: string;
+}) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
-
-    const userId = session.user.id;
-
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
-    }
-
-    const landlord = landlordResult.landlord;
-    await checkProTierAccess(landlord.id);
-
-    const validatedData = contractorPaymentSchema.parse(data);
-
-    // Get work order with contractor
-    const workOrder = await prisma.workOrder.findFirst({
-      where: { id: validatedData.workOrderId, landlordId: landlord.id },
-      include: { contractor: true, payment: true },
-    });
-
-    if (!workOrder) {
-      return { success: false, message: 'Work order not found' };
-    }
-
-    if (workOrder.status !== 'completed') {
-      return { success: false, message: 'Work order must be completed before payment' };
-    }
-
-    if (workOrder.payment) {
-      return { success: false, message: 'Work order has already been paid' };
-    }
-
-    // Calculate payment amounts using Number() instead of Decimal
-    const amount = Number(workOrder.agreedPrice);
-    const platformFee = Number((amount * CONTRACTOR_PLATFORM_FEE_PERCENT / 100).toFixed(2));
-    const netAmount = Number((amount - platformFee).toFixed(2));
-
-    // Check landlord wallet balance
-    const wallet = await prisma.landlordWallet.findUnique({
-      where: { landlordId: landlord.id },
-      select: { availableBalance: true },
-    });
-
-    if (!wallet) {
-      return { success: false, message: 'Wallet not found. Please set up your wallet first.' };
-    }
-
-    const walletBalance = Number(wallet.availableBalance);
-    if (walletBalance < amount) {
-      return { success: false, message: `Insufficient wallet balance. You have $${walletBalance.toFixed(2)} but need $${amount.toFixed(2)}` };
-    }
-
-    // Create payment record and update wallet in transaction
-    const payment = await prisma.$transaction(async (tx) => {
-      // Deduct from landlord wallet
-      await tx.landlordWallet.update({
-        where: { landlordId: landlord.id },
-        data: { availableBalance: { decrement: amount } },
-      });
-
-      // Create payment record
-      const paymentRecord = await tx.contractorPayment.create({
-        data: {
-          landlordId: landlord.id,
-          contractorId: workOrder.contractorId,
-          workOrderId: workOrder.id,
-          amount,
-          platformFee,
-          netAmount,
-          status: 'completed',
-          paidAt: new Date(),
-        },
-      });
-
-      // Update work order status to paid
-      await tx.workOrder.update({
-        where: { id: workOrder.id },
-        data: { status: 'paid' },
-      });
-
-      // Create history record
-      await tx.workOrderHistory.create({
-        data: {
-          workOrderId: workOrder.id,
-          changedById: userId,
-          previousStatus: 'completed',
-          newStatus: 'paid',
-          notes: `Payment of $${amount.toFixed(2)} processed`,
-        },
-      });
-
-      return paymentRecord;
-    });
-
-    revalidatePath('/admin/contractors');
-    return { 
-      success: true, 
-      message: `Payment of $${amount.toFixed(2)} sent to ${workOrder.contractor.name}`,
-      paymentId: payment.id,
-    };
-  } catch (error) {
-    return { success: false, message: formatError(error) };
-  }
-}
-
-// Get contractor payments
-export async function getContractorPayments(filters?: { contractorId?: string; status?: string }) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated', payments: [] };
-    }
-
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return { success: false, message: landlordResult.message, payments: [] };
     }
 
     const payments = await prisma.contractorPayment.findMany({
       where: {
         landlordId: landlordResult.landlord.id,
         ...(filters?.contractorId && { contractorId: filters.contractorId }),
-        ...(filters?.status && { status: filters.status }),
+        ...(filters?.startDate && {
+          createdAt: { gte: new Date(filters.startDate) },
+        }),
+        ...(filters?.endDate && {
+          createdAt: { lte: new Date(filters.endDate) },
+        }),
+      },
+      include: {
+        contractor: {
+          select: { id: true, name: true, email: true },
+        },
+        workOrder: {
+          select: { id: true, title: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
-      include: {
-        contractor: { select: { name: true, email: true } },
-        workOrder: { select: { title: true, property: { select: { name: true } } } },
-      },
     });
 
-    return {
-      success: true,
-      payments: payments.map((p) => ({
-        id: p.id,
-        amount: p.amount.toString(),
-        platformFee: p.platformFee.toString(),
-        netAmount: p.netAmount.toString(),
-        status: p.status,
-        paidAt: p.paidAt,
-        contractor: p.contractor,
-        workOrder: {
-          title: p.workOrder.title,
-          propertyName: p.workOrder.property.name,
-        },
-        createdAt: p.createdAt,
-      })),
-    };
+    return { success: true, payments };
   } catch (error) {
-    return { success: false, message: formatError(error), payments: [] };
+    console.error('Failed to get contractor payments:', error);
+    return { success: false, message: 'Failed to get contractor payments' };
   }
 }
 
-// Get contractor spending report
-export async function getContractorSpendingReport(dateRange?: { start: Date; end: Date }) {
+export async function payContractor(data: {
+  contractorId: string;
+  workOrderId: string;
+  amount: number;
+}) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated', report: null };
-    }
-
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return { success: false, message: landlordResult.message, report: null };
-    }
-
-    const whereClause: Record<string, unknown> = {
-      landlordId: landlordResult.landlord.id,
-      status: 'completed',
-    };
-
-    if (dateRange) {
-      whereClause.paidAt = {
-        gte: dateRange.start,
-        lte: dateRange.end,
-      };
-    }
-
-    // Get payments grouped by contractor
-    const payments = await prisma.contractorPayment.findMany({
-      where: whereClause,
-      include: {
-        contractor: { select: { id: true, name: true, email: true } },
-      },
-    });
-
-    // Aggregate by contractor
-    const byContractor: Record<string, { name: string; email: string; total: number; count: number }> = {};
-    let totalSpent = 0;
-    let totalFees = 0;
-
-    for (const payment of payments) {
-      const amount = Number(payment.amount);
-      const fee = Number(payment.platformFee);
-      totalSpent += amount;
-      totalFees += fee;
-
-      if (!byContractor[payment.contractorId]) {
-        byContractor[payment.contractorId] = {
-          name: payment.contractor.name,
-          email: payment.contractor.email,
-          total: 0,
-          count: 0,
-        };
-      }
-      byContractor[payment.contractorId].total += amount;
-      byContractor[payment.contractorId].count += 1;
-    }
-
-    return {
-      success: true,
-      report: {
-        totalSpent,
-        totalFees,
-        totalPayments: payments.length,
-        byContractor: Object.entries(byContractor).map(([id, data]) => ({
-          contractorId: id,
-          ...data,
-        })),
-      },
-    };
-  } catch (error) {
-    return { success: false, message: formatError(error), report: null };
-  }
-}
-
-// ============= WORK ORDER MEDIA =============
-
-// Add media to work order
-export async function addWorkOrderMedia(data: z.infer<typeof workOrderMediaSchema>) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
-
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
     }
 
-    const validatedData = workOrderMediaSchema.parse(data);
-
-    // Verify work order belongs to landlord
+    // Verify work order belongs to landlord and is completed
     const workOrder = await prisma.workOrder.findFirst({
-      where: { id: validatedData.workOrderId, landlordId: landlordResult.landlord.id },
+      where: {
+        id: data.workOrderId,
+        landlordId: landlordResult.landlord.id,
+        contractorId: data.contractorId,
+      },
     });
 
     if (!workOrder) {
       return { success: false, message: 'Work order not found' };
     }
 
-    // Determine uploader role
-    const uploaderRole = 'landlord'; // For now, only landlords can upload via admin
+    if (workOrder.status !== 'completed' && workOrder.status !== 'approved') {
+      return { success: false, message: 'Work order must be completed before payment' };
+    }
 
-    const media = await prisma.workOrderMedia.create({
+    // $1 flat platform fee for contractor cashout
+    const platformFee = 1;
+    const netAmount = data.amount - platformFee;
+
+    const payment = await prisma.contractorPayment.create({
       data: {
-        workOrderId: validatedData.workOrderId,
-        uploadedById: session.user.id,
-        uploaderRole,
-        type: validatedData.type,
-        url: validatedData.url,
-        thumbnailUrl: validatedData.thumbnailUrl || null,
-        caption: validatedData.caption || null,
-        phase: validatedData.phase,
+        landlordId: landlordResult.landlord.id,
+        contractorId: data.contractorId,
+        workOrderId: data.workOrderId,
+        amount: data.amount,
+        platformFee,
+        netAmount,
+        status: 'pending',
       },
     });
 
-    revalidatePath('/admin/contractors');
-    return { success: true, message: 'Media added', mediaId: media.id };
-  } catch (error) {
-    return { success: false, message: formatError(error) };
-  }
-}
-
-// Get work order media
-export async function getWorkOrderMedia(workOrderId: string) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated', media: [] };
-    }
-
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return { success: false, message: landlordResult.message, media: [] };
-    }
-
-    // Verify work order belongs to landlord
-    const workOrder = await prisma.workOrder.findFirst({
-      where: { id: workOrderId, landlordId: landlordResult.landlord.id },
-    });
-
-    if (!workOrder) {
-      return { success: false, message: 'Work order not found', media: [] };
-    }
-
-    const media = await prisma.workOrderMedia.findMany({
-      where: { workOrderId },
-      orderBy: { createdAt: 'asc' },
-      include: { uploader: { select: { name: true } } },
+    // Update work order status to paid
+    await prisma.workOrder.update({
+      where: { id: data.workOrderId },
+      data: { status: 'paid' },
     });
 
     return {
       success: true,
-      media: media.map((m) => ({
-        id: m.id,
-        type: m.type,
-        url: m.url,
-        thumbnailUrl: m.thumbnailUrl,
-        caption: m.caption,
-        phase: m.phase,
-        uploaderName: m.uploader.name,
-        uploaderRole: m.uploaderRole,
-        createdAt: m.createdAt,
-      })),
+      message: 'Payment initiated successfully',
+      paymentId: payment.id,
     };
-  } catch (error) {
-    return { success: false, message: formatError(error), media: [] };
+  } catch (error: any) {
+    console.error('Failed to pay contractor:', error);
+    if (error.code === 'P2002') {
+      return { success: false, message: 'Payment already exists for this work order' };
+    }
+    return { success: false, message: 'Failed to process payment' };
   }
 }
 
-// Delete work order media
-export async function deleteWorkOrderMedia(mediaId: string) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
 
+// ============= REPORTS =============
+
+export async function getContractorSpendingReport() {
+  try {
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
       return { success: false, message: landlordResult.message };
     }
 
-    // Get media with work order to verify ownership
-    const media = await prisma.workOrderMedia.findUnique({
-      where: { id: mediaId },
-      include: { workOrder: { select: { landlordId: true } } },
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
+
+    // Get all payments for the year
+    const payments = await prisma.contractorPayment.findMany({
+      where: {
+        landlordId: landlordResult.landlord.id,
+        createdAt: {
+          gte: startOfYear,
+          lte: endOfYear,
+        },
+        status: 'completed',
+      },
+      include: {
+        contractor: {
+          select: { id: true, name: true, specialties: true },
+        },
+        workOrder: {
+          select: { id: true, title: true, propertyId: true },
+        },
+      },
     });
 
-    if (!media) {
-      return { success: false, message: 'Media not found' };
-    }
+    // Aggregate by contractor
+    const byContractor = payments.reduce((acc: any, payment) => {
+      const contractorId = payment.contractorId;
+      if (!acc[contractorId]) {
+        acc[contractorId] = {
+          contractor: payment.contractor,
+          totalSpent: 0,
+          jobCount: 0,
+          payments: [],
+        };
+      }
+      acc[contractorId].totalSpent += Number(payment.amount);
+      acc[contractorId].jobCount += 1;
+      acc[contractorId].payments.push(payment);
+      return acc;
+    }, {});
 
-    if (media.workOrder.landlordId !== landlordResult.landlord.id) {
-      return { success: false, message: 'Not authorized to delete this media' };
-    }
+    // Aggregate by month
+    const byMonth = payments.reduce((acc: any, payment) => {
+      const month = new Date(payment.createdAt).getMonth();
+      if (!acc[month]) {
+        acc[month] = { month, totalSpent: 0, jobCount: 0 };
+      }
+      acc[month].totalSpent += Number(payment.amount);
+      acc[month].jobCount += 1;
+      return acc;
+    }, {});
 
-    await prisma.workOrderMedia.delete({ where: { id: mediaId } });
+    const totalSpent = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const totalJobs = payments.length;
 
-    revalidatePath('/admin/contractors');
-    return { success: true, message: 'Media deleted' };
+    return {
+      success: true,
+      report: {
+        year: currentYear,
+        totalSpent,
+        totalJobs,
+        byContractor: Object.values(byContractor),
+        byMonth: Object.values(byMonth),
+      },
+    };
   } catch (error) {
-    return { success: false, message: formatError(error) };
+    console.error('Failed to get contractor spending report:', error);
+    return { success: false, message: 'Failed to generate report' };
   }
 }
