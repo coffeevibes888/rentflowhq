@@ -208,7 +208,60 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto">
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-2">
-              <div className="flex flex-col md:flex-row gap-2">
+              {/* Mobile: Search input full width, buttons below */}
+              <div className="flex flex-col gap-2 md:hidden">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search location, property..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+                    className="pl-12 h-12 text-base border-0 bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Sheet open={showFilters} onOpenChange={setShowFilters}>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" className="h-11 flex-1 gap-2 text-slate-700 dark:text-slate-200">
+                        <SlidersHorizontal className="h-5 w-5" />
+                        Filters
+                        {hasActiveFilters && (
+                          <Badge className="ml-1 bg-blue-600 text-white">!</Badge>
+                        )}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+                      <SheetHeader>
+                        <SheetTitle className="flex items-center justify-between">
+                          Filters
+                          {hasActiveFilters && (
+                            <Button variant="ghost" size="sm" onClick={clearFilters}>
+                              Clear All
+                            </Button>
+                          )}
+                        </SheetTitle>
+                      </SheetHeader>
+                      <FilterPanel 
+                        filters={filters} 
+                        setFilters={setFilters} 
+                        filterOptions={filterOptions}
+                        onApply={() => { applyFilters(); setShowFilters(false); }}
+                      />
+                    </SheetContent>
+                  </Sheet>
+                  <Button 
+                    className="h-11 flex-1 bg-blue-600 hover:bg-blue-700"
+                    onClick={applyFilters}
+                  >
+                    Search
+                  </Button>
+                </div>
+              </div>
+
+              {/* Desktop: Original horizontal layout */}
+              <div className="hidden md:flex gap-2">
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <Input
@@ -225,7 +278,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                     <SheetTrigger asChild>
                       <Button variant="outline" size="lg" className="h-14 px-6 gap-2 text-slate-700 dark:text-slate-200">
                         <SlidersHorizontal className="h-5 w-5" />
-                        <span className="hidden sm:inline">Filters</span>
+                        <span>Filters</span>
                         {hasActiveFilters && (
                           <Badge className="ml-1 bg-blue-600 text-white">!</Badge>
                         )}
@@ -268,7 +321,83 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
       <div className="sticky top-0 z-40 backdrop-blur-sm border shadow-sm">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {/* Mobile: Dropdown for property types */}
+            <div className="flex items-center gap-2 md:hidden">
+              {/* Buy/Rent Toggle - Compact on mobile */}
+              <div className="flex border rounded-lg overflow-hidden">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'rounded-none px-3 h-9',
+                    filters.listingType === 'all' && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                  )}
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, listingType: 'all' }));
+                    setTimeout(applyFilters, 0);
+                  }}
+                >
+                  All
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'rounded-none px-3 h-9',
+                    filters.listingType === 'sale' && 'bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white'
+                  )}
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, listingType: 'sale' }));
+                    setTimeout(applyFilters, 0);
+                  }}
+                >
+                  Buy
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'rounded-none px-3 h-9',
+                    filters.listingType === 'rent' && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                  )}
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, listingType: 'rent' }));
+                    setTimeout(applyFilters, 0);
+                  }}
+                >
+                  Rent
+                </Button>
+              </div>
+              
+              {/* Property Type Dropdown for Mobile */}
+              <Select
+                value={filters.type}
+                onValueChange={(value) => {
+                  setFilters(prev => ({ ...prev, type: value }));
+                  setTimeout(applyFilters, 0);
+                }}
+              >
+                <SelectTrigger className="w-[130px] h-9">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {propertyTypes.map((type) => {
+                    const Icon = type.icon;
+                    return (
+                      <SelectItem key={type.value} value={type.value}>
+                        <span className="flex items-center gap-2">
+                          <Icon className="h-4 w-4" />
+                          {type.label}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Desktop: Horizontal buttons */}
+            <div className="hidden md:flex items-center gap-2">
               {/* Buy/Rent Toggle */}
               <div className="flex border rounded-lg overflow-hidden mr-2">
                 <Button

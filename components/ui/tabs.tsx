@@ -70,6 +70,12 @@ const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, className, d
   const { value: currentValue, onValueChange } = React.useContext(TabsContext);
   const isActive = currentValue === value
   
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onValueChange(value);
+  };
+  
   return (
     <button
       type="button"
@@ -77,7 +83,7 @@ const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, className, d
       aria-selected={isActive}
       data-state={isActive ? "active" : "inactive"}
       disabled={disabled}
-      onClick={() => onValueChange(value)}
+      onClick={handleClick}
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         isActive

@@ -359,25 +359,25 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full flex overflow-x-auto gap-0.5 sm:gap-1 bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-0.5 sm:p-1 rounded-lg sm:rounded-xl h-auto text-white mobile-scroll-x">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 text-xs whitespace-nowrap flex-shrink-0">
-              <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
-              <span className="hidden sm:inline text-white">Overview</span>
+          <TabsList className="w-full flex justify-around overflow-x-auto gap-1 sm:gap-2 bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 sm:p-1.5 rounded-lg sm:rounded-xl h-auto text-white mobile-scroll-x">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base whitespace-nowrap flex-shrink-0">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
+              <span className="hidden sm:inline text-white font-medium">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="communications" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 text-xs text-white whitespace-nowrap flex-shrink-0">
-              <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
-              <span className="hidden sm:inline text-white font-bold">Comms</span>
+            <TabsTrigger value="communications" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-white whitespace-nowrap flex-shrink-0">
+              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
+              <span className="hidden sm:inline text-white font-medium">Comms</span>
             </TabsTrigger>
-            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 text-xs text-white whitespace-nowrap flex-shrink-0">
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
-              <span className="hidden sm:inline text-white font-bold">Tenants</span>
+            <TabsTrigger value="tenants" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-white whitespace-nowrap flex-shrink-0">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
+              <span className="hidden sm:inline text-white font-medium">Tenants</span>
               {activeLeases.length > 0 && (
-                <Badge className="ml-1 bg-emerald-500/20 text-emerald-300 text-[9px] sm:text-[10px] px-1 sm:px-1.5">{activeLeases.length}</Badge>
+                <Badge className="ml-1.5 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs px-1.5 sm:px-2">{activeLeases.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 text-xs text-white whitespace-nowrap flex-shrink-0">
-              <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
-              <span className="hidden sm:inline text-white font-bold">Financials</span>
+            <TabsTrigger value="financials" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-white whitespace-nowrap flex-shrink-0">
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
+              <span className="hidden sm:inline text-white font-medium">Financials</span>
             </TabsTrigger>
           </TabsList>
 
