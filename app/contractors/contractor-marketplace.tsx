@@ -7,13 +7,13 @@ import {
   Star, Shield, Clock, Wrench, Users, Briefcase,
   Calendar, MapPin, Building2, ChevronRight, Loader2,
   Zap, Paintbrush, Thermometer, Hammer, Leaf, Home, Settings, Droplets,
+  Image as ImageIcon, Play, DollarSign,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ContractorSearch from './contractor-search';
 
-// Define specialties with icons inside the client component
 const SPECIALTIES = [
   { name: 'Plumbing', icon: Droplets },
   { name: 'Electrical', icon: Zap },
@@ -38,6 +38,14 @@ interface Contractor {
   user: { id: string; name: string | null; image: string | null } | null;
 }
 
+interface JobMedia {
+  id: string;
+  url: string;
+  thumbnailUrl: string | null;
+  type: string;
+  caption: string | null;
+}
+
 interface OpenJob {
   id: string;
   title: string;
@@ -50,6 +58,8 @@ interface OpenJob {
   property: { name: string; city: string; state: string };
   unit: string | null;
   landlord: { id: string; name: string; logo: string | null };
+  media: JobMedia[];
+  mediaCount: number;
   bidCount: number;
   createdAt: string;
 }
@@ -326,7 +336,7 @@ export default function ContractorMarketplace({
           </div>
         </>
       ) : (
-        /* Open Jobs View */
+        /* Open Jobs View - Grid Layout */
         <div className="max-w-7xl mx-auto px-4 pb-16">
           {loadingJobs ? (
             <div className="flex items-center justify-center py-16">
@@ -343,71 +353,121 @@ export default function ContractorMarketplace({
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <>
               <p className="text-white/90 mb-6">
                 {openJobs.length} open job{openJobs.length !== 1 ? 's' : ''} available for bidding
               </p>
-              {openJobs.map((job) => (
-                <Link key={job.id} href={`/contractors/jobs/${job.id}`}>
-                  <Card className="bg-white/90 backdrop-blur-sm border-white/20 hover:shadow-xl hover:border-blue-300 transition-all cursor-pointer mb-4">
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-start gap-3 mb-3">
-                            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                              {job.landlord.logo ? (
-                                <img src={job.landlord.logo} alt="" className="h-full w-full rounded-lg object-cover" />
-                              ) : (
-                                job.landlord.name.charAt(0)
-                              )}
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg text-slate-900">{job.title}</h3>
-                              <p className="text-sm text-slate-500">{job.landlord.name}</p>
-                            </div>
-                          </div>
-                          <p className="text-slate-600 mb-4 line-clamp-2">{job.description}</p>
-                          <div className="flex flex-wrap items-center gap-3 text-sm">
-                            <Badge className={priorityColors[job.priority]}>
-                              {job.priority.charAt(0).toUpperCase() + job.priority.slice(1)} Priority
-                            </Badge>
-                            <span className="flex items-center gap-1 text-slate-500">
-                              <MapPin className="h-4 w-4" />
-                              {job.property.city}, {job.property.state}
-                            </span>
-                            <span className="flex items-center gap-1 text-slate-500">
-                              <Building2 className="h-4 w-4" />
-                              {job.property.name}
-                              {job.unit && ` - ${job.unit}`}
-                            </span>
-                            {job.scheduledDate && (
-                              <span className="flex items-center gap-1 text-slate-500">
-                                <Calendar className="h-4 w-4" />
-                                Needed by {new Date(job.scheduledDate).toLocaleDateString()}
-                              </span>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {openJobs.map((job) => (
+                  <Link key={job.id} href={`/contractors/jobs/${job.id}`}>
+                    <Card className="h-full bg-white overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer group">
+                      {/* Image/Media Section */}
+                      <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-200">
+                        {job.media && job.media.length > 0 ? (
+                          <>
+                            {job.media[0].type === 'video' ? (
+                              <div className="relative w-full h-full">
+                                <img
+                                  src={job.media[0].thumbnailUrl || job.media[0].url}
+                                  alt={job.title}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                  <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
+                                    <Play className="h-6 w-6 text-slate-700 ml-1" />
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <img
+                                src={job.media[0].url}
+                                alt={job.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
                             )}
+                            {job.mediaCount > 1 && (
+                              <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/60 text-white text-xs flex items-center gap-1">
+                                <ImageIcon className="h-3 w-3" />
+                                {job.mediaCount}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Wrench className="h-16 w-16 text-slate-300" />
                           </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2 min-w-[180px]">
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-blue-600">
-                              {formatBudget(job.budgetMin, job.budgetMax)}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                              {job.bidCount} bid{job.bidCount !== 1 ? 's' : ''} submitted
-                            </p>
-                          </div>
-                          <Button className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90">
-                            View Details
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        </div>
+                        )}
+                        {/* Priority Badge */}
+                        <Badge className={`absolute top-2 left-2 ${priorityColors[job.priority]}`}>
+                          {job.priority.charAt(0).toUpperCase() + job.priority.slice(1)}
+                        </Badge>
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+
+                      {/* Content */}
+                      <CardContent className="p-3">
+                        {/* Budget */}
+                        <div className="flex items-center gap-1 text-lg font-bold text-blue-600 mb-1">
+                          <DollarSign className="h-4 w-4" />
+                          {formatBudget(job.budgetMin, job.budgetMax).replace('$', '')}
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="font-semibold text-slate-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                          {job.title}
+                        </h3>
+
+                        {/* Location */}
+                        <div className="flex items-center gap-1 text-sm text-slate-500 mb-2">
+                          <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="truncate">{job.property.city}, {job.property.state}</span>
+                        </div>
+
+                        {/* Property */}
+                        <div className="flex items-center gap-1 text-sm text-slate-500 mb-3">
+                          <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="truncate">
+                            {job.property.name}
+                            {job.unit && ` - ${job.unit}`}
+                          </span>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                          <div className="flex items-center gap-1.5">
+                            {job.landlord.logo ? (
+                              <img
+                                src={job.landlord.logo}
+                                alt=""
+                                className="h-5 w-5 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-5 w-5 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-[10px] font-bold">
+                                {job.landlord.name.charAt(0)}
+                              </div>
+                            )}
+                            <span className="text-xs text-slate-500 truncate max-w-[80px]">
+                              {job.landlord.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-slate-500">
+                            <Users className="h-3.5 w-3.5" />
+                            {job.bidCount} bid{job.bidCount !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+
+                        {/* Deadline if exists */}
+                        {job.scheduledDate && (
+                          <div className="flex items-center gap-1 text-xs text-orange-600 mt-2">
+                            <Calendar className="h-3 w-3" />
+                            Needed by {new Date(job.scheduledDate).toLocaleDateString()}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}

@@ -53,6 +53,17 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           },
         },
       },
+      media: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          id: true,
+          url: true,
+          thumbnailUrl: true,
+          type: true,
+          caption: true,
+          phase: true,
+        },
+      },
       bids: {
         include: {
           contractor: {
@@ -73,7 +84,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         orderBy: { createdAt: 'desc' },
       },
       _count: {
-        select: { bids: true },
+        select: { bids: true, media: true },
       },
     },
   });
@@ -148,6 +159,14 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           totalJobs: job.landlord._count.workOrders,
           totalProperties: job.landlord._count.properties,
         },
+        media: job.media.map(m => ({
+          id: m.id,
+          url: m.url,
+          thumbnailUrl: m.thumbnailUrl,
+          type: m.type,
+          caption: m.caption,
+        })),
+        mediaCount: job._count.media,
         bidCount: job._count.bids,
       }}
       myBid={myBid ? {

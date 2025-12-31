@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -18,7 +17,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Loader2, Check, DollarSign, Clock, PawPrint, Sparkles, Crown, ChevronDown, Bell, Building2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Loader2, Check, DollarSign, Clock, PawPrint, Sparkles, Crown, ChevronDown, Bell, Building2, Settings2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
@@ -38,11 +43,45 @@ interface FeeConfig {
   selectedProperties: string[];
 }
 
+interface RentReminderSettings {
+  enabled: boolean;
+  reminderDaysBefore: number[];
+  reminderChannels: string[];
+}
+
+interface LateFeeSettings {
+  enabled: boolean;
+  gracePeriodDays: number;
+  feeType: 'flat' | 'percentage';
+  feeAmount: number;
+  maxFee?: number;
+  notifyTenant: boolean;
+}
+
 export function FeeSettings({ isPro }: FeeSettingsProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [reminderModalOpen, setReminderModalOpen] = useState(false);
+  const [lateFeeModalOpen, setLateFeeModalOpen] = useState(false);
+  const [savingReminders, setSavingReminders] = useState(false);
+  const [savingLateFees, setSavingLateFees] = useState(false);
+  
+  // Rent automation settings
+  const [reminderSettings, setReminderSettings] = useState<RentReminderSettings>({
+    enabled: false,
+    reminderDaysBefore: [7, 3, 1],
+    reminderChannels: ['email'],
+  });
+  
+  const [lateFeeSettings, setLateFeeSettings] = useState<LateFeeSettings>({
+    enabled: false,
+    gracePeriodDays: 5,
+    feeType: 'flat',
+    feeAmount: 50,
+    notifyTenant: true,
+  });
   
   // Individual fee settings with property selection
   const [petDeposit, setPetDeposit] = useState<FeeConfig>({
@@ -91,9 +130,11 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
 
   const loadData = async () => {
     try {
-      const [propsRes, feesRes] = await Promise.all([
+      const [propsRes, feesRes, reminderRes, lateFeeRes] = await Promise.all([
         fetch('/api/landlord/properties'),
         fetch('/api/landlord/fee-settings'),
+        fetch('/api/landlord/rent-automation/reminders'),
+        fetch('/api/landlord/rent-automation/late-fees'),
       ]);
 
       if (propsRes.ok) {
@@ -105,13 +146,66 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
         const data = await feesRes.json();
         if (data.settings) {
           // Map the settings to our state structure
-          // This would need to be updated based on actual API response
         }
+      }
+
+      if (reminderRes.ok) {
+        const data = await reminderRes.json();
+        if (data.settings) setReminderSettings(data.settings);
+      }
+
+      if (lateFeeRes.ok) {
+        const data = await lateFeeRes.json();
+        if (data.settings) setLateFeeSettings(data.settings);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveReminderSettings = async () => {
+    setSavingReminders(true);
+    try {
+      const res = await fetch('/api/landlord/rent-automation/reminders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reminderSettings),
+      });
+      if (res.ok) {
+        toast({ title: 'Rent reminder settings saved' });
+        setReminderModalOpen(false);
+      } else {
+        const data = await res.json();
+        toast({ title: data.message || 'Failed to save', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Failed to save settings', variant: 'destructive' });
+    } finally {
+      setSavingReminders(false);
+    }
+  };
+
+  const saveLateFeeSettings = async () => {
+    setSavingLateFees(true);
+    try {
+      const res = await fetch('/api/landlord/rent-automation/late-fees', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lateFeeSettings),
+      });
+      if (res.ok) {
+        toast({ title: 'Late fee settings saved' });
+        setLateFeeModalOpen(false);
+      } else {
+        const data = await res.json();
+        toast({ title: data.message || 'Failed to save', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Failed to save settings', variant: 'destructive' });
+    } finally {
+      setSavingLateFees(false);
     }
   };
 
@@ -236,30 +330,62 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
         <div className="grid sm:grid-cols-2 gap-4">
           {/* Rent Reminders */}
           <div className="rounded-lg border border-white/10 bg-slate-900/40 p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Bell className="w-4 h-4 text-violet-400" />
-              <span className="text-sm font-medium text-white">Automatic Rent Reminders</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-violet-400" />
+                <span className="text-sm font-medium text-white">Rent Reminders</span>
+              </div>
+              <Switch
+                checked={reminderSettings.enabled}
+                onCheckedChange={(checked) => setReminderSettings({ ...reminderSettings, enabled: checked })}
+                disabled={!isPro}
+              />
             </div>
             <p className="text-[11px] text-slate-400 mb-3">
-              Send automated email reminders before rent is due (7, 3, 1 days before)
+              {reminderSettings.enabled 
+                ? `Sending ${reminderSettings.reminderDaysBefore.join(', ')} days before due`
+                : 'Send automated reminders before rent is due'}
             </p>
-            <Link href="/admin/communications" className="text-xs text-violet-400 hover:text-violet-300">
-              Configure in Communications →
-            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 p-0 h-auto"
+              onClick={() => setReminderModalOpen(true)}
+              disabled={!isPro}
+            >
+              <Settings2 className="w-3 h-3 mr-1" />
+              Configure Settings
+            </Button>
           </div>
           
           {/* Late Fees */}
           <div className="rounded-lg border border-white/10 bg-slate-900/40 p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-medium text-white">Automatic Late Fees</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-amber-400" />
+                <span className="text-sm font-medium text-white">Late Fees</span>
+              </div>
+              <Switch
+                checked={lateFeeSettings.enabled}
+                onCheckedChange={(checked) => setLateFeeSettings({ ...lateFeeSettings, enabled: checked })}
+                disabled={!isPro}
+              />
             </div>
             <p className="text-[11px] text-slate-400 mb-3">
-              Automatically apply late fees after grace period expires
+              {lateFeeSettings.enabled 
+                ? `$${lateFeeSettings.feeAmount} after ${lateFeeSettings.gracePeriodDays} day grace period`
+                : 'Automatically apply late fees after grace period'}
             </p>
-            <Link href="/admin/communications" className="text-xs text-amber-400 hover:text-amber-300">
-              Configure in Communications →
-            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 p-0 h-auto"
+              onClick={() => setLateFeeModalOpen(true)}
+              disabled={!isPro}
+            >
+              <Settings2 className="w-3 h-3 mr-1" />
+              Configure Settings
+            </Button>
           </div>
         </div>
       </div>
@@ -497,6 +623,217 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
         )}
         Save Fee Settings
       </Button>
+
+      {/* Rent Reminders Modal */}
+      <Dialog open={reminderModalOpen} onOpenChange={setReminderModalOpen}>
+        <DialogContent className="max-w-md bg-slate-900 border-white/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <Bell className="w-5 h-5 text-violet-400" />
+              Rent Reminder Settings
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-white font-medium">Enable Reminders</p>
+                <p className="text-xs text-slate-400">Send automated reminders before rent is due</p>
+              </div>
+              <Switch
+                checked={reminderSettings.enabled}
+                onCheckedChange={(checked) => setReminderSettings({ ...reminderSettings, enabled: checked })}
+              />
+            </div>
+
+            {reminderSettings.enabled && (
+              <>
+                <div>
+                  <p className="text-xs text-slate-300 mb-2">Remind tenants</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[1, 3, 5, 7, 14].map((days) => (
+                      <button
+                        key={days}
+                        onClick={() => {
+                          const current = reminderSettings.reminderDaysBefore;
+                          const updated = current.includes(days)
+                            ? current.filter((d) => d !== days)
+                            : [...current, days].sort((a, b) => b - a);
+                          setReminderSettings({ ...reminderSettings, reminderDaysBefore: updated });
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                          reminderSettings.reminderDaysBefore.includes(days)
+                            ? 'bg-violet-600 text-white'
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        }`}
+                      >
+                        {days} day{days > 1 ? 's' : ''} before
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-slate-300 mb-2">Notification channels</p>
+                  <div className="flex gap-2">
+                    {['email', 'in-app'].map((channel) => (
+                      <button
+                        key={channel}
+                        onClick={() => {
+                          const current = reminderSettings.reminderChannels;
+                          const updated = current.includes(channel)
+                            ? current.filter((c) => c !== channel)
+                            : [...current, channel];
+                          setReminderSettings({ ...reminderSettings, reminderChannels: updated });
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                          reminderSettings.reminderChannels.includes(channel)
+                            ? 'bg-violet-600 text-white'
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        }`}
+                      >
+                        {channel === 'in-app' ? 'In-App' : 'Email'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setReminderModalOpen(false)} className="border-white/10">
+                Cancel
+              </Button>
+              <Button onClick={saveReminderSettings} disabled={savingReminders} className="bg-violet-600 hover:bg-violet-500">
+                {savingReminders && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Save Settings
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Late Fees Modal */}
+      <Dialog open={lateFeeModalOpen} onOpenChange={setLateFeeModalOpen}>
+        <DialogContent className="max-w-md bg-slate-900 border-white/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <DollarSign className="w-5 h-5 text-amber-400" />
+              Late Fee Settings
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-white font-medium">Enable Late Fees</p>
+                <p className="text-xs text-slate-400">Automatically apply fees after grace period</p>
+              </div>
+              <Switch
+                checked={lateFeeSettings.enabled}
+                onCheckedChange={(checked) => setLateFeeSettings({ ...lateFeeSettings, enabled: checked })}
+              />
+            </div>
+
+            {lateFeeSettings.enabled && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-slate-300 mb-1.5">Grace period</p>
+                    <Select
+                      value={String(lateFeeSettings.gracePeriodDays)}
+                      onValueChange={(v) => setLateFeeSettings({ ...lateFeeSettings, gracePeriodDays: Number(v) })}
+                    >
+                      <SelectTrigger className="h-9 text-sm bg-slate-800 border-white/10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[0, 3, 5, 7, 10, 14].map((days) => (
+                          <SelectItem key={days} value={String(days)}>
+                            {days === 0 ? 'No grace period' : `${days} days`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-slate-300 mb-1.5">Fee type</p>
+                    <Select
+                      value={lateFeeSettings.feeType}
+                      onValueChange={(v) => setLateFeeSettings({ ...lateFeeSettings, feeType: v as 'flat' | 'percentage' })}
+                    >
+                      <SelectTrigger className="h-9 text-sm bg-slate-800 border-white/10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="flat">Flat fee</SelectItem>
+                        <SelectItem value="percentage">Percentage</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-slate-300 mb-1.5">
+                      {lateFeeSettings.feeType === 'flat' ? 'Fee amount ($)' : 'Fee percentage (%)'}
+                    </p>
+                    <Input
+                      type="number"
+                      value={lateFeeSettings.feeAmount}
+                      onChange={(e) => setLateFeeSettings({ ...lateFeeSettings, feeAmount: Number(e.target.value) })}
+                      className="h-9 text-sm bg-slate-800 border-white/10"
+                      min={0}
+                      step={lateFeeSettings.feeType === 'percentage' ? 0.5 : 1}
+                    />
+                  </div>
+
+                  {lateFeeSettings.feeType === 'percentage' && (
+                    <div>
+                      <p className="text-xs text-slate-300 mb-1.5">Max fee cap ($)</p>
+                      <Input
+                        type="number"
+                        value={lateFeeSettings.maxFee || ''}
+                        onChange={(e) => setLateFeeSettings({ ...lateFeeSettings, maxFee: e.target.value ? Number(e.target.value) : undefined })}
+                        className="h-9 text-sm bg-slate-800 border-white/10"
+                        placeholder="No cap"
+                        min={0}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="notifyTenant"
+                    checked={lateFeeSettings.notifyTenant}
+                    onCheckedChange={(checked) => setLateFeeSettings({ ...lateFeeSettings, notifyTenant: !!checked })}
+                  />
+                  <label htmlFor="notifyTenant" className="text-xs text-slate-300">
+                    Notify tenant when fee is applied
+                  </label>
+                </div>
+
+                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                  <p className="text-xs text-amber-200/90">
+                    Late fees run daily at 10 AM UTC. Fees are applied to payments past the grace period.
+                  </p>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setLateFeeModalOpen(false)} className="border-white/10">
+                Cancel
+              </Button>
+              <Button onClick={saveLateFeeSettings} disabled={savingLateFees} className="bg-amber-600 hover:bg-amber-500">
+                {savingLateFees && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Save Settings
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

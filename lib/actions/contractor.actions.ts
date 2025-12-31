@@ -299,9 +299,12 @@ export async function createWorkOrder(data: {
   scheduledDate?: string;
   notes?: string;
   isOpenBid?: boolean;
+  isOpenForBids?: boolean;
   budgetMin?: number;
   budgetMax?: number;
   bidDeadline?: string;
+  status?: string;
+  media?: { url: string; type: string }[];
 }) {
   try {
     const session = await auth();
@@ -314,8 +317,10 @@ export async function createWorkOrder(data: {
       return { success: false, message: landlordResult.message };
     }
 
+    const isOpenBid = data.isOpenBid || data.isOpenForBids || false;
+    
     // Determine initial status based on whether it's an open bid or direct assignment
-    const initialStatus = data.isOpenBid ? 'open' : (data.contractorId ? 'assigned' : 'draft');
+    const initialStatus = data.status || (isOpenBid ? 'open' : (data.contractorId ? 'assigned' : 'draft'));
 
     const workOrder = await prisma.workOrder.create({
       data: {
@@ -331,12 +336,26 @@ export async function createWorkOrder(data: {
         agreedPrice: data.agreedPrice ? data.agreedPrice : null,
         scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
         notes: data.notes || null,
-        isOpenBid: data.isOpenBid || false,
+        isOpenBid: isOpenBid,
         budgetMin: data.budgetMin ? data.budgetMin : null,
         budgetMax: data.budgetMax ? data.budgetMax : null,
         bidDeadline: data.bidDeadline ? new Date(data.bidDeadline) : null,
       },
     });
+
+    // Create media entries if provided
+    if (data.media && data.media.length > 0) {
+      await prisma.workOrderMedia.createMany({
+        data: data.media.map(m => ({
+          workOrderId: workOrder.id,
+          uploadedById: session.user!.id!,
+          uploaderRole: 'landlord',
+          type: m.type,
+          url: m.url,
+          phase: 'before',
+        })),
+      });
+    }
 
     // Create initial history entry
     await prisma.workOrderHistory.create({
