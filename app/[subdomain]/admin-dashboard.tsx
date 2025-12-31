@@ -16,11 +16,14 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import Link from 'next/link';
-import { Landlord } from '@prisma/client';
 import { adminNavLinks } from '@/lib/constants/admin-nav';
 
 interface AdminDashboardProps {
-  landlord: Landlord;
+  landlord: {
+    id: string;
+    name: string;
+    subdomain: string;
+  };
 }
 
 export default function AdminDashboard({ landlord }: AdminDashboardProps) {

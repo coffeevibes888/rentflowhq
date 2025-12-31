@@ -44,7 +44,27 @@ const SubdomainUserPage = async ({ params }: { params: Promise<{ subdomain: stri
     redirect('/unauthorized');
   }
 
-  return <UserDashboard tenantLease={tenantLease} landlord={landlord} />;
+  // Pass only the fields needed by the client component (with Decimals converted to numbers)
+  return (
+    <UserDashboard
+      tenantLease={{
+        id: tenantLease.id,
+        rentAmount: Number(tenantLease.rentAmount),
+        unit: {
+          name: tenantLease.unit.name,
+          rentAmount: Number(tenantLease.unit.rentAmount),
+          property: {
+            name: tenantLease.unit.property.name,
+            address: tenantLease.unit.property.address,
+          },
+        },
+      }}
+      landlord={{
+        id: landlord.id,
+        name: landlord.name,
+      }}
+    />
+  );
 };
 
 export default SubdomainUserPage;

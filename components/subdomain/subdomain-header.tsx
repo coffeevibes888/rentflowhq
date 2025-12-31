@@ -3,21 +3,24 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Landlord, User } from '@prisma/client';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
-type LandlordWithExtras = Landlord & {
-  owner?: User | null;
-  companyName?: string | null;
-  companyEmail?: string | null;
-  companyPhone?: string | null;
-  companyAddress?: string | null;
-  themeColor?: string | null;
-};
-
 interface SubdomainHeaderProps {
-  landlord: LandlordWithExtras;
+  landlord: {
+    id: string;
+    name: string;
+    subdomain: string;
+    logoUrl?: string | null;
+    companyName?: string | null;
+    companyEmail?: string | null;
+    companyPhone?: string | null;
+    themeColor?: string | null;
+    owner?: {
+      email?: string | null;
+      phoneNumber?: string | null;
+    } | null;
+  };
 }
 
 export default function SubdomainHeader({ landlord }: SubdomainHeaderProps) {

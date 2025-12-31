@@ -18,19 +18,24 @@ import {
   MessageCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { Landlord, Lease } from '@prisma/client';
 
 interface UserDashboardProps {
-  tenantLease: Lease & {
+  tenantLease: {
+    id: string;
+    rentAmount: number;
     unit: {
       name: string;
+      rentAmount: number;
       property: {
         name: string;
         address?: any;
       };
     };
   };
-  landlord: Landlord;
+  landlord: {
+    id: string;
+    name: string;
+  };
 }
 
 export default function UserDashboard({ tenantLease, landlord }: UserDashboardProps) {

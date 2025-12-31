@@ -647,6 +647,9 @@ model Landlord {
   // Hiring (Enterprise)
   jobPostings JobPosting[]
   jobApplicants JobApplicant[]
+
+  // Affiliate tracking
+  affiliateReferral AffiliateReferral?
 }
 
 // Homeowner - A homeowner who hires contractors for their home
@@ -2624,4 +2627,154 @@ model AgentOpenHouse {
   @@index([agentId])
   @@index([listingId])
   @@index([date])
+}
+
+
+// ============= AFFILIATE PROGRAM =============
+
+// Affiliate - People who refer new landlords/subscribers
+model Affiliate {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String
+  email                  String    @unique
+  phone                  String?
+  code                   String    @unique // Unique referral code (e.g., "SISTER5", "JOHN2024")
+  
+  // Status
+  status                 String    @default("active") // active, paused, terminated
+  
+  // Commission settings (can override defaults)
+  commissionBasic        Decimal   @default(5) @db.Decimal(10, 2)  // $5 for $29.99 plan
+  commissionPro          Decimal   @default(10) @db.Decimal(10, 2) // $10 for $79.99 plan
+  commissionEnterprise   Decimal   @default(25) @db.Decimal(10, 2) // $25 for enterprise (optional)
+  
+  // Payment info
+  paymentMethod          String?   // paypal, venmo, check, bank_transfer
+  paymentEmail           String?   // PayPal/Venmo email
+  paymentPhone           String?   // Venmo phone
+  bankAccountLast4       String?
+  minimumPayout          Decimal   @default(25) @db.Decimal(10, 2) // Minimum balance to request payout
+  
+  // Stats (denormalized for quick access)
+  totalClicks            Int       @default(0)
+  totalSignups           Int       @default(0)
+  totalEarnings          Decimal   @default(0) @db.Decimal(12, 2)
+  pendingEarnings        Decimal   @default(0) @db.Decimal(12, 2)
+  paidEarnings           Decimal   @default(0) @db.Decimal(12, 2)
+  
+  // Tier system for high performers
+  tier                   String    @default("standard") // standard, silver, gold, platinum
+  
+  notes                  String?
+  createdAt              DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt              DateTime  @updatedAt
+
+  referrals              AffiliateReferral[]
+  payouts                AffiliatePayout[]
+  clicks                 AffiliateClick[]
+
+  @@index([code])
+  @@index([email])
+  @@index([status])
+}
+
+// AffiliateClick - Track link clicks for analytics
+model AffiliateClick {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  affiliateId   String   @db.Uuid
+  
+  // Tracking info
+  ipAddress     String?
+  userAgent     String?
+  referrerUrl   String?  // Where they came from
+  landingPage   String?  // Which page they landed on
+  
+  // Geo info
+  country       String?
+  region        String?
+  city          String?
+  
+  // Session tracking
+  sessionId     String?  // To link click to eventual signup
+  
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+
+  affiliate     Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+// AffiliateReferral - Successful signups from affiliates
+model AffiliateReferral {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  affiliateId       String    @db.Uuid
+  landlordId        String    @unique @db.Uuid // The landlord who signed up
+  
+  // Subscription info at time of signup
+  subscriptionTier  String    // basic, pro, enterprise
+  subscriptionPrice Decimal   @db.Decimal(10, 2) // Price they paid
+  
+  // Commission
+  commissionAmount  Decimal   @db.Decimal(10, 2)
+  commissionStatus  String    @default("pending") // pending, approved, paid, cancelled
+  
+  // Pending period (30 days to prevent fraud/refunds)
+  pendingUntil      DateTime  @db.Timestamp(6)
+  approvedAt        DateTime? @db.Timestamp(6)
+  paidAt            DateTime? @db.Timestamp(6)
+  payoutId          String?   @db.Uuid
+  
+  // Cancellation tracking
+  cancelledAt       DateTime? @db.Timestamp(6)
+  cancellationReason String?
+  
+  // Recurring commission tracking (optional - for ongoing commissions)
+  isRecurring       Boolean   @default(false)
+  recurringMonths   Int       @default(0) // How many months of recurring commission
+  
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt
+
+  affiliate         Affiliate       @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  landlord          Landlord        @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  payout            AffiliatePayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  @@index([affiliateId])
+  @@index([landlordId])
+  @@index([commissionStatus])
+  @@index([createdAt])
+}
+
+// AffiliatePayout - Payment records to affiliates
+model AffiliatePayout {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  affiliateId     String    @db.Uuid
+  
+  amount          Decimal   @db.Decimal(12, 2)
+  paymentMethod   String    // paypal, venmo, check, bank_transfer
+  paymentDetails  String?   // Email, phone, or check number
+  
+  status          String    @default("pending") // pending, processing, completed, failed
+  
+  // Processing info
+  processedAt     DateTime? @db.Timestamp(6)
+  completedAt     DateTime? @db.Timestamp(6)
+  failedAt        DateTime? @db.Timestamp(6)
+  failureReason   String?
+  
+  // Reference
+  transactionId   String?   // External payment reference
+  notes           String?
+  
+  createdAt       DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime  @updatedAt
+
+  affiliate       Affiliate           @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  referrals       AffiliateReferral[]
+
+  @@index([affiliateId])
+  @@index([status])
+  @@index([createdAt])
 }

@@ -326,16 +326,16 @@ export default function DocumentsClient({
   };
 
   return (
-    <main className="w-full px-4 py-6 md:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <main className="w-full px-2 py-4 md:px-6 lg:px-8 md:py-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
-              <FolderOpen className="h-7 w-7 text-violet-400" />
+            <h1 className="text-xl md:text-3xl font-bold text-white flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 md:h-7 md:w-7 text-violet-400" />
               Document Center
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-xs md:text-sm text-slate-400 mt-1">
               Manage leases, evictions, receipts, and all property documents
             </p>
           </div>
@@ -343,18 +343,18 @@ export default function DocumentsClient({
           <div className="flex flex-wrap gap-2">
             <Button
               onClick={() => openUploadDialog('legal')}
-              className="bg-violet-600 hover:bg-violet-700"
+              className="bg-violet-600 hover:bg-violet-700 h-9 text-sm"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Upload Document</span>
               <span className="sm:hidden">Upload</span>
             </Button>
             <Button
               onClick={() => openUploadDialog('scan')}
               variant="outline"
-              className="border-slate-700 hover:bg-slate-800"
+              className="border-slate-700 hover:bg-slate-800 h-9 text-sm"
             >
-              <Camera className="h-4 w-4 mr-2" />
+              <Camera className="h-4 w-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Scan & Categorize</span>
               <span className="sm:hidden">Scan</span>
             </Button>
@@ -362,55 +362,56 @@ export default function DocumentsClient({
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               placeholder="Search documents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-slate-900 border-slate-700 focus:border-violet-500"
+              className="pl-10 bg-slate-900 border-slate-700 focus:border-violet-500 h-10"
             />
           </div>
         </div>
 
         {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="bg-slate-900 border border-slate-800 p-1 flex-wrap h-auto gap-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 md:space-y-4">
+          <TabsList className="bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 flex flex-wrap h-auto gap-1 w-full">
             <TabsTrigger
               value="leases"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-2"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
             >
-              <FileSignature className="h-4 w-4" />
+              <FileSignature className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span>Leases</span>
-              <Badge variant="secondary" className="ml-1 bg-slate-700 text-xs">
+              <Badge variant="secondary" className="ml-0.5 md:ml-1 bg-white/10 text-[10px] md:text-xs px-1 md:px-1.5">
                 {legalDocuments.filter((d) => d.type === 'lease' || d.type === 'addendum').length}
               </Badge>
             </TabsTrigger>
             <TabsTrigger
               value="evictions"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-2"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
             >
-              <AlertTriangle className="h-4 w-4" />
+              <AlertTriangle className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span>Evictions</span>
-              <Badge variant="secondary" className="ml-1 bg-slate-700 text-xs">
+              <Badge variant="secondary" className="ml-0.5 md:ml-1 bg-white/10 text-[10px] md:text-xs px-1 md:px-1.5">
                 {legalDocuments.filter((d) => d.type === 'eviction').length}
               </Badge>
             </TabsTrigger>
             <TabsTrigger
               value="notices"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-2"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
             >
-              <Scale className="h-4 w-4" />
+              <Scale className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span>Notices</span>
             </TabsTrigger>
             <TabsTrigger
               value="scanned"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-2"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
             >
-              <Receipt className="h-4 w-4" />
-              <span>Receipts & Scans</span>
-              <Badge variant="secondary" className="ml-1 bg-slate-700 text-xs">
+              <Receipt className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Receipts & Scans</span>
+              <span className="sm:hidden">Scans</span>
+              <Badge variant="secondary" className="ml-0.5 md:ml-1 bg-white/10 text-[10px] md:text-xs px-1 md:px-1.5">
                 {scannedDocuments.length}
               </Badge>
             </TabsTrigger>
@@ -798,12 +799,12 @@ function DocumentGrid({
 }) {
   if (documents.length === 0) {
     return (
-      <Card className="border-slate-800 bg-slate-900/50">
+      <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
         <CardContent className="py-12">
           <div className="text-center">
-            <FileText className="h-12 w-12 mx-auto text-slate-600 mb-4" />
+            <FileText className="h-12 w-12 mx-auto text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">No Documents</h3>
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-300 text-sm">
               Upload your first document to get started.
             </p>
           </div>
@@ -813,25 +814,25 @@ function DocumentGrid({
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {documents.map((doc) => {
         const Icon = getTypeIcon(doc.type);
         return (
           <Card
             key={doc.id}
-            className="border-slate-800 bg-slate-900/50 hover:border-violet-500/30 transition-all group"
+            className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 hover:border-violet-400/40 transition-all group overflow-hidden"
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2 md:pb-3 p-3 md:p-4">
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="h-10 w-10 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0">
-                    <Icon className="h-5 w-5 text-violet-400" />
+                <div className="flex items-start gap-2 md:gap-3 min-w-0 flex-1">
+                  <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0">
+                    <Icon className="h-4 w-4 md:h-5 md:w-5 text-violet-400" />
                   </div>
-                  <div className="min-w-0">
-                    <CardTitle className="text-sm font-medium text-white truncate">
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-xs md:text-sm font-medium text-white truncate">
                       {doc.name}
                     </CardTitle>
-                    <CardDescription className="text-xs text-slate-500 mt-0.5">
+                    <CardDescription className="text-[10px] md:text-xs text-slate-300 mt-0.5 truncate">
                       {getTypeLabel(doc.type)}
                       {doc.state && ` • ${doc.state}`}
                     </CardDescription>
@@ -842,9 +843,9 @@ function DocumentGrid({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0"
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="h-4 w-4 text-white" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200">
@@ -882,14 +883,14 @@ function DocumentGrid({
                 </DropdownMenu>
               </div>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 p-3 md:p-4 md:pt-0">
               {doc.description && (
-                <p className="text-xs text-slate-400 line-clamp-2 mb-3">{doc.description}</p>
+                <p className="text-[10px] md:text-xs text-slate-300 line-clamp-2 mb-2 md:mb-3">{doc.description}</p>
               )}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-400">
                   {doc.fileType && (
-                    <span className="uppercase bg-slate-800 px-1.5 py-0.5 rounded">
+                    <span className="uppercase bg-white/10 px-1 md:px-1.5 py-0.5 rounded">
                       {doc.fileType}
                     </span>
                   )}
@@ -897,13 +898,13 @@ function DocumentGrid({
                 </div>
                 <div className="flex items-center gap-1">
                   {doc.isTemplate && (
-                    <Badge variant="outline" className="text-xs border-emerald-500/50 text-emerald-400">
+                    <Badge variant="outline" className="text-[10px] md:text-xs border-emerald-500/50 text-emerald-400 px-1 md:px-2">
                       Template
                     </Badge>
                   )}
                 </div>
               </div>
-              <p className="text-xs text-slate-600 mt-2">
+              <p className="text-[10px] md:text-xs text-slate-400 mt-2">
                 {formatDistanceToNow(new Date(doc.createdAt), { addSuffix: true })}
               </p>
             </CardContent>
@@ -928,12 +929,12 @@ function ScannedDocumentGrid({
 }) {
   if (documents.length === 0) {
     return (
-      <Card className="border-slate-800 bg-slate-900/50">
+      <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
         <CardContent className="py-12">
           <div className="text-center">
-            <Camera className="h-12 w-12 mx-auto text-slate-600 mb-4" />
+            <Camera className="h-12 w-12 mx-auto text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">No Scanned Documents</h3>
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-300 text-sm">
               Upload receipts, invoices, or other documents to categorize them.
             </p>
           </div>
@@ -946,21 +947,21 @@ function ScannedDocumentGrid({
     switch (status) {
       case 'classified':
         return (
-          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] md:text-xs">
             <CheckCircle2 className="h-3 w-3 mr-1" />
             Classified
           </Badge>
         );
       case 'pending':
         return (
-          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px] md:text-xs">
             <Clock className="h-3 w-3 mr-1" />
             Pending
           </Badge>
         );
       case 'manual_review':
         return (
-          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] md:text-xs">
             <Eye className="h-3 w-3 mr-1" />
             Review
           </Badge>
@@ -984,27 +985,27 @@ function ScannedDocumentGrid({
   };
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {documents.map((doc) => {
         const Icon = getCategoryIcon(doc.documentType);
         return (
           <Card
             key={doc.id}
-            className="border-slate-800 bg-slate-900/50 hover:border-emerald-500/30 transition-all group"
+            className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 hover:border-emerald-400/40 transition-all group overflow-hidden"
           >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <div className="h-10 w-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
-                  <Icon className="h-5 w-5 text-emerald-400" />
+            <CardContent className="p-3 md:p-4">
+              <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                  <Icon className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" />
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0"
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="h-4 w-4 text-white" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200">
@@ -1032,20 +1033,20 @@ function ScannedDocumentGrid({
                 </DropdownMenu>
               </div>
 
-              <h4 className="text-sm font-medium text-white truncate mb-1">
+              <h4 className="text-xs md:text-sm font-medium text-white truncate mb-1">
                 {doc.originalFileName}
               </h4>
 
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-1 md:gap-2 mb-2 md:mb-3 flex-wrap">
                 {getStatusBadge(doc.classificationStatus)}
                 {doc.documentType && (
-                  <span className="text-xs text-slate-500 capitalize">{doc.documentType}</span>
+                  <span className="text-[10px] md:text-xs text-slate-300 capitalize">{doc.documentType}</span>
                 )}
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <div className="flex items-center gap-2">
-                  <span className="uppercase bg-slate-800 px-1.5 py-0.5 rounded">
+              <div className="flex items-center justify-between text-[10px] md:text-xs text-slate-400">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <span className="uppercase bg-white/10 px-1 md:px-1.5 py-0.5 rounded">
                     {doc.fileType}
                   </span>
                   {doc.fileSize && <span>{formatFileSize(doc.fileSize)}</span>}
@@ -1054,11 +1055,11 @@ function ScannedDocumentGrid({
 
               {doc.ocrConfidence !== undefined && doc.ocrConfidence > 0 && (
                 <div className="mt-2">
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-slate-500">OCR Confidence</span>
-                    <span className="text-slate-400">{doc.ocrConfidence.toFixed(0)}%</span>
+                  <div className="flex items-center justify-between text-[10px] md:text-xs mb-1">
+                    <span className="text-slate-400">OCR Confidence</span>
+                    <span className="text-slate-300">{doc.ocrConfidence.toFixed(0)}%</span>
                   </div>
-                  <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-emerald-500 rounded-full"
                       style={{ width: `${doc.ocrConfidence}%` }}
@@ -1067,7 +1068,7 @@ function ScannedDocumentGrid({
                 </div>
               )}
 
-              <p className="text-xs text-slate-600 mt-2">
+              <p className="text-[10px] md:text-xs text-slate-400 mt-2">
                 {formatDistanceToNow(new Date(doc.createdAt), { addSuffix: true })}
               </p>
             </CardContent>

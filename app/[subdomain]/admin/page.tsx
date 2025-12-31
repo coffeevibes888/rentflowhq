@@ -25,7 +25,16 @@ const SubdomainAdminPage = async ({ params }: { params: Promise<{ subdomain: str
     redirect('/unauthorized');
   }
 
-  return <AdminDashboard landlord={landlord} />;
+  // Pass only the fields needed by the client component
+  return (
+    <AdminDashboard
+      landlord={{
+        id: landlord.id,
+        name: landlord.name,
+        subdomain: landlord.subdomain,
+      }}
+    />
+  );
 };
 
 export default SubdomainAdminPage;

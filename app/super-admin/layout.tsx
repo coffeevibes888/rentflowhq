@@ -26,6 +26,26 @@ export default function SuperAdminLayout({
                 Super Admin
               </span>
             </Link>
+            <nav className='ml-8 flex items-center space-x-4'>
+              <Link 
+                href='/super-admin' 
+                className='text-sm text-white/80 hover:text-white transition-colors'
+              >
+                Dashboard
+              </Link>
+              <Link 
+                href='/super-admin/affiliates' 
+                className='text-sm text-emerald-300 hover:text-emerald-200 transition-colors font-medium'
+              >
+                💰 Affiliates
+              </Link>
+              <Link 
+                href='/super-admin/testing' 
+                className='text-sm text-amber-300 hover:text-amber-200 transition-colors font-medium'
+              >
+                🧪 Testing
+              </Link>
+            </nav>
             <div className='ml-auto items-center flex space-x-4'>
               <Menu />
             </div>

@@ -7,6 +7,8 @@ import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { ThemeProvider } from 'next-themes';
 import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
 import PrivacyConsentBanner from '@/components/privacy/privacy-consent-banner';
+import { Suspense } from 'react';
+import AffiliateTracker from '@/components/affiliate-tracker';
 
 let resolvedMetadataBase: URL;
 try {
@@ -35,6 +37,9 @@ export default function RootLayout({
         <SessionProviderWrapper>
           <ThemeProvider attribute='class' defaultTheme='light' enableSystem={false} disableTransitionOnChange>
             <PageViewTracker />
+            <Suspense fallback={null}>
+              <AffiliateTracker />
+            </Suspense>
             <div
               className='w-full text-sm md:text-sm font-medium tracking-tight flex items-center overflow-hidden bg-linear-to-r from-slate-950 via-slate-900 to-emerald-500 shadow-sm' style={{ height: '24px' }}>
               <div className='banner-marquee flex items-center gap-6 px-4 text-white whitespace-nowrap'>

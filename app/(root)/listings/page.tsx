@@ -138,41 +138,113 @@ async function getListings(searchParams: {
     }
 
     // Transform rental units to listing format
-    rentalListings = filteredUnits.map(unit => {
-      const address = unit.property.address as any;
-      return {
-        id: unit.id,
-        propertyId: unit.property.id,
-        propertyName: unit.property.name,
-        propertySlug: unit.property.slug,
-        unitName: unit.name,
-        type: unit.type,
-        bedrooms: unit.bedrooms,
-        bathrooms: unit.bathrooms ? Number(unit.bathrooms) : null,
-        sizeSqFt: unit.sizeSqFt,
-        price: Number(unit.rentAmount),
-        rentAmount: Number(unit.rentAmount),
-        images: unit.images,
-        amenities: unit.amenities,
-        availableFrom: unit.availableFrom?.toISOString() || null,
-        address: {
-          street: address?.street || '',
-          city: address?.city || '',
-          state: address?.state || '',
-          zip: address?.zip || '',
-          lat: address?.lat || null,
-          lng: address?.lng || null,
-        },
-        landlord: unit.property.landlord ? {
-          name: unit.property.landlord.companyName || unit.property.landlord.name,
-          subdomain: unit.property.landlord.subdomain,
-        } : null,
-        agent: null,
-        hasVideo: !!unit.property.videoUrl,
-        hasVirtualTour: !!unit.property.virtualTourUrl,
-        listingType: 'rent' as const,
-        source: 'property' as const,
-      };
+    // Group units by property for apartment complexes (type === 'apartment' with multiple units)
+    const unitsByProperty = new Map<string, typeof filteredUnits>();
+    
+    filteredUnits.forEach(unit => {
+      const propertyId = unit.property.id;
+      if (!unitsByProperty.has(propertyId)) {
+        unitsByProperty.set(propertyId, []);
+      }
+      unitsByProperty.get(propertyId)!.push(unit);
+    });
+
+    rentalListings = [];
+    
+    unitsByProperty.forEach((propertyUnits, propertyId) => {
+      const firstUnit = propertyUnits[0];
+      const property = firstUnit.property;
+      const address = property.address as any;
+      const isApartmentComplex = property.type === 'apartment' && propertyUnits.length > 3;
+      
+      if (isApartmentComplex) {
+        // For apartment complexes, create a single listing with aggregated data
+        const prices = propertyUnits.map(u => Number(u.rentAmount)).filter(p => p > 0);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        const bedrooms = propertyUnits.map(u => u.bedrooms || 0);
+        const minBeds = Math.min(...bedrooms);
+        const maxBeds = Math.max(...bedrooms);
+        
+        rentalListings.push({
+          id: propertyId, // Use property ID for complex
+          propertyId: property.id,
+          propertyName: property.name,
+          propertySlug: property.slug,
+          unitName: null,
+          type: 'apartment',
+          bedrooms: minBeds === maxBeds ? minBeds : null, // null indicates range
+          bedroomRange: minBeds !== maxBeds ? { min: minBeds, max: maxBeds } : null,
+          bathrooms: null,
+          sizeSqFt: null,
+          price: minPrice,
+          priceRange: minPrice !== maxPrice ? { min: minPrice, max: maxPrice } : null,
+          rentAmount: minPrice,
+          images: firstUnit.images?.length ? firstUnit.images : propertyUnits.find(u => u.images?.length)?.images || [],
+          amenities: [...new Set(propertyUnits.flatMap(u => u.amenities || []))],
+          availableFrom: null,
+          address: {
+            street: address?.street || '',
+            city: address?.city || '',
+            state: address?.state || '',
+            zip: address?.zip || '',
+            lat: address?.lat || null,
+            lng: address?.lng || null,
+          },
+          landlord: property.landlord ? {
+            name: property.landlord.companyName || property.landlord.name,
+            subdomain: property.landlord.subdomain,
+          } : null,
+          agent: null,
+          hasVideo: !!property.videoUrl,
+          hasVirtualTour: !!property.virtualTourUrl,
+          listingType: 'rent' as const,
+          source: 'property' as const,
+          isApartmentComplex: true,
+          unitCount: propertyUnits.length,
+        });
+      } else {
+        // For regular properties, list each unit separately
+        propertyUnits.forEach(unit => {
+          rentalListings.push({
+            id: unit.id,
+            propertyId: property.id,
+            propertyName: property.name,
+            propertySlug: property.slug,
+            unitName: unit.name,
+            type: unit.type,
+            bedrooms: unit.bedrooms,
+            bedroomRange: null,
+            bathrooms: unit.bathrooms ? Number(unit.bathrooms) : null,
+            sizeSqFt: unit.sizeSqFt,
+            price: Number(unit.rentAmount),
+            priceRange: null,
+            rentAmount: Number(unit.rentAmount),
+            images: unit.images,
+            amenities: unit.amenities,
+            availableFrom: unit.availableFrom?.toISOString() || null,
+            address: {
+              street: address?.street || '',
+              city: address?.city || '',
+              state: address?.state || '',
+              zip: address?.zip || '',
+              lat: address?.lat || null,
+              lng: address?.lng || null,
+            },
+            landlord: property.landlord ? {
+              name: property.landlord.companyName || property.landlord.name,
+              subdomain: property.landlord.subdomain,
+            } : null,
+            agent: null,
+            hasVideo: !!property.videoUrl,
+            hasVirtualTour: !!property.virtualTourUrl,
+            listingType: 'rent' as const,
+            source: 'property' as const,
+            isApartmentComplex: false,
+            unitCount: 1,
+          });
+        });
+      }
     });
   }
 

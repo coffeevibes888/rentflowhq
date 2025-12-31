@@ -174,6 +174,7 @@ export async function POST(req: NextRequest) {
     const subscription = event.data.object as Stripe.Subscription;
     const landlordId = subscription.metadata?.landlordId;
     const tier = (subscription.metadata?.tier || 'free') as SubscriptionTier;
+    const affiliateCode = subscription.metadata?.affiliateCode;
 
     if (landlordId) {
       const tierConfig = SUBSCRIPTION_TIERS[tier];
@@ -233,6 +234,69 @@ export async function POST(req: NextRequest) {
           },
         },
       });
+
+      // Handle affiliate commission for new subscriptions
+      if (event.type === 'customer.subscription.created' && affiliateCode && tier !== 'free') {
+        try {
+          const affiliate = await prisma.affiliate.findUnique({
+            where: { code: affiliateCode },
+          });
+
+          if (affiliate && affiliate.status === 'active') {
+            // Check if referral already exists for this landlord
+            const existingReferral = await prisma.affiliateReferral.findUnique({
+              where: { landlordId },
+            });
+
+            if (!existingReferral) {
+              // Determine commission based on tier
+              let commissionAmount = 0;
+              let subscriptionPrice = 0;
+              
+              if (tier === 'pro') {
+                commissionAmount = Number(affiliate.commissionBasic); // $5 for $29.99 plan
+                subscriptionPrice = 29.99;
+              } else if (tier === 'enterprise') {
+                commissionAmount = Number(affiliate.commissionPro); // $10 for $79.99 plan
+                subscriptionPrice = 79.99;
+              }
+
+              if (commissionAmount > 0) {
+                // Create referral with 30-day pending period
+                const pendingUntil = new Date();
+                pendingUntil.setDate(pendingUntil.getDate() + 30);
+
+                await prisma.affiliateReferral.create({
+                  data: {
+                    affiliateId: affiliate.id,
+                    landlordId,
+                    subscriptionTier: tier,
+                    subscriptionPrice,
+                    commissionAmount,
+                    commissionStatus: 'pending',
+                    pendingUntil,
+                  },
+                });
+
+                // Update affiliate stats
+                await prisma.affiliate.update({
+                  where: { id: affiliate.id },
+                  data: {
+                    totalSignups: { increment: 1 },
+                    totalEarnings: { increment: commissionAmount },
+                    pendingEarnings: { increment: commissionAmount },
+                  },
+                });
+
+                console.log(`Affiliate commission created: ${affiliate.code} earned $${commissionAmount} for ${tier} signup`);
+              }
+            }
+          }
+        } catch (affiliateError) {
+          console.error('Error processing affiliate commission:', affiliateError);
+          // Don't fail the webhook for affiliate errors
+        }
+      }
     }
 
     return NextResponse.json({

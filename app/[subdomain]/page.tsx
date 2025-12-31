@@ -26,20 +26,6 @@ import type { Landlord } from '@prisma/client';
  * If logged in tenant, redirects to main domain tenant dashboard
  * If logged in landlord, redirects to main domain admin dashboard
  */
-type LandlordWithBrand = Landlord & {
-  owner: {
-    email: string;
-    phoneNumber: string | null;
-  } | null;
-  companyName?: string | null;
-  companyEmail?: string | null;
-  companyPhone?: string | null;
-  companyAddress?: string | null;
-  heroImages?: string[] | null;
-  aboutBio?: string | null;
-  aboutPhoto?: string | null;
-  aboutGallery?: string[] | null;
-};
 
 export default async function SubdomainRootPage({
   params,
@@ -49,9 +35,18 @@ export default async function SubdomainRootPage({
   const { subdomain } = await params;
   
   // Verify the subdomain exists and get owner info
-  const landlord = (await prisma.landlord.findUnique({
+  // Only select fields we actually use to avoid Decimal serialization issues
+  const landlord = await prisma.landlord.findUnique({
     where: { subdomain },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      subdomain: true,
+      companyName: true,
+      companyEmail: true,
+      companyPhone: true,
+      companyAddress: true,
+      heroImages: true,
       owner: {
         select: {
           email: true,
@@ -59,7 +54,7 @@ export default async function SubdomainRootPage({
         },
       },
     },
-  })) as LandlordWithBrand | null;
+  });
 
   if (!landlord) {
     redirect('/');
@@ -159,6 +154,22 @@ export default async function SubdomainRootPage({
                 {properties.map((property) => {
                   const unitCount = property.units.length;
                   const firstUnit = property.units[0];
+                  const isApartmentComplex = property.type === 'apartment' && unitCount > 3;
+                  
+                  // For apartment complexes, calculate price range and bed/bath range
+                  const minRent = isApartmentComplex 
+                    ? Math.min(...property.units.map(u => Number(u.rentAmount) || 0).filter(r => r > 0))
+                    : null;
+                  const maxRent = isApartmentComplex
+                    ? Math.max(...property.units.map(u => Number(u.rentAmount) || 0))
+                    : null;
+                  const bedRange = isApartmentComplex
+                    ? {
+                        min: Math.min(...property.units.map(u => u.bedrooms || 0)),
+                        max: Math.max(...property.units.map(u => u.bedrooms || 0))
+                      }
+                    : null;
+                  
                   return (
                     <Link
                       key={property.id}
@@ -178,6 +189,11 @@ export default async function SubdomainRootPage({
                             <Building2 className="h-16 w-16" />
                           </div>
                         )}
+                        {isApartmentComplex && (
+                          <div className="absolute top-3 left-3 bg-violet-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                            Apartment Community
+                          </div>
+                        )}
                       </div>
                       <div className="p-6 space-y-4 flex-1 flex flex-col">
                         <div>
@@ -191,32 +207,68 @@ export default async function SubdomainRootPage({
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-600">
-                          {firstUnit && (
-                            <>
-                              {firstUnit.bedrooms && Number(firstUnit.bedrooms) > 0 && (
-                                <span>{Number(firstUnit.bedrooms)} bed{Number(firstUnit.bedrooms) !== 1 ? 's' : ''}</span>
+                        
+                        {isApartmentComplex ? (
+                          // Apartment complex display - Zillow/Apartments.com style
+                          <>
+                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                              {bedRange && (
+                                <span>
+                                  {bedRange.min === bedRange.max 
+                                    ? (bedRange.min === 0 ? 'Studio' : `${bedRange.min} bed${bedRange.min !== 1 ? 's' : ''}`)
+                                    : `${bedRange.min === 0 ? 'Studio' : bedRange.min} - ${bedRange.max} beds`}
+                                </span>
                               )}
-                              {firstUnit.bathrooms && Number(firstUnit.bathrooms) > 0 && (
-                                <span>{Number(firstUnit.bathrooms)} bath{Number(firstUnit.bathrooms) !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div className="text-2xl font-bold text-violet-600">
+                              {minRent && maxRent && minRent !== maxRent ? (
+                                <>
+                                  {formatCurrency(minRent)} - {formatCurrency(maxRent)}
+                                  <span className="text-sm font-normal text-slate-500">/mo</span>
+                                </>
+                              ) : (
+                                <>
+                                  Starting at {formatCurrency(minRent || 0)}
+                                  <span className="text-sm font-normal text-slate-500">/mo</span>
+                                </>
                               )}
-                            </>
-                          )}
-                        </div>
-                        {firstUnit?.rentAmount && (
-                          <div className="text-2xl font-bold text-violet-600">
-                            {formatCurrency(Number(firstUnit.rentAmount))}
-                            <span className="text-sm font-normal text-slate-500">/month</span>
-                          </div>
+                            </div>
+                            <p className="text-sm text-slate-500">
+                              {unitCount} unit{unitCount !== 1 ? 's' : ''} available
+                            </p>
+                          </>
+                        ) : (
+                          // Single property / small multi-unit display
+                          <>
+                            <div className="flex items-center gap-4 text-sm text-slate-600">
+                              {firstUnit && (
+                                <>
+                                  {firstUnit.bedrooms && Number(firstUnit.bedrooms) > 0 && (
+                                    <span>{Number(firstUnit.bedrooms)} bed{Number(firstUnit.bedrooms) !== 1 ? 's' : ''}</span>
+                                  )}
+                                  {firstUnit.bathrooms && Number(firstUnit.bathrooms) > 0 && (
+                                    <span>{Number(firstUnit.bathrooms)} bath{Number(firstUnit.bathrooms) !== 1 ? 's' : ''}</span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            {firstUnit?.rentAmount && (
+                              <div className="text-2xl font-bold text-violet-600">
+                                {formatCurrency(Number(firstUnit.rentAmount))}
+                                <span className="text-sm font-normal text-slate-500">/month</span>
+                              </div>
+                            )}
+                            {unitCount > 1 && (
+                              <p className="text-xs text-slate-500">
+                                {unitCount} unit{unitCount !== 1 ? 's' : ''} available
+                              </p>
+                            )}
+                          </>
                         )}
-                        {unitCount > 1 && (
-                          <p className="text-xs text-slate-500">
-                            {unitCount} unit{unitCount !== 1 ? 's' : ''} available
-                          </p>
-                        )}
+                        
                         <div className="mt-auto">
                           <span className="text-violet-600 text-sm font-medium hover:underline">
-                            View Details & Schedule Tour →
+                            {isApartmentComplex ? 'View Floor Plans & Availability →' : 'View Details & Schedule Tour →'}
                           </span>
                         </div>
                       </div>

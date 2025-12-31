@@ -5,11 +5,72 @@ import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Bed, Bath, Maximize, MapPin } from 'lucide-react';
+import { Building2, Bed, Bath, Maximize, MapPin, Home, Layers } from 'lucide-react';
 import PropertyScheduler from '@/components/subdomain/property-scheduler';
 import { SubdomainApplyButton } from '@/components/subdomain/apply-button';
 import PropertyMap from '@/components/maps/property-map';
 import PropertyMediaSection from '@/components/subdomain/property-media-section';
+
+// Group units by floor plan (bedrooms + bathrooms combination)
+interface FloorPlan {
+  key: string;
+  name: string;
+  bedrooms: number;
+  bathrooms: number;
+  sizeSqFt: number | null;
+  minRent: number;
+  maxRent: number;
+  availableCount: number;
+  amenities: string[];
+  images: string[];
+}
+
+function groupUnitsByFloorPlan(units: any[]): FloorPlan[] {
+  const floorPlanMap = new Map<string, FloorPlan>();
+
+  units.forEach((unit) => {
+    const bedrooms = unit.bedrooms || 0;
+    const bathrooms = Number(unit.bathrooms) || 1;
+    const key = `${bedrooms}-${bathrooms}`;
+    const rent = Number(unit.rentAmount) || 0;
+
+    if (floorPlanMap.has(key)) {
+      const existing = floorPlanMap.get(key)!;
+      existing.availableCount++;
+      existing.minRent = Math.min(existing.minRent, rent);
+      existing.maxRent = Math.max(existing.maxRent, rent);
+      if (!existing.sizeSqFt && unit.sizeSqFt) {
+        existing.sizeSqFt = unit.sizeSqFt;
+      }
+      if (unit.images?.length && !existing.images.length) {
+        existing.images = unit.images;
+      }
+      // Merge amenities
+      unit.amenities?.forEach((a: string) => {
+        if (!existing.amenities.includes(a)) {
+          existing.amenities.push(a);
+        }
+      });
+    } else {
+      const name = bedrooms === 0 ? 'Studio' : `${bedrooms} Bedroom`;
+      floorPlanMap.set(key, {
+        key,
+        name,
+        bedrooms,
+        bathrooms,
+        sizeSqFt: unit.sizeSqFt || null,
+        minRent: rent,
+        maxRent: rent,
+        availableCount: 1,
+        amenities: unit.amenities || [],
+        images: unit.images || [],
+      });
+    }
+  });
+
+  // Sort by bedrooms
+  return Array.from(floorPlanMap.values()).sort((a, b) => a.bedrooms - b.bedrooms);
+}
 
 export default async function SubdomainPropertyPage({
   params,
@@ -132,52 +193,123 @@ export default async function SubdomainPropertyPage({
 
             <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">
               <CardHeader>
-                <CardTitle className="text-white">Available Units</CardTitle>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-violet-400" />
+                  {property.type === 'apartment' && property.units.length > 3 
+                    ? 'Floor Plans' 
+                    : 'Available Units'}
+                </CardTitle>
+                <CardDescription className="text-slate-300">
+                  {property.units.length} unit{property.units.length !== 1 ? 's' : ''} available
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {property.units.map((unit) => (
-                  <div
-                    key={unit.id}
-                    className="rounded-xl border border-white/10 bg-slate-800/60 p-4 space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-white">{unit.name}</h3>
-                      <div className="text-2xl font-bold text-violet-300">
-                        {formatCurrency(Number(unit.rentAmount))}
-                        <span className="text-sm font-normal text-slate-300">/mo</span>
+                {property.type === 'apartment' && property.units.length > 3 ? (
+                  // Show grouped floor plans for apartment complexes
+                  groupUnitsByFloorPlan(property.units).map((floorPlan) => (
+                    <div
+                      key={floorPlan.key}
+                      className="rounded-xl border border-white/10 bg-slate-800/60 p-4 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                            <Home className="h-5 w-5 text-violet-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-white">{floorPlan.name}</h3>
+                            <p className="text-sm text-slate-400">
+                              {floorPlan.availableCount} unit{floorPlan.availableCount !== 1 ? 's' : ''} available
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-violet-300">
+                            {floorPlan.minRent === floorPlan.maxRent 
+                              ? formatCurrency(floorPlan.minRent)
+                              : `${formatCurrency(floorPlan.minRent)} - ${formatCurrency(floorPlan.maxRent)}`}
+                          </div>
+                          <span className="text-sm text-slate-300">/month</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-slate-300">
-                      {unit.bedrooms && (
+                      <div className="flex flex-wrap gap-4 text-sm text-slate-300">
                         <div className="flex items-center gap-1">
                           <Bed className="h-4 w-4" />
-                          {unit.bedrooms} bed{unit.bedrooms !== 1 ? 's' : ''}
+                          {floorPlan.bedrooms === 0 ? 'Studio' : `${floorPlan.bedrooms} bed${floorPlan.bedrooms !== 1 ? 's' : ''}`}
                         </div>
-                      )}
-                      {unit.bathrooms && (
                         <div className="flex items-center gap-1">
                           <Bath className="h-4 w-4" />
-                          {Number(unit.bathrooms)} bath{Number(unit.bathrooms) !== 1 ? 's' : ''}
+                          {floorPlan.bathrooms} bath{floorPlan.bathrooms !== 1 ? 's' : ''}
                         </div>
-                      )}
-                      {unit.sizeSqFt && (
-                        <div className="flex items-center gap-1">
-                          <Maximize className="h-4 w-4" />
-                          {unit.sizeSqFt} sqft
+                        {floorPlan.sizeSqFt && (
+                          <div className="flex items-center gap-1">
+                            <Maximize className="h-4 w-4" />
+                            {floorPlan.sizeSqFt.toLocaleString()} sqft
+                          </div>
+                        )}
+                      </div>
+                      {floorPlan.amenities.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {floorPlan.amenities.slice(0, 5).map((amenity, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs">
+                              {amenity}
+                            </Badge>
+                          ))}
+                          {floorPlan.amenities.length > 5 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{floorPlan.amenities.length - 5} more
+                            </Badge>
+                          )}
                         </div>
                       )}
                     </div>
-                    {unit.amenities && unit.amenities.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {unit.amenities.map((amenity, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            {amenity}
-                          </Badge>
-                        ))}
+                  ))
+                ) : (
+                  // Show individual units for smaller properties
+                  property.units.map((unit) => (
+                    <div
+                      key={unit.id}
+                      className="rounded-xl border border-white/10 bg-slate-800/60 p-4 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-white">{unit.name}</h3>
+                        <div className="text-2xl font-bold text-violet-300">
+                          {formatCurrency(Number(unit.rentAmount))}
+                          <span className="text-sm font-normal text-slate-300">/mo</span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className="flex flex-wrap gap-4 text-sm text-slate-300">
+                        {unit.bedrooms && (
+                          <div className="flex items-center gap-1">
+                            <Bed className="h-4 w-4" />
+                            {unit.bedrooms} bed{unit.bedrooms !== 1 ? 's' : ''}
+                          </div>
+                        )}
+                        {unit.bathrooms && (
+                          <div className="flex items-center gap-1">
+                            <Bath className="h-4 w-4" />
+                            {Number(unit.bathrooms)} bath{Number(unit.bathrooms) !== 1 ? 's' : ''}
+                          </div>
+                        )}
+                        {unit.sizeSqFt && (
+                          <div className="flex items-center gap-1">
+                            <Maximize className="h-4 w-4" />
+                            {unit.sizeSqFt} sqft
+                          </div>
+                        )}
+                      </div>
+                      {unit.amenities && unit.amenities.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {unit.amenities.map((amenity, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs">
+                              {amenity}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </div>

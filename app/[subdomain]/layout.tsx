@@ -13,11 +13,24 @@ export default async function SubdomainLayout({
 }) {
   const { subdomain } = await params;
   
-  // Get landlord for header
+  // Get landlord for header - only select fields needed by SubdomainHeader
   const landlord = await prisma.landlord.findUnique({
     where: { subdomain },
-    include: {
-      owner: true,
+    select: {
+      id: true,
+      name: true,
+      subdomain: true,
+      logoUrl: true,
+      companyName: true,
+      companyEmail: true,
+      companyPhone: true,
+      themeColor: true,
+      owner: {
+        select: {
+          email: true,
+          phoneNumber: true,
+        },
+      },
     },
   });
 

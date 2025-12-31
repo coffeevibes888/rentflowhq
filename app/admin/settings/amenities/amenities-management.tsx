@@ -426,7 +426,7 @@ export default function AmenitiesManagement({
               <Building2 className="w-12 h-12 mx-auto text-slate-500 mb-4" />
               <p className="text-slate-400 mb-4">No properties found. Add a property first.</p>
               <Button asChild className="bg-violet-600 hover:bg-violet-500">
-                <a href="/admin/products/create">Add Property</a>
+                <a href="/admin/products/new">Add Property</a>
               </Button>
             </CardContent>
           </Card>
