@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { SUBSCRIPTION_TIERS, SubscriptionTier, TierFeatures } from '@/lib/config/subscription-tiers';
-import { Check, Zap, Building2, Bell, DollarSign, Users, MessageSquare, Briefcase, Crown, Settings, XCircle, RefreshCw, Palette, Code, Webhook } from 'lucide-react';
+import { Check, Zap, Building2, Bell, DollarSign, Users, MessageSquare, Briefcase, Crown, Settings, XCircle, RefreshCw, Palette, Code, Webhook, Gift } from 'lucide-react';
 
 interface SubscriptionDashboardProps {
   currentTier: SubscriptionTier;
@@ -38,10 +39,44 @@ export function SubscriptionDashboard({
   features,
 }: SubscriptionDashboardProps) {
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
+  const [referralCode, setReferralCode] = useState('');
+  const [referralValid, setReferralValid] = useState<boolean | null>(null);
+  const [checkingReferral, setCheckingReferral] = useState(false);
 
   const usagePercent = unitLimit === Infinity ? 0 : Math.min(100, (unitCount / unitLimit) * 100);
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check for referral code in cookie on mount
+  useEffect(() => {
+    const cookies = document.cookie.split(';');
+    const refCookie = cookies.find(c => c.trim().startsWith('affiliate_code='));
+    if (refCookie) {
+      const code = refCookie.split('=')[1];
+      if (code) {
+        setReferralCode(code);
+        setReferralValid(true); // Cookie was set by valid tracking
+      }
+    }
+  }, []);
+
+  const validateReferralCode = async (code: string) => {
+    if (!code.trim()) {
+      setReferralValid(null);
+      return;
+    }
+    
+    setCheckingReferral(true);
+    try {
+      const res = await fetch(`/api/affiliate/validate?code=${encodeURIComponent(code.toUpperCase())}`);
+      const data = await res.json();
+      setReferralValid(data.valid);
+    } catch {
+      setReferralValid(false);
+    } finally {
+      setCheckingReferral(false);
+    }
+  };
 
   const handleUpgrade = async (tier: SubscriptionTier) => {
     setIsLoading(true);
@@ -50,7 +85,10 @@ export function SubscriptionDashboard({
       const res = await fetch('/api/landlord/subscription/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ 
+          tier,
+          referralCode: referralCode.trim().toUpperCase() || undefined,
+        }),
       });
       const data = await res.json();
       
@@ -242,6 +280,51 @@ export function SubscriptionDashboard({
           </div>
         </div>
       </div>
+
+      {/* Referral Code Section - Only show for free tier users */}
+      {currentTier === 'free' && (
+        <div className="rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Gift className="h-5 w-5 text-violet-400" />
+            <h2 className="text-lg font-semibold text-white">Have a Referral Code?</h2>
+          </div>
+          <p className="text-sm text-slate-400 mb-4">
+            If someone referred you to our platform, enter their code below before upgrading.
+          </p>
+          <div className="flex gap-3 items-start">
+            <div className="flex-1">
+              <Input
+                placeholder="Enter referral code (e.g., FRIEND123)"
+                value={referralCode}
+                onChange={(e) => {
+                  setReferralCode(e.target.value.toUpperCase());
+                  setReferralValid(null);
+                }}
+                onBlur={() => validateReferralCode(referralCode)}
+                className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500 uppercase"
+              />
+              {referralValid === true && (
+                <p className="text-sm text-emerald-400 mt-1 flex items-center gap-1">
+                  <Check className="h-4 w-4" /> Valid referral code applied!
+                </p>
+              )}
+              {referralValid === false && (
+                <p className="text-sm text-red-400 mt-1">
+                  Invalid referral code. Please check and try again.
+                </p>
+              )}
+            </div>
+            <Button
+              onClick={() => validateReferralCode(referralCode)}
+              disabled={checkingReferral || !referralCode.trim()}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              {checkingReferral ? 'Checking...' : 'Verify'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Available Plans */}
       <div>

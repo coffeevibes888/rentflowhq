@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const targetTier = body.tier as SubscriptionTier;
+    const referralCode = body.referralCode as string | undefined;
 
     if (!targetTier || !SUBSCRIPTION_TIERS[targetTier]) {
       return NextResponse.json({ success: false, message: 'Invalid subscription tier' }, { status: 400 });
@@ -117,11 +118,13 @@ export async function POST(req: NextRequest) {
       metadata: {
         landlordId: landlord.id,
         tier: targetTier,
+        ...(referralCode && { affiliateCode: referralCode }),
       },
       subscription_data: {
         metadata: {
           landlordId: landlord.id,
           tier: targetTier,
+          ...(referralCode && { affiliateCode: referralCode }),
         },
       },
     });
