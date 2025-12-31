@@ -6,7 +6,7 @@ import { prisma } from '@/db/prisma';
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -82,12 +82,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { name, email, phone, code, paymentMethod, paymentEmail, paymentPhone, notes } = body;
+    const { name, email, phone, code, paymentMethod, paymentEmail, paymentPhone, notes, commissionBasic, commissionPro, commissionEnterprise } = body;
 
     if (!name || !email || !code) {
       return NextResponse.json({ error: 'Name, email, and code are required' }, { status: 400 });
@@ -115,6 +115,9 @@ export async function POST(request: NextRequest) {
         paymentEmail,
         paymentPhone,
         notes,
+        commissionBasic: commissionBasic || 5,
+        commissionPro: commissionPro || 10,
+        commissionEnterprise: commissionEnterprise || 25,
       },
     });
 

@@ -470,45 +470,45 @@ export default function AffiliatesClient({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Name *</Label>
+                <Label className="text-slate-300">Name *</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="John Doe"
-                  className="bg-slate-800 border-white/10"
+                  className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Email *</Label>
+                <Label className="text-slate-300">Email *</Label>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="john@example.com"
-                  className="bg-slate-800 border-white/10"
+                  className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500"
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Phone</Label>
+                <Label className="text-slate-300">Phone</Label>
                 <Input
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="(555) 123-4567"
-                  className="bg-slate-800 border-white/10"
+                  className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Referral Code *</Label>
+                <Label className="text-slate-300">Referral Code *</Label>
                 <div className="flex gap-2">
                   <Input
                     value={formData.code}
                     onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
                     placeholder="SISTER5"
-                    className="bg-slate-800 border-white/10 uppercase"
+                    className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500 uppercase"
                   />
-                  <Button type="button" variant="outline" onClick={generateCode}>
+                  <Button type="button" variant="outline" onClick={generateCode} className="border-white/20 text-white hover:bg-slate-700">
                     Generate
                   </Button>
                 </div>
@@ -516,41 +516,41 @@ export default function AffiliatesClient({
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Basic ($29.99)</Label>
+                <Label className="text-slate-300">Pro ($29.99)</Label>
                 <Input
                   type="number"
                   value={formData.commissionBasic}
                   onChange={(e) => setFormData(prev => ({ ...prev, commissionBasic: Number(e.target.value) }))}
-                  className="bg-slate-800 border-white/10"
+                  className="bg-slate-800 border-white/10 text-white"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Pro ($79.99)</Label>
+                <Label className="text-slate-300">Enterprise ($79.99)</Label>
                 <Input
                   type="number"
                   value={formData.commissionPro}
                   onChange={(e) => setFormData(prev => ({ ...prev, commissionPro: Number(e.target.value) }))}
-                  className="bg-slate-800 border-white/10"
+                  className="bg-slate-800 border-white/10 text-white"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Enterprise</Label>
+                <Label className="text-slate-300">Custom</Label>
                 <Input
                   type="number"
                   value={formData.commissionEnterprise}
                   onChange={(e) => setFormData(prev => ({ ...prev, commissionEnterprise: Number(e.target.value) }))}
-                  className="bg-slate-800 border-white/10"
+                  className="bg-slate-800 border-white/10 text-white"
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Payment Method</Label>
+                <Label className="text-slate-300">Payment Method</Label>
                 <Select
                   value={formData.paymentMethod}
                   onValueChange={(v) => setFormData(prev => ({ ...prev, paymentMethod: v }))}
                 >
-                  <SelectTrigger className="bg-slate-800 border-white/10">
+                  <SelectTrigger className="bg-slate-800 border-white/10 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -562,27 +562,27 @@ export default function AffiliatesClient({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Payment Email/Phone</Label>
+                <Label className="text-slate-300">Payment Email/Phone</Label>
                 <Input
                   value={formData.paymentEmail}
                   onChange={(e) => setFormData(prev => ({ ...prev, paymentEmail: e.target.value }))}
                   placeholder="payment@email.com"
-                  className="bg-slate-800 border-white/10"
+                  className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Notes</Label>
+              <Label className="text-slate-300">Notes</Label>
               <Textarea
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Any notes about this affiliate..."
-                className="bg-slate-800 border-white/10"
+                className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowCreateModal(false)} className="border-white/20 text-white hover:bg-slate-700">Cancel</Button>
             <Button onClick={handleCreate} disabled={isLoading}>
               {isLoading ? 'Creating...' : 'Create Affiliate'}
             </Button>
