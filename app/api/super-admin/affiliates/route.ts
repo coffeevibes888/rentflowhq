@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { sendAffiliateWelcomeEmail } from '@/email';
 
 // GET - List all affiliates with stats
 export async function GET(request: NextRequest) {
@@ -119,6 +120,19 @@ export async function POST(request: NextRequest) {
         commissionPro: commissionPro || 10,
         commissionEnterprise: commissionEnterprise || 25,
       },
+    });
+
+    // Send welcome email with referral link
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://yoursite.com';
+    const referralLink = `${baseUrl}?ref=${affiliate.code}`;
+
+    await sendAffiliateWelcomeEmail({
+      email: affiliate.email,
+      affiliateName: affiliate.name,
+      referralCode: affiliate.code,
+      referralLink,
+      commissionPro: Number(affiliate.commissionBasic), // Pro plan ($29.99)
+      commissionEnterprise: Number(affiliate.commissionPro), // Enterprise plan ($79.99)
     });
 
     return NextResponse.json({ affiliate, success: true });

@@ -8,6 +8,7 @@ import VerifyEmail from './verify-email';
 import ResetPassword from './reset-password';
 import EvictionNoticeEmail from './eviction-notice';
 import DepositDispositionEmail from './deposit-disposition';
+import AffiliateWelcomeEmail from './affiliate-welcome';
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -287,6 +288,55 @@ export const sendOffboardingSummaryEmail = async ({
     return { success: true, messageId: data?.id };
   } catch (err) {
     console.error('❌ Error sending Offboarding Summary email:', err);
+    return { success: false, error: err };
+  }
+};
+
+
+// Affiliate Program Emails
+
+export const sendAffiliateWelcomeEmail = async ({
+  email,
+  affiliateName,
+  referralCode,
+  referralLink,
+  commissionPro,
+  commissionEnterprise,
+}: {
+  email: string;
+  affiliateName: string;
+  referralCode: string;
+  referralLink: string;
+  commissionPro: number;
+  commissionEnterprise: number;
+}) => {
+  try {
+    const html = await render(
+      <AffiliateWelcomeEmail
+        affiliateName={affiliateName}
+        referralCode={referralCode}
+        referralLink={referralLink}
+        commissionPro={commissionPro}
+        commissionEnterprise={commissionEnterprise}
+      />
+    );
+
+    const { data, error } = await resend.emails.send({
+      from: getDefaultSender(),
+      to: email,
+      subject: `🎉 Welcome to the ${APP_NAME} Affiliate Program!`,
+      html,
+    });
+
+    if (error) {
+      console.error('❌ Error sending Affiliate Welcome email:', error);
+      return { success: false, error };
+    }
+
+    console.log('✓ Affiliate Welcome Email Sent:', data?.id);
+    return { success: true, messageId: data?.id };
+  } catch (err) {
+    console.error('❌ Error sending Affiliate Welcome email:', err);
     return { success: false, error: err };
   }
 };
