@@ -851,12 +851,12 @@ export default function DocumentsClient({
                 Create Custom Lease
               </DialogTitle>
               <DialogDescription className="text-slate-400">
-                Select a property and unit to generate a comprehensive, state-aware lease agreement.
+                Select a property to generate a comprehensive, state-aware lease agreement.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4 overflow-visible">
               <div className="space-y-2">
-                <Label>Property</Label>
+                <Label>Property <span className="text-red-400">*</span></Label>
                 <Select
                   value={leaseBuilderProperty?.id || ''}
                   onValueChange={handlePropertySelectForLease}
@@ -880,44 +880,53 @@ export default function DocumentsClient({
               
               {leaseBuilderProperty && (
                 <div className="space-y-2">
-                  <Label>Unit</Label>
-                  <Select
-                    value={leaseBuilderUnit?.id || ''}
-                    onValueChange={(value) => {
-                      const unit = units.find(u => u.id === value);
-                      setLeaseBuilderUnit(unit || null);
-                    }}
-                  >
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                      <SelectValue placeholder="Select a unit..." />
-                    </SelectTrigger>
-                    <SelectContent 
-                      className="bg-slate-800 border-slate-700 text-white z-[9999]" 
-                      position="popper" 
-                      sideOffset={4}
+                  <Label>Unit <span className="text-slate-500 text-xs font-normal">(Optional)</span></Label>
+                  {units.length === 0 ? (
+                    <p className="text-xs text-slate-400 bg-slate-800 rounded-lg p-3">
+                      No units found for this property. You can still create a lease template - just enter the rent amount in the next step.
+                    </p>
+                  ) : (
+                    <Select
+                      value={leaseBuilderUnit?.id || '_none'}
+                      onValueChange={(value) => {
+                        if (value === '_none') {
+                          setLeaseBuilderUnit(null);
+                        } else {
+                          const unit = units.find(u => u.id === value);
+                          setLeaseBuilderUnit(unit || null);
+                        }
+                      }}
                     >
-                      {units.length === 0 ? (
-                        <SelectItem value="_none" disabled className="text-slate-400">No units found</SelectItem>
-                      ) : (
-                        units.map((unit) => (
+                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                        <SelectValue placeholder="Select a unit (optional)..." />
+                      </SelectTrigger>
+                      <SelectContent 
+                        className="bg-slate-800 border-slate-700 text-white z-[9999]" 
+                        position="popper" 
+                        sideOffset={4}
+                      >
+                        <SelectItem value="_none" className="text-slate-400 hover:bg-slate-700 focus:bg-slate-700">
+                          No specific unit (create template)
+                        </SelectItem>
+                        {units.map((unit) => (
                           <SelectItem key={unit.id} value={unit.id} className="text-white hover:bg-slate-700 focus:bg-slate-700 focus:text-white">
                             {unit.name} ({unit.type}) - ${Number(unit.rentAmount).toLocaleString()}/mo
                           </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               )}
               
               <Button
                 onClick={() => {
-                  if (leaseBuilderProperty && leaseBuilderUnit) {
+                  if (leaseBuilderProperty) {
                     setSelectPropertyDialogOpen(false);
                     setShowLeaseBuilder(true);
                   }
                 }}
-                disabled={!leaseBuilderProperty || !leaseBuilderUnit}
+                disabled={!leaseBuilderProperty}
                 className="w-full bg-emerald-600 hover:bg-emerald-700"
               >
                 <Wand2 className="h-4 w-4 mr-2" />
@@ -928,7 +937,7 @@ export default function DocumentsClient({
         </Dialog>
 
         {/* Lease Builder Modal */}
-        {leaseBuilderProperty && leaseBuilderUnit && (
+        {leaseBuilderProperty && (
           <LeaseBuilderModal
             open={showLeaseBuilder}
             onClose={() => {

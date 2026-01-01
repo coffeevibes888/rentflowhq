@@ -44,7 +44,7 @@ interface LeaseBuilderModalProps {
   open: boolean;
   onClose: () => void;
   property: Property;
-  unit: Unit;
+  unit?: Unit | null;
   tenantId?: string;
   tenantName?: string;
   tenantEmail?: string;
@@ -94,6 +94,8 @@ export default function LeaseBuilderModal({
     earlyTerminationNoticeDays: 60,
     
     // Payment
+    rentAmount: unit?.rentAmount || 0,
+    unitName: unit?.name || '',
     rentDueDay: 1,
     gracePeriodDays: 5,
     lateFeePercent: 5,
@@ -137,6 +139,10 @@ export default function LeaseBuilderModal({
     floodZoneDisclosure: false,
     propertyBuiltBefore1978: false,
   });
+  
+  // Get the effective rent amount (from unit or form)
+  const effectiveRentAmount = unit?.rentAmount || formData.rentAmount;
+  const effectiveUnitName = unit?.name || formData.unitName || 'Unit';
 
   const updateForm = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -178,7 +184,7 @@ export default function LeaseBuilderModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           propertyId: property.id,
-          unitId: unit.id,
+          unitId: unit?.id,
           tenantId,
           leaseTerms: {
             startDate: formData.startDate,
@@ -187,6 +193,9 @@ export default function LeaseBuilderModal({
             billingDayOfMonth: formData.rentDueDay,
           },
           customizations: buildCustomizations(),
+          // Pass rent info when no unit
+          rentAmount: !unit ? formData.rentAmount : undefined,
+          unitName: !unit ? formData.unitName : undefined,
         }),
       });
       
@@ -243,7 +252,7 @@ export default function LeaseBuilderModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           propertyId: property.id,
-          unitId: unit.id,
+          unitId: unit?.id,
           tenantId,
           leaseTerms: {
             startDate: formData.startDate,
@@ -252,6 +261,9 @@ export default function LeaseBuilderModal({
             billingDayOfMonth: formData.rentDueDay,
           },
           customizations: buildCustomizations(),
+          // Pass rent info when no unit
+          rentAmount: !unit ? formData.rentAmount : undefined,
+          unitName: !unit ? formData.unitName : undefined,
           saveAsTemplate: false,
         }),
       });
@@ -281,7 +293,7 @@ export default function LeaseBuilderModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <FileText className="h-5 w-5 text-violet-400" />
-            Create Custom Lease - {property.name} / {unit.name}
+            Create Custom Lease - {property.name}{unit ? ` / ${unit.name}` : ''}
           </DialogTitle>
         </DialogHeader>
 
@@ -390,9 +402,34 @@ export default function LeaseBuilderModal({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white">Payment Terms</h3>
               
-              <div className="p-4 bg-slate-800 rounded-lg">
-                <p className="text-slate-300">Monthly Rent: <span className="text-white font-bold">${Number(unit.rentAmount).toLocaleString()}</span></p>
-              </div>
+              {unit ? (
+                <div className="p-4 bg-slate-800 rounded-lg">
+                  <p className="text-slate-300">Monthly Rent: <span className="text-white font-bold">${Number(unit.rentAmount).toLocaleString()}</span></p>
+                  <p className="text-slate-400 text-sm">Unit: {unit.name}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-slate-300">Unit/Room Name <span className="text-slate-500 text-xs">(Optional)</span></Label>
+                    <Input
+                      value={formData.unitName}
+                      onChange={e => updateForm('unitName', e.target.value)}
+                      placeholder="e.g., Unit A, Master Bedroom"
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-slate-300">Monthly Rent ($) <span className="text-red-400">*</span></Label>
+                    <Input
+                      type="number"
+                      value={formData.rentAmount || ''}
+                      onChange={e => updateForm('rentAmount', Number(e.target.value))}
+                      placeholder="Enter rent amount"
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                </div>
+              )}
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -470,7 +507,7 @@ export default function LeaseBuilderModal({
                     </SelectContent>
                   </Select>
                   <p className="text-sm text-slate-400 mt-1">
-                    = ${(Number(unit.rentAmount) * formData.securityDepositMonths).toLocaleString()}
+                    = ${(effectiveRentAmount * formData.securityDepositMonths).toLocaleString()}
                   </p>
                 </div>
                 <div>
@@ -771,7 +808,7 @@ export default function LeaseBuilderModal({
                 <div className="p-4 bg-slate-800 rounded-lg space-y-2">
                   <h4 className="font-medium text-violet-400">Property</h4>
                   <p className="text-white">{property.name}</p>
-                  <p className="text-slate-400">Unit: {unit.name}</p>
+                  <p className="text-slate-400">Unit: {effectiveUnitName}</p>
                 </div>
                 
                 <div className="p-4 bg-slate-800 rounded-lg space-y-2">
@@ -790,13 +827,13 @@ export default function LeaseBuilderModal({
                 
                 <div className="p-4 bg-slate-800 rounded-lg space-y-2">
                   <h4 className="font-medium text-violet-400">Rent</h4>
-                  <p className="text-white">${Number(unit.rentAmount).toLocaleString()}/month</p>
+                  <p className="text-white">${effectiveRentAmount.toLocaleString()}/month</p>
                   <p className="text-slate-400">Due on the {formData.rentDueDay}st</p>
                 </div>
                 
                 <div className="p-4 bg-slate-800 rounded-lg space-y-2">
                   <h4 className="font-medium text-violet-400">Security Deposit</h4>
-                  <p className="text-white">${(Number(unit.rentAmount) * formData.securityDepositMonths).toLocaleString()}</p>
+                  <p className="text-white">${(effectiveRentAmount * formData.securityDepositMonths).toLocaleString()}</p>
                   <p className="text-slate-400">{formData.securityDepositMonths} month(s) rent</p>
                 </div>
                 
