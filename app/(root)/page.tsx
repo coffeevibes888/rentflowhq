@@ -406,7 +406,7 @@ const Homepage = async () => {
                   step: '4',
                   icon: CreditCard,
                   title: 'Collect Rent Online',
-                  description: 'Tenants pay through Stripe. Money goes directly to your bank account. Automated reminders included.',
+                  description: 'Tenants pay through Stripe. Cash out to your bank anytime. Automated reminders included.',
                   iconBg: 'bg-violet-500/20',
                   iconBorder: 'border-violet-400/40',
                   iconColor: 'text-violet-300',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,8 +36,9 @@ interface PricingStepProps {
 }
 
 export function PricingStep({ setValidate }: PricingStepProps) {
-  const { state, updateFormData, setValidationErrors, clearValidationErrors } = useWizard();
+  const { state, updateFormData } = useWizard();
   const isRental = state.listingType === 'rent';
+  const isInitialMount = useRef(true);
 
   const schema = isRental ? rentalPricingSchema : salePricingSchema;
 
@@ -59,24 +60,46 @@ export function PricingStep({ setValidate }: PricingStepProps) {
         },
   });
 
-  const { register, watch, setValue, formState: { errors }, trigger } = form;
-  const watchedValues = watch();
+  const { register, watch, setValue, formState: { errors }, trigger, getValues } = form;
+  
+  // Watch individual fields to avoid infinite loops
+  const rentAmount = watch('rentAmount');
+  const depositAmount = watch('depositAmount');
+  const leaseTerm = watch('leaseTerm');
+  const availableFrom = watch('availableFrom');
+  const salePrice = watch('salePrice');
+  const videoUrl = watch('videoUrl');
+  const virtualTourUrl = watch('virtualTourUrl');
 
+  // Update wizard state when values change (skip initial mount)
   useEffect(() => {
-    const data: Record<string, any> = { ...watchedValues };
-    // Convert null to undefined for compatibility
-    if (data.depositAmount === null) data.depositAmount = undefined;
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    const data: Record<string, unknown> = {};
+    if (isRental) {
+      data.rentAmount = rentAmount;
+      data.depositAmount = depositAmount === null ? undefined : depositAmount;
+      data.leaseTerm = leaseTerm;
+      data.availableFrom = availableFrom;
+    } else {
+      data.salePrice = salePrice;
+    }
+    data.videoUrl = videoUrl;
+    data.virtualTourUrl = virtualTourUrl;
+    
     updateFormData(data);
-  }, [watchedValues, updateFormData]);
+  }, [rentAmount, depositAmount, leaseTerm, availableFrom, salePrice, videoUrl, virtualTourUrl, isRental, updateFormData]);
 
   const validate = useCallback(() => {
-    const values = form.getValues();
+    const values = getValues();
     const isValid = isRental 
       ? !!(values.rentAmount && values.rentAmount > 0)
       : !!(values.salePrice && values.salePrice > 0);
-    trigger(); // Trigger async validation for UI feedback
     return isValid;
-  }, [trigger, form, isRental]);
+  }, [getValues, isRental]);
 
   useEffect(() => {
     setValidate(validate);
@@ -156,7 +179,7 @@ export function PricingStep({ setValidate }: PricingStepProps) {
                 Lease Term
               </Label>
               <Select
-                value={String(watchedValues.leaseTerm || 12)}
+                value={String(leaseTerm || 12)}
                 onValueChange={(v) => setValue('leaseTerm', parseInt(v))}
               >
                 <SelectTrigger className="bg-indigo-800/50 border-indigo-600 text-white">
@@ -185,24 +208,6 @@ export function PricingStep({ setValidate }: PricingStepProps) {
               />
             </div>
           </div>
-
-          {/* Rent estimate hint */}
-          {state.formData.rentAmount && watchedValues.rentAmount && (
-            <div className="bg-indigo-800/30 rounded-xl p-4 border border-indigo-600/50">
-              <p className="text-sm text-indigo-300">
-                Zillow Rent Estimate:{' '}
-                <span className="text-emerald-400 font-medium">
-                  {formatCurrency(state.formData.rentAmount)}
-                </span>
-                {watchedValues.rentAmount !== state.formData.rentAmount && (
-                  <span className="ml-2">
-                    (Your price:{' '}
-                    <span className="text-white">{formatCurrency(watchedValues.rentAmount)}</span>)
-                  </span>
-                )}
-              </p>
-            </div>
-          )}
         </div>
       ) : (
         /* Sale Pricing */
@@ -226,18 +231,6 @@ export function PricingStep({ setValidate }: PricingStepProps) {
               <p className="text-sm text-red-400">{errors.salePrice.message as string}</p>
             )}
           </div>
-
-          {/* Zestimate hint */}
-          {state.formData.salePrice && (
-            <div className="bg-indigo-800/30 rounded-xl p-4 border border-indigo-600/50">
-              <p className="text-sm text-indigo-300">
-                Zillow Zestimate:{' '}
-                <span className="text-emerald-400 font-medium">
-                  {formatCurrency(state.formData.salePrice)}
-                </span>
-              </p>
-            </div>
-          )}
         </div>
       )}
 

@@ -10,11 +10,11 @@ const faqs = [
   },
   {
     question: 'How does rent collection work?',
-    answer: 'Tenants pay rent through our secure Stripe-powered payment system. They can use credit cards, debit cards, or bank transfers (ACH). Funds are deposited directly to your bank account within 2-3 business days. We charge a flat $2 fee per payment — not a percentage of rent.',
+    answer: 'Tenants pay rent through our secure Stripe-powered payment system. They can use credit cards, debit cards, or bank transfers (ACH). Funds are held in your account and you can cash out to your bank anytime. We charge a flat $2 fee per payment — not a percentage of rent.',
   },
   {
     question: 'Can tenants pay rent in cash?',
-    answer: 'Yes! We partner with PayNearMe, GreenDot, and MoneyGram to allow tenants to pay cash at thousands of retail locations nationwide. The payment is automatically recorded in your dashboard.',
+    answer: 'Yes! Landlords can record cash payments received directly from tenants through the tenant management dashboard. The payment is tracked and reflected in the tenant\'s payment history.',
   },
   {
     question: 'How do digital leases and e-signatures work?',

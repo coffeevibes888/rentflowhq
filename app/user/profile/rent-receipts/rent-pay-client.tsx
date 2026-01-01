@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import RentStripePayment from './rent-stripe-payment';
-import CashPaymentOption from './cash-payment-option';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Banknote } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 
 export default function RentPayClient({
   rentPaymentIds,
@@ -23,8 +22,6 @@ export default function RentPayClient({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showPaymentOptions, setShowPaymentOptions] = useState(false);
-
-  const totalAmount = totalInCents / 100;
 
   const handleStartPayment = async () => {
     try {
@@ -110,12 +107,6 @@ export default function RentPayClient({
           {isLoading ? 'Preparing payment...' : 'Pay with Card or Bank'}
         </Button>
 
-        {/* Cash Payment */}
-        <CashPaymentOption
-          rentPaymentIds={rentPaymentIds}
-          totalAmount={totalAmount}
-        />
-
         <Button
           variant='ghost'
           size='sm'
@@ -128,7 +119,6 @@ export default function RentPayClient({
         <div className='text-xs text-slate-400 space-y-1 pt-2 border-t border-white/10'>
           <p>✓ Bank transfer (ACH) is FREE with no convenience fee</p>
           <p>✓ Card/wallet payments have a $2 convenience fee</p>
-          <p>✓ Cash payments have a $3.99 retail fee</p>
         </div>
       </div>
     );
@@ -151,7 +141,7 @@ export default function RentPayClient({
       <div className='text-xs text-slate-400 space-y-1'>
         <p>✓ Multiple payment options available</p>
         <p>✓ Bank transfer (ACH) is FREE with no convenience fee</p>
-        <p>✓ Card, wallet, or cash payments accepted</p>
+        <p>✓ Card and wallet payments accepted</p>
       </div>
     </div>
   );

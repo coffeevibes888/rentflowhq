@@ -20,7 +20,6 @@ export const SUBSCRIPTION_TIERS = {
       advancedAnalytics: false,
       quickbooksIntegration: false,
       turbotaxIntegration: false,
-      zillowComps: true, // Free tier gets Zillow neighborhood comps
       contractorManagement: false, // PRO feature
       // Enterprise-only features
       shiftScheduling: false,
@@ -52,7 +51,6 @@ export const SUBSCRIPTION_TIERS = {
       advancedAnalytics: true,
       quickbooksIntegration: true,
       turbotaxIntegration: true,
-      zillowComps: true,
       contractorManagement: true, // PRO feature - manage contractors, work orders, payments
       // Enterprise-only features (disabled for Pro)
       shiftScheduling: false,
@@ -84,7 +82,6 @@ export const SUBSCRIPTION_TIERS = {
       advancedAnalytics: true,
       quickbooksIntegration: true,
       turbotaxIntegration: true,
-      zillowComps: true,
       contractorManagement: true,
       // Enterprise-only Team Operations features
       shiftScheduling: true,

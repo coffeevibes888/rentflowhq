@@ -239,7 +239,7 @@ export default function StripeConnectOnboarding({ onComplete }: { onComplete?: (
           </div>
           <div>
             <h2 className="text-xl font-bold">Set Up Payouts</h2>
-            <p className="text-violet-200 text-sm">Receive rent payments directly to your bank</p>
+            <p className="text-violet-200 text-sm">Connect your bank to cash out collected rent</p>
           </div>
         </div>
       </div>
@@ -259,9 +259,9 @@ export default function StripeConnectOnboarding({ onComplete }: { onComplete?: (
               <CreditCard className="h-4 w-4 text-violet-600 dark:text-violet-400" />
             </div>
             <div>
-              <p className="font-medium text-sm">Direct Bank Deposits</p>
+              <p className="font-medium text-sm">Cash Out Anytime</p>
               <p className="text-xs text-muted-foreground">
-                Rent payments deposited directly to your bank account
+                Transfer collected rent to your bank when you're ready
               </p>
             </div>
           </div>

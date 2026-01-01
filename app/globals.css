@@ -444,6 +444,11 @@
   border-color: rgb(239, 68, 68);
 }
 
+/* Fix Select dropdown z-index inside dialogs */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
 /* Print styles for inspection reports */
 @media print {
   .no-print { display: none !important; }

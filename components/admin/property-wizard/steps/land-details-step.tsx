@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -57,6 +57,7 @@ const TOPOGRAPHY_OPTIONS = [
 
 export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
   const { state, updateFormData } = useWizard();
+  const isInitialMount = useRef(true);
 
   const form = useForm<LandFormData>({
     resolver: zodResolver(landSchema),
@@ -74,20 +75,34 @@ export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
     },
   });
 
-  const { register, watch, setValue, formState: { errors } } = form;
-  const watchedValues = watch();
+  const { register, watch, setValue, formState: { errors }, getValues } = form;
+  
+  // Watch individual fields
+  const lotSize = watch('lotSize');
+  const lotSizeUnit = watch('lotSizeUnit');
+  const zoningType = watch('zoningType');
+  const topography = watch('topography');
+  const roadAccess = watch('roadAccess');
+  const waterAvailable = watch('waterAvailable');
+  const sewerAvailable = watch('sewerAvailable');
+  const electricAvailable = watch('electricAvailable');
+  const gasAvailable = watch('gasAvailable');
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     updateFormData({
-      lotSize: watchedValues.lotSize,
-      zoningType: watchedValues.zoningType,
+      lotSize,
+      zoningType,
     });
-  }, [watchedValues, updateFormData]);
+  }, [lotSize, zoningType, updateFormData]);
 
   const validate = useCallback((): boolean => {
-    const values = form.getValues();
+    const values = getValues();
     return values.lotSize > 0;
-  }, [form]);
+  }, [getValues]);
 
   useEffect(() => {
     setValidate(validate);
@@ -95,11 +110,11 @@ export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
   }, [setValidate, validate]);
 
   const utilities = [
-    { key: 'roadAccess', label: 'Road Access', icon: Route, color: 'text-slate-400' },
-    { key: 'waterAvailable', label: 'Water', icon: Droplets, color: 'text-blue-400' },
-    { key: 'sewerAvailable', label: 'Sewer', icon: Building2, color: 'text-amber-400' },
-    { key: 'electricAvailable', label: 'Electric', icon: Zap, color: 'text-yellow-400' },
-    { key: 'gasAvailable', label: 'Natural Gas', icon: Zap, color: 'text-orange-400' },
+    { key: 'roadAccess', label: 'Road Access', icon: Route, color: 'text-slate-400', value: roadAccess },
+    { key: 'waterAvailable', label: 'Water', icon: Droplets, color: 'text-blue-400', value: waterAvailable },
+    { key: 'sewerAvailable', label: 'Sewer', icon: Building2, color: 'text-amber-400', value: sewerAvailable },
+    { key: 'electricAvailable', label: 'Electric', icon: Zap, color: 'text-yellow-400', value: electricAvailable },
+    { key: 'gasAvailable', label: 'Natural Gas', icon: Zap, color: 'text-orange-400', value: gasAvailable },
   ];
 
   return (
@@ -127,7 +142,7 @@ export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
             {...register('lotSize', { valueAsNumber: true })}
           />
           <Select
-            value={watchedValues.lotSizeUnit}
+            value={lotSizeUnit}
             onValueChange={(v) => setValue('lotSizeUnit', v as 'acres' | 'sqft')}
           >
             <SelectTrigger className="w-32 bg-slate-800 border-slate-700 text-white">
@@ -149,7 +164,7 @@ export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
         <div className="space-y-2">
           <Label className="text-slate-200">Zoning</Label>
           <Select
-            value={watchedValues.zoningType || ''}
+            value={zoningType || ''}
             onValueChange={(v) => setValue('zoningType', v)}
           >
             <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
@@ -171,7 +186,7 @@ export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
             Topography
           </Label>
           <Select
-            value={watchedValues.topography || ''}
+            value={topography || ''}
             onValueChange={(v) => setValue('topography', v)}
           >
             <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
@@ -194,14 +209,13 @@ export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {utilities.map((utility) => {
             const Icon = utility.icon;
-            const isEnabled = watchedValues[utility.key as keyof LandFormData] as boolean;
 
             return (
               <div
                 key={utility.key}
                 className={cn(
                   'flex items-center justify-between p-3 rounded-xl border transition-all',
-                  isEnabled
+                  utility.value
                     ? 'border-emerald-500/50 bg-emerald-500/10'
                     : 'border-slate-700 bg-slate-800/30'
                 )}
@@ -211,8 +225,8 @@ export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
                   <span className="text-sm text-slate-200">{utility.label}</span>
                 </div>
                 <Switch
-                  checked={isEnabled}
-                  onCheckedChange={(checked) => setValue(utility.key as any, checked)}
+                  checked={utility.value}
+                  onCheckedChange={(checked) => setValue(utility.key as keyof LandFormData, checked)}
                 />
               </div>
             );
@@ -237,19 +251,19 @@ export function LandDetailsStep({ setValidate }: LandDetailsStepProps) {
           <div>
             <p className="text-slate-400">Size</p>
             <p className="text-white font-medium">
-              {watchedValues.lotSize ? `${watchedValues.lotSize} ${watchedValues.lotSizeUnit}` : 'Not set'}
+              {lotSize ? `${lotSize} ${lotSizeUnit}` : 'Not set'}
             </p>
           </div>
           <div>
             <p className="text-slate-400">Zoning</p>
             <p className="text-white font-medium">
-              {ZONING_OPTIONS.find(z => z.value === watchedValues.zoningType)?.label || 'Not set'}
+              {ZONING_OPTIONS.find(z => z.value === zoningType)?.label || 'Not set'}
             </p>
           </div>
           <div className="col-span-2">
             <p className="text-slate-400">Available Utilities</p>
             <p className="text-white font-medium">
-              {utilities.filter(u => watchedValues[u.key as keyof LandFormData]).map(u => u.label).join(', ') || 'None specified'}
+              {utilities.filter(u => u.value).map(u => u.label).join(', ') || 'None specified'}
             </p>
           </div>
         </div>

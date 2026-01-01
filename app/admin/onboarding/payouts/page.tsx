@@ -35,7 +35,7 @@ const PayoutsOnboardingPage = async () => {
               </span>
             </div>
             <p className='text-sm md:text-base text-slate-600 max-w-2xl'>
-              Link your bank account so rent payments flow directly to you. Your banking details are encrypted and securely processed.
+              Link your bank account so you can cash out collected rent. Your banking details are encrypted and securely processed.
             </p>
           </div>
           <div className='w-full rounded-full bg-slate-200 h-3 overflow-hidden'>
@@ -57,7 +57,7 @@ const PayoutsOnboardingPage = async () => {
             {hasStripeAccount ? 'Almost there' : 'Set up your payout account'}
           </h2>
           <p className='text-sm md:text-base text-slate-600'>
-            Complete a quick verification to start receiving rent payments directly to your bank account.
+            Complete a quick verification to cash out rent payments to your bank account.
           </p>
           <ul className='list-disc list-inside text-sm md:text-base text-slate-600 space-y-1'>
             <li>Confirm your business or personal details</li>

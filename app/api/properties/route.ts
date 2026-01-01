@@ -15,6 +15,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unable to determine landlord' }, { status: 400 });
     }
 
+    // Check if we should include units
+    const url = new URL(req.url);
+    const includeUnits = url.searchParams.get('includeUnits') === 'true';
+
     const properties = await prisma.property.findMany({
       where: { landlordId: landlordResult.landlord.id },
       select: {
@@ -22,6 +26,8 @@ export async function GET(req: NextRequest) {
         name: true,
         slug: true,
         type: true,
+        address: true,
+        amenities: true,
         defaultLeaseDocumentId: true,
         defaultLeaseDocument: {
           select: {
@@ -30,6 +36,16 @@ export async function GET(req: NextRequest) {
             isFieldsConfigured: true,
           },
         },
+        units: includeUnits ? {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            rentAmount: true,
+            isAvailable: true,
+          },
+          orderBy: { name: 'asc' },
+        } : false,
         _count: {
           select: { units: true },
         },
@@ -44,9 +60,12 @@ export async function GET(req: NextRequest) {
         name: p.name,
         slug: p.slug,
         type: p.type,
+        address: p.address,
+        amenities: p.amenities,
         defaultLeaseDocumentId: p.defaultLeaseDocumentId,
         defaultLeaseDocument: p.defaultLeaseDocument,
         unitCount: p._count.units,
+        units: includeUnits ? p.units : undefined,
       })),
     });
   } catch (error) {

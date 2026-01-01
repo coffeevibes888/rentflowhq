@@ -1,0 +1,891 @@
+'use client';
+
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  FileText, 
+  Calendar, 
+  DollarSign, 
+  Shield, 
+  Zap, 
+  PawPrint,
+  Volume2,
+  FileCheck,
+  Loader2,
+  Eye,
+  Check,
+  ChevronRight,
+  ChevronLeft,
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
+interface Property {
+  id: string;
+  name: string;
+  address?: any;
+  amenities?: string[];
+}
+
+interface Unit {
+  id: string;
+  name: string;
+  type: string;
+  rentAmount: number;
+}
+
+interface LeaseBuilderModalProps {
+  open: boolean;
+  onClose: () => void;
+  property: Property;
+  unit: Unit;
+  tenantId?: string;
+  tenantName?: string;
+  tenantEmail?: string;
+  onLeaseGenerated?: (document: any) => void;
+}
+
+const STEPS = [
+  { id: 'term', title: 'Lease Term', icon: Calendar },
+  { id: 'payment', title: 'Payment', icon: DollarSign },
+  { id: 'deposit', title: 'Deposit & Fees', icon: Shield },
+  { id: 'utilities', title: 'Utilities', icon: Zap },
+  { id: 'pets', title: 'Pet Policy', icon: PawPrint },
+  { id: 'rules', title: 'Rules', icon: Volume2 },
+  { id: 'disclosures', title: 'Disclosures', icon: FileText },
+  { id: 'review', title: 'Review', icon: FileCheck },
+];
+
+const UTILITY_OPTIONS = [
+  'Electric', 'Gas', 'Water', 'Sewer', 'Trash', 'Internet', 'Cable', 'Phone',
+];
+
+export default function LeaseBuilderModal({
+  open,
+  onClose,
+  property,
+  unit,
+  tenantId,
+  tenantName,
+  tenantEmail,
+  onLeaseGenerated,
+}: LeaseBuilderModalProps) {
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [generating, setGenerating] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    // Lease Term
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: '',
+    isMonthToMonth: true,
+    autoRenewal: true,
+    renewalNoticeDays: 30,
+    earlyTerminationFee: '',
+    earlyTerminationNoticeDays: 60,
+    
+    // Payment
+    rentDueDay: 1,
+    gracePeriodDays: 5,
+    lateFeePercent: 5,
+    lateFeeStartDay: 6,
+    bouncedCheckFee: 35,
+    allowPartialPayments: false,
+    
+    // Deposit
+    securityDepositMonths: 1,
+    depositReturnDays: 30,
+    
+    // Utilities
+    tenantPaysUtilities: ['Electric', 'Gas', 'Internet', 'Cable'],
+    landlordPaysUtilities: ['Water', 'Sewer', 'Trash'],
+    
+    // Pets
+    petsAllowed: false,
+    petRestrictions: '',
+    petDeposit: '',
+    petRent: '',
+    
+    // Rules
+    smokingAllowed: false,
+    smokingAreas: '',
+    quietHoursStart: '10:00 PM',
+    quietHoursEnd: '8:00 AM',
+    entryNoticeDays: 24,
+    moveOutNoticeDays: 30,
+    rentersInsuranceRequired: false,
+    minInsuranceCoverage: 100000,
+    
+    // Additional
+    parkingRules: '',
+    additionalTerms: '',
+    
+    // Disclosures
+    leadPaintDisclosure: false,
+    moldDisclosure: false,
+    bedBugDisclosure: false,
+    radonDisclosure: false,
+    floodZoneDisclosure: false,
+    propertyBuiltBefore1978: false,
+  });
+
+  const updateForm = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleUtility = (utility: string, type: 'tenant' | 'landlord') => {
+    const tenantList = [...formData.tenantPaysUtilities];
+    const landlordList = [...formData.landlordPaysUtilities];
+    
+    if (type === 'tenant') {
+      if (tenantList.includes(utility)) {
+        tenantList.splice(tenantList.indexOf(utility), 1);
+      } else {
+        tenantList.push(utility);
+        const idx = landlordList.indexOf(utility);
+        if (idx > -1) landlordList.splice(idx, 1);
+      }
+    } else {
+      if (landlordList.includes(utility)) {
+        landlordList.splice(landlordList.indexOf(utility), 1);
+      } else {
+        landlordList.push(utility);
+        const idx = tenantList.indexOf(utility);
+        if (idx > -1) tenantList.splice(idx, 1);
+      }
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      tenantPaysUtilities: tenantList,
+      landlordPaysUtilities: landlordList,
+    }));
+  };
+
+  const handlePreview = async () => {
+    try {
+      const res = await fetch('/api/lease-builder/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propertyId: property.id,
+          unitId: unit.id,
+          tenantId,
+          leaseTerms: {
+            startDate: formData.startDate,
+            endDate: formData.isMonthToMonth ? null : formData.endDate,
+            isMonthToMonth: formData.isMonthToMonth,
+            billingDayOfMonth: formData.rentDueDay,
+          },
+          customizations: buildCustomizations(),
+        }),
+      });
+      
+      if (res.ok) {
+        const html = await res.text();
+        setPreviewHtml(html);
+        setShowPreview(true);
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Preview failed' });
+    }
+  };
+
+  const buildCustomizations = () => ({
+    gracePeriodDays: formData.gracePeriodDays,
+    lateFeePercent: formData.lateFeePercent,
+    lateFeeStartDay: formData.lateFeeStartDay,
+    bouncedCheckFee: formData.bouncedCheckFee ? Number(formData.bouncedCheckFee) : undefined,
+    allowPartialPayments: formData.allowPartialPayments,
+    depositReturnDays: formData.depositReturnDays,
+    autoRenewal: formData.autoRenewal,
+    renewalNoticeDays: formData.renewalNoticeDays,
+    earlyTerminationFee: formData.earlyTerminationFee ? Number(formData.earlyTerminationFee) : undefined,
+    earlyTerminationNoticeDays: formData.earlyTerminationNoticeDays,
+    tenantPaysUtilities: formData.tenantPaysUtilities,
+    landlordPaysUtilities: formData.landlordPaysUtilities,
+    petsAllowed: formData.petsAllowed,
+    petRestrictions: formData.petRestrictions || undefined,
+    petDeposit: formData.petDeposit ? Number(formData.petDeposit) : undefined,
+    petRent: formData.petRent ? Number(formData.petRent) : undefined,
+    smokingAllowed: formData.smokingAllowed,
+    smokingAreas: formData.smokingAreas || undefined,
+    quietHoursStart: formData.quietHoursStart,
+    quietHoursEnd: formData.quietHoursEnd,
+    entryNoticeDays: formData.entryNoticeDays,
+    moveOutNoticeDays: formData.moveOutNoticeDays,
+    rentersInsuranceRequired: formData.rentersInsuranceRequired,
+    minInsuranceCoverage: formData.minInsuranceCoverage,
+    parkingRules: formData.parkingRules || undefined,
+    additionalTerms: formData.additionalTerms ? formData.additionalTerms.split('\n').filter(Boolean) : undefined,
+    // Disclosures
+    leadPaintDisclosure: formData.leadPaintDisclosure,
+    moldDisclosure: formData.moldDisclosure,
+    bedBugDisclosure: formData.bedBugDisclosure,
+    radonDisclosure: formData.radonDisclosure,
+    floodZoneDisclosure: formData.floodZoneDisclosure,
+  });
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const res = await fetch('/api/lease-builder/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propertyId: property.id,
+          unitId: unit.id,
+          tenantId,
+          leaseTerms: {
+            startDate: formData.startDate,
+            endDate: formData.isMonthToMonth ? null : formData.endDate,
+            isMonthToMonth: formData.isMonthToMonth,
+            billingDayOfMonth: formData.rentDueDay,
+          },
+          customizations: buildCustomizations(),
+          saveAsTemplate: false,
+        }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        toast({ title: 'Lease generated successfully!' });
+        onLeaseGenerated?.(data.document);
+        onClose();
+      } else {
+        const err = await res.json();
+        toast({ variant: 'destructive', title: 'Failed to generate lease', description: err.message });
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Failed to generate lease' });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-slate-900 border-slate-700">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <FileText className="h-5 w-5 text-violet-400" />
+            Create Custom Lease - {property.name} / {unit.name}
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Progress Steps */}
+        <div className="flex items-center justify-between px-2 py-4 border-b border-slate-700">
+          {STEPS.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = index === currentStep;
+            const isComplete = index < currentStep;
+            
+            return (
+              <button
+                key={step.id}
+                onClick={() => setCurrentStep(index)}
+                className={cn(
+                  'flex flex-col items-center gap-1 transition-colors',
+                  isActive ? 'text-violet-400' : isComplete ? 'text-emerald-400' : 'text-slate-500'
+                )}
+              >
+                <div className={cn(
+                  'w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors',
+                  isActive ? 'border-violet-400 bg-violet-400/20' : 
+                  isComplete ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-600'
+                )}>
+                  {isComplete ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                </div>
+                <span className="text-xs hidden sm:block">{step.title}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Step Content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Step 0: Lease Term */}
+          {currentStep === 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Lease Term</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-300">Start Date</Label>
+                  <Input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={e => updateForm('startDate', e.target.value)}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={formData.isMonthToMonth}
+                    onCheckedChange={v => updateForm('isMonthToMonth', v)}
+                  />
+                  <Label className="text-slate-300">Month-to-Month</Label>
+                </div>
+              </div>
+              
+              {!formData.isMonthToMonth && (
+                <div>
+                  <Label className="text-slate-300">End Date</Label>
+                  <Input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={e => updateForm('endDate', e.target.value)}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={formData.autoRenewal}
+                  onCheckedChange={v => updateForm('autoRenewal', v)}
+                />
+                <Label className="text-slate-300">Auto-renew to month-to-month</Label>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-300">Renewal Notice (days)</Label>
+                  <Input
+                    type="number"
+                    value={formData.renewalNoticeDays}
+                    onChange={e => updateForm('renewalNoticeDays', Number(e.target.value))}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-300">Early Termination Fee ($)</Label>
+                  <Input
+                    type="number"
+                    value={formData.earlyTerminationFee}
+                    onChange={e => updateForm('earlyTerminationFee', e.target.value)}
+                    placeholder="Optional"
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Payment */}
+          {currentStep === 1 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Payment Terms</h3>
+              
+              <div className="p-4 bg-slate-800 rounded-lg">
+                <p className="text-slate-300">Monthly Rent: <span className="text-white font-bold">${Number(unit.rentAmount).toLocaleString()}</span></p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-300">Rent Due Day</Label>
+                  <Select value={String(formData.rentDueDay)} onValueChange={v => updateForm('rentDueDay', Number(v))}>
+                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-600 text-white z-[9999]">
+                      {[1, 5, 10, 15].map(d => (
+                        <SelectItem key={d} value={String(d)} className="text-white hover:bg-slate-700 focus:bg-slate-700">{d}st/th of month</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-slate-300">Grace Period (days)</Label>
+                  <Input
+                    type="number"
+                    value={formData.gracePeriodDays}
+                    onChange={e => updateForm('gracePeriodDays', Number(e.target.value))}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-300">Late Fee (%)</Label>
+                  <Input
+                    type="number"
+                    value={formData.lateFeePercent}
+                    onChange={e => updateForm('lateFeePercent', Number(e.target.value))}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-300">Bounced Check Fee ($)</Label>
+                  <Input
+                    type="number"
+                    value={formData.bouncedCheckFee}
+                    onChange={e => updateForm('bouncedCheckFee', Number(e.target.value))}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={formData.allowPartialPayments}
+                  onCheckedChange={v => updateForm('allowPartialPayments', v)}
+                />
+                <Label className="text-slate-300">Allow partial payments</Label>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Deposit & Fees */}
+          {currentStep === 2 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Security Deposit & Fees</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-300">Security Deposit (months of rent)</Label>
+                  <Select value={String(formData.securityDepositMonths)} onValueChange={v => updateForm('securityDepositMonths', Number(v))}>
+                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-600 text-white z-[9999]">
+                      <SelectItem value="0.5" className="text-white hover:bg-slate-700 focus:bg-slate-700">0.5 month</SelectItem>
+                      <SelectItem value="1" className="text-white hover:bg-slate-700 focus:bg-slate-700">1 month</SelectItem>
+                      <SelectItem value="1.5" className="text-white hover:bg-slate-700 focus:bg-slate-700">1.5 months</SelectItem>
+                      <SelectItem value="2" className="text-white hover:bg-slate-700 focus:bg-slate-700">2 months</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-slate-400 mt-1">
+                    = ${(Number(unit.rentAmount) * formData.securityDepositMonths).toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-slate-300">Deposit Return (days after move-out)</Label>
+                  <Input
+                    type="number"
+                    value={formData.depositReturnDays}
+                    onChange={e => updateForm('depositReturnDays', Number(e.target.value))}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Utilities */}
+          {currentStep === 3 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Utilities</h3>
+              <p className="text-slate-400 text-sm">Select who pays for each utility</p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-800 rounded-lg">
+                  <h4 className="font-medium text-white mb-3">Tenant Pays</h4>
+                  <div className="space-y-2">
+                    {UTILITY_OPTIONS.map(util => (
+                      <label key={util} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.tenantPaysUtilities.includes(util)}
+                          onChange={() => toggleUtility(util, 'tenant')}
+                          className="rounded border-slate-600"
+                        />
+                        <span className="text-slate-300">{util}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-4 bg-slate-800 rounded-lg">
+                  <h4 className="font-medium text-white mb-3">Landlord Pays</h4>
+                  <div className="space-y-2">
+                    {UTILITY_OPTIONS.map(util => (
+                      <label key={util} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.landlordPaysUtilities.includes(util)}
+                          onChange={() => toggleUtility(util, 'landlord')}
+                          className="rounded border-slate-600"
+                        />
+                        <span className="text-slate-300">{util}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Pets */}
+          {currentStep === 4 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Pet Policy</h3>
+              
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={formData.petsAllowed}
+                  onCheckedChange={v => updateForm('petsAllowed', v)}
+                />
+                <Label className="text-slate-300">Pets Allowed</Label>
+              </div>
+              
+              {formData.petsAllowed && (
+                <div className="space-y-4 p-4 bg-slate-800 rounded-lg">
+                  <div>
+                    <Label className="text-slate-300">Pet Restrictions</Label>
+                    <Input
+                      value={formData.petRestrictions}
+                      onChange={e => updateForm('petRestrictions', e.target.value)}
+                      placeholder="e.g., No aggressive breeds, max 2 pets, under 50 lbs"
+                      className="bg-slate-700 border-slate-600 text-white"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-slate-300">Pet Deposit ($)</Label>
+                      <Input
+                        type="number"
+                        value={formData.petDeposit}
+                        onChange={e => updateForm('petDeposit', e.target.value)}
+                        placeholder="One-time deposit"
+                        className="bg-slate-700 border-slate-600 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-slate-300">Monthly Pet Rent ($)</Label>
+                      <Input
+                        type="number"
+                        value={formData.petRent}
+                        onChange={e => updateForm('petRent', e.target.value)}
+                        placeholder="Per pet per month"
+                        className="bg-slate-700 border-slate-600 text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 5: Rules */}
+          {currentStep === 5 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Property Rules</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={formData.smokingAllowed}
+                    onCheckedChange={v => updateForm('smokingAllowed', v)}
+                  />
+                  <Label className="text-slate-300">Smoking Allowed</Label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={formData.rentersInsuranceRequired}
+                    onCheckedChange={v => updateForm('rentersInsuranceRequired', v)}
+                  />
+                  <Label className="text-slate-300">Renter's Insurance Required</Label>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-300">Quiet Hours Start</Label>
+                  <Input
+                    value={formData.quietHoursStart}
+                    onChange={e => updateForm('quietHoursStart', e.target.value)}
+                    placeholder="10:00 PM"
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-300">Quiet Hours End</Label>
+                  <Input
+                    value={formData.quietHoursEnd}
+                    onChange={e => updateForm('quietHoursEnd', e.target.value)}
+                    placeholder="8:00 AM"
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-300">Entry Notice (hours)</Label>
+                  <Input
+                    type="number"
+                    value={formData.entryNoticeDays}
+                    onChange={e => updateForm('entryNoticeDays', Number(e.target.value))}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-300">Move-out Notice (days)</Label>
+                  <Input
+                    type="number"
+                    value={formData.moveOutNoticeDays}
+                    onChange={e => updateForm('moveOutNoticeDays', Number(e.target.value))}
+                    className="bg-slate-800 border-slate-600 text-white"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-slate-300">Parking Rules</Label>
+                <Textarea
+                  value={formData.parkingRules}
+                  onChange={e => updateForm('parkingRules', e.target.value)}
+                  placeholder="e.g., 1 assigned spot per unit, no RVs or boats"
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </div>
+              
+              <div>
+                <Label className="text-slate-300">Additional Terms (one per line)</Label>
+                <Textarea
+                  value={formData.additionalTerms}
+                  onChange={e => updateForm('additionalTerms', e.target.value)}
+                  placeholder="Any additional terms or conditions..."
+                  rows={3}
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step 6: Disclosures */}
+          {currentStep === 6 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Required Disclosures</h3>
+              <p className="text-slate-400 text-sm">
+                Select applicable disclosures. State-specific requirements will be automatically included based on your property location.
+              </p>
+              
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <p className="text-amber-200 text-sm">
+                  <strong>Important:</strong> Missing required disclosures can void late fees, delay evictions, or get cases thrown out in court. 
+                  We recommend including all applicable disclosures.
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                  <Switch
+                    checked={formData.propertyBuiltBefore1978}
+                    onCheckedChange={v => {
+                      updateForm('propertyBuiltBefore1978', v);
+                      if (v) updateForm('leadPaintDisclosure', true);
+                    }}
+                  />
+                  <div>
+                    <Label className="text-slate-300">Property built before 1978</Label>
+                    <p className="text-xs text-slate-500">Federal law requires lead paint disclosure for pre-1978 housing</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                  <Switch
+                    checked={formData.leadPaintDisclosure}
+                    onCheckedChange={v => updateForm('leadPaintDisclosure', v)}
+                  />
+                  <div>
+                    <Label className="text-slate-300">Lead-Based Paint Disclosure</Label>
+                    <p className="text-xs text-slate-500">Required for all pre-1978 properties (federal requirement)</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                  <Switch
+                    checked={formData.moldDisclosure}
+                    onCheckedChange={v => updateForm('moldDisclosure', v)}
+                  />
+                  <div>
+                    <Label className="text-slate-300">Mold Disclosure</Label>
+                    <p className="text-xs text-slate-500">Required in CA, NY, WA, OR and recommended everywhere</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                  <Switch
+                    checked={formData.bedBugDisclosure}
+                    onCheckedChange={v => updateForm('bedBugDisclosure', v)}
+                  />
+                  <div>
+                    <Label className="text-slate-300">Bed Bug Disclosure</Label>
+                    <p className="text-xs text-slate-500">Required in AZ, CA, IL, NY and several other states</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                  <Switch
+                    checked={formData.radonDisclosure}
+                    onCheckedChange={v => updateForm('radonDisclosure', v)}
+                  />
+                  <div>
+                    <Label className="text-slate-300">Radon Disclosure</Label>
+                    <p className="text-xs text-slate-500">Required in CO, FL, IL and recommended in high-radon areas</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                  <Switch
+                    checked={formData.floodZoneDisclosure}
+                    onCheckedChange={v => updateForm('floodZoneDisclosure', v)}
+                  />
+                  <div>
+                    <Label className="text-slate-300">Flood Zone Disclosure</Label>
+                    <p className="text-xs text-slate-500">Required if property is in a designated flood zone</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-slate-800 rounded-lg">
+                <p className="text-slate-300 text-sm">
+                  <strong>Note:</strong> Additional state-specific disclosures and tenant rights notices will be automatically 
+                  included in your lease based on the property's state.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 7: Review */}
+          {currentStep === 7 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Review Your Lease</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
+                  <h4 className="font-medium text-violet-400">Property</h4>
+                  <p className="text-white">{property.name}</p>
+                  <p className="text-slate-400">Unit: {unit.name}</p>
+                </div>
+                
+                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
+                  <h4 className="font-medium text-violet-400">Tenant</h4>
+                  <p className="text-white">{tenantName || '[To be assigned]'}</p>
+                  <p className="text-slate-400">{tenantEmail || ''}</p>
+                </div>
+                
+                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
+                  <h4 className="font-medium text-violet-400">Lease Term</h4>
+                  <p className="text-white">
+                    {formData.isMonthToMonth ? 'Month-to-Month' : `${formData.startDate} to ${formData.endDate}`}
+                  </p>
+                  <p className="text-slate-400">Starts: {formData.startDate}</p>
+                </div>
+                
+                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
+                  <h4 className="font-medium text-violet-400">Rent</h4>
+                  <p className="text-white">${Number(unit.rentAmount).toLocaleString()}/month</p>
+                  <p className="text-slate-400">Due on the {formData.rentDueDay}st</p>
+                </div>
+                
+                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
+                  <h4 className="font-medium text-violet-400">Security Deposit</h4>
+                  <p className="text-white">${(Number(unit.rentAmount) * formData.securityDepositMonths).toLocaleString()}</p>
+                  <p className="text-slate-400">{formData.securityDepositMonths} month(s) rent</p>
+                </div>
+                
+                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
+                  <h4 className="font-medium text-violet-400">Pets</h4>
+                  <p className="text-white">{formData.petsAllowed ? 'Allowed' : 'Not Allowed'}</p>
+                  {formData.petsAllowed && formData.petDeposit && (
+                    <p className="text-slate-400">Deposit: ${formData.petDeposit}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={handlePreview}
+                  className="flex-1"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview Lease
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Navigation */}
+        <div className="flex items-center justify-between p-4 border-t border-slate-700">
+          <Button
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 0}
+            className="border-slate-600"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back
+          </Button>
+          
+          <div className="flex gap-2">
+            {currentStep < STEPS.length - 1 ? (
+              <Button onClick={nextStep} className="bg-violet-600 hover:bg-violet-700">
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Generate Lease
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Preview Modal */}
+        {showPreview && previewHtml && (
+          <Dialog open={showPreview} onOpenChange={setShowPreview}>
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+              <DialogHeader>
+                <DialogTitle>Lease Preview</DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 overflow-auto bg-white rounded-lg">
+                <iframe
+                  srcDoc={previewHtml}
+                  className="w-full h-[70vh] border-0"
+                  title="Lease Preview"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowPreview(false)}>
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

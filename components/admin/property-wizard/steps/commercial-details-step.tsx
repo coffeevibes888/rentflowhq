@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Building2, Zap, Thermometer, Truck, Car, Wifi } from 'lucide-react';
+import { Zap, Thermometer, Truck, Car } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -58,6 +58,7 @@ const LEASE_TYPES = [
 
 export function CommercialDetailsStep({ setValidate }: CommercialDetailsStepProps) {
   const { state, updateFormData } = useWizard();
+  const isInitialMount = useRef(true);
 
   const form = useForm<CommercialFormData>({
     resolver: zodResolver(commercialSchema),
@@ -75,25 +76,39 @@ export function CommercialDetailsStep({ setValidate }: CommercialDetailsStepProp
   });
 
   const { register, watch, setValue, formState: { errors } } = form;
-  const watchedValues = watch();
+  
+  // Watch individual fields
+  const zoningType = watch('zoningType');
+  const permittedUses = watch('permittedUses');
+  const leaseType = watch('leaseType');
+  const camCharges = watch('camCharges');
+  const tenantImprovement = watch('tenantImprovement');
+  const electricalCapacity = watch('electricalCapacity');
+  const hvacType = watch('hvacType');
+  const loadingDock = watch('loadingDock');
+  const parkingSpaces = watch('parkingSpaces');
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     updateFormData({
-      zoningType: watchedValues.zoningType,
-      permittedUses: watchedValues.permittedUses,
-      leaseType: watchedValues.leaseType,
-      camCharges: watchedValues.camCharges ?? undefined,
-      tenantImprovement: watchedValues.tenantImprovement ?? undefined,
-      electricalCapacity: watchedValues.electricalCapacity,
-      hvacType: watchedValues.hvacType,
-      loadingDock: watchedValues.loadingDock,
-      parkingSpaces: watchedValues.parkingSpaces ?? undefined,
+      zoningType,
+      permittedUses,
+      leaseType,
+      camCharges: camCharges ?? undefined,
+      tenantImprovement: tenantImprovement ?? undefined,
+      electricalCapacity,
+      hvacType,
+      loadingDock,
+      parkingSpaces: parkingSpaces ?? undefined,
     });
-  }, [watchedValues, updateFormData]);
+  }, [zoningType, permittedUses, leaseType, camCharges, tenantImprovement, electricalCapacity, hvacType, loadingDock, parkingSpaces, updateFormData]);
 
   const validate = useCallback((): boolean => {
-    return !!watchedValues.zoningType;
-  }, [watchedValues.zoningType]);
+    return !!zoningType;
+  }, [zoningType]);
 
   useEffect(() => {
     setValidate(validate);
@@ -101,7 +116,7 @@ export function CommercialDetailsStep({ setValidate }: CommercialDetailsStepProp
   }, [setValidate, validate]);
 
   const togglePermittedUse = (use: string) => {
-    const current = watchedValues.permittedUses || [];
+    const current = permittedUses || [];
     if (current.includes(use)) {
       setValue('permittedUses', current.filter(u => u !== use));
     } else {
@@ -123,7 +138,7 @@ export function CommercialDetailsStep({ setValidate }: CommercialDetailsStepProp
         <div className="space-y-2">
           <Label className="text-slate-200">Zoning Type</Label>
           <Select
-            value={watchedValues.zoningType}
+            value={zoningType}
             onValueChange={(v) => setValue('zoningType', v)}
           >
             <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
@@ -145,8 +160,8 @@ export function CommercialDetailsStep({ setValidate }: CommercialDetailsStepProp
         <div className="space-y-2">
           <Label className="text-slate-200">Lease Type</Label>
           <Select
-            value={watchedValues.leaseType || ''}
-            onValueChange={(v) => setValue('leaseType', v as any)}
+            value={leaseType || ''}
+            onValueChange={(v) => setValue('leaseType', v as CommercialFormData['leaseType'])}
           >
             <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
               <SelectValue placeholder="Select lease type..." />
@@ -170,7 +185,7 @@ export function CommercialDetailsStep({ setValidate }: CommercialDetailsStepProp
         <Label className="text-slate-200">Permitted Uses</Label>
         <div className="flex flex-wrap gap-2">
           {PERMITTED_USES.map((use) => {
-            const isSelected = watchedValues.permittedUses?.includes(use);
+            const isSelected = permittedUses?.includes(use);
             return (
               <button
                 key={use}
@@ -270,7 +285,7 @@ export function CommercialDetailsStep({ setValidate }: CommercialDetailsStepProp
               </div>
             </div>
             <Switch
-              checked={watchedValues.loadingDock}
+              checked={loadingDock}
               onCheckedChange={(checked) => setValue('loadingDock', checked)}
             />
           </div>

@@ -1,15 +1,13 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { DoorOpen, Plus, Minus, Users } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { cn } from '@/lib/utils';
 import { useWizard } from '../wizard-context';
 
 const roomSetupSchema = z.object({
@@ -25,6 +23,7 @@ interface RoomSetupStepProps {
 
 export function RoomSetupStep({ setValidate }: RoomSetupStepProps) {
   const { state, updateFormData } = useWizard();
+  const isInitialMount = useRef(true);
 
   const form = useForm<RoomSetupFormData>({
     resolver: zodResolver(roomSetupSchema),
@@ -35,15 +34,22 @@ export function RoomSetupStep({ setValidate }: RoomSetupStepProps) {
   });
 
   const { watch, setValue, formState: { errors } } = form;
-  const watchedValues = watch();
+  const totalRooms = watch('totalRooms');
+  const roommateFriendly = watch('roommateFriendly');
 
+  // Update wizard state when values change (skip initial mount)
   useEffect(() => {
-    updateFormData(watchedValues);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    updateFormData({ totalRooms, roommateFriendly });
     
     // Initialize rooms array if needed
     const currentRooms = state.formData.rooms || [];
-    if (currentRooms.length !== watchedValues.totalRooms) {
-      const newRooms = Array.from({ length: watchedValues.totalRooms }, (_, i) => {
+    if (currentRooms.length !== totalRooms) {
+      const newRooms = Array.from({ length: totalRooms }, (_, i) => {
         return currentRooms[i] || {
           id: `room-${i + 1}`,
           name: `Room ${i + 1}`,
@@ -57,11 +63,11 @@ export function RoomSetupStep({ setValidate }: RoomSetupStepProps) {
       });
       updateFormData({ rooms: newRooms });
     }
-  }, [watchedValues, updateFormData, state.formData.rooms]);
+  }, [totalRooms, roommateFriendly, updateFormData, state.formData.rooms]);
 
   const validate = useCallback((): boolean => {
-    return watchedValues.totalRooms >= 1;
-  }, [watchedValues.totalRooms]);
+    return totalRooms >= 1;
+  }, [totalRooms]);
 
   useEffect(() => {
     setValidate(validate);
@@ -69,12 +75,12 @@ export function RoomSetupStep({ setValidate }: RoomSetupStepProps) {
   }, [setValidate, validate]);
 
   const incrementRooms = () => {
-    const current = watchedValues.totalRooms || 1;
+    const current = totalRooms || 1;
     if (current < 20) setValue('totalRooms', current + 1);
   };
 
   const decrementRooms = () => {
-    const current = watchedValues.totalRooms || 1;
+    const current = totalRooms || 1;
     if (current > 1) setValue('totalRooms', current - 1);
   };
 
@@ -99,16 +105,16 @@ export function RoomSetupStep({ setValidate }: RoomSetupStepProps) {
             variant="outline"
             size="icon"
             onClick={decrementRooms}
-            disabled={watchedValues.totalRooms <= 1}
+            disabled={totalRooms <= 1}
             className="h-12 w-12 rounded-full border-slate-600 hover:bg-slate-800"
           >
             <Minus className="h-5 w-5" />
           </Button>
 
           <div className="text-center min-w-[100px]">
-            <span className="text-5xl font-bold text-white">{watchedValues.totalRooms}</span>
+            <span className="text-5xl font-bold text-white">{totalRooms}</span>
             <p className="text-slate-400 mt-1">
-              {watchedValues.totalRooms === 1 ? 'Room' : 'Rooms'}
+              {totalRooms === 1 ? 'Room' : 'Rooms'}
             </p>
           </div>
 
@@ -117,7 +123,7 @@ export function RoomSetupStep({ setValidate }: RoomSetupStepProps) {
             variant="outline"
             size="icon"
             onClick={incrementRooms}
-            disabled={watchedValues.totalRooms >= 20}
+            disabled={totalRooms >= 20}
             className="h-12 w-12 rounded-full border-slate-600 hover:bg-slate-800"
           >
             <Plus className="h-5 w-5" />
@@ -144,7 +150,7 @@ export function RoomSetupStep({ setValidate }: RoomSetupStepProps) {
             </div>
           </div>
           <Switch
-            checked={watchedValues.roommateFriendly}
+            checked={roommateFriendly}
             onCheckedChange={(checked) => setValue('roommateFriendly', checked)}
           />
         </div>

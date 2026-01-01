@@ -68,7 +68,7 @@ const LANDLORD_TOUR_STEPS: (TourStep & { proOnly?: boolean })[] = [
   {
     id: 'payouts-nav',
     title: 'Payouts & Banking',
-    description: 'Connect your bank account to receive rent payments. All collected rent will be deposited directly to your account.',
+    description: 'Connect your bank account to cash out collected rent. View your balance and transfer funds anytime.',
     targetSelector: 'a[href="/admin/payouts"]',
     route: '/admin/payouts',
     position: 'right',

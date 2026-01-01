@@ -129,11 +129,6 @@ export default function UserDashboard({ tenantLease, landlord }: UserDashboardPr
               <Button className='w-full bg-violet-500 hover:bg-violet-400 text-white'>
                 Pay Rent Now
               </Button>
-              <Link href='/user/notifications'>
-                <Button variant='outline' className='w-full mt-2 border-white/10 text-slate-200/90 hover:bg-slate-900/80'>
-                  Pay with Cash at Store
-                </Button>
-              </Link>
             </CardContent>
           </Card>
 

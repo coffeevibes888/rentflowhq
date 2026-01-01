@@ -59,6 +59,30 @@ async function saveFiles(
   return stored;
 }
 
+// Helper to serialize landlord object for client components (converts Decimal to number)
+function serializeLandlord<T extends Record<string, unknown>>(landlord: T): T {
+  const serialized = { ...landlord } as Record<string, unknown>;
+  
+  // Convert Decimal fields to numbers
+  if (serialized.securityDepositMonths !== undefined && serialized.securityDepositMonths !== null) {
+    serialized.securityDepositMonths = Number(serialized.securityDepositMonths);
+  }
+  if (serialized.petDepositAmount !== undefined && serialized.petDepositAmount !== null) {
+    serialized.petDepositAmount = Number(serialized.petDepositAmount);
+  }
+  if (serialized.petRentAmount !== undefined && serialized.petRentAmount !== null) {
+    serialized.petRentAmount = Number(serialized.petRentAmount);
+  }
+  if (serialized.cleaningFeeAmount !== undefined && serialized.cleaningFeeAmount !== null) {
+    serialized.cleaningFeeAmount = Number(serialized.cleaningFeeAmount);
+  }
+  if (serialized.applicationFeeAmount !== undefined && serialized.applicationFeeAmount !== null) {
+    serialized.applicationFeeAmount = Number(serialized.applicationFeeAmount);
+  }
+  
+  return serialized as T;
+}
+
 export async function getOrCreateCurrentLandlord() {
   try {
     const session = await auth();
@@ -81,7 +105,7 @@ export async function getOrCreateCurrentLandlord() {
           where: { id: teamMembership.landlordId },
         });
         if (teamLandlord) {
-          return { success: true as const, landlord: teamLandlord };
+          return { success: true as const, landlord: serializeLandlord(teamLandlord) };
         }
       }
     } catch {}
@@ -131,7 +155,7 @@ export async function getOrCreateCurrentLandlord() {
       });
     }
 
-    return { success: true as const, landlord };
+    return { success: true as const, landlord: serializeLandlord(landlord) };
   } catch (error) {
     return { success: false as const, message: formatError(error) };
   }
@@ -461,7 +485,7 @@ export async function getLandlordBySubdomain(subdomain: string) {
       return { success: false as const, message: 'Landlord not found for this subdomain.' };
     }
 
-    return { success: true as const, landlord };
+    return { success: true as const, landlord: serializeLandlord(landlord) };
   } catch (error) {
     return { success: false as const, message: formatError(error) };
   }

@@ -32,15 +32,15 @@ const COMPLEX_AMENITIES = [
 ];
 
 export function ComplexAmenitiesStep({ setValidate }: ComplexAmenitiesStepProps) {
-  const { state, updateFormData, clearValidationErrors } = useWizard();
+  const { state, updateFormData } = useWizard();
   const [customAmenity, setCustomAmenity] = useState('');
 
   const selectedAmenities = state.formData.complexAmenities || [];
 
   const validate = useCallback(() => {
-    clearValidationErrors();
+    // This step is always valid - amenities are optional
     return true;
-  }, [clearValidationErrors]);
+  }, []);
 
   useEffect(() => {
     setValidate(() => validate);

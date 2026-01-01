@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useWizard } from '../wizard-context';
-import { ZillowPropertyLookup } from '../../zillow-property-lookup';
 
 const basicInfoSchema = z.object({
   name: z.string().min(3, 'Min 3 characters'),
@@ -87,46 +86,6 @@ export function BasicInfoStep({ setValidate }: BasicInfoStepProps) {
     }
   };
 
-  // Handle Zillow property data auto-fill
-  const handleZillowPropertyFound = (data: {
-    address: { street: string; city: string; state: string; zipCode: string };
-    bedrooms: number;
-    bathrooms: number;
-    sizeSqFt: number;
-    yearBuilt: number;
-    propertyType: string;
-    description: string;
-    images: string[];
-    zestimate: number;
-    rentZestimate: number;
-    zpid: string;
-  }) => {
-    setValue('streetAddress', data.address.street);
-    setValue('city', data.address.city);
-    setValue('state', data.address.state);
-    setValue('zipCode', data.address.zipCode);
-    
-    if (data.description && !watch('description')) {
-      setValue('description', data.description);
-    }
-
-    // Generate slug from address
-    const slugBase = data.address.street.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
-    setValue('slug', slugify(slugBase, { lower: true, strict: true }));
-
-    // Update wizard state with additional Zillow data
-    updateFormData({
-      bedrooms: data.bedrooms,
-      bathrooms: data.bathrooms,
-      sizeSqFt: data.sizeSqFt,
-      yearBuilt: data.yearBuilt,
-      images: data.images?.slice(0, 5) || [],
-      imageLabels: data.images?.slice(0, 5).map((_, i) => i === 0 ? 'Exterior' : `Photo ${i + 1}`) || [],
-      rentAmount: data.rentZestimate || undefined,
-      salePrice: data.zestimate || undefined,
-    });
-  };
-
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -134,15 +93,6 @@ export function BasicInfoStep({ setValidate }: BasicInfoStepProps) {
         <p className="text-indigo-200 mt-2">
           Enter the property address and basic details
         </p>
-      </div>
-
-      {/* Zillow Auto-Fill */}
-      <div className="mb-8">
-        <ZillowPropertyLookup
-          onPropertyFound={handleZillowPropertyFound}
-          disabled={false}
-          isPro={true}
-        />
       </div>
 
       <div className="grid gap-6">

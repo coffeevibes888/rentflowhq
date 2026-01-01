@@ -43,7 +43,7 @@ const AdminOnboardingPage = async () => {
         {/* Quick start steps */}
         <div className='grid gap-4 max-w-xl mx-auto'>
           <Link
-            href='/admin/products/create'
+            href='/admin/products/new'
             className='group relative rounded-2xl border-2 border-slate-200 bg-white p-6 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all duration-200'
           >
             <div className='flex items-start gap-4'>
@@ -131,7 +131,7 @@ const AdminOnboardingPage = async () => {
                   5. Connect payouts
                 </h3>
                 <p className='text-sm text-slate-600'>
-                  Link your bank to receive rent payments
+                  Link your bank to cash out collected rent
                 </p>
               </div>
             </div>

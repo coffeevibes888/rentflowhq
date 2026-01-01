@@ -26,6 +26,7 @@ const ROOM_RENTAL_STEPS: StepConfig[] = [
   { id: 'room_setup', title: 'Room Setup', description: 'Number of rooms available' },
   { id: 'room_details', title: 'Room Details', description: 'Details for each room' },
   { id: 'shared_spaces', title: 'Shared Spaces', description: 'Common areas and amenities' },
+  { id: 'photos', title: 'Photos', description: 'Upload property images' },
   { id: 'pricing', title: 'Pricing', description: 'Room pricing and terms' },
   { id: 'review', title: 'Review', description: 'Review and submit' },
 ];

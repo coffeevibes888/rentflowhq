@@ -41,7 +41,7 @@ export async function GET() {
         cleaningFeeEnabled: landlord.cleaningFeeEnabled ?? false,
         applicationFee: landlord.applicationFeeAmount ?? 50,
         applicationFeeEnabled: landlord.applicationFeeEnabled ?? true,
-        securityDepositMonths: landlord.securityDepositMonths ?? 1,
+        securityDepositMonths: Number(landlord.securityDepositMonths ?? 1),
         lastMonthRentRequired: landlord.lastMonthRentRequired ?? true,
       },
       applyToAll: landlord.feeApplyToAll ?? true,

@@ -32,10 +32,12 @@ import {
   Settings2,
   Home,
   Check,
+  Wand2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import PDFFieldEditor from '@/components/admin/pdf-field-editor';
 import LeaseFieldSetupModal from '@/components/admin/lease-field-setup-modal';
+import { LeaseBuilderModal } from '@/components/admin/lease-builder';
 import type { SignatureField } from '@/components/admin/pdf-field-editor';
 
 interface LegalDocument {
@@ -60,6 +62,16 @@ interface Property {
   id: string;
   name: string;
   defaultLeaseDocumentId: string | null;
+  address?: any;
+  amenities?: string[];
+}
+
+interface Unit {
+  id: string;
+  name: string;
+  type: string;
+  rentAmount: number;
+  propertyId: string;
 }
 
 const DOCUMENT_TYPES = [
@@ -77,6 +89,7 @@ const DOCUMENT_TYPES = [
 export default function LegalDocumentsClient() {
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -85,6 +98,12 @@ export default function LegalDocumentsClient() {
   const [editingDocument, setEditingDocument] = useState<LegalDocument | null>(null);
   const [showFieldSetupModal, setShowFieldSetupModal] = useState(false);
   const [newlyUploadedDoc, setNewlyUploadedDoc] = useState<LegalDocument | null>(null);
+  
+  // Lease Builder state
+  const [showLeaseBuilder, setShowLeaseBuilder] = useState(false);
+  const [leaseBuilderProperty, setLeaseBuilderProperty] = useState<Property | null>(null);
+  const [leaseBuilderUnit, setLeaseBuilderUnit] = useState<Unit | null>(null);
+  const [selectPropertyDialogOpen, setSelectPropertyDialogOpen] = useState(false);
   
   const [uploadForm, setUploadForm] = useState({
     name: '',
@@ -110,10 +129,23 @@ export default function LegalDocumentsClient() {
 
   const fetchProperties = useCallback(async () => {
     try {
-      const res = await fetch('/api/properties');
+      const res = await fetch('/api/properties?includeUnits=true');
       if (res.ok) {
         const data = await res.json();
         setProperties(data.properties || []);
+        
+        // Extract all units from properties
+        const allUnits: Unit[] = [];
+        for (const prop of data.properties || []) {
+          if (prop.units) {
+            allUnits.push(...prop.units.map((u: any) => ({ 
+              ...u, 
+              propertyId: prop.id,
+              rentAmount: Number(u.rentAmount),
+            })));
+          }
+        }
+        setUnits(allUnits);
       }
     } catch (error) {
       console.error('Failed to fetch properties:', error);
@@ -305,20 +337,29 @@ export default function LegalDocumentsClient() {
           </p>
         </div>
 
-        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-violet-600 hover:bg-violet-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Upload Document
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-slate-900 border-white/10 text-white max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Upload Legal Document</DialogTitle>
-              <DialogDescription className="text-slate-400">
-                Upload a PDF lease or legal document. You can configure signature fields after upload.
-              </DialogDescription>
-            </DialogHeader>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setSelectPropertyDialogOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            <Wand2 className="h-4 w-4 mr-2" />
+            Create Custom Lease
+          </Button>
+          
+          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-violet-600 hover:bg-violet-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Upload Document
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-slate-900 border-white/10 text-white max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Upload Legal Document</DialogTitle>
+                <DialogDescription className="text-slate-400">
+                  Upload a PDF lease or legal document. You can configure signature fields after upload.
+                </DialogDescription>
+              </DialogHeader>
 
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
@@ -408,9 +449,61 @@ export default function LegalDocumentsClient() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
-      {/* Info Card */}
+      {/* FREE Lease Builder Feature Card */}
+      <Card className="border-emerald-400/30 bg-gradient-to-r from-emerald-500/10 to-violet-500/10">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+              <Wand2 className="h-6 w-6 text-emerald-400" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-emerald-200 text-lg">FREE State-Aware Lease Builder</h3>
+                <span className="px-2 py-0.5 bg-emerald-500/30 text-emerald-300 text-xs rounded-full font-medium">NEW</span>
+              </div>
+              <p className="text-sm text-emerald-200/80 mt-2">
+                Generate comprehensive, professionally-formatted lease agreements in seconds. Our lease builder includes:
+              </p>
+              <ul className="text-sm text-emerald-200/70 mt-2 space-y-1">
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  <span>20+ legally-required sections (parties, rent, deposits, rules, disclosures)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  <span>State-specific disclosures auto-included (lead paint, mold, bed bugs, radon)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  <span>Auto-populated from your property data - no manual entry</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  <span>Pre-configured signature fields - no dragging required</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  <span>Complete audit trail for court documentation</span>
+                </li>
+              </ul>
+              <div className="mt-4">
+                <Button 
+                  onClick={() => setSelectPropertyDialogOpen(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  Create Your Free Lease Now
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* How it works Card */}
       <Card className="border-blue-400/30 bg-blue-500/10">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
@@ -746,6 +839,100 @@ export default function LegalDocumentsClient() {
           onSkip={() => {
             setShowFieldSetupModal(false);
             setNewlyUploadedDoc(null);
+          }}
+        />
+      )}
+
+      {/* Select Property/Unit Dialog for Lease Builder */}
+      <Dialog open={selectPropertyDialogOpen} onOpenChange={setSelectPropertyDialogOpen}>
+        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-emerald-400" />
+              Create Custom Lease
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Select a property and unit to generate a comprehensive, court-ready lease agreement.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Property</Label>
+              <Select
+                value={leaseBuilderProperty?.id || ''}
+                onValueChange={(value) => {
+                  const prop = properties.find(p => p.id === value);
+                  setLeaseBuilderProperty(prop || null);
+                  setLeaseBuilderUnit(null);
+                }}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700">
+                  <SelectValue placeholder="Select a property..." />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {properties.map((prop) => (
+                    <SelectItem key={prop.id} value={prop.id}>
+                      {prop.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {leaseBuilderProperty && (
+              <div className="space-y-2">
+                <Label>Unit</Label>
+                <Select
+                  value={leaseBuilderUnit?.id || ''}
+                  onValueChange={(value) => {
+                    const unit = units.find(u => u.id === value);
+                    setLeaseBuilderUnit(unit || null);
+                  }}
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-700">
+                    <SelectValue placeholder="Select a unit..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    {units.filter(u => u.propertyId === leaseBuilderProperty.id).map((unit) => (
+                      <SelectItem key={unit.id} value={unit.id}>
+                        {unit.name} ({unit.type}) - ${Number(unit.rentAmount).toLocaleString()}/mo
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            <Button
+              onClick={() => {
+                if (leaseBuilderProperty && leaseBuilderUnit) {
+                  setSelectPropertyDialogOpen(false);
+                  setShowLeaseBuilder(true);
+                }
+              }}
+              disabled={!leaseBuilderProperty || !leaseBuilderUnit}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              Start Lease Builder
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lease Builder Modal */}
+      {leaseBuilderProperty && leaseBuilderUnit && (
+        <LeaseBuilderModal
+          open={showLeaseBuilder}
+          onClose={() => {
+            setShowLeaseBuilder(false);
+            setLeaseBuilderProperty(null);
+            setLeaseBuilderUnit(null);
+          }}
+          property={leaseBuilderProperty}
+          unit={leaseBuilderUnit}
+          onLeaseGenerated={(doc) => {
+            fetchDocuments();
           }}
         />
       )}

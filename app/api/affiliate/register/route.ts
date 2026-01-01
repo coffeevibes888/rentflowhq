@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db/prisma';
 import { hash } from '@/lib/encrypt';
 import { sendAffiliateWelcomeEmail } from '@/email';
+import { notifyNewAffiliate } from '@/lib/services/admin-notifications';
 import crypto from 'crypto';
 
 function generateReferralCode(): string {
@@ -141,6 +142,13 @@ export async function POST(request: NextRequest) {
       console.error('Failed to send affiliate welcome email:', emailError);
       // Don't fail the registration if email fails
     }
+
+    // Notify admin of new affiliate (non-blocking)
+    notifyNewAffiliate({
+      name: affiliate.name,
+      email: affiliate.email,
+      referralCode: affiliate.code,
+    }).catch(console.error);
 
     return NextResponse.json({
       success: true,

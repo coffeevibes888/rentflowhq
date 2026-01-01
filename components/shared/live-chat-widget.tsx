@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, User } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -9,6 +9,22 @@ interface ChatMessage {
   isUser: boolean;
   timestamp: Date;
 }
+
+// Function to request live agent (calls API)
+const requestLiveAgent = async (userMessage: string) => {
+  try {
+    await fetch('/api/support/live-agent-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'live-chat-widget',
+        message: userMessage,
+      }),
+    });
+  } catch (error) {
+    console.error('Failed to send live agent request:', error);
+  }
+};
 
 export default function LiveChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -90,7 +106,7 @@ export default function LiveChatWidget() {
 
     // Rent collection
     if (lower.includes('rent') || lower.includes('payment') || lower.includes('collect') || lower.includes('pay')) {
-      return "Property Flow HQ makes rent collection easy:\n\n• **ACH bank transfers** - Low fees, 2-3 day processing\n• **Credit/debit cards** - Instant processing\n• **Cash payments** - Through retail partners\n• **Automatic reminders** - 7, 3, and 1 day before due\n• **Late fee automation** - Set it and forget it\n\nFunds deposit directly to your bank account!";
+      return "Property Flow HQ makes rent collection easy:\n\n• **ACH bank transfers** - Low fees, 2-3 day processing\n• **Credit/debit cards** - Instant processing\n• **Automatic reminders** - 7, 3, and 1 day before due\n• **Late fee automation** - Set it and forget it\n\nFunds are held in your account and you can cash out to your bank anytime!";
     }
 
     // Maintenance
@@ -114,10 +130,13 @@ export default function LiveChatWidget() {
     }
 
     // Support/help
-    if (lower.includes('help') || lower.includes('support') || lower.includes('contact') || lower.includes('talk to')) {
+    if (lower.includes('help') || lower.includes('support') || lower.includes('contact') || lower.includes('talk to') || lower.includes('human') || lower.includes('agent') || lower.includes('person') || lower.includes('real person')) {
+      // Trigger live agent request notification
+      requestLiveAgent(userMessage);
+      
       return isOnline 
-        ? "I'm here to help! You can also:\n\n• Email us at support@propertyflowhq.com\n• Check our Help Center for guides\n• Schedule a demo call\n\nWhat specific question can I help you with?"
-        : "Our team is currently offline (Mon-Fri, 9am-6pm). You can:\n\n• Leave a message here and we'll respond ASAP\n• Email support@propertyflowhq.com\n• Check our Help Center\n\nWhat would you like help with?";
+        ? "I've notified our team that you'd like to speak with someone! 🔔\n\nA team member will join this chat shortly. In the meantime, feel free to share more details about what you need help with.\n\nYou can also:\n• Email us at support@propertyflowhq.com\n• Check our Help Center for guides"
+        : "Our team is currently offline (Mon-Fri, 9am-6pm), but I've sent them a notification! 📬\n\nThey'll reach out as soon as they're back online. You can also:\n\n• Email support@propertyflowhq.com\n• Leave your contact info here\n\nWhat would you like help with?";
     }
 
     // Demo

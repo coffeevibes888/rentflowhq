@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -38,6 +38,7 @@ const COMMON_AMENITIES = [
 export function DetailsStep({ setValidate }: DetailsStepProps) {
   const { state, updateFormData } = useWizard();
   const [customAmenity, setCustomAmenity] = useState('');
+  const isInitialMount = useRef(true);
 
   const form = useForm<DetailsFormData>({
     resolver: zodResolver(detailsSchema),
@@ -52,35 +53,46 @@ export function DetailsStep({ setValidate }: DetailsStepProps) {
     },
   });
 
-  const { register, watch, setValue, formState: { errors }, trigger } = form;
-  const watchedValues = watch();
+  const { register, watch, setValue, formState: { errors }, getValues } = form;
+  
+  // Watch individual fields
+  const bedrooms = watch('bedrooms');
+  const bathrooms = watch('bathrooms');
+  const sizeSqFt = watch('sizeSqFt');
+  const yearBuilt = watch('yearBuilt');
+  const lotSize = watch('lotSize');
+  const petPolicy = watch('petPolicy');
+  const amenities = watch('amenities');
 
-  // Update wizard state when form values change
+  // Update wizard state when form values change (skip initial mount)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     updateFormData({
-      bedrooms: watchedValues.bedrooms,
-      bathrooms: watchedValues.bathrooms,
-      sizeSqFt: watchedValues.sizeSqFt ?? undefined,
-      yearBuilt: watchedValues.yearBuilt ?? undefined,
-      lotSize: watchedValues.lotSize ?? undefined,
-      petPolicy: watchedValues.petPolicy,
-      amenities: watchedValues.amenities,
+      bedrooms,
+      bathrooms,
+      sizeSqFt: sizeSqFt ?? undefined,
+      yearBuilt: yearBuilt ?? undefined,
+      lotSize: lotSize ?? undefined,
+      petPolicy,
+      amenities,
     });
-  }, [watchedValues, updateFormData]);
+  }, [bedrooms, bathrooms, sizeSqFt, yearBuilt, lotSize, petPolicy, amenities, updateFormData]);
+
+  const validate = useCallback(() => {
+    const formState = getValues();
+    return formState.bedrooms !== undefined && formState.bathrooms !== undefined;
+  }, [getValues]);
 
   useEffect(() => {
-    const validateFn = () => {
-      const formState = form.getValues();
-      const hasRequiredFields = formState.bedrooms !== undefined && formState.bathrooms !== undefined;
-      trigger(); // Trigger async validation for UI feedback
-      return hasRequiredFields;
-    };
-    setValidate(validateFn);
+    setValidate(validate);
     return () => setValidate(null);
-  }, [setValidate, trigger, form]);
+  }, [setValidate, validate]);
 
   const toggleAmenity = (amenity: string) => {
-    const current = watchedValues.amenities || [];
+    const current = amenities || [];
     if (current.includes(amenity)) {
       setValue('amenities', current.filter(a => a !== amenity));
     } else {
@@ -89,8 +101,8 @@ export function DetailsStep({ setValidate }: DetailsStepProps) {
   };
 
   const addCustomAmenity = () => {
-    if (customAmenity.trim() && !watchedValues.amenities?.includes(customAmenity.trim())) {
-      setValue('amenities', [...(watchedValues.amenities || []), customAmenity.trim()]);
+    if (customAmenity.trim() && !amenities?.includes(customAmenity.trim())) {
+      setValue('amenities', [...(amenities || []), customAmenity.trim()]);
       setCustomAmenity('');
     }
   };
@@ -186,10 +198,10 @@ export function DetailsStep({ setValidate }: DetailsStepProps) {
             <button
               key={option.value}
               type="button"
-              onClick={() => setValue('petPolicy', option.value as any)}
+              onClick={() => setValue('petPolicy', option.value as DetailsFormData['petPolicy'])}
               className={cn(
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all',
-                watchedValues.petPolicy === option.value
+                petPolicy === option.value
                   ? 'border-violet-500 bg-violet-500/20 text-white'
                   : 'border-indigo-600/50 bg-indigo-800/30 text-indigo-200 hover:border-indigo-500'
               )}
@@ -206,9 +218,9 @@ export function DetailsStep({ setValidate }: DetailsStepProps) {
         <Label className="text-indigo-100">Amenities</Label>
         
         {/* Selected amenities */}
-        {watchedValues.amenities && watchedValues.amenities.length > 0 && (
+        {amenities && amenities.length > 0 && (
           <div className="flex flex-wrap gap-2 p-3 bg-indigo-800/30 rounded-xl border border-indigo-600/50">
-            {watchedValues.amenities.map((amenity) => (
+            {amenities.map((amenity) => (
               <Badge
                 key={amenity}
                 variant="secondary"
@@ -230,7 +242,7 @@ export function DetailsStep({ setValidate }: DetailsStepProps) {
         {/* Common amenities grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
           {COMMON_AMENITIES.map((amenity) => {
-            const isSelected = watchedValues.amenities?.includes(amenity);
+            const isSelected = amenities?.includes(amenity);
             return (
               <button
                 key={amenity}

@@ -24,6 +24,7 @@ import { sendVerificationEmailToken } from './auth.actions';
 import { redirect } from 'next/navigation';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { getSubdomainRedirectUrl } from '../utils/subdomain-redirect';
+import { notifyNewSignup } from '../services/admin-notifications';
 
 // Sign in the user with credentials
 export async function signInWithCredentials(
@@ -129,6 +130,14 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
         role: roleValue,
       },
     });
+
+    // Notify admin of new signup (non-blocking)
+    notifyNewSignup({
+      name: user.name,
+      email: user.email,
+      role: roleValue,
+      signupMethod: 'Email',
+    }).catch(console.error);
 
     await sendVerificationEmailToken(user.email);
 

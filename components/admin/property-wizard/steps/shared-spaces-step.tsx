@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { UtensilsCrossed, Sofa, WashingMachine, Car, Plus, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,15 +26,15 @@ const DEFAULT_SHARED_SPACES: SharedSpaceData = {
 };
 
 export function SharedSpacesStep({ setValidate }: SharedSpacesStepProps) {
-  const { state, updateFormData, clearValidationErrors } = useWizard();
+  const { state, updateFormData } = useWizard();
   const [customSpace, setCustomSpace] = useState('');
 
   const sharedSpaces = state.formData.sharedSpaces || DEFAULT_SHARED_SPACES;
 
   const validate = useCallback(() => {
-    clearValidationErrors();
+    // This step is always valid - shared spaces are optional
     return true;
-  }, [clearValidationErrors]);
+  }, []);
 
   useEffect(() => {
     setValidate(validate);

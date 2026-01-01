@@ -1,0 +1,205 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { prisma } from '@/db/prisma';
+import { generateLeaseHtml, buildLeaseDataFromRecords, LeaseBuilderData } from '@/lib/services/lease-builder';
+import { htmlToPdfBuffer } from '@/lib/services/pdf';
+import { uploadToCloudinary } from '@/lib/cloudinary';
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+    });
+
+    if (!landlord) {
+      return NextResponse.json({ message: 'Landlord not found' }, { status: 404 });
+    }
+
+    const body = await req.json();
+    const { propertyId, unitId, tenantId, leaseTerms, customizations, saveAsTemplate } = body;
+
+    // Fetch property and unit
+    const property = await prisma.property.findFirst({
+      where: { id: propertyId, landlordId: landlord.id },
+    });
+
+    if (!property) {
+      return NextResponse.json({ message: 'Property not found' }, { status: 404 });
+    }
+
+    const unit = await prisma.unit.findFirst({
+      where: { id: unitId, propertyId },
+    });
+
+    if (!unit) {
+      return NextResponse.json({ message: 'Unit not found' }, { status: 404 });
+    }
+
+    // Fetch tenant if provided
+    let tenant = null;
+    if (tenantId) {
+      tenant = await prisma.user.findUnique({
+        where: { id: tenantId },
+        select: { id: true, name: true, email: true },
+      });
+    }
+
+    // Build lease data
+    const leaseData = buildLeaseDataFromRecords({
+      landlord: {
+        name: landlord.name,
+        companyName: landlord.companyName,
+        companyAddress: landlord.companyAddress,
+        companyEmail: landlord.companyEmail,
+        companyPhone: landlord.companyPhone,
+        securityDepositMonths: Number(landlord.securityDepositMonths),
+        petDepositEnabled: landlord.petDepositEnabled,
+        petDepositAmount: landlord.petDepositAmount ? Number(landlord.petDepositAmount) : null,
+        petRentEnabled: landlord.petRentEnabled,
+        petRentAmount: landlord.petRentAmount ? Number(landlord.petRentAmount) : null,
+        cleaningFeeEnabled: landlord.cleaningFeeEnabled,
+        cleaningFeeAmount: landlord.cleaningFeeAmount ? Number(landlord.cleaningFeeAmount) : null,
+      },
+      property: {
+        name: property.name,
+        address: property.address as any,
+        amenities: property.amenities,
+      },
+      unit: {
+        name: unit.name,
+        type: unit.type,
+        rentAmount: Number(unit.rentAmount),
+      },
+      tenant: tenant ? {
+        name: tenant.name,
+        email: tenant.email,
+      } : {
+        name: '[TENANT NAME]',
+        email: '[TENANT EMAIL]',
+      },
+      leaseTerms: {
+        startDate: leaseTerms?.startDate ? new Date(leaseTerms.startDate) : new Date(),
+        endDate: leaseTerms?.endDate ? new Date(leaseTerms.endDate) : null,
+        isMonthToMonth: leaseTerms?.isMonthToMonth ?? true,
+        billingDayOfMonth: leaseTerms?.billingDayOfMonth ?? 1,
+      },
+      customizations,
+    });
+
+    // Generate HTML
+    const html = generateLeaseHtml(leaseData);
+
+    // Generate PDF
+    const pdfBuffer = await htmlToPdfBuffer(html);
+
+    // Upload to Cloudinary
+    const result = await uploadToCloudinary(pdfBuffer, {
+      folder: `leases/${landlord.id}`,
+      resource_type: 'raw',
+      public_id: `lease-${property.slug}-${unit.name}-${Date.now()}`,
+    });
+
+    // Create LegalDocument record
+    const document = await prisma.legalDocument.create({
+      data: {
+        landlordId: landlord.id,
+        name: `Lease - ${property.name} ${unit.name}`,
+        type: 'lease',
+        category: 'generated',
+        state: (property.address as any)?.state || null,
+        fileUrl: result.secure_url,
+        fileType: 'pdf',
+        fileSize: pdfBuffer.length,
+        isTemplate: saveAsTemplate || false,
+        isActive: true,
+        isFieldsConfigured: true, // Pre-configured signature fields
+        description: `Auto-generated lease for ${property.name} - Unit ${unit.name}`,
+        // Pre-configured signature fields - no dragging needed!
+        signatureFields: generateSignatureFields(leaseData.tenantNames.length),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      document,
+      pdfUrl: result.secure_url,
+      html, // Return HTML for preview
+    });
+  } catch (error) {
+    console.error('Failed to generate lease:', error);
+    return NextResponse.json({ message: 'Failed to generate lease' }, { status: 500 });
+  }
+}
+
+/**
+ * Generate pre-configured signature fields for the lease
+ * These are positioned at the signature section of the generated PDF
+ */
+function generateSignatureFields(tenantCount: number) {
+  const fields = [];
+  
+  // Landlord signature - positioned at signature section
+  fields.push({
+    id: 'landlord_signature',
+    type: 'signature',
+    role: 'landlord',
+    page: -1, // Last page
+    x: 10,
+    y: 35,
+    width: 25,
+    height: 5,
+    required: true,
+    label: 'Landlord Signature',
+  });
+  
+  fields.push({
+    id: 'landlord_date',
+    type: 'date',
+    role: 'landlord',
+    page: -1,
+    x: 10,
+    y: 42,
+    width: 15,
+    height: 3,
+    required: true,
+    label: 'Date',
+  });
+
+  // Tenant signatures
+  for (let i = 0; i < tenantCount; i++) {
+    const yOffset = 50 + (i * 18);
+    
+    fields.push({
+      id: `tenant_${i}_signature`,
+      type: 'signature',
+      role: 'tenant',
+      page: -1,
+      x: 10,
+      y: yOffset,
+      width: 25,
+      height: 5,
+      required: true,
+      label: `Tenant ${tenantCount > 1 ? i + 1 : ''} Signature`,
+    });
+    
+    fields.push({
+      id: `tenant_${i}_date`,
+      type: 'date',
+      role: 'tenant',
+      page: -1,
+      x: 10,
+      y: yOffset + 7,
+      width: 15,
+      height: 3,
+      required: true,
+      label: 'Date',
+    });
+  }
+
+  return fields;
+}

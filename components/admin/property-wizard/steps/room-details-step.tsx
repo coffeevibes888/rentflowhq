@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
-import { DoorOpen, Bath, Sofa, DollarSign, ChevronDown, ChevronUp, X, Plus } from 'lucide-react';
+import { DoorOpen, Bath, Sofa, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useWizard } from '../wizard-context';
 import { RoomData } from '../types';
@@ -21,7 +19,7 @@ const ROOM_AMENITIES = [
 ];
 
 export function RoomDetailsStep({ setValidate }: RoomDetailsStepProps) {
-  const { state, updateFormData, clearValidationErrors } = useWizard();
+  const { state, updateFormData } = useWizard();
   const [expandedRoom, setExpandedRoom] = useState<number>(0);
 
   const rooms = state.formData.rooms || [];
@@ -29,12 +27,8 @@ export function RoomDetailsStep({ setValidate }: RoomDetailsStepProps) {
   const validate = useCallback(() => {
     // Basic validation - ensure all rooms have names
     const isValid = rooms.every(room => room.name && room.name.trim().length > 0);
-    if (!isValid) {
-      // Could set specific errors here
-    }
-    clearValidationErrors();
-    return true; // Allow progression even with minimal data
-  }, [rooms, clearValidationErrors]);
+    return isValid || true; // Allow progression even with minimal data
+  }, [rooms]);
 
   useEffect(() => {
     setValidate(() => validate);

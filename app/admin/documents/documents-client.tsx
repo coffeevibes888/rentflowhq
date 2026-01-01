@@ -49,9 +49,12 @@ import {
   CheckCircle2,
   Clock,
   FileSignature,
+  Wand2,
+  Check,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { LeaseBuilderModal } from '@/components/admin/lease-builder';
 
 interface LegalDocument {
   id: string;
@@ -92,7 +95,16 @@ interface ScannedDocument {
 interface Property {
   id: string;
   name: string;
-  address: { city?: string; state?: string } | null;
+  address: { city?: string; state?: string; street?: string; zipCode?: string } | null;
+  amenities?: string[];
+}
+
+interface Unit {
+  id: string;
+  name: string;
+  type: string;
+  rentAmount: number;
+  propertyId: string;
 }
 
 interface DocumentsClientProps {
@@ -153,11 +165,59 @@ export default function DocumentsClient({
   const [selectedDocForAssign, setSelectedDocForAssign] = useState<LegalDocument | null>(null);
   const [assignPropertyId, setAssignPropertyId] = useState('');
 
+  // Lease Builder state
+  const [showLeaseBuilder, setShowLeaseBuilder] = useState(false);
+  const [leaseBuilderProperty, setLeaseBuilderProperty] = useState<Property | null>(null);
+  const [leaseBuilderUnit, setLeaseBuilderUnit] = useState<Unit | null>(null);
+  const [selectPropertyDialogOpen, setSelectPropertyDialogOpen] = useState(false);
+  const [units, setUnits] = useState<Unit[]>([]);
+
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '';
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Fetch units for a property
+  const fetchUnitsForProperty = async (propertyId: string) => {
+    try {
+      const res = await fetch(`/api/properties?includeUnits=true`);
+      if (res.ok) {
+        const data = await res.json();
+        const property = data.properties?.find((p: any) => p.id === propertyId);
+        if (property?.units) {
+          setUnits(property.units.map((u: any) => ({
+            ...u,
+            propertyId,
+            rentAmount: Number(u.rentAmount),
+          })));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch units:', error);
+    }
+  };
+
+  const handlePropertySelectForLease = (propertyId: string) => {
+    const prop = properties.find(p => p.id === propertyId);
+    setLeaseBuilderProperty(prop || null);
+    setLeaseBuilderUnit(null);
+    if (prop) {
+      fetchUnitsForProperty(propertyId);
+    }
+  };
+
+  const refreshDocuments = async () => {
+    try {
+      const res = await fetch('/api/legal-documents');
+      if (res.ok) {
+        const data = await res.json();
+        setLegalDocuments(data.documents || []);
+      }
+    } catch (error) {
+      console.error('Failed to refresh documents:', error);
+    }
   };
 
   const getTypeLabel = (type: string) => {
@@ -341,6 +401,14 @@ export default function DocumentsClient({
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => setSelectPropertyDialogOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 h-9 text-sm"
+            >
+              <Wand2 className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Create Custom Lease</span>
+              <span className="sm:hidden">Create Lease</span>
+            </Button>
             <Button
               onClick={() => openUploadDialog('legal')}
               className="bg-violet-600 hover:bg-violet-700 h-9 text-sm"
@@ -773,6 +841,108 @@ export default function DocumentsClient({
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Select Property/Unit Dialog for Lease Builder */}
+        <Dialog open={selectPropertyDialogOpen} onOpenChange={setSelectPropertyDialogOpen}>
+          <DialogContent className="bg-slate-900 border-white/10 text-white max-w-lg !overflow-visible">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Wand2 className="h-5 w-5 text-emerald-400" />
+                Create Custom Lease
+              </DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Select a property and unit to generate a comprehensive, state-aware lease agreement.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 mt-4 overflow-visible">
+              <div className="space-y-2">
+                <Label>Property</Label>
+                <Select
+                  value={leaseBuilderProperty?.id || ''}
+                  onValueChange={handlePropertySelectForLease}
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                    <SelectValue placeholder="Select a property..." />
+                  </SelectTrigger>
+                  <SelectContent 
+                    className="bg-slate-800 border-slate-700 text-white z-[9999]" 
+                    position="popper" 
+                    sideOffset={4}
+                  >
+                    {properties.map((prop) => (
+                      <SelectItem key={prop.id} value={prop.id} className="text-white hover:bg-slate-700 focus:bg-slate-700 focus:text-white">
+                        {prop.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {leaseBuilderProperty && (
+                <div className="space-y-2">
+                  <Label>Unit</Label>
+                  <Select
+                    value={leaseBuilderUnit?.id || ''}
+                    onValueChange={(value) => {
+                      const unit = units.find(u => u.id === value);
+                      setLeaseBuilderUnit(unit || null);
+                    }}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder="Select a unit..." />
+                    </SelectTrigger>
+                    <SelectContent 
+                      className="bg-slate-800 border-slate-700 text-white z-[9999]" 
+                      position="popper" 
+                      sideOffset={4}
+                    >
+                      {units.length === 0 ? (
+                        <SelectItem value="_none" disabled className="text-slate-400">No units found</SelectItem>
+                      ) : (
+                        units.map((unit) => (
+                          <SelectItem key={unit.id} value={unit.id} className="text-white hover:bg-slate-700 focus:bg-slate-700 focus:text-white">
+                            {unit.name} ({unit.type}) - ${Number(unit.rentAmount).toLocaleString()}/mo
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              <Button
+                onClick={() => {
+                  if (leaseBuilderProperty && leaseBuilderUnit) {
+                    setSelectPropertyDialogOpen(false);
+                    setShowLeaseBuilder(true);
+                  }
+                }}
+                disabled={!leaseBuilderProperty || !leaseBuilderUnit}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+              >
+                <Wand2 className="h-4 w-4 mr-2" />
+                Start Lease Builder
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Lease Builder Modal */}
+        {leaseBuilderProperty && leaseBuilderUnit && (
+          <LeaseBuilderModal
+            open={showLeaseBuilder}
+            onClose={() => {
+              setShowLeaseBuilder(false);
+              setLeaseBuilderProperty(null);
+              setLeaseBuilderUnit(null);
+            }}
+            property={leaseBuilderProperty}
+            unit={leaseBuilderUnit}
+            onLeaseGenerated={() => {
+              refreshDocuments();
+            }}
+          />
+        )}
       </div>
     </main>
   );
