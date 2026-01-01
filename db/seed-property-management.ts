@@ -96,7 +96,7 @@ async function main() {
       name: 'Super Admin',
       email: 'superadmin@propertyflowhq.com',
       password: superAdminPassword,
-      role: 'super_admin',
+      role: 'superAdmin',
       emailVerified: new Date(),
     },
   });

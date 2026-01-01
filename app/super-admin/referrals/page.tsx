@@ -11,7 +11,7 @@ export const metadata = {
 export default async function ReferralsPage() {
   const session = await auth();
   
-  if (!session?.user?.id || session.user.role !== 'super_admin') {
+  if (!session?.user?.id || session.user.role !== 'superAdmin') {
     redirect('/unauthorized');
   }
 
@@ -45,7 +45,7 @@ export default async function ReferralsPage() {
   return (
     <div className='container mx-auto py-8 px-4'>
       <ReferralsClient 
-        initialReferrals={referrals.map((ref) => ({
+        initialReferrals={referrals.map((ref: any) => ({
           id: ref.id,
           referrerLandlordId: ref.referrerLandlordId,
           referredLandlordId: ref.referredLandlordId,
@@ -55,7 +55,7 @@ export default async function ReferralsPage() {
           completedAt: ref.completedAt?.toISOString() || null,
           referralCode: ref.referralCode.code,
         }))}
-        referralCodes={referralCodes.map((code) => ({
+        referralCodes={referralCodes.map((code: any) => ({
           id: code.id,
           code: code.code,
           landlordId: code.landlordId,

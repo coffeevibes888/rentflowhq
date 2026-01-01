@@ -11,7 +11,7 @@ export const metadata = {
 export default async function SecurityPage() {
   const session = await auth();
   
-  if (!session?.user?.id || session.user.role !== 'super_admin') {
+  if (!session?.user?.id || session.user.role !== 'superAdmin') {
     redirect('/unauthorized');
   }
 
@@ -34,14 +34,14 @@ export default async function SecurityPage() {
   // Check which have 2FA enabled
   const twoFARecords = await prismaBase.twoFactorAuth.findMany({
     where: {
-      userId: { in: landlordUsers.map((u) => u.id) },
+      userId: { in: landlordUsers.map((u: any) => u.id) },
       isEnabled: true,
     },
     select: { userId: true },
   });
 
-  const usersWithTwoFA = new Set(twoFARecords.map((r) => r.userId));
-  const usersWithout2FAList = landlordUsers.filter((u) => !usersWithTwoFA.has(u.id));
+  const usersWithTwoFA = new Set(twoFARecords.map((r: any) => r.userId));
+  const usersWithout2FAList = landlordUsers.filter((u: any) => !usersWithTwoFA.has(u.id));
 
   // Get failed login attempts in last 24h
   const failedLoginAttempts = await prismaBase.auditLog.count({
@@ -81,7 +81,7 @@ export default async function SecurityPage() {
           usersWithout2FAList,
           failedLoginAttempts,
           blockedIPs,
-          recentSecurityEvents: recentSecurityEvents.map((e) => ({
+          recentSecurityEvents: recentSecurityEvents.map((e: any) => ({
             id: e.id,
             action: e.action,
             userId: e.userId,

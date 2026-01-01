@@ -11,7 +11,7 @@ export const metadata = {
 export default async function AuditLogsPage() {
   const session = await auth();
   
-  if (!session?.user?.id || session.user.role !== 'super_admin') {
+  if (!session?.user?.id || session.user.role !== 'superAdmin') {
     redirect('/unauthorized');
   }
 
@@ -32,7 +32,7 @@ export default async function AuditLogsPage() {
   return (
     <div className='container mx-auto py-8 px-4'>
       <AuditLogsClient 
-        initialLogs={auditLogs.map((log) => ({
+        initialLogs={auditLogs.map((log: any) => ({
           ...log,
           createdAt: log.createdAt.toISOString(),
         }))}

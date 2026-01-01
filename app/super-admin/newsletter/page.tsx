@@ -11,7 +11,7 @@ export const metadata = {
 export default async function NewsletterPage() {
   const session = await auth();
   
-  if (!session?.user?.id || session.user.role !== 'super_admin') {
+  if (!session?.user?.id || session.user.role !== 'superAdmin') {
     redirect('/unauthorized');
   }
 
@@ -40,7 +40,7 @@ export default async function NewsletterPage() {
   return (
     <div className='container mx-auto py-8 px-4'>
       <NewsletterClient 
-        initialSubscribers={subscribers.map((sub) => ({
+        initialSubscribers={subscribers.map((sub: any) => ({
           ...sub,
           subscribedAt: sub.subscribedAt.toISOString(),
           unsubscribedAt: sub.unsubscribedAt?.toISOString() || null,
