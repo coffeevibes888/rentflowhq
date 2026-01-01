@@ -27,7 +27,7 @@ const AdminDocumentsPage = async () => {
   // Fetch all data in parallel
   const [legalDocuments, scannedDocuments, properties] = await Promise.all([
     prisma.legalDocument.findMany({
-      where: { landlordId },
+      where: { landlordId, isActive: true },
       orderBy: { createdAt: 'desc' },
     }),
     prisma.scannedDocument.findMany({
