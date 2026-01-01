@@ -5,6 +5,7 @@ import PricingSection from '@/components/home/pricing-section';
 import FAQSection from '@/components/home/faq-section';
 import TrustBadges from '@/components/home/trust-badges';
 import NewsletterSignup from '@/components/home/newsletter-signup';
+import ExitIntentPopup from '@/components/home/exit-intent-popup';
 import { headers } from 'next/headers';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
@@ -514,6 +515,7 @@ const Homepage = async () => {
       <NewsletterSignup />
       <CustomerReviews />
       <HomeContactCard />
+      <ExitIntentPopup />
     </>
   );
 };

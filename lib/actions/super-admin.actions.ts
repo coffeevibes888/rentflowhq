@@ -58,6 +58,9 @@ export async function getSuperAdminInsights() {
       failedPaymentsCount,
     ] = await Promise.all([
       prisma.landlord.findMany({
+        where: {
+          ownerUserId: { not: null }, // Only include landlords with valid user accounts
+        },
         include: {
           properties: {
             include: {
@@ -519,6 +522,9 @@ export async function listUsersForSuperAdmin(limit = 100) {
 export async function listLandlordsForSuperAdmin() {
   await requireSuperAdmin();
   return prisma.landlord.findMany({
+    where: {
+      ownerUserId: { not: null }, // Only include landlords with valid user accounts
+    },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
@@ -531,6 +537,19 @@ export async function listLandlordsForSuperAdmin() {
 export async function deleteUserBySuperAdmin(userId: string) {
   await requireSuperAdmin();
   if (!userId) throw new Error('User id required');
+  
+  // Check if this user owns a landlord account
+  const landlord = await prisma.landlord.findFirst({
+    where: { ownerUserId: userId },
+    select: { id: true },
+  });
+  
+  // If user is a landlord owner, delete the landlord first (cascades to properties, units, etc.)
+  if (landlord) {
+    await prisma.landlord.delete({ where: { id: landlord.id } });
+  }
+  
+  // Now delete the user
   await prisma.user.delete({ where: { id: userId } });
   return { success: true };
 }
@@ -555,6 +574,11 @@ export async function getAllPropertiesForSuperAdmin() {
   await requireSuperAdmin();
   
   const properties = await prisma.property.findMany({
+    where: {
+      landlord: {
+        ownerUserId: { not: null }, // Only include properties from landlords with valid user accounts
+      },
+    },
     include: {
       landlord: {
         select: {

@@ -6,35 +6,24 @@ import Link from 'next/link';
 
 export default function ExitIntentPopup() {
   const [isVisible, setIsVisible] = useState(false);
-  const [hasShown, setHasShown] = useState(false);
 
   useEffect(() => {
     // Check if popup was already shown in this session
     const shown = sessionStorage.getItem('exitIntentShown');
     if (shown) {
-      setHasShown(true);
       return;
     }
 
-    const handleMouseLeave = (e: MouseEvent) => {
-      // Only trigger when mouse leaves from the top of the page
-      if (e.clientY <= 0 && !hasShown) {
-        setIsVisible(true);
-        setHasShown(true);
-        sessionStorage.setItem('exitIntentShown', 'true');
-      }
-    };
-
-    // Add delay before enabling exit intent
+    // Show popup after 35 seconds
     const timer = setTimeout(() => {
-      document.addEventListener('mouseleave', handleMouseLeave);
-    }, 5000); // Wait 5 seconds before enabling
+      setIsVisible(true);
+      sessionStorage.setItem('exitIntentShown', 'true');
+    }, 35000);
 
     return () => {
       clearTimeout(timer);
-      document.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [hasShown]);
+  }, []);
 
   if (!isVisible) return null;
 
