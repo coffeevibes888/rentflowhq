@@ -568,6 +568,32 @@ export async function clearDemoRevenueData() {
   return { success: true, deleted: result.count };
 }
 
+// Clean up orphaned landlords (those without valid user accounts)
+export async function cleanupOrphanedLandlords() {
+  await requireSuperAdmin();
+  
+  // Find landlords with null ownerUserId
+  const orphanedLandlords = await prisma.landlord.findMany({
+    where: { ownerUserId: null },
+    select: { id: true, name: true },
+  });
+  
+  if (orphanedLandlords.length === 0) {
+    return { success: true, deleted: 0, message: 'No orphaned landlords found' };
+  }
+  
+  // Delete each orphaned landlord (cascades to properties, units, etc.)
+  for (const landlord of orphanedLandlords) {
+    await prisma.landlord.delete({ where: { id: landlord.id } });
+  }
+  
+  return { 
+    success: true, 
+    deleted: orphanedLandlords.length,
+    message: `Deleted ${orphanedLandlords.length} orphaned landlord(s)`,
+  };
+}
+
 
 // Property Management for Super Admin
 export async function getAllPropertiesForSuperAdmin() {

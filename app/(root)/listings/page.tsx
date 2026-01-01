@@ -88,7 +88,14 @@ async function getListings(searchParams: {
   let rentalListings: any[] = [];
   if (!listingType || listingType === 'all' || listingType === 'rent') {
     const units = await prisma.unit.findMany({
-      where: unitWhere,
+      where: {
+        ...unitWhere,
+        property: {
+          landlord: {
+            ownerUserId: { not: null }, // Only include properties from landlords with valid user accounts
+          },
+        },
+      },
       include: {
         property: {
           select: {
@@ -338,7 +345,14 @@ async function getListings(searchParams: {
 
   // Get unique cities for filter (from both sources)
   const allUnits = await prisma.unit.findMany({
-    where: { isAvailable: true },
+    where: { 
+      isAvailable: true,
+      property: {
+        landlord: {
+          ownerUserId: { not: null },
+        },
+      },
+    },
     include: { property: { select: { address: true } } },
   });
   
