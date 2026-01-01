@@ -125,6 +125,19 @@ export default function AffiliateWelcomeEmail({
 
           <Hr style={divider} />
 
+          {/* Dashboard Link */}
+          <Section style={dashboardSection}>
+            <Text style={dashboardLabel}>Track Your Progress</Text>
+            <Text style={dashboardText}>
+              View your clicks, signups, and earnings in real-time on your affiliate dashboard.
+            </Text>
+            <Button style={dashboardButton} href="https://www.propertyflowhq.com/affiliate-program/dashboard">
+              Go to Dashboard
+            </Button>
+          </Section>
+
+          <Hr style={divider} />
+
           {/* Footer */}
           <Section style={footerSection}>
             <Text style={footerText}>
@@ -329,4 +342,37 @@ const signature = {
   fontSize: '14px',
   fontWeight: '600',
   margin: '16px 0 0 0',
+};
+
+const dashboardSection = {
+  backgroundColor: '#f0fdf4',
+  borderRadius: '12px',
+  border: '1px solid #bbf7d0',
+  margin: '0 40px',
+  padding: '24px',
+  textAlign: 'center' as const,
+};
+
+const dashboardLabel = {
+  color: '#166534',
+  fontSize: '16px',
+  fontWeight: '600',
+  margin: '0 0 8px 0',
+};
+
+const dashboardText = {
+  color: '#475569',
+  fontSize: '14px',
+  margin: '0 0 16px 0',
+};
+
+const dashboardButton = {
+  backgroundColor: '#16a34a',
+  borderRadius: '8px',
+  color: '#ffffff',
+  fontSize: '14px',
+  fontWeight: '600',
+  textDecoration: 'none',
+  textAlign: 'center' as const,
+  padding: '12px 24px',
 };

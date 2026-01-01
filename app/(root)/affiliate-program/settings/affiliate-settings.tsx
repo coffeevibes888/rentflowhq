@@ -187,20 +187,15 @@ export default function AffiliateSettings({ initialData }: AffiliateSettingsProp
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 text-center">
               <p className="text-sm text-slate-400 mb-1">Pro Plan</p>
               <p className="text-2xl font-bold text-green-400">${initialData.commissionBasic}</p>
               <p className="text-xs text-slate-500">per referral</p>
             </div>
             <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 text-center">
-              <p className="text-sm text-slate-400 mb-1">Professional Plan</p>
-              <p className="text-2xl font-bold text-green-400">${initialData.commissionPro}</p>
-              <p className="text-xs text-slate-500">per referral</p>
-            </div>
-            <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 text-center">
               <p className="text-sm text-slate-400 mb-1">Enterprise Plan</p>
-              <p className="text-2xl font-bold text-green-400">${initialData.commissionEnterprise}</p>
+              <p className="text-2xl font-bold text-green-400">${initialData.commissionPro}</p>
               <p className="text-xs text-slate-500">per referral</p>
             </div>
           </div>

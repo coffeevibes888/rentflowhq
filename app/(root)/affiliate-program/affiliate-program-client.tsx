@@ -27,21 +27,18 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import AffiliateSignUpModal from './affiliate-signup-modal';
-import AffiliateDashboard from './affiliate-dashboard';
 
 export default function AffiliateProgramClient() {
   const [showSignUpModal, setShowSignUpModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Will be replaced with actual auth check
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const commissionTiers = [
-    { plan: 'Pro Plan', price: '$29.99/mo', commission: '$5', color: 'bg-blue-500' },
-    { plan: 'Professional Plan', price: '$79.99/mo', commission: '$10', color: 'bg-violet-500' },
-    { plan: 'Enterprise Plan', price: 'Custom', commission: '$25', color: 'bg-amber-500' },
+    { plan: 'Pro Plan', price: '$29.99/mo', commission: '$5', color: 'bg-violet-500' },
+    { plan: 'Enterprise Plan', price: '$79.99/mo', commission: '$10', color: 'bg-amber-500' },
   ];
 
   const benefits = [
-    { icon: DollarSign, title: 'Competitive Commissions', description: 'Earn $5-$25 for every successful referral that converts to a paid plan.' },
+    { icon: DollarSign, title: 'Competitive Commissions', description: 'Earn $5-$10 for every successful referral that converts to a paid plan.' },
     { icon: TrendingUp, title: '30-Day Cookie', description: 'Your referrals are tracked for 30 days, giving them time to convert.' },
     { icon: Users, title: 'Recurring Potential', description: 'Build passive income as your referrals continue their subscriptions.' },
     { icon: CheckCircle, title: 'Real-Time Tracking', description: 'Monitor clicks, signups, and earnings in your personal dashboard.' },
@@ -91,7 +88,7 @@ export default function AffiliateProgramClient() {
               </span>
             </h1>
             <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              Join our affiliate program and earn up to $25 for every landlord or property manager 
+              Join our affiliate program and earn up to $10 for every landlord or property manager 
               you refer who subscribes to Property Flow HQ.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -108,7 +105,7 @@ export default function AffiliateProgramClient() {
                 className="border-slate-600 text-slate-300 hover:bg-slate-800"
                 asChild
               >
-                <Link href="#how-it-works">Learn More</Link>
+                <Link href="/affiliate-program/dashboard">Sign In to Dashboard</Link>
               </Button>
             </div>
           </div>
@@ -238,20 +235,20 @@ export default function AffiliateProgramClient() {
           </p>
 
           <Tabs defaultValue="email" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-slate-800/50 mb-8">
-              <TabsTrigger value="email" className="data-[state=active]:bg-violet-600">
+            <TabsList className="grid w-full grid-cols-4 bg-slate-800 border border-slate-700 mb-8">
+              <TabsTrigger value="email" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-slate-300">
                 <Mail className="w-4 h-4 mr-2" />
                 Email
               </TabsTrigger>
-              <TabsTrigger value="social" className="data-[state=active]:bg-violet-600">
+              <TabsTrigger value="social" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-slate-300">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Social
               </TabsTrigger>
-              <TabsTrigger value="scripts" className="data-[state=active]:bg-violet-600">
+              <TabsTrigger value="scripts" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-slate-300">
                 <FileText className="w-4 h-4 mr-2" />
                 Scripts
               </TabsTrigger>
-              <TabsTrigger value="tips" className="data-[state=active]:bg-violet-600">
+              <TabsTrigger value="tips" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-slate-300">
                 <Target className="w-4 h-4 mr-2" />
                 Tips
               </TabsTrigger>
@@ -617,7 +614,13 @@ Not trying to sell you anything - just thought it might be useful! Here's the li
           >
             Become an Affiliate Today
           </Button>
-          <p className="text-slate-500 text-sm mt-4">
+          <p className="text-slate-400 text-sm mt-4">
+            Already an affiliate?{' '}
+            <Link href="/affiliate-program/dashboard" className="text-violet-400 hover:underline">
+              Sign in to your dashboard
+            </Link>
+          </p>
+          <p className="text-slate-500 text-sm mt-2">
             Questions? Email us at <a href="mailto:affiliates@propertyflowhq.com" className="text-violet-400 hover:underline">affiliates@propertyflowhq.com</a>
           </p>
         </div>
