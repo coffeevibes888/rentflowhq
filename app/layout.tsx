@@ -9,6 +9,8 @@ import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrappe
 import PrivacyConsentBanner from '@/components/privacy/privacy-consent-banner';
 import { Suspense } from 'react';
 import AffiliateTracker from '@/components/affiliate-tracker';
+import LiveChatWidget from '@/components/shared/live-chat-widget';
+import ExitIntentPopup from '@/components/home/exit-intent-popup';
 
 let resolvedMetadataBase: URL;
 try {
@@ -63,6 +65,8 @@ export default function RootLayout({
             <Toaster />
             <TeamChatWidgetWrapper />
             <PrivacyConsentBanner />
+            <LiveChatWidget />
+            <ExitIntentPopup />
           </ThemeProvider>
         </SessionProviderWrapper>
       </body>

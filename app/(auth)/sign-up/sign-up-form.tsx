@@ -23,6 +23,9 @@ const SignUpForm = () => {
   // Check if user is coming from a property application
   const fromProperty = searchParams.get('fromProperty') === 'true';
   const propertySlug = searchParams.get('propertySlug') || '';
+  
+  // Referral tracking
+  const referralCode = searchParams.get('ref') || '';
 
   const SignUpButton = () => {
     const { pending } = useFormStatus();
@@ -36,6 +39,15 @@ const SignUpForm = () => {
 
   return (
     <div className='space-y-4'>
+      {/* Show referral message if coming from referral link */}
+      {referralCode && (
+        <div className='rounded-lg bg-violet-50 border border-violet-200 p-4 mb-4'>
+          <p className='text-sm text-violet-800'>
+            🎉 <strong>Welcome!</strong> You were referred by a friend. You'll both get $50 credit after your first rent collection!
+          </p>
+        </div>
+      )}
+      
       {/* Show context message if coming from property application */}
       {fromProperty && (
         <div className='rounded-lg bg-blue-50 border border-blue-200 p-4 mb-4'>
@@ -56,6 +68,10 @@ const SignUpForm = () => {
             <input type='hidden' name='propertySlug' value={propertySlug} />
             <input type='hidden' name='role' value='tenant' />
           </>
+        )}
+        {/* Pass referral code to the server action */}
+        {referralCode && (
+          <input type='hidden' name='referralCode' value={referralCode} />
         )}
         
         <div className='space-y-6'>

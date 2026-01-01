@@ -21,7 +21,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
+      // Removed allowDangerousEmailAccountLinking for security
+      // Users must verify email ownership before linking accounts
     }),
     CredentialsProvider({
       credentials: {

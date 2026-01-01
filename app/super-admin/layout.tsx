@@ -40,6 +40,30 @@ export default function SuperAdminLayout({
                 💰 Affiliates
               </Link>
               <Link 
+                href='/super-admin/audit-logs' 
+                className='text-sm text-violet-300 hover:text-violet-200 transition-colors font-medium'
+              >
+                🔒 Audit Logs
+              </Link>
+              <Link 
+                href='/super-admin/newsletter' 
+                className='text-sm text-cyan-300 hover:text-cyan-200 transition-colors font-medium'
+              >
+                📧 Newsletter
+              </Link>
+              <Link 
+                href='/super-admin/referrals' 
+                className='text-sm text-pink-300 hover:text-pink-200 transition-colors font-medium'
+              >
+                🎁 Referrals
+              </Link>
+              <Link 
+                href='/super-admin/security' 
+                className='text-sm text-red-300 hover:text-red-200 transition-colors font-medium'
+              >
+                🛡️ Security
+              </Link>
+              <Link 
                 href='/super-admin/testing' 
                 className='text-sm text-amber-300 hover:text-amber-200 transition-colors font-medium'
               >

@@ -2,6 +2,9 @@ import { APP_NAME } from '@/lib/constants';
 import CustomerReviews from '@/components/home/customer-reviews';
 import HomeContactCard from '@/components/home/home-contact-card';
 import PricingSection from '@/components/home/pricing-section';
+import FAQSection from '@/components/home/faq-section';
+import TrustBadges from '@/components/home/trust-badges';
+import NewsletterSignup from '@/components/home/newsletter-signup';
 import { headers } from 'next/headers';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
@@ -506,6 +509,9 @@ const Homepage = async () => {
         </section> */}
       </main>
 
+      <TrustBadges />
+      <FAQSection />
+      <NewsletterSignup />
       <CustomerReviews />
       <HomeContactCard />
     </>

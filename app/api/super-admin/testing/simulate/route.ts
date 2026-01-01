@@ -43,7 +43,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
 async function getFirstActiveLease() {
   return prisma.lease.findFirst({
     where: { status: 'active' },
@@ -54,8 +53,8 @@ async function getFirstActiveLease() {
   });
 }
 
+
 async function seedTestData() {
-  // Find or create a landlord
   let landlord = await prisma.landlord.findFirst();
   
   if (!landlord) {
@@ -72,7 +71,6 @@ async function seedTestData() {
     });
   }
 
-  // Create test property
   const suffix = Date.now().toString(36);
   const property = await prisma.property.create({
     data: {
@@ -84,7 +82,6 @@ async function seedTestData() {
     },
   });
 
-  // Create unit
   const unit = await prisma.unit.create({
     data: {
       propertyId: property.id,
@@ -97,7 +94,6 @@ async function seedTestData() {
     },
   });
 
-  // Create tenant
   const tenant = await prisma.user.create({
     data: {
       name: `Test Tenant ${suffix}`,
@@ -106,7 +102,6 @@ async function seedTestData() {
     },
   });
 
-  // Create lease
   const startDate = new Date();
   await prisma.lease.create({
     data: {
@@ -122,7 +117,6 @@ async function seedTestData() {
   return NextResponse.json({ success: true, message: 'Test data seeded successfully' });
 }
 
-
 async function createLateRent() {
   const lease = await getFirstActiveLease();
   if (!lease) {
@@ -130,7 +124,7 @@ async function createLateRent() {
   }
 
   const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() - 10); // 10 days overdue
+  dueDate.setDate(dueDate.getDate() - 10);
 
   await prisma.rentPayment.create({
     data: {
@@ -152,7 +146,7 @@ async function createUpcomingRent() {
   }
 
   const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 3); // Due in 3 days
+  dueDate.setDate(dueDate.getDate() + 3);
 
   await prisma.rentPayment.create({
     data: {
@@ -174,7 +168,7 @@ async function createPaidRent() {
   }
 
   const dueDate = new Date();
-  dueDate.setDate(1); // First of current month
+  dueDate.setDate(1);
 
   await prisma.rentPayment.create({
     data: {
@@ -190,6 +184,7 @@ async function createPaidRent() {
   return NextResponse.json({ success: true, message: 'Paid rent payment created' });
 }
 
+
 async function createPartialPayment() {
   const lease = await getFirstActiveLease();
   if (!lease) {
@@ -202,15 +197,15 @@ async function createPartialPayment() {
   await prisma.rentPayment.create({
     data: {
       leaseId: lease.id,
+      tenantId: lease.tenantId,
       amount: partialAmount,
       dueDate,
       status: 'partial',
     },
   });
 
-  return NextResponse.json({ success: true, message: `Partial payment created ($${partialAmount})` });
+  return NextResponse.json({ success: true, message: `Partial payment created (${partialAmount})` });
 }
-
 
 async function createMaintenanceTicket(priority: 'urgent' | 'normal' | 'completed') {
   const lease = await getFirstActiveLease();
@@ -251,7 +246,7 @@ async function createExpiringLease() {
   }
 
   const endDate = new Date();
-  endDate.setDate(endDate.getDate() + 30); // Expires in 30 days
+  endDate.setDate(endDate.getDate() + 30);
 
   await prisma.lease.update({
     where: { id: lease.id },
@@ -267,8 +262,11 @@ async function createNewApplication() {
     include: { property: true },
   });
 
+  const suffix = Date.now().toString(36);
+  const applicantName = `Test Applicant ${suffix}`;
+  const applicantEmail = `applicant-${suffix}@test.com`;
+
   if (!unit) {
-    // Create an available unit
     const property = await prisma.property.findFirst();
     if (!property) {
       return NextResponse.json({ success: false, message: 'No property found. Seed test data first.' });
@@ -277,7 +275,7 @@ async function createNewApplication() {
     const newUnit = await prisma.unit.create({
       data: {
         propertyId: property.id,
-        name: `Unit ${Date.now().toString(36)}`,
+        name: `Unit ${suffix}`,
         type: 'apartment',
         bedrooms: 1,
         bathrooms: 1,
@@ -286,12 +284,10 @@ async function createNewApplication() {
       },
     });
 
-    // Create applicant
-    const suffix = Date.now().toString(36);
     const applicant = await prisma.user.create({
       data: {
-        name: `Test Applicant ${suffix}`,
-        email: `applicant-${suffix}@test.com`,
+        name: applicantName,
+        email: applicantEmail,
         role: 'tenant',
       },
     });
@@ -300,6 +296,8 @@ async function createNewApplication() {
       data: {
         unitId: newUnit.id,
         applicantId: applicant.id,
+        fullName: applicantName,
+        email: applicantEmail,
         status: 'pending',
         moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         employmentStatus: 'employed',
@@ -310,12 +308,10 @@ async function createNewApplication() {
     return NextResponse.json({ success: true, message: 'New rental application created' });
   }
 
-  // Create applicant for existing unit
-  const suffix = Date.now().toString(36);
   const applicant = await prisma.user.create({
     data: {
-      name: `Test Applicant ${suffix}`,
-      email: `applicant-${suffix}@test.com`,
+      name: applicantName,
+      email: applicantEmail,
       role: 'tenant',
     },
   });
@@ -324,6 +320,8 @@ async function createNewApplication() {
     data: {
       unitId: unit.id,
       applicantId: applicant.id,
+      fullName: applicantName,
+      email: applicantEmail,
       status: 'pending',
       moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       employmentStatus: 'employed',
