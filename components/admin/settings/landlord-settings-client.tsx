@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Bell, DollarSign, HelpCircle, CreditCard, Crown, ArrowRight } from 'lucide-react';
+import { User, Bell, DollarSign, HelpCircle, CreditCard, Crown, ArrowRight, Shield } from 'lucide-react';
 import { ProfileSettings } from './profile-settings';
 import { NotificationSettings } from './notification-settings';
 import { FeeSettings } from './fee-settings';
 import { HelpAndTour } from './help-and-tour';
+import { SecuritySettings } from './security-settings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -23,9 +24,10 @@ interface LandlordSettingsClientProps {
     aboutPhoto?: string | null;
   };
   isPro: boolean;
+  twoFactorEnabled?: boolean;
 }
 
-export function LandlordSettingsClient({ landlord, isPro }: LandlordSettingsClientProps) {
+export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = false }: LandlordSettingsClientProps) {
   const [activeTab, setActiveTab] = useState('profile');
 
   return (
@@ -76,13 +78,20 @@ export function LandlordSettingsClient({ landlord, isPro }: LandlordSettingsClie
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-4 gap-1 bg-slate-900/60 border border-white/10 p-1 rounded-xl h-auto">
+        <TabsList className="w-full grid grid-cols-5 gap-1 bg-slate-900/60 border border-white/10 p-1 rounded-xl h-auto">
           <TabsTrigger 
             value="profile" 
             className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
           >
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security" 
+            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+          >
+            <Shield className="w-4 h-4" />
+            <span className="hidden sm:inline">Security</span>
           </TabsTrigger>
           <TabsTrigger 
             value="notifications" 
@@ -109,6 +118,10 @@ export function LandlordSettingsClient({ landlord, isPro }: LandlordSettingsClie
 
         <TabsContent value="profile" className="mt-4">
           <ProfileSettings landlord={landlord} />
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-4">
+          <SecuritySettings initialEnabled={twoFactorEnabled} />
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-4">

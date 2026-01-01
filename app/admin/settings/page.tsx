@@ -3,6 +3,8 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { LandlordSettingsClient } from '@/components/admin/settings/landlord-settings-client';
 import { getCurrentLandlordSubscription } from '@/lib/actions/subscription.actions';
+import { auth } from '@/auth';
+import { prisma } from '@/db/prisma';
 
 export const metadata: Metadata = {
   title: 'Settings | Property Management',
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
 
 const AdminSettingsPage = async () => {
   await requireAdmin();
+  const session = await auth();
 
   const [landlordResult, subscriptionResult] = await Promise.all([
     getOrCreateCurrentLandlord(),
@@ -19,6 +22,16 @@ const AdminSettingsPage = async () => {
   const landlord = landlordResult.success ? landlordResult.landlord : null;
   const isPro = subscriptionResult.success && 
     (subscriptionResult.currentTier === 'pro' || subscriptionResult.currentTier === 'enterprise');
+
+  // Get user's 2FA status
+  let twoFactorEnabled = false;
+  if (session?.user?.id) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { twoFactorEnabled: true },
+    });
+    twoFactorEnabled = user?.twoFactorEnabled ?? false;
+  }
 
   if (!landlord) {
     return (
@@ -50,6 +63,7 @@ const AdminSettingsPage = async () => {
           aboutPhoto: landlord.aboutPhoto,
         }}
         isPro={isPro}
+        twoFactorEnabled={twoFactorEnabled}
       />
     </main>
   );

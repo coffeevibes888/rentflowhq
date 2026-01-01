@@ -105,7 +105,7 @@ export default function AffiliateProgramClient() {
                 className="border-slate-600 text-slate-300 hover:bg-slate-800"
                 asChild
               >
-                <Link href="/affiliate-program/dashboard">Sign In to Dashboard</Link>
+                <Link href="/sign-in?callbackUrl=/affiliate-program/dashboard">Sign In to Dashboard</Link>
               </Button>
             </div>
           </div>
@@ -616,7 +616,7 @@ Not trying to sell you anything - just thought it might be useful! Here's the li
           </Button>
           <p className="text-slate-400 text-sm mt-4">
             Already an affiliate?{' '}
-            <Link href="/affiliate-program/dashboard" className="text-violet-400 hover:underline">
+            <Link href="/sign-in?callbackUrl=/affiliate-program/dashboard" className="text-violet-400 hover:underline">
               Sign in to your dashboard
             </Link>
           </p>
