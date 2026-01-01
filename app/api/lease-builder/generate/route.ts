@@ -21,9 +21,9 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { propertyId, unitId, tenantId, leaseTerms, customizations, saveAsTemplate } = body;
+    const { propertyId, unitId, tenantId, leaseTerms, customizations, saveAsTemplate, rentAmount, unitName } = body;
 
-    // Fetch property and unit
+    // Fetch property
     const property = await prisma.property.findFirst({
       where: { id: propertyId, landlordId: landlord.id },
     });
@@ -32,12 +32,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Property not found' }, { status: 404 });
     }
 
-    const unit = await prisma.unit.findFirst({
-      where: { id: unitId, propertyId },
-    });
+    // Fetch unit if provided (optional now)
+    let unit = null;
+    if (unitId) {
+      unit = await prisma.unit.findFirst({
+        where: { id: unitId, propertyId },
+      });
+    }
 
-    if (!unit) {
-      return NextResponse.json({ message: 'Unit not found' }, { status: 404 });
+    // Get rent amount - from unit or from request body
+    const effectiveRentAmount = unit ? Number(unit.rentAmount) : (rentAmount || 0);
+    const effectiveUnitName = unit ? unit.name : (unitName || 'Unit');
+    const effectiveUnitType = unit ? unit.type : 'unit';
+
+    if (!effectiveRentAmount || effectiveRentAmount <= 0) {
+      return NextResponse.json({ message: 'Rent amount is required' }, { status: 400 });
     }
 
     // Fetch tenant if provided
@@ -71,9 +80,9 @@ export async function POST(req: NextRequest) {
         amenities: property.amenities,
       },
       unit: {
-        name: unit.name,
-        type: unit.type,
-        rentAmount: Number(unit.rentAmount),
+        name: effectiveUnitName,
+        type: effectiveUnitType,
+        rentAmount: effectiveRentAmount,
       },
       tenant: tenant ? {
         name: tenant.name,
@@ -101,14 +110,14 @@ export async function POST(req: NextRequest) {
     const result = await uploadToCloudinary(pdfBuffer, {
       folder: `leases/${landlord.id}`,
       resource_type: 'raw',
-      public_id: `lease-${property.slug}-${unit.name}-${Date.now()}`,
+      public_id: `lease-${property.slug}-${effectiveUnitName.replace(/\s+/g, '-')}-${Date.now()}`,
     });
 
     // Create LegalDocument record
     const document = await prisma.legalDocument.create({
       data: {
         landlordId: landlord.id,
-        name: `Lease - ${property.name} ${unit.name}`,
+        name: `Lease - ${property.name} ${effectiveUnitName}`,
         type: 'lease',
         category: 'generated',
         state: (property.address as any)?.state || null,
@@ -118,7 +127,7 @@ export async function POST(req: NextRequest) {
         isTemplate: saveAsTemplate || false,
         isActive: true,
         isFieldsConfigured: true, // Pre-configured signature fields
-        description: `Auto-generated lease for ${property.name} - Unit ${unit.name}`,
+        description: `Auto-generated lease for ${property.name} - ${effectiveUnitName}`,
         // Pre-configured signature fields - no dragging needed!
         signatureFields: generateSignatureFields(leaseData.tenantNames.length),
       },

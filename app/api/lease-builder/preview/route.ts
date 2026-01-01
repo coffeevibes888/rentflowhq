@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { propertyId, unitId, tenantId, leaseTerms, customizations } = body;
+    const { propertyId, unitId, tenantId, leaseTerms, customizations, rentAmount, unitName } = body;
 
     // Fetch property
     const property = await prisma.property.findFirst({
@@ -30,14 +30,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Property not found' }, { status: 404 });
     }
 
-    // Fetch unit
-    const unit = await prisma.unit.findFirst({
-      where: { id: unitId, propertyId },
-    });
-
-    if (!unit) {
-      return NextResponse.json({ message: 'Unit not found' }, { status: 404 });
+    // Fetch unit if provided (optional)
+    let unit = null;
+    if (unitId) {
+      unit = await prisma.unit.findFirst({
+        where: { id: unitId, propertyId },
+      });
     }
+
+    // Get rent amount - from unit or from request body
+    const effectiveRentAmount = unit ? Number(unit.rentAmount) : (rentAmount || 0);
+    const effectiveUnitName = unit ? unit.name : (unitName || 'Unit');
+    const effectiveUnitType = unit ? unit.type : 'unit';
 
     // Fetch tenant if provided
     let tenant = null;
@@ -68,9 +72,9 @@ export async function POST(req: NextRequest) {
         amenities: property.amenities,
       },
       unit: {
-        name: unit.name,
-        type: unit.type,
-        rentAmount: Number(unit.rentAmount),
+        name: effectiveUnitName,
+        type: effectiveUnitType,
+        rentAmount: effectiveRentAmount,
       },
       tenant: tenant ? {
         name: tenant.name,
