@@ -145,6 +145,20 @@ export async function GET(
     
     const roleFields = fields.filter(f => f.role === sig.role);
 
+    // Also generate HTML preview for custom PDFs so users can read the lease terms
+    const leaseHtml = renderDocuSignReadyLeaseHtml({
+      landlordName,
+      tenantName,
+      propertyLabel,
+      leaseStartDate: new Date(lease.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      leaseEndDate: lease.endDate
+        ? new Date(lease.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'Month-to-Month',
+      rentAmount: Number(lease.rentAmount).toLocaleString(),
+      billingDayOfMonth: String(lease.billingDayOfMonth),
+      todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    });
+
     return NextResponse.json({
       leaseId: lease.id,
       role: sig.role,
@@ -155,6 +169,7 @@ export async function GET(
       documentUrl: legalDoc.fileUrl,
       signatureFields: roleFields,
       useDefaultFields: !hasConfiguredFields, // Flag to tell frontend to adjust field positions
+      leaseHtml, // Include HTML preview for reading
       leaseDetails: {
         landlordName,
         tenantName,

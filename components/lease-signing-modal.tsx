@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { X, PenTool, Type, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, PenTool, Type, Check, ChevronLeft, ChevronRight, Maximize2, FileText, ExternalLink } from 'lucide-react';
 
 interface SignSession {
   leaseId: string;
@@ -139,6 +139,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   const [currentSignature, setCurrentSignature] = useState<string>('');
   const [currentInitials, setCurrentInitials] = useState<string>('');
   const [signatureStyleIndex, setSignatureStyleIndex] = useState(0);
+  const [showFullscreenViewer, setShowFullscreenViewer] = useState(false);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const signaturePadRef = useRef<HTMLDivElement>(null);
@@ -410,49 +411,89 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   const processedLeaseHtml = useMemo(() => {
     if (!session) return '';
     
-    // For custom PDFs, we don't have HTML to process - show a message
+    // For custom PDFs, use the leaseHtml that the API now provides
     if (session.documentType === 'custom_pdf') {
+      // If we have leaseHtml from the API, use it (this is the rendered lease terms)
+      if (session.leaseHtml) {
+        let html = session.leaseHtml;
+        
+        // Process any signature/initial placeholders in the HTML
+        tabs.forEach((tab) => {
+          if (tab.completed && tab.value) {
+            const imgStyle = tab.type === 'signature' 
+              ? 'height: 38px; display: block; margin: 0 auto; position: relative; bottom: 2px;'
+              : 'height: 24px; display: block; margin: 0 auto; position: relative; bottom: 2px;';
+            const imgTag = `<img src="${tab.value}" alt="${tab.type}" style="${imgStyle}" />`;
+            html = html.replace(tab.placeholder, imgTag);
+          } else {
+            const isActive = tabs[activeTabIndex ?? -1]?.id === tab.id;
+            const tabButton = `<span 
+              data-tab-id="${tab.id}" 
+              style="
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 6px 16px;
+                background: ${isActive ? '#8b5cf6' : '#fef3c7'};
+                color: ${isActive ? '#ffffff' : '#92400e'};
+                border: 2px solid ${isActive ? '#7c3aed' : '#f59e0b'};
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                pointer-events: auto;
+                white-space: nowrap;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              "
+            >${tab.type === 'signature' ? 'Sign Here' : 'Initial'}</span>`;
+            html = html.replace(tab.placeholder, tabButton);
+          }
+        });
+        
+        return html;
+      }
+      
+      // Fallback: show lease details summary if no HTML available
       return `
-        <div style="text-align: center; padding: 40px 20px;">
-          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 24px; max-width: 500px; margin: 0 auto;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 16px;">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            <h3 style="color: #0c4a6e; font-size: 18px; font-weight: 600; margin-bottom: 8px;">
-              ${session.documentName || 'Lease Document'}
-            </h3>
-            <p style="color: #0369a1; font-size: 14px; margin-bottom: 16px;">
-              This is a custom PDF lease document. Please complete the signature fields on the right to sign.
+        <div style="padding: 20px;">
+          <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 16px; padding: 24px; color: white; margin-bottom: 24px;">
+            <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">
+              ${session.documentName || 'Lease Agreement'}
+            </h2>
+            <p style="opacity: 0.9; font-size: 14px;">
+              Please review the lease document and complete your signature below.
             </p>
-            ${session.leaseDetails ? `
-              <div style="text-align: left; background: white; border-radius: 8px; padding: 16px; margin-top: 16px;">
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;"><strong>Property:</strong> ${session.leaseDetails.propertyLabel}</p>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;"><strong>Landlord:</strong> ${session.leaseDetails.landlordName}</p>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;"><strong>Tenant:</strong> ${session.leaseDetails.tenantName}</p>
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;"><strong>Rent:</strong> $${session.leaseDetails.rentAmount?.toLocaleString() || 'N/A'}/month</p>
-                <p style="font-size: 13px; color: #64748b;"><strong>Term:</strong> ${session.leaseDetails.startDate ? new Date(session.leaseDetails.startDate).toLocaleDateString() : 'N/A'} - ${session.leaseDetails.endDate ? new Date(session.leaseDetails.endDate).toLocaleDateString() : 'Month-to-Month'}</p>
-              </div>
-            ` : ''}
-            ${session.documentUrl ? `
-              <a href="${session.documentUrl}" target="_blank" rel="noopener noreferrer" 
-                 style="display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 20px; background: #0284c7; color: white; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
-                View Full Document
-              </a>
-            ` : ''}
           </div>
+          ${session.leaseDetails ? `
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">Lease Summary</h3>
+              <div style="display: grid; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                  <span style="color: #64748b; font-size: 14px;">Property</span>
+                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">${session.leaseDetails.propertyLabel}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                  <span style="color: #64748b; font-size: 14px;">Landlord</span>
+                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">${session.leaseDetails.landlordName}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                  <span style="color: #64748b; font-size: 14px;">Tenant</span>
+                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">${session.leaseDetails.tenantName}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                  <span style="color: #64748b; font-size: 14px;">Monthly Rent</span>
+                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">$${session.leaseDetails.rentAmount?.toLocaleString() || 'N/A'}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                  <span style="color: #64748b; font-size: 14px;">Lease Term</span>
+                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">${session.leaseDetails.startDate ? new Date(session.leaseDetails.startDate).toLocaleDateString() : 'N/A'} - ${session.leaseDetails.endDate ? new Date(session.leaseDetails.endDate).toLocaleDateString() : 'Month-to-Month'}</span>
+                </div>
+              </div>
+            </div>
+          ` : ''}
         </div>
       `;
     }
-    
     // HTML template processing
     if (!session.leaseHtml) return '';
     
@@ -634,8 +675,15 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                   style={{ borderColor: '#e5e5e5', background: '#ffffff' }}
                 >
                   <h3 className="text-sm font-semibold text-gray-900">Lease Document</h3>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>{tabs.filter(t => t.completed).length}/{tabs.length} completed</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowFullscreenViewer(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg transition-colors"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Full Screen</span>
+                    </button>
+                    <span className="text-xs text-gray-500">{tabs.filter(t => t.completed).length}/{tabs.length} completed</span>
                   </div>
                 </div>
                 
@@ -888,5 +936,95 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
       </div>
   );
 
-  return createPortal(modalContent, document.body);
+  // Fullscreen viewer modal
+  const fullscreenViewerContent = showFullscreenViewer ? (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+        onClick={() => setShowFullscreenViewer(false)} 
+      />
+      <div 
+        className="relative z-10 w-full h-full sm:w-[95vw] sm:h-[95vh] sm:max-w-7xl sm:rounded-2xl bg-white shadow-2xl overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Fullscreen header */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-violet-600 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <FileText className="h-5 w-5 text-white/80" />
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-white">
+                {session?.documentName || 'Lease Agreement'}
+              </h2>
+              <p className="text-xs sm:text-sm text-white/70">
+                Full document view
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {session?.documentUrl && (
+              <a
+                href={session.documentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span className="hidden sm:inline">Open PDF</span>
+              </a>
+            )}
+            <button
+              onClick={() => setShowFullscreenViewer(false)}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              aria-label="Close fullscreen"
+            >
+              <X className="h-5 w-5 text-white" />
+            </button>
+          </div>
+        </div>
+
+        {/* Fullscreen content */}
+        <div className="flex-1 overflow-auto p-4 sm:p-8 bg-gray-50">
+          {session?.documentType === 'custom_pdf' && session?.documentUrl ? (
+            // Show PDF in iframe for custom PDFs
+            <div className="w-full h-full min-h-[600px] bg-white rounded-xl shadow-lg overflow-hidden">
+              <iframe
+                src={session.documentUrl}
+                className="w-full h-full"
+                title="Lease Document PDF"
+              />
+            </div>
+          ) : (
+            // Show HTML content
+            <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
+              <div
+                className="prose prose-sm sm:prose lg:prose-lg max-w-none text-gray-800"
+                style={{ fontSize: 'clamp(14px, 2.5vw, 18px)', lineHeight: '1.7' }}
+                dangerouslySetInnerHTML={{ __html: processedLeaseHtml }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Fullscreen footer */}
+        <div className="px-4 sm:px-6 py-3 border-t border-gray-200 bg-white flex items-center justify-between flex-shrink-0">
+          <p className="text-sm text-gray-500">
+            Review the document above, then close to continue signing
+          </p>
+          <Button
+            onClick={() => setShowFullscreenViewer(false)}
+            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
+          >
+            Back to Signing
+          </Button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <>
+      {createPortal(modalContent, document.body)}
+      {showFullscreenViewer && createPortal(fullscreenViewerContent, document.body)}
+    </>
+  );
 }
