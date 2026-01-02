@@ -242,12 +242,12 @@ export default function LeaseSelectionModal({
                     <div className="flex-1 text-left">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-white text-sm sm:text-base">Create Custom Lease</p>
-                        <Badge className="bg-emerald-500/30 text-emerald-300 border-emerald-500/50 text-[10px] px-1.5">
+                        <Badge className="bg-emerald-500 text-white border-emerald-400 text-[10px] px-1.5">
                           <Sparkles className="h-3 w-3 mr-0.5" />
                           FREE
                         </Badge>
                       </div>
-                      <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+                      <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
                         State-aware lease with 20+ legal sections, disclosures & audit trail
                       </p>
                     </div>
@@ -412,11 +412,11 @@ export default function LeaseSelectionModal({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-white text-sm sm:text-base">Create Custom Lease</p>
-                      <Badge className="bg-emerald-500/30 text-emerald-300 border-emerald-500/50 text-[10px] px-1.5">
+                      <Badge className="bg-emerald-500 text-white border-emerald-400 text-[10px] px-1.5">
                         FREE
                       </Badge>
                     </div>
-                    <p className="text-[10px] sm:text-xs text-slate-400">State-aware with disclosures & audit trail</p>
+                    <p className="text-[10px] sm:text-xs text-slate-300">State-aware with disclosures & audit trail</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-emerald-400 flex-shrink-0" />
                 </CardContent>
@@ -472,7 +472,7 @@ export default function LeaseSelectionModal({
       </DialogContent>
 
       {/* Lease Builder Modal */}
-      {selectedUnit && (
+      {showLeaseBuilder && (
         <LeaseBuilderModal
           open={showLeaseBuilder}
           onClose={() => {

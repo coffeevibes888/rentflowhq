@@ -645,14 +645,14 @@ export default function DocumentsClientV2({
               </p>
               <div className="flex items-center gap-2">
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-[140px] bg-slate-900 border-slate-700 text-slate-200">
+                  <SelectTrigger className="w-[140px] bg-white/10 border-white/20 text-white">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Filter" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-700 text-slate-200">
-                    <SelectItem value="all">All Types</SelectItem>
+                  <SelectContent className="bg-indigo-900 border-white/20 text-white">
+                    <SelectItem value="all" className="text-white hover:bg-white/10 focus:bg-white/10">All Types</SelectItem>
                     {SCANNED_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
+                      <SelectItem key={cat.value} value={cat.value} className="text-white hover:bg-white/10 focus:bg-white/10">
                         {cat.label}
                       </SelectItem>
                     ))}
@@ -754,12 +754,12 @@ export default function DocumentsClientV2({
 
         {/* Upload Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-lg mx-4">
+          <DialogContent className="bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 border-white/20 text-white max-w-lg mx-4">
             <DialogHeader>
               <DialogTitle>
                 {uploadType === 'legal' ? 'Upload Document' : 'Scan & Categorize'}
               </DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogDescription className="text-white/70">
                 {uploadType === 'legal'
                   ? 'Upload a lease, notice, or legal document.'
                   : 'Upload a receipt or document to automatically categorize.'}
@@ -770,7 +770,7 @@ export default function DocumentsClientV2({
               {/* File Upload Area */}
               <div className="space-y-2">
                 <Label>Document File</Label>
-                <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 text-center hover:border-violet-500/50 transition-colors cursor-pointer">
+                <div className="border-2 border-dashed border-white/30 rounded-lg p-6 text-center hover:border-violet-400/50 transition-colors cursor-pointer">
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
@@ -780,15 +780,15 @@ export default function DocumentsClientV2({
                   />
                   <label htmlFor="doc-upload" className="cursor-pointer">
                     {uploadForm.file ? (
-                      <div className="flex items-center justify-center gap-2 text-emerald-400">
+                      <div className="flex items-center justify-center gap-2 text-emerald-300">
                         <CheckCircle2 className="h-5 w-5" />
                         <span className="truncate max-w-[200px]">{uploadForm.file.name}</span>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <Upload className="h-8 w-8 mx-auto text-slate-500" />
-                        <p className="text-sm text-slate-400">Click or drag to upload</p>
-                        <p className="text-xs text-slate-500">PDF, Word, JPG, PNG (max 10MB)</p>
+                        <Upload className="h-8 w-8 mx-auto text-white/50" />
+                        <p className="text-sm text-white/70">Click or drag to upload</p>
+                        <p className="text-xs text-white/50">PDF, Word, JPG, PNG (max 10MB)</p>
                       </div>
                     )}
                   </label>
@@ -803,7 +803,7 @@ export default function DocumentsClientV2({
                       value={uploadForm.name}
                       onChange={(e) => setUploadForm((prev) => ({ ...prev, name: e.target.value }))}
                       placeholder="e.g., Standard Lease Agreement"
-                      className="bg-slate-800 border-slate-700"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     />
                   </div>
 
@@ -813,12 +813,12 @@ export default function DocumentsClientV2({
                       value={uploadForm.type}
                       onValueChange={(value) => setUploadForm((prev) => ({ ...prev, type: value }))}
                     >
-                      <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-200">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
+                      <SelectContent className="bg-indigo-900 border-white/20 text-white">
                         {DOCUMENT_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
+                          <SelectItem key={type.value} value={type.value} className="text-white hover:bg-white/10 focus:bg-white/10">
                             {type.label}
                           </SelectItem>
                         ))}
@@ -832,7 +832,7 @@ export default function DocumentsClientV2({
                       value={uploadForm.description}
                       onChange={(e) => setUploadForm((prev) => ({ ...prev, description: e.target.value }))}
                       placeholder="Brief description..."
-                      className="bg-slate-800 border-slate-700 min-h-[80px]"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 min-h-[80px]"
                     />
                   </div>
 
@@ -842,7 +842,7 @@ export default function DocumentsClientV2({
                       id="isTemplate"
                       checked={uploadForm.isTemplate}
                       onChange={(e) => setUploadForm((prev) => ({ ...prev, isTemplate: e.target.checked }))}
-                      className="rounded border-slate-700 bg-slate-800"
+                      className="rounded border-white/30 bg-white/10"
                     />
                     <Label htmlFor="isTemplate" className="text-sm cursor-pointer">
                       Use as template for new leases
@@ -916,10 +916,10 @@ export default function DocumentsClientV2({
 
         {/* Assign to Property Dialog */}
         <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-          <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-md mx-4">
+          <DialogContent className="bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 border-white/20 text-white max-w-md mx-4">
             <DialogHeader>
               <DialogTitle>Set as Default Lease</DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogDescription className="text-white/70">
                 Choose a property to use "{selectedDocForAssign?.name}" as the default lease template.
               </DialogDescription>
             </DialogHeader>
@@ -928,17 +928,17 @@ export default function DocumentsClientV2({
               <div className="space-y-2">
                 <Label>Select Property</Label>
                 <Select value={assignPropertyId} onValueChange={setAssignPropertyId}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-200">
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="Choose property..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
+                  <SelectContent className="bg-indigo-900 border-white/20 text-white">
                     {properties.map((prop) => (
-                      <SelectItem key={prop.id} value={prop.id}>
+                      <SelectItem key={prop.id} value={prop.id} className="text-white hover:bg-white/10 focus:bg-white/10">
                         <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-slate-400" />
+                          <Building2 className="h-4 w-4 text-white/70" />
                           <span>{prop.name}</span>
                           {prop.address?.city && (
-                            <span className="text-slate-500 text-xs">
+                            <span className="text-white/50 text-xs">
                               ({prop.address.city}, {prop.address.state})
                             </span>
                           )}
@@ -953,7 +953,7 @@ export default function DocumentsClientV2({
                 <Button
                   variant="outline"
                   onClick={() => setAssignDialogOpen(false)}
-                  className="flex-1 border-slate-700"
+                  className="flex-1 border-white/30 text-white hover:bg-white/10"
                 >
                   Cancel
                 </Button>
@@ -972,33 +972,33 @@ export default function DocumentsClientV2({
 
         {/* Select Property/Unit Dialog for Lease Builder */}
         <Dialog open={selectPropertyDialogOpen} onOpenChange={setSelectPropertyDialogOpen}>
-          <DialogContent className="bg-slate-900 border-white/10 text-white max-w-lg !overflow-visible">
+          <DialogContent className="bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 border-white/20 text-white max-w-lg !overflow-visible">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Wand2 className="h-5 w-5 text-emerald-400" />
+                <Wand2 className="h-5 w-5 text-emerald-300" />
                 Create Custom Lease
               </DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogDescription className="text-white/70">
                 Select a property to generate a comprehensive, state-aware lease agreement.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4 overflow-visible">
               <div className="space-y-2">
-                <Label>Property <span className="text-red-400">*</span></Label>
+                <Label>Property <span className="text-red-300">*</span></Label>
                 <Select
                   value={leaseBuilderProperty?.id || ''}
                   onValueChange={handlePropertySelectForLease}
                 >
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="Select a property..." />
                   </SelectTrigger>
                   <SelectContent 
-                    className="bg-slate-800 border-slate-700 text-white z-[9999]" 
+                    className="bg-indigo-900 border-white/20 text-white z-[9999]" 
                     position="popper" 
                     sideOffset={4}
                   >
                     {properties.map((prop) => (
-                      <SelectItem key={prop.id} value={prop.id} className="text-white hover:bg-slate-700 focus:bg-slate-700 focus:text-white">
+                      <SelectItem key={prop.id} value={prop.id} className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white">
                         {prop.name}
                       </SelectItem>
                     ))}
@@ -1008,9 +1008,9 @@ export default function DocumentsClientV2({
               
               {leaseBuilderProperty && (
                 <div className="space-y-2">
-                  <Label>Unit <span className="text-slate-500 text-xs font-normal">(Optional)</span></Label>
+                  <Label>Unit <span className="text-white/50 text-xs font-normal">(Optional)</span></Label>
                   {units.length === 0 ? (
-                    <p className="text-xs text-slate-400 bg-slate-800 rounded-lg p-3">
+                    <p className="text-xs text-white/70 bg-white/10 rounded-lg p-3 border border-white/20">
                       No units found for this property. You can still create a lease template - just enter the rent amount in the next step.
                     </p>
                   ) : (
@@ -1025,19 +1025,19 @@ export default function DocumentsClientV2({
                         }
                       }}
                     >
-                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
                         <SelectValue placeholder="Select a unit (optional)..." />
                       </SelectTrigger>
                       <SelectContent 
-                        className="bg-slate-800 border-slate-700 text-white z-[9999]" 
+                        className="bg-indigo-900 border-white/20 text-white z-[9999]" 
                         position="popper" 
                         sideOffset={4}
                       >
-                        <SelectItem value="_none" className="text-slate-400 hover:bg-slate-700 focus:bg-slate-700">
+                        <SelectItem value="_none" className="text-white/70 hover:bg-white/10 focus:bg-white/10">
                           No specific unit (create template)
                         </SelectItem>
                         {units.map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id} className="text-white hover:bg-slate-700 focus:bg-slate-700 focus:text-white">
+                          <SelectItem key={unit.id} value={unit.id} className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white">
                             {unit.name} ({unit.type}) - ${Number(unit.rentAmount).toLocaleString()}/mo
                           </SelectItem>
                         ))}

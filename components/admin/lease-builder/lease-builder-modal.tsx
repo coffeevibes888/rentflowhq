@@ -304,16 +304,16 @@ export default function LeaseBuilderModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-slate-900 border-slate-700">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 border-white/20">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
-            <FileText className="h-5 w-5 text-violet-400" />
+            <FileText className="h-5 w-5 text-violet-300" />
             Create Custom Lease - {property.name}{unit ? ` / ${unit.name}` : ''}
           </DialogTitle>
         </DialogHeader>
 
         {/* Progress Steps */}
-        <div className="flex items-center justify-between px-2 py-4 border-b border-slate-700">
+        <div className="flex items-center justify-between px-2 py-4 border-b border-white/10">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
             const isActive = index === currentStep;
@@ -325,13 +325,13 @@ export default function LeaseBuilderModal({
                 onClick={() => setCurrentStep(index)}
                 className={cn(
                   'flex flex-col items-center gap-1 transition-colors',
-                  isActive ? 'text-violet-400' : isComplete ? 'text-emerald-400' : 'text-slate-500'
+                  isActive ? 'text-violet-300' : isComplete ? 'text-emerald-300' : 'text-white/50'
                 )}
               >
                 <div className={cn(
                   'w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors',
-                  isActive ? 'border-violet-400 bg-violet-400/20' : 
-                  isComplete ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-600'
+                  isActive ? 'border-violet-300 bg-violet-400/30' : 
+                  isComplete ? 'border-emerald-300 bg-emerald-400/30' : 'border-white/30'
                 )}>
                   {isComplete ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                 </div>
@@ -350,12 +350,12 @@ export default function LeaseBuilderModal({
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Start Date</Label>
+                  <Label className="text-white/90">Start Date</Label>
                   <Input
                     type="date"
                     value={formData.startDate}
                     onChange={e => updateForm('startDate', e.target.value)}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
                 
@@ -364,18 +364,18 @@ export default function LeaseBuilderModal({
                     checked={formData.isMonthToMonth}
                     onCheckedChange={v => updateForm('isMonthToMonth', v)}
                   />
-                  <Label className="text-slate-300">Month-to-Month</Label>
+                  <Label className="text-white/90">Month-to-Month</Label>
                 </div>
               </div>
               
               {!formData.isMonthToMonth && (
                 <div>
-                  <Label className="text-slate-300">End Date</Label>
+                  <Label className="text-white/90">End Date</Label>
                   <Input
                     type="date"
                     value={formData.endDate}
                     onChange={e => updateForm('endDate', e.target.value)}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
               )}
@@ -385,27 +385,27 @@ export default function LeaseBuilderModal({
                   checked={formData.autoRenewal}
                   onCheckedChange={v => updateForm('autoRenewal', v)}
                 />
-                <Label className="text-slate-300">Auto-renew to month-to-month</Label>
+                <Label className="text-white/90">Auto-renew to month-to-month</Label>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Renewal Notice (days)</Label>
+                  <Label className="text-white/90">Renewal Notice (days)</Label>
                   <Input
                     type="number"
                     value={formData.renewalNoticeDays}
                     onChange={e => updateForm('renewalNoticeDays', Number(e.target.value))}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Early Termination Fee ($)</Label>
+                  <Label className="text-white/90">Early Termination Fee ($)</Label>
                   <Input
                     type="number"
                     value={formData.earlyTerminationFee}
                     onChange={e => updateForm('earlyTerminationFee', e.target.value)}
                     placeholder="Optional"
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
               </div>
@@ -418,29 +418,29 @@ export default function LeaseBuilderModal({
               <h3 className="text-lg font-semibold text-white">Payment Terms</h3>
               
               {unit ? (
-                <div className="p-4 bg-slate-800 rounded-lg">
-                  <p className="text-slate-300">Monthly Rent: <span className="text-white font-bold">${Number(unit.rentAmount).toLocaleString()}</span></p>
-                  <p className="text-slate-400 text-sm">Unit: {unit.name}</p>
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20">
+                  <p className="text-white/90">Monthly Rent: <span className="text-white font-bold">${Number(unit.rentAmount).toLocaleString()}</span></p>
+                  <p className="text-white/70 text-sm">Unit: {unit.name}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-300">Unit/Room Name <span className="text-slate-500 text-xs">(Optional)</span></Label>
+                    <Label className="text-white/90">Unit/Room Name <span className="text-white/50 text-xs">(Optional)</span></Label>
                     <Input
                       value={formData.unitName}
                       onChange={e => updateForm('unitName', e.target.value)}
                       placeholder="e.g., Unit A, Master Bedroom"
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-300">Monthly Rent ($) <span className="text-red-400">*</span></Label>
+                    <Label className="text-white/90">Monthly Rent ($) <span className="text-red-300">*</span></Label>
                     <Input
                       type="number"
                       value={formData.rentAmount || ''}
                       onChange={e => updateForm('rentAmount', Number(e.target.value))}
                       placeholder="Enter rent amount"
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     />
                   </div>
                 </div>
@@ -448,46 +448,46 @@ export default function LeaseBuilderModal({
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Rent Due Day</Label>
+                  <Label className="text-white/90">Rent Due Day</Label>
                   <Select value={String(formData.rentDueDay)} onValueChange={v => updateForm('rentDueDay', Number(v))}>
-                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-600 text-white z-[9999]">
+                    <SelectContent className="bg-indigo-900 border-white/20 text-white z-[9999]">
                       {[1, 5, 10, 15].map(d => (
-                        <SelectItem key={d} value={String(d)} className="text-white hover:bg-slate-700 focus:bg-slate-700">{d}st/th of month</SelectItem>
+                        <SelectItem key={d} value={String(d)} className="text-white hover:bg-white/10 focus:bg-white/10">{d}st/th of month</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-slate-300">Grace Period (days)</Label>
+                  <Label className="text-white/90">Grace Period (days)</Label>
                   <Input
                     type="number"
                     value={formData.gracePeriodDays}
                     onChange={e => updateForm('gracePeriodDays', Number(e.target.value))}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Late Fee (%)</Label>
+                  <Label className="text-white/90">Late Fee (%)</Label>
                   <Input
                     type="number"
                     value={formData.lateFeePercent}
                     onChange={e => updateForm('lateFeePercent', Number(e.target.value))}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Bounced Check Fee ($)</Label>
+                  <Label className="text-white/90">Bounced Check Fee ($)</Label>
                   <Input
                     type="number"
                     value={formData.bouncedCheckFee}
                     onChange={e => updateForm('bouncedCheckFee', Number(e.target.value))}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
               </div>
@@ -497,7 +497,7 @@ export default function LeaseBuilderModal({
                   checked={formData.allowPartialPayments}
                   onCheckedChange={v => updateForm('allowPartialPayments', v)}
                 />
-                <Label className="text-slate-300">Allow partial payments</Label>
+                <Label className="text-white/90">Allow partial payments</Label>
               </div>
             </div>
           )}
@@ -509,29 +509,29 @@ export default function LeaseBuilderModal({
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Security Deposit (months of rent)</Label>
+                  <Label className="text-white/90">Security Deposit (months of rent)</Label>
                   <Select value={String(formData.securityDepositMonths)} onValueChange={v => updateForm('securityDepositMonths', Number(v))}>
-                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-600 text-white z-[9999]">
-                      <SelectItem value="0.5" className="text-white hover:bg-slate-700 focus:bg-slate-700">0.5 month</SelectItem>
-                      <SelectItem value="1" className="text-white hover:bg-slate-700 focus:bg-slate-700">1 month</SelectItem>
-                      <SelectItem value="1.5" className="text-white hover:bg-slate-700 focus:bg-slate-700">1.5 months</SelectItem>
-                      <SelectItem value="2" className="text-white hover:bg-slate-700 focus:bg-slate-700">2 months</SelectItem>
+                    <SelectContent className="bg-indigo-900 border-white/20 text-white z-[9999]">
+                      <SelectItem value="0.5" className="text-white hover:bg-white/10 focus:bg-white/10">0.5 month</SelectItem>
+                      <SelectItem value="1" className="text-white hover:bg-white/10 focus:bg-white/10">1 month</SelectItem>
+                      <SelectItem value="1.5" className="text-white hover:bg-white/10 focus:bg-white/10">1.5 months</SelectItem>
+                      <SelectItem value="2" className="text-white hover:bg-white/10 focus:bg-white/10">2 months</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-sm text-slate-400 mt-1">
+                  <p className="text-sm text-white/70 mt-1">
                     = ${(effectiveRentAmount * formData.securityDepositMonths).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-slate-300">Deposit Return (days after move-out)</Label>
+                  <Label className="text-white/90">Deposit Return (days after move-out)</Label>
                   <Input
                     type="number"
                     value={formData.depositReturnDays}
                     onChange={e => updateForm('depositReturnDays', Number(e.target.value))}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
               </div>
@@ -542,10 +542,10 @@ export default function LeaseBuilderModal({
           {currentStep === 3 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white">Utilities</h3>
-              <p className="text-slate-400 text-sm">Select who pays for each utility</p>
+              <p className="text-white/70 text-sm">Select who pays for each utility</p>
               
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-800 rounded-lg">
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20">
                   <h4 className="font-medium text-white mb-3">Tenant Pays</h4>
                   <div className="space-y-2">
                     {UTILITY_OPTIONS.map(util => (
@@ -554,14 +554,14 @@ export default function LeaseBuilderModal({
                           type="checkbox"
                           checked={formData.tenantPaysUtilities.includes(util)}
                           onChange={() => toggleUtility(util, 'tenant')}
-                          className="rounded border-slate-600"
+                          className="rounded border-white/30 bg-white/10"
                         />
-                        <span className="text-slate-300">{util}</span>
+                        <span className="text-white/90">{util}</span>
                       </label>
                     ))}
                   </div>
                 </div>
-                <div className="p-4 bg-slate-800 rounded-lg">
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20">
                   <h4 className="font-medium text-white mb-3">Landlord Pays</h4>
                   <div className="space-y-2">
                     {UTILITY_OPTIONS.map(util => (
@@ -570,9 +570,9 @@ export default function LeaseBuilderModal({
                           type="checkbox"
                           checked={formData.landlordPaysUtilities.includes(util)}
                           onChange={() => toggleUtility(util, 'landlord')}
-                          className="rounded border-slate-600"
+                          className="rounded border-white/30 bg-white/10"
                         />
-                        <span className="text-slate-300">{util}</span>
+                        <span className="text-white/90">{util}</span>
                       </label>
                     ))}
                   </div>
@@ -591,39 +591,39 @@ export default function LeaseBuilderModal({
                   checked={formData.petsAllowed}
                   onCheckedChange={v => updateForm('petsAllowed', v)}
                 />
-                <Label className="text-slate-300">Pets Allowed</Label>
+                <Label className="text-white/90">Pets Allowed</Label>
               </div>
               
               {formData.petsAllowed && (
-                <div className="space-y-4 p-4 bg-slate-800 rounded-lg">
+                <div className="space-y-4 p-4 bg-white/10 rounded-lg border border-white/20">
                   <div>
-                    <Label className="text-slate-300">Pet Restrictions</Label>
+                    <Label className="text-white/90">Pet Restrictions</Label>
                     <Input
                       value={formData.petRestrictions}
                       onChange={e => updateForm('petRestrictions', e.target.value)}
                       placeholder="e.g., No aggressive breeds, max 2 pets, under 50 lbs"
-                      className="bg-slate-700 border-slate-600 text-white"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-slate-300">Pet Deposit ($)</Label>
+                      <Label className="text-white/90">Pet Deposit ($)</Label>
                       <Input
                         type="number"
                         value={formData.petDeposit}
                         onChange={e => updateForm('petDeposit', e.target.value)}
                         placeholder="One-time deposit"
-                        className="bg-slate-700 border-slate-600 text-white"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                       />
                     </div>
                     <div>
-                      <Label className="text-slate-300">Monthly Pet Rent ($)</Label>
+                      <Label className="text-white/90">Monthly Pet Rent ($)</Label>
                       <Input
                         type="number"
                         value={formData.petRent}
                         onChange={e => updateForm('petRent', e.target.value)}
                         placeholder="Per pet per month"
-                        className="bg-slate-700 border-slate-600 text-white"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                       />
                     </div>
                   </div>
@@ -643,77 +643,77 @@ export default function LeaseBuilderModal({
                     checked={formData.smokingAllowed}
                     onCheckedChange={v => updateForm('smokingAllowed', v)}
                   />
-                  <Label className="text-slate-300">Smoking Allowed</Label>
+                  <Label className="text-white/90">Smoking Allowed</Label>
                 </div>
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={formData.rentersInsuranceRequired}
                     onCheckedChange={v => updateForm('rentersInsuranceRequired', v)}
                   />
-                  <Label className="text-slate-300">Renter's Insurance Required</Label>
+                  <Label className="text-white/90">Renter's Insurance Required</Label>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Quiet Hours Start</Label>
+                  <Label className="text-white/90">Quiet Hours Start</Label>
                   <Input
                     value={formData.quietHoursStart}
                     onChange={e => updateForm('quietHoursStart', e.target.value)}
                     placeholder="10:00 PM"
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Quiet Hours End</Label>
+                  <Label className="text-white/90">Quiet Hours End</Label>
                   <Input
                     value={formData.quietHoursEnd}
                     onChange={e => updateForm('quietHoursEnd', e.target.value)}
                     placeholder="8:00 AM"
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Entry Notice (hours)</Label>
+                  <Label className="text-white/90">Entry Notice (hours)</Label>
                   <Input
                     type="number"
                     value={formData.entryNoticeDays}
                     onChange={e => updateForm('entryNoticeDays', Number(e.target.value))}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Move-out Notice (days)</Label>
+                  <Label className="text-white/90">Move-out Notice (days)</Label>
                   <Input
                     type="number"
                     value={formData.moveOutNoticeDays}
                     onChange={e => updateForm('moveOutNoticeDays', Number(e.target.value))}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
               </div>
               
               <div>
-                <Label className="text-slate-300">Parking Rules</Label>
+                <Label className="text-white/90">Parking Rules</Label>
                 <Textarea
                   value={formData.parkingRules}
                   onChange={e => updateForm('parkingRules', e.target.value)}
                   placeholder="e.g., 1 assigned spot per unit, no RVs or boats"
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 />
               </div>
               
               <div>
-                <Label className="text-slate-300">Additional Terms (one per line)</Label>
+                <Label className="text-white/90">Additional Terms (one per line)</Label>
                 <Textarea
                   value={formData.additionalTerms}
                   onChange={e => updateForm('additionalTerms', e.target.value)}
                   placeholder="Any additional terms or conditions..."
                   rows={3}
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 />
               </div>
             </div>
@@ -727,15 +727,15 @@ export default function LeaseBuilderModal({
                 Select applicable disclosures. State-specific requirements will be automatically included based on your property location.
               </p>
               
-              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                <p className="text-amber-200 text-sm">
+              <div className="p-4 bg-amber-500/20 border border-amber-400/40 rounded-lg">
+                <p className="text-amber-100 text-sm">
                   <strong>Important:</strong> Missing required disclosures can void late fees, delay evictions, or get cases thrown out in court. 
                   We recommend including all applicable disclosures.
                 </p>
               </div>
               
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
                   <Switch
                     checked={formData.propertyBuiltBefore1978}
                     onCheckedChange={v => {
@@ -744,69 +744,69 @@ export default function LeaseBuilderModal({
                     }}
                   />
                   <div>
-                    <Label className="text-slate-300">Property built before 1978</Label>
-                    <p className="text-xs text-slate-500">Federal law requires lead paint disclosure for pre-1978 housing</p>
+                    <Label className="text-white/90">Property built before 1978</Label>
+                    <p className="text-xs text-white/60">Federal law requires lead paint disclosure for pre-1978 housing</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
                   <Switch
                     checked={formData.leadPaintDisclosure}
                     onCheckedChange={v => updateForm('leadPaintDisclosure', v)}
                   />
                   <div>
-                    <Label className="text-slate-300">Lead-Based Paint Disclosure</Label>
-                    <p className="text-xs text-slate-500">Required for all pre-1978 properties (federal requirement)</p>
+                    <Label className="text-white/90">Lead-Based Paint Disclosure</Label>
+                    <p className="text-xs text-white/60">Required for all pre-1978 properties (federal requirement)</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
                   <Switch
                     checked={formData.moldDisclosure}
                     onCheckedChange={v => updateForm('moldDisclosure', v)}
                   />
                   <div>
-                    <Label className="text-slate-300">Mold Disclosure</Label>
-                    <p className="text-xs text-slate-500">Required in CA, NY, WA, OR and recommended everywhere</p>
+                    <Label className="text-white/90">Mold Disclosure</Label>
+                    <p className="text-xs text-white/60">Required in CA, NY, WA, OR and recommended everywhere</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
                   <Switch
                     checked={formData.bedBugDisclosure}
                     onCheckedChange={v => updateForm('bedBugDisclosure', v)}
                   />
                   <div>
-                    <Label className="text-slate-300">Bed Bug Disclosure</Label>
-                    <p className="text-xs text-slate-500">Required in AZ, CA, IL, NY and several other states</p>
+                    <Label className="text-white/90">Bed Bug Disclosure</Label>
+                    <p className="text-xs text-white/60">Required in AZ, CA, IL, NY and several other states</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
                   <Switch
                     checked={formData.radonDisclosure}
                     onCheckedChange={v => updateForm('radonDisclosure', v)}
                   />
                   <div>
-                    <Label className="text-slate-300">Radon Disclosure</Label>
-                    <p className="text-xs text-slate-500">Required in CO, FL, IL and recommended in high-radon areas</p>
+                    <Label className="text-white/90">Radon Disclosure</Label>
+                    <p className="text-xs text-white/60">Required in CO, FL, IL and recommended in high-radon areas</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
                   <Switch
                     checked={formData.floodZoneDisclosure}
                     onCheckedChange={v => updateForm('floodZoneDisclosure', v)}
                   />
                   <div>
-                    <Label className="text-slate-300">Flood Zone Disclosure</Label>
-                    <p className="text-xs text-slate-500">Required if property is in a designated flood zone</p>
+                    <Label className="text-white/90">Flood Zone Disclosure</Label>
+                    <p className="text-xs text-white/60">Required if property is in a designated flood zone</p>
                   </div>
                 </div>
               </div>
               
-              <div className="p-4 bg-slate-800 rounded-lg">
-                <p className="text-slate-300 text-sm">
+              <div className="p-4 bg-white/10 rounded-lg border border-white/20">
+                <p className="text-white/90 text-sm">
                   <strong>Note:</strong> Additional state-specific disclosures and tenant rights notices will be automatically 
                   included in your lease based on the property's state.
                 </p>
@@ -820,43 +820,43 @@ export default function LeaseBuilderModal({
               <h3 className="text-lg font-semibold text-white">Review Your Lease</h3>
               
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
-                  <h4 className="font-medium text-violet-400">Property</h4>
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20 space-y-2">
+                  <h4 className="font-medium text-violet-300">Property</h4>
                   <p className="text-white">{property.name}</p>
-                  <p className="text-slate-400">Unit: {effectiveUnitName}</p>
+                  <p className="text-white/70">Unit: {effectiveUnitName}</p>
                 </div>
                 
-                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
-                  <h4 className="font-medium text-violet-400">Tenant</h4>
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20 space-y-2">
+                  <h4 className="font-medium text-violet-300">Tenant</h4>
                   <p className="text-white">{tenantName || '[To be assigned]'}</p>
-                  <p className="text-slate-400">{tenantEmail || ''}</p>
+                  <p className="text-white/70">{tenantEmail || ''}</p>
                 </div>
                 
-                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
-                  <h4 className="font-medium text-violet-400">Lease Term</h4>
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20 space-y-2">
+                  <h4 className="font-medium text-violet-300">Lease Term</h4>
                   <p className="text-white">
                     {formData.isMonthToMonth ? 'Month-to-Month' : `${formData.startDate} to ${formData.endDate}`}
                   </p>
-                  <p className="text-slate-400">Starts: {formData.startDate}</p>
+                  <p className="text-white/70">Starts: {formData.startDate}</p>
                 </div>
                 
-                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
-                  <h4 className="font-medium text-violet-400">Rent</h4>
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20 space-y-2">
+                  <h4 className="font-medium text-violet-300">Rent</h4>
                   <p className="text-white">${effectiveRentAmount.toLocaleString()}/month</p>
-                  <p className="text-slate-400">Due on the {formData.rentDueDay}st</p>
+                  <p className="text-white/70">Due on the {formData.rentDueDay}st</p>
                 </div>
                 
-                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
-                  <h4 className="font-medium text-violet-400">Security Deposit</h4>
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20 space-y-2">
+                  <h4 className="font-medium text-violet-300">Security Deposit</h4>
                   <p className="text-white">${(effectiveRentAmount * formData.securityDepositMonths).toLocaleString()}</p>
-                  <p className="text-slate-400">{formData.securityDepositMonths} month(s) rent</p>
+                  <p className="text-white/70">{formData.securityDepositMonths} month(s) rent</p>
                 </div>
                 
-                <div className="p-4 bg-slate-800 rounded-lg space-y-2">
-                  <h4 className="font-medium text-violet-400">Pets</h4>
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20 space-y-2">
+                  <h4 className="font-medium text-violet-300">Pets</h4>
                   <p className="text-white">{formData.petsAllowed ? 'Allowed' : 'Not Allowed'}</p>
                   {formData.petsAllowed && formData.petDeposit && (
-                    <p className="text-slate-400">Deposit: ${formData.petDeposit}</p>
+                    <p className="text-white/70">Deposit: ${formData.petDeposit}</p>
                   )}
                 </div>
               </div>
@@ -865,7 +865,7 @@ export default function LeaseBuilderModal({
                 <Button
                   variant="outline"
                   onClick={handlePreview}
-                  className="flex-1"
+                  className="flex-1 border-white/30 text-white hover:bg-white/10"
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   Preview Lease
@@ -876,12 +876,12 @@ export default function LeaseBuilderModal({
         </div>
 
         {/* Footer Navigation */}
-        <div className="flex items-center justify-between p-4 border-t border-slate-700">
+        <div className="flex items-center justify-between p-4 border-t border-white/10">
           <Button
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 0}
-            className="border-slate-600"
+            className="border-white/30 text-white hover:bg-white/10"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
