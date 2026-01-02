@@ -28,10 +28,27 @@ const SignInPage = async (props: {
 
   const session = await auth();
 
-  // Only redirect if there's a session AND a valid callback URL
-  // This prevents redirect loops when signing out
-  if (session && callbackUrl && callbackUrl !== '/sign-in') {
-    return redirect(callbackUrl);
+  // If user is already logged in, redirect them appropriately
+  if (session?.user) {
+    // Check if onboarding is completed
+    if (!session.user.onboardingCompleted) {
+      return redirect('/onboarding');
+    }
+    
+    // Redirect to callback URL if valid, otherwise to role-based dashboard
+    if (callbackUrl && callbackUrl !== '/sign-in' && callbackUrl !== '/sign-up') {
+      return redirect(callbackUrl);
+    }
+    
+    // Role-based redirect
+    const role = session.user.role;
+    if (role === 'admin' || role === 'landlord') {
+      return redirect('/admin');
+    } else if (role === 'super_admin') {
+      return redirect('/super-admin');
+    } else {
+      return redirect('/user');
+    }
   }
 
   const headersList = await headers();

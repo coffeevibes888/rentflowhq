@@ -270,7 +270,22 @@ export default function LeaseBuilderModal({
       
       if (res.ok) {
         const data = await res.json();
-        toast({ title: 'Lease generated successfully!' });
+        
+        // Automatically assign this lease as the default for the property
+        try {
+          await fetch('/api/legal-documents/set-default', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              documentId: data.document.id,
+              propertyId: property.id,
+            }),
+          });
+        } catch (assignError) {
+          console.warn('Failed to auto-assign lease to property:', assignError);
+        }
+        
+        toast({ title: 'Lease generated and assigned to property!' });
         onLeaseGenerated?.(data.document);
         onClose();
       } else {

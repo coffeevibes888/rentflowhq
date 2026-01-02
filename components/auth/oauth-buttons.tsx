@@ -8,18 +8,20 @@ interface OAuthButtonsProps {
   callbackUrl?: string;
 }
 
-export default function OAuthButtons({ callbackUrl = '/' }: OAuthButtonsProps) {
+export default function OAuthButtons({ callbackUrl = '/onboarding' }: OAuthButtonsProps) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn('google', { callbackUrl });
+      // Use onboarding as default callback - the page will redirect based on user state
+      const finalCallbackUrl = callbackUrl === '/' ? '/onboarding' : callbackUrl;
+      await signIn('google', { callbackUrl: finalCallbackUrl });
     } catch (error) {
       console.error('Google sign-in error:', error);
-    } finally {
       setIsGoogleLoading(false);
     }
+    // Don't reset loading state - page will redirect
   };
 
   return (

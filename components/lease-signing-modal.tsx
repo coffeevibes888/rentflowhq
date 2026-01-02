@@ -14,7 +14,35 @@ interface SignSession {
   role: 'tenant' | 'landlord';
   recipientName: string;
   recipientEmail: string;
-  leaseHtml: string;
+  // HTML template fields
+  leaseHtml?: string;
+  documentType?: 'html_template' | 'custom_pdf';
+  // Custom PDF fields
+  documentName?: string;
+  documentUrl?: string;
+  signatureFields?: SignatureFieldPosition[];
+  useDefaultFields?: boolean;
+  leaseDetails?: {
+    landlordName: string;
+    tenantName: string;
+    propertyLabel: string;
+    startDate: string;
+    endDate: string;
+    rentAmount: number;
+  };
+}
+
+interface SignatureFieldPosition {
+  id: string;
+  type: 'signature' | 'initial' | 'date' | 'text';
+  role: 'tenant' | 'landlord';
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  required?: boolean;
+  label?: string;
 }
 
 interface LeaseSigningModalProps {
@@ -154,40 +182,71 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
         const extractedTabs: SignatureTab[] = [];
         const role = data.role;
         
-        if (role === 'tenant') {
-          for (let i = 1; i <= 6; i++) {
-            if (data.leaseHtml.includes(`/init${i}/`)) {
+        // Handle different document types
+        if (data.documentType === 'custom_pdf' && data.signatureFields) {
+          // Custom PDF with signature fields
+          console.log('Processing custom PDF with fields:', data.signatureFields);
+          
+          data.signatureFields.forEach((field) => {
+            if (field.role === role) {
               extractedTabs.push({
-                id: `init${i}`,
-                type: 'initial',
-                label: `Section ${i} Initial`,
-                placeholder: `/init${i}/`,
+                id: field.id,
+                type: field.type === 'signature' ? 'signature' : 'initial',
+                label: field.label || (field.type === 'signature' ? 'Signature' : 'Initial'),
+                placeholder: field.id,
+                value: null,
+                completed: false,
+              });
+            }
+          });
+        } else if (data.leaseHtml) {
+          // HTML template with placeholders
+          if (role === 'tenant') {
+            for (let i = 1; i <= 6; i++) {
+              if (data.leaseHtml.includes(`/init${i}/`)) {
+                extractedTabs.push({
+                  id: `init${i}`,
+                  type: 'initial',
+                  label: `Section ${i} Initial`,
+                  placeholder: `/init${i}/`,
+                  value: null,
+                  completed: false,
+                });
+              }
+            }
+            if (data.leaseHtml.includes('/sig_tenant/')) {
+              extractedTabs.push({
+                id: 'sig_tenant',
+                type: 'signature',
+                label: 'Tenant Signature',
+                placeholder: '/sig_tenant/',
+                value: null,
+                completed: false,
+              });
+            }
+          } else {
+            if (data.leaseHtml.includes('/sig_landlord/')) {
+              extractedTabs.push({
+                id: 'sig_landlord',
+                type: 'signature',
+                label: 'Landlord Signature',
+                placeholder: '/sig_landlord/',
                 value: null,
                 completed: false,
               });
             }
           }
-          if (data.leaseHtml.includes('/sig_tenant/')) {
-            extractedTabs.push({
-              id: 'sig_tenant',
-              type: 'signature',
-              label: 'Tenant Signature',
-              placeholder: '/sig_tenant/',
-              value: null,
-              completed: false,
-            });
-          }
         } else {
-          if (data.leaseHtml.includes('/sig_landlord/')) {
-            extractedTabs.push({
-              id: 'sig_landlord',
-              type: 'signature',
-              label: 'Landlord Signature',
-              placeholder: '/sig_landlord/',
-              value: null,
-              completed: false,
-            });
-          }
+          // Fallback: create default signature tab
+          console.log('No leaseHtml or signatureFields found, creating default signature tab');
+          extractedTabs.push({
+            id: role === 'tenant' ? 'tenant_signature' : 'landlord_signature',
+            type: 'signature',
+            label: role === 'tenant' ? 'Tenant Signature' : 'Landlord Signature',
+            placeholder: role === 'tenant' ? '/sig_tenant/' : '/sig_landlord/',
+            value: null,
+            completed: false,
+          });
         }
         
         setTabs(extractedTabs);
@@ -349,7 +408,53 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   const allTabsCompleted = tabs.length > 0 && tabs.every(t => t.completed);
 
   const processedLeaseHtml = useMemo(() => {
-    if (!session?.leaseHtml) return '';
+    if (!session) return '';
+    
+    // For custom PDFs, we don't have HTML to process - show a message
+    if (session.documentType === 'custom_pdf') {
+      return `
+        <div style="text-align: center; padding: 40px 20px;">
+          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 24px; max-width: 500px; margin: 0 auto;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 16px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <h3 style="color: #0c4a6e; font-size: 18px; font-weight: 600; margin-bottom: 8px;">
+              ${session.documentName || 'Lease Document'}
+            </h3>
+            <p style="color: #0369a1; font-size: 14px; margin-bottom: 16px;">
+              This is a custom PDF lease document. Please complete the signature fields on the right to sign.
+            </p>
+            ${session.leaseDetails ? `
+              <div style="text-align: left; background: white; border-radius: 8px; padding: 16px; margin-top: 16px;">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;"><strong>Property:</strong> ${session.leaseDetails.propertyLabel}</p>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;"><strong>Landlord:</strong> ${session.leaseDetails.landlordName}</p>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;"><strong>Tenant:</strong> ${session.leaseDetails.tenantName}</p>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;"><strong>Rent:</strong> $${session.leaseDetails.rentAmount?.toLocaleString() || 'N/A'}/month</p>
+                <p style="font-size: 13px; color: #64748b;"><strong>Term:</strong> ${session.leaseDetails.startDate ? new Date(session.leaseDetails.startDate).toLocaleDateString() : 'N/A'} - ${session.leaseDetails.endDate ? new Date(session.leaseDetails.endDate).toLocaleDateString() : 'Month-to-Month'}</p>
+              </div>
+            ` : ''}
+            ${session.documentUrl ? `
+              <a href="${session.documentUrl}" target="_blank" rel="noopener noreferrer" 
+                 style="display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 20px; background: #0284c7; color: white; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                View Full Document
+              </a>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+    
+    // HTML template processing
+    if (!session.leaseHtml) return '';
     
     let html = session.leaseHtml;
     
@@ -386,7 +491,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
     });
     
     return html;
-  }, [session?.leaseHtml, tabs, activeTabIndex]);
+  }, [session, tabs, activeTabIndex]);
 
   const handleSubmit = async () => {
     if (!session) return;

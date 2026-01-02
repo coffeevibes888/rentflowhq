@@ -10,6 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/sign-in',
     error: '/sign-in',
+    newUser: '/onboarding', // Redirect new OAuth users to onboarding
   },
   session: {
     strategy: 'jwt' as const,
@@ -63,6 +64,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    // Handle sign-in - allow OAuth and credentials
+    async signIn({ user, account }) {
+      // Always allow OAuth sign-ins
+      if (account?.provider === 'google') {
+        return true;
+      }
+      // Allow credentials sign-in
+      if (account?.provider === 'credentials') {
+        return true;
+      }
+      return true;
+    },
     async session({ session, user, trigger, token }) {
       // Set the user ID from the token
       session.user.id = token.sub;

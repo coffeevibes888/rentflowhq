@@ -37,12 +37,12 @@ export function SubdomainApplyButton({ propertySlug, size = 'default' }: Subdoma
   }
 
   // If not logged in or not a tenant (landlord, property_manager, or no account yet),
-  // send them to sign-in with special message flag, property slug, and redirect to dashboard after
-  const signInHref = `/${subdomain}/sign-in?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`;
+  // send them to sign-up to create an account and apply
+  const signUpHref = `/${subdomain}/sign-up?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`;
 
   return (
     <Link
-      href={signInHref}
+      href={signUpHref}
       className={buttonClass}
     >
       Apply Now

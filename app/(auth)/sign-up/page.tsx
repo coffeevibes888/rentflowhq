@@ -20,12 +20,22 @@ export const metadata: Metadata = {
 const SignUpPage = async () => {
   const session = await auth();
 
-  // If already logged in and onboarding not completed, go to onboarding
+  // If already logged in, redirect appropriately
   if (session?.user) {
+    // If onboarding not completed, go to onboarding
     if (!session.user.onboardingCompleted) {
       return redirect('/onboarding');
     }
-    return redirect('/');
+    
+    // Role-based redirect for completed users
+    const role = session.user.role;
+    if (role === 'admin' || role === 'landlord') {
+      return redirect('/admin');
+    } else if (role === 'super_admin') {
+      return redirect('/super-admin');
+    } else {
+      return redirect('/user');
+    }
   }
 
   return (
