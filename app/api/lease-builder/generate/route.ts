@@ -59,6 +59,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Build lease data
+    const propertyAddress = property.address as { street?: string; city?: string; state?: string; zipCode?: string } | null;
+    
     const leaseData = buildLeaseDataFromRecords({
       landlord: {
         name: landlord.name,
@@ -66,7 +68,7 @@ export async function POST(req: NextRequest) {
         companyAddress: landlord.companyAddress,
         companyEmail: landlord.companyEmail,
         companyPhone: landlord.companyPhone,
-        securityDepositMonths: Number(landlord.securityDepositMonths),
+        securityDepositMonths: Number(landlord.securityDepositMonths) || 1,
         petDepositEnabled: landlord.petDepositEnabled,
         petDepositAmount: landlord.petDepositAmount ? Number(landlord.petDepositAmount) : null,
         petRentEnabled: landlord.petRentEnabled,
@@ -76,8 +78,13 @@ export async function POST(req: NextRequest) {
       },
       property: {
         name: property.name,
-        address: property.address as any,
-        amenities: property.amenities,
+        address: {
+          street: propertyAddress?.street || '',
+          city: propertyAddress?.city || '',
+          state: propertyAddress?.state || '',
+          zipCode: propertyAddress?.zipCode || '',
+        },
+        amenities: property.amenities || [],
       },
       unit: {
         name: effectiveUnitName,
@@ -85,8 +92,8 @@ export async function POST(req: NextRequest) {
         rentAmount: effectiveRentAmount,
       },
       tenant: tenant ? {
-        name: tenant.name,
-        email: tenant.email,
+        name: tenant.name || '[TENANT NAME]',
+        email: tenant.email || '[TENANT EMAIL]',
       } : {
         name: '[TENANT NAME]',
         email: '[TENANT EMAIL]',
@@ -139,9 +146,14 @@ export async function POST(req: NextRequest) {
       pdfUrl: result.secure_url,
       html, // Return HTML for preview
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to generate lease:', error);
-    return NextResponse.json({ message: 'Failed to generate lease' }, { status: 500 });
+    console.error('Error message:', error?.message);
+    console.error('Error stack:', error?.stack);
+    return NextResponse.json({ 
+      message: error?.message || 'Failed to generate lease',
+      error: process.env.NODE_ENV === 'development' ? error?.stack : undefined 
+    }, { status: 500 });
   }
 }
 
