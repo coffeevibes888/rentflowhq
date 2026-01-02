@@ -110,15 +110,39 @@ export async function POST(req: NextRequest) {
     // Generate HTML
     const html = generateLeaseHtml(leaseData);
 
-    // Generate PDF
-    const pdfBuffer = await htmlToPdfBuffer(html);
+    let fileUrl: string;
+    let fileType: string;
+    let fileSize: number;
 
-    // Upload to Cloudinary
-    const result = await uploadToCloudinary(pdfBuffer, {
-      folder: `leases/${landlord.id}`,
-      resource_type: 'raw',
-      public_id: `lease-${property.slug}-${effectiveUnitName.replace(/\s+/g, '-')}-${Date.now()}`,
-    });
+    // Try to generate PDF, fallback to HTML if it fails
+    try {
+      const pdfBuffer = await htmlToPdfBuffer(html);
+      
+      // Upload PDF to Cloudinary
+      const result = await uploadToCloudinary(pdfBuffer, {
+        folder: `leases/${landlord.id}`,
+        resource_type: 'raw',
+        public_id: `lease-${property.slug}-${effectiveUnitName.replace(/\s+/g, '-')}-${Date.now()}`,
+      });
+      
+      fileUrl = result.secure_url;
+      fileType = 'pdf';
+      fileSize = pdfBuffer.length;
+    } catch (pdfError: any) {
+      console.warn('PDF generation failed, falling back to HTML:', pdfError.message);
+      
+      // Upload HTML as fallback
+      const htmlBuffer = Buffer.from(html, 'utf-8');
+      const result = await uploadToCloudinary(htmlBuffer, {
+        folder: `leases/${landlord.id}`,
+        resource_type: 'raw',
+        public_id: `lease-${property.slug}-${effectiveUnitName.replace(/\s+/g, '-')}-${Date.now()}.html`,
+      });
+      
+      fileUrl = result.secure_url;
+      fileType = 'html';
+      fileSize = htmlBuffer.length;
+    }
 
     // Create LegalDocument record
     const document = await prisma.legalDocument.create({
@@ -128,14 +152,13 @@ export async function POST(req: NextRequest) {
         type: 'lease',
         category: 'generated',
         state: (property.address as any)?.state || null,
-        fileUrl: result.secure_url,
-        fileType: 'pdf',
-        fileSize: pdfBuffer.length,
+        fileUrl,
+        fileType,
+        fileSize,
         isTemplate: saveAsTemplate || false,
         isActive: true,
-        isFieldsConfigured: true, // Pre-configured signature fields
+        isFieldsConfigured: true,
         description: `Auto-generated lease for ${property.name} - ${effectiveUnitName}`,
-        // Pre-configured signature fields - no dragging needed!
         signatureFields: generateSignatureFields(leaseData.tenantNames.length),
       },
     });
@@ -143,8 +166,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       document,
-      pdfUrl: result.secure_url,
-      html, // Return HTML for preview
+      pdfUrl: fileUrl,
+      html,
+      fileType,
     });
   } catch (error: any) {
     console.error('Failed to generate lease:', error);

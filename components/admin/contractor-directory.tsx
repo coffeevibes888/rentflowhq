@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -31,7 +32,23 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Phone, Mail, Wrench, CheckCircle, XCircle, Loader2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { 
+  Plus, 
+  Search, 
+  Phone, 
+  Mail, 
+  Wrench, 
+  CheckCircle, 
+  XCircle, 
+  Loader2, 
+  MoreVertical, 
+  Pencil, 
+  Trash2,
+  Star,
+  ClipboardList,
+  DollarSign,
+  ExternalLink,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CONTRACTOR_SPECIALTIES } from '@/lib/validators';
 
@@ -45,6 +62,8 @@ interface Contractor {
   stripeOnboardingStatus: string | null;
   notes: string | null;
   workOrderCount: number;
+  rating?: number;
+  totalEarned?: number;
   createdAt: string;
 }
 
@@ -65,6 +84,23 @@ const specialtyLabels: Record<string, string> = {
   other: 'Other',
 };
 
+const specialtyColors: Record<string, string> = {
+  plumbing: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+  electrical: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+  hvac: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+  appliance_repair: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+  carpentry: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+  painting: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+  flooring: 'bg-stone-500/20 text-stone-300 border-stone-500/30',
+  roofing: 'bg-red-500/20 text-red-300 border-red-500/30',
+  landscaping: 'bg-green-500/20 text-green-300 border-green-500/30',
+  cleaning: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
+  pest_control: 'bg-lime-500/20 text-lime-300 border-lime-500/30',
+  locksmith: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
+  general_handyman: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+  other: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
+};
+
 export default function ContractorDirectory() {
   const [contractors, setContractors] = useState<Contractor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +112,6 @@ export default function ContractorDirectory() {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -128,11 +163,7 @@ export default function ContractorDirectory() {
         throw new Error(data.error || 'Failed to add contractor');
       }
 
-      toast({
-        title: 'Success',
-        description: 'Contractor added to directory',
-      });
-
+      toast({ title: 'Success', description: 'Contractor added to directory' });
       setIsAddOpen(false);
       setFormData({ name: '', email: '', phone: '', specialties: [], notes: '' });
       fetchContractors();
@@ -186,11 +217,7 @@ export default function ContractorDirectory() {
         throw new Error(data.error || 'Failed to update contractor');
       }
 
-      toast({
-        title: 'Success',
-        description: 'Contractor updated successfully',
-      });
-
+      toast({ title: 'Success', description: 'Contractor updated successfully' });
       setIsEditOpen(false);
       setEditingContractor(null);
       setFormData({ name: '', email: '', phone: '', specialties: [], notes: '' });
@@ -221,11 +248,7 @@ export default function ContractorDirectory() {
         throw new Error(data.error || 'Failed to delete contractor');
       }
 
-      toast({
-        title: 'Success',
-        description: 'Contractor removed from directory',
-      });
-
+      toast({ title: 'Success', description: 'Contractor removed from directory' });
       setDeleteContractor(null);
       fetchContractors();
     } catch (error) {
@@ -239,119 +262,150 @@ export default function ContractorDirectory() {
     }
   };
 
+  const ContractorForm = ({ onSubmit, isEdit = false }: { onSubmit: (e: React.FormEvent) => void; isEdit?: boolean }) => (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor={isEdit ? 'edit-name' : 'name'} className="text-slate-300">Name *</Label>
+          <Input
+            id={isEdit ? 'edit-name' : 'name'}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="bg-slate-800 border-slate-700 text-white"
+            placeholder="John Smith"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor={isEdit ? 'edit-phone' : 'phone'} className="text-slate-300">Phone</Label>
+          <Input
+            id={isEdit ? 'edit-phone' : 'phone'}
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            className="bg-slate-800 border-slate-700 text-white"
+            placeholder="(555) 123-4567"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={isEdit ? 'edit-email' : 'email'} className="text-slate-300">Email *</Label>
+        <Input
+          id={isEdit ? 'edit-email' : 'email'}
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          className="bg-slate-800 border-slate-700 text-white"
+          placeholder="contractor@example.com"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-slate-300">Specialties * <span className="text-slate-500 text-xs">(select all that apply)</span></Label>
+        <div className="flex flex-wrap gap-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+          {CONTRACTOR_SPECIALTIES.map((specialty) => (
+            <Badge
+              key={specialty}
+              variant="outline"
+              className={`cursor-pointer transition-all ${
+                formData.specialties.includes(specialty)
+                  ? specialtyColors[specialty] || 'bg-violet-500/20 text-violet-300 border-violet-500/30'
+                  : 'bg-slate-700/50 text-slate-400 border-slate-600 hover:border-slate-500'
+              }`}
+              onClick={() => toggleSpecialty(specialty)}
+            >
+              {specialtyLabels[specialty]}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={isEdit ? 'edit-notes' : 'notes'} className="text-slate-300">Notes <span className="text-slate-500 text-xs">(optional)</span></Label>
+        <Textarea
+          id={isEdit ? 'edit-notes' : 'notes'}
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          className="bg-slate-800 border-slate-700 text-white min-h-[80px]"
+          placeholder="Any additional notes about this contractor..."
+          rows={3}
+        />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-2">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => isEdit ? setIsEditOpen(false) : setIsAddOpen(false)}
+          className="border-slate-700 text-slate-300 hover:bg-slate-800"
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={submitting || formData.specialties.length === 0}
+          className="bg-violet-600 hover:bg-violet-700"
+        >
+          {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          {isEdit ? 'Save Changes' : 'Add Contractor'}
+        </Button>
+      </div>
+    </form>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <div className="space-y-4 md:space-y-6">
+      {/* Search and Add */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             placeholder="Search contractors..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-10 bg-slate-900 border-slate-700 text-white focus:border-violet-500"
           />
         </div>
 
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-violet-600 hover:bg-violet-700">
               <Plus className="h-4 w-4 mr-2" />
               Add Contractor
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-lg">
             <DialogHeader>
-              <DialogTitle>Add Contractor</DialogTitle>
+              <DialogTitle className="text-white">Add Contractor</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Add a new contractor to your directory
+              </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleAddContractor} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Specialties *</Label>
-                <div className="flex flex-wrap gap-2">
-                  {CONTRACTOR_SPECIALTIES.map((specialty) => (
-                    <Badge
-                      key={specialty}
-                      variant={formData.specialties.includes(specialty) ? 'default' : 'outline'}
-                      className="cursor-pointer"
-                      onClick={() => toggleSpecialty(specialty)}
-                    >
-                      {specialtyLabels[specialty]}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={submitting || formData.specialties.length === 0}>
-                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Add Contractor
-                </Button>
-              </div>
-            </form>
+            <ContractorForm onSubmit={handleAddContractor} />
           </DialogContent>
         </Dialog>
       </div>
 
+      {/* Contractors Grid */}
       {contractors.length === 0 ? (
-        <Card>
+        <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
           <CardContent className="py-12 text-center">
-            <Wrench className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No contractors yet</h3>
-            <p className="text-muted-foreground mb-4">
+            <Wrench className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">No contractors yet</h3>
+            <p className="text-slate-300 mb-4 text-sm">
               Add contractors to your directory to assign work orders
             </p>
-            <Button onClick={() => setIsAddOpen(true)}>
+            <Button onClick={() => setIsAddOpen(true)} className="bg-violet-600 hover:bg-violet-700">
               <Plus className="h-4 w-4 mr-2" />
               Add Your First Contractor
             </Button>
@@ -360,65 +414,124 @@ export default function ContractorDirectory() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {contractors.map((contractor) => (
-            <Card key={contractor.id}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">{contractor.name}</CardTitle>
-                  <div className="flex items-center gap-2">
-                    {contractor.isPaymentReady ? (
-                      <Badge variant="default" className="bg-green-600">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Payment Ready
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">
-                        <XCircle className="h-3 w-3 mr-1" />
-                        Not Connected
-                      </Badge>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditContractor(contractor)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
+            <Card 
+              key={contractor.id} 
+              className="border-white/10 bg-gradient-to-br from-slate-800/80 to-slate-900/80 hover:border-violet-500/30 transition-all group"
+            >
+              <CardContent className="p-4 md:p-5">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
+                      {contractor.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{contractor.name}</h3>
+                      {contractor.rating && (
+                        <div className="flex items-center gap-1 text-xs text-amber-400">
+                          <Star className="h-3 w-3 fill-current" />
+                          <span>{contractor.rating.toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 text-white">
+                      <DropdownMenuItem 
+                        onClick={() => handleEditContractor(contractor)}
+                        className="text-slate-200 focus:text-white focus:bg-slate-700 cursor-pointer"
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => window.location.href = `mailto:${contractor.email}`}
+                        className="text-slate-200 focus:text-white focus:bg-slate-700 cursor-pointer"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Send Email
+                      </DropdownMenuItem>
+                      {contractor.phone && (
                         <DropdownMenuItem 
-                          onClick={() => setDeleteContractor(contractor)}
-                          className="text-red-600"
+                          onClick={() => window.location.href = `tel:${contractor.phone}`}
+                          className="text-slate-200 focus:text-white focus:bg-slate-700 cursor-pointer"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
+                          <Phone className="h-4 w-4 mr-2" />
+                          Call
                         </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                      )}
+                      <DropdownMenuSeparator className="bg-slate-700" />
+                      <DropdownMenuItem 
+                        onClick={() => setDeleteContractor(contractor)}
+                        className="text-red-400 focus:text-red-300 focus:bg-red-500/10 cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  {contractor.email}
-                </div>
-                {contractor.phone && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    {contractor.phone}
+
+                {/* Contact Info */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-2 text-sm text-slate-300">
+                    <Mail className="h-4 w-4 text-slate-500" />
+                    <span className="truncate">{contractor.email}</span>
                   </div>
-                )}
-                <div className="flex flex-wrap gap-1">
-                  {contractor.specialties.map((specialty) => (
-                    <Badge key={specialty} variant="outline" className="text-xs">
+                  {contractor.phone && (
+                    <div className="flex items-center gap-2 text-sm text-slate-300">
+                      <Phone className="h-4 w-4 text-slate-500" />
+                      <span>{contractor.phone}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Specialties */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {contractor.specialties.slice(0, 3).map((specialty) => (
+                    <Badge 
+                      key={specialty} 
+                      variant="outline" 
+                      className={`text-[10px] md:text-xs ${specialtyColors[specialty] || 'bg-slate-700/50 text-slate-300 border-slate-600'}`}
+                    >
                       {specialtyLabels[specialty] || specialty}
                     </Badge>
                   ))}
+                  {contractor.specialties.length > 3 && (
+                    <Badge variant="outline" className="text-[10px] md:text-xs bg-slate-700/50 text-slate-400 border-slate-600">
+                      +{contractor.specialties.length - 3} more
+                    </Badge>
+                  )}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {contractor.workOrderCount} work order{contractor.workOrderCount !== 1 ? 's' : ''}
+
+                {/* Stats */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
+                  <div className="flex items-center gap-1 text-sm">
+                    <ClipboardList className="h-4 w-4 text-slate-500" />
+                    <span className="text-slate-300">{contractor.workOrderCount} jobs</span>
+                  </div>
+                  
+                  {contractor.isPaymentReady ? (
+                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Payment Ready
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-slate-700/50 text-slate-400 border-slate-600 text-xs">
+                      <XCircle className="h-3 w-3 mr-1" />
+                      Not Connected
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -434,102 +547,39 @@ export default function ContractorDirectory() {
           setFormData({ name: '', email: '', phone: '', specialties: [], notes: '' });
         }
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-lg">
           <DialogHeader>
-            <DialogTitle>Edit Contractor</DialogTitle>
-            <DialogDescription>Update contractor information</DialogDescription>
+            <DialogTitle className="text-white">Edit Contractor</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Update contractor information
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleUpdateContractor} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Name *</Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email *</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-phone">Phone</Label>
-              <Input
-                id="edit-phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Specialties *</Label>
-              <div className="flex flex-wrap gap-2">
-                {CONTRACTOR_SPECIALTIES.map((specialty) => (
-                  <Badge
-                    key={specialty}
-                    variant={formData.specialties.includes(specialty) ? 'default' : 'outline'}
-                    className="cursor-pointer"
-                    onClick={() => toggleSpecialty(specialty)}
-                  >
-                    {specialtyLabels[specialty]}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-notes">Notes</Label>
-              <Textarea
-                id="edit-notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={submitting || formData.specialties.length === 0}>
-                {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Save Changes
-              </Button>
-            </div>
-          </form>
+          <ContractorForm onSubmit={handleUpdateContractor} isEdit />
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteContractor} onOpenChange={(open) => !open && setDeleteContractor(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Contractor</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove <strong>{deleteContractor?.name}</strong> from your directory? 
+            <AlertDialogTitle className="text-white">Delete Contractor</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure you want to remove <strong className="text-white">{deleteContractor?.name}</strong> from your directory? 
               This action cannot be undone.
               {deleteContractor?.workOrderCount && deleteContractor.workOrderCount > 0 && (
-                <span className="block mt-2 text-amber-600">
-                  Note: This contractor has {deleteContractor.workOrderCount} work order(s) associated with them.
+                <span className="block mt-2 text-amber-400">
+                  ⚠️ This contractor has {deleteContractor.workOrderCount} work order(s) associated with them.
                 </span>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteContractor}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white"
               disabled={submitting}
             >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

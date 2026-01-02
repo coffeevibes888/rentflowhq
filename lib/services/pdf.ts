@@ -4,8 +4,9 @@ import puppeteer, { Browser } from 'puppeteer-core';
 let browserInstance: Browser | null = null;
 const isLocal = process.env.NODE_ENV === 'development';
 
-// Remote chromium binary URL - this gets downloaded at runtime on Vercel
-const CHROMIUM_REMOTE_URL = 'https://github.com/nicholasgriffintn/chromium/releases/download/v131.0.0/chromium-v131.0.0-pack.tar';
+// Remote chromium binary URL - updated to latest working version
+// See: https://github.com/Sparticuz/chromium/releases
+const CHROMIUM_REMOTE_URL = 'https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar';
 
 async function getBrowser(): Promise<Browser> {
   if (browserInstance && browserInstance.isConnected()) {
@@ -21,14 +22,22 @@ async function getBrowser(): Promise<Browser> {
       }) as Browser;
     } else {
       // For Vercel/production, download chromium at runtime
-      console.log('PDF - Downloading chromium binary...');
+      console.log('PDF - Downloading chromium binary from:', CHROMIUM_REMOTE_URL);
+      
       const executablePath = await chromium.executablePath(CHROMIUM_REMOTE_URL);
       console.log('PDF - Executable path:', executablePath);
       
       browserInstance = await puppeteer.launch({
-        args: chromium.args,
+        args: [
+          ...chromium.args,
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--single-process',
+        ],
         executablePath,
-        headless: chromium.headless,
+        headless: true,
       }) as Browser;
       console.log('PDF - Browser launched successfully');
     }
@@ -83,8 +92,8 @@ export async function htmlToPdfBuffer(html: string): Promise<Buffer> {
     throw new Error('Failed to generate PDF document.');
   } finally {
     await page.close();
-    // Close browser in local dev to avoid resource leaks
-    if (isLocal && browserInstance) {
+    // Always close browser in serverless to avoid memory issues
+    if (browserInstance) {
       await browserInstance.close();
       browserInstance = null;
     }
