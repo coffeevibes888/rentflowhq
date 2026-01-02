@@ -634,6 +634,9 @@ model Landlord {
   employmentVerificationUsage EmploymentVerificationUsage[] @relation("EmploymentVerificationUsage")
   wallet                      LandlordWallet?
 
+  // Lease Templates
+  leaseTemplates LeaseTemplate[]
+
   // Contractor management
   contractors         Contractor[]
   contractorInvites   ContractorInvite[]
@@ -826,6 +829,9 @@ model Property {
   // Contractor work orders
   workOrders WorkOrder[]
 
+  // Lease template assignment
+  leaseTemplateAssignment PropertyLeaseTemplate?
+
   // Team Operations (Enterprise)
   shifts      Shift[]
   timeEntries TimeEntry[]
@@ -877,7 +883,7 @@ model Lease {
   endDate            DateTime? @db.Timestamp(6)
   rentAmount         Decimal   @db.Decimal(12, 2)
   billingDayOfMonth  Int // 1-28 typically
-  status             String    @default("active") // active, ended, pending, terminated
+  status             String    @default("active") // active, ended, pending, terminated, pending_signature
   terminationReason  String? // eviction, voluntary, lease_end, mutual_agreement, other
   terminatedAt       DateTime? @db.Timestamp(6)
   docusignEnvelopeId String?
@@ -886,9 +892,15 @@ model Lease {
   createdAt          DateTime  @default(now()) @db.Timestamp(6)
   updatedAt          DateTime  @updatedAt
 
+  // Lease template reference and generation metadata
+  templateId    String?   @db.Uuid // Reference to LeaseTemplate used
+  generatedFrom String? // 'auto' | 'manual' - how the lease was generated
+  generatedAt   DateTime? @db.Timestamp(6) // When the lease was generated
+
   unit          Unit           @relation(fields: [unitId], references: [id], onDelete: Cascade)
   tenant        User           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   legalDocument LegalDocument? @relation(fields: [legalDocumentId], references: [id], onDelete: SetNull)
+  template      LeaseTemplate? @relation("LeaseFromTemplate", fields: [templateId], references: [id], onDelete: SetNull)
 
   rentPayments      RentPayment[]
   signatureRequests DocumentSignatureRequest[]
@@ -899,6 +911,8 @@ model Lease {
   evictionNotices     EvictionNotice[]
   departures          TenantDeparture[]
   depositDispositions DepositDisposition[]
+
+  @@index([templateId])
 }
 
 model RentPayment {
@@ -1183,6 +1197,50 @@ model LegalDocument {
   @@index([type])
 }
 
+// ============= LEASE TEMPLATES =============
+
+// LeaseTemplate - Reusable lease templates for auto-generation
+model LeaseTemplate {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId String  @db.Uuid
+  name       String
+  type       String // 'builder' | 'uploaded_pdf'
+  isDefault  Boolean @default(false)
+
+  // Builder config (JSON) - for type='builder'
+  builderConfig Json? @db.Json
+
+  // PDF config - for type='uploaded_pdf'
+  pdfUrl          String?
+  signatureFields Json?   @db.Json // Array of signature/initial field positions
+  mergeFields     Json?   @db.Json // Array of merge field configurations
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  landlord   Landlord                @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  properties PropertyLeaseTemplate[]
+  leases     Lease[]                 @relation("LeaseFromTemplate")
+
+  @@index([landlordId])
+  @@index([isDefault])
+}
+
+// PropertyLeaseTemplate - Junction table for property-specific template assignment
+model PropertyLeaseTemplate {
+  id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId      String @db.Uuid
+  leaseTemplateId String @db.Uuid
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  leaseTemplate LeaseTemplate @relation(fields: [leaseTemplateId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId]) // One template per property
+  @@index([leaseTemplateId])
+}
+
 model DocumentSignatureRequest {
   id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   documentId         String    @db.Uuid
@@ -1204,6 +1262,11 @@ model DocumentSignatureRequest {
   role               String    @default("tenant") // tenant, landlord
   createdAt          DateTime  @default(now()) @db.Timestamp(6)
   updatedAt          DateTime  @updatedAt
+
+  // Progress tracking for signing wizard
+  fieldSectionContext Json?     @db.Json // { fieldId: "Section Name" } - section context for each field
+  completedFieldIds   String[]  @default([]) // Array of completed field IDs
+  lastProgressAt      DateTime? @db.Timestamp(6) // Last time progress was saved
 
   document LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
   lease    Lease?        @relation(fields: [leaseId], references: [id], onDelete: SetNull)

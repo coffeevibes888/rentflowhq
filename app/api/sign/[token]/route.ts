@@ -303,6 +303,25 @@ export async function POST(
     return NextResponse.json({ message: 'Lease not found' }, { status: 404 });
   }
 
+  // Task 9.1: Enforce tenant-first signing order
+  // Landlord cannot sign until tenant has signed
+  if (sig.role === 'landlord') {
+    const tenantSignatureRequest = await prisma.documentSignatureRequest.findFirst({
+      where: { 
+        leaseId: lease.id, 
+        role: 'tenant', 
+        status: 'signed'
+      },
+    });
+    
+    if (!tenantSignatureRequest) {
+      return NextResponse.json({ 
+        message: 'Tenant must sign first',
+        code: 'TENANT_NOT_SIGNED'
+      }, { status: 400 });
+    }
+  }
+
   const landlordName = lease.unit.property?.landlord?.name || lease.unit.property?.name || 'Landlord';
   const tenantName = lease.tenant?.name || 'Tenant';
   const propertyLabel = `${lease.unit.property?.name || 'Property'} - ${lease.unit.name} (${lease.unit.type})`;
@@ -567,6 +586,65 @@ export async function POST(
           } as any);
         } catch (err) {
           console.error('Failed to email landlord signing link', err);
+        }
+      }
+    }
+  }
+
+  // Task 9.3: Send executed lease email to both parties when landlord signs (lease fully executed)
+  if (sig.role === 'landlord') {
+    const landlordId = lease.unit.property?.landlord?.id;
+    const landlordEmail = lease.unit.property?.landlord?.owner?.email;
+    const tenantEmail = lease.tenant?.email;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const leaseViewUrl = `${baseUrl}/user/profile/lease`;
+    
+    if (landlordId) {
+      // Send to tenant
+      if (tenantEmail) {
+        try {
+          await sendBrandedEmail({
+            to: tenantEmail,
+            subject: 'Your lease has been fully executed',
+            template: 'notification',
+            data: {
+              landlord: lease.unit.property?.landlord,
+              recipientName: tenantName,
+              notificationType: 'lease_executed',
+              title: 'Lease Fully Executed',
+              message: `Great news! Your lease for ${propertyLabel} has been fully signed by both parties. Your lease is now active. You can view and download your signed lease at any time.`,
+              actionUrl: leaseViewUrl,
+              loginUrl: leaseViewUrl,
+              attachmentUrl: stamped.signedPdfUrl, // Include link to signed PDF
+            },
+            landlordId,
+          } as any);
+        } catch (err) {
+          console.error('Failed to email tenant executed lease', err);
+        }
+      }
+      
+      // Send to landlord
+      if (landlordEmail) {
+        try {
+          await sendBrandedEmail({
+            to: landlordEmail,
+            subject: 'Lease fully executed',
+            template: 'notification',
+            data: {
+              landlord: lease.unit.property?.landlord,
+              recipientName: landlordName,
+              notificationType: 'lease_executed',
+              title: 'Lease Fully Executed',
+              message: `The lease for ${propertyLabel} with ${tenantName} has been fully executed. The lease is now active.`,
+              actionUrl: `${baseUrl}/admin/leases`,
+              loginUrl: `${baseUrl}/admin/leases`,
+              attachmentUrl: stamped.signedPdfUrl,
+            },
+            landlordId,
+          } as any);
+        } catch (err) {
+          console.error('Failed to email landlord executed lease', err);
         }
       }
     }

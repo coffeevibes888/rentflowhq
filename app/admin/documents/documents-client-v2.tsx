@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -51,11 +50,16 @@ import {
   FileSignature,
   Wand2,
   Check,
+  Bell,
+  ScanLine,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { LeaseBuilderModal } from '@/components/admin/lease-builder';
+import { BrowserTabs, BrowserTab } from '@/components/admin/documents/browser-tabs';
 
+
+// Interfaces
 interface LegalDocument {
   id: string;
   name: string;
@@ -170,7 +174,8 @@ const SCANNED_CATEGORIES = [
   { value: 'other', label: 'Other' },
 ];
 
-export default function DocumentsClient({
+
+export default function DocumentsClientV2({
   legalDocuments: initialLegalDocs,
   scannedDocuments: initialScannedDocs,
   properties,
@@ -182,7 +187,7 @@ export default function DocumentsClient({
   const [scannedDocuments, setScannedDocuments] = useState(initialScannedDocs);
   const [leaseTemplates, setLeaseTemplates] = useState(initialLeaseTemplates);
   const [activeLeases, setActiveLeases] = useState(initialActiveLeases);
-  const [activeTab, setActiveTab] = useState('leases');
+  const [activeTab, setActiveTab] = useState('legal');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
 
@@ -210,6 +215,52 @@ export default function DocumentsClient({
   const [leaseBuilderUnit, setLeaseBuilderUnit] = useState<Unit | null>(null);
   const [selectPropertyDialogOpen, setSelectPropertyDialogOpen] = useState(false);
   const [units, setUnits] = useState<Unit[]>([]);
+
+  // Define browser tabs
+  const browserTabs: BrowserTab[] = [
+    {
+      id: 'legal',
+      label: 'Legal Documents',
+      shortLabel: 'Legal',
+      icon: Scale,
+      count: legalDocuments.filter(d => d.type === 'lease' || d.type === 'addendum' || d.type === 'disclosure').length,
+    },
+    {
+      id: 'notices',
+      label: 'Notices',
+      shortLabel: 'Notices',
+      icon: Bell,
+      count: legalDocuments.filter(d => d.type === 'notice' || d.type === 'eviction').length,
+    },
+    {
+      id: 'leases',
+      label: 'Active Leases',
+      shortLabel: 'Leases',
+      icon: FileSignature,
+      count: activeLeases.length,
+    },
+    {
+      id: 'receipts',
+      label: 'Receipts',
+      shortLabel: 'Receipts',
+      icon: Receipt,
+      count: scannedDocuments.filter(d => d.documentType === 'receipt' || d.documentType === 'invoice').length,
+    },
+    {
+      id: 'templates',
+      label: 'Templates',
+      shortLabel: 'Templates',
+      icon: Wand2,
+      count: leaseTemplates.length,
+    },
+    {
+      id: 'scanned',
+      label: 'Scanned Documents',
+      shortLabel: 'Scanned',
+      icon: ScanLine,
+      count: scannedDocuments.length,
+    },
+  ];
 
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '';
@@ -279,6 +330,7 @@ export default function DocumentsClient({
     }
   };
 
+
   const handleUpload = async () => {
     if (!uploadForm.file) return;
 
@@ -310,7 +362,6 @@ export default function DocumentsClient({
           toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
         }
       } else {
-        // Scanned document upload
         formData.append('category', uploadForm.type);
         if (uploadForm.propertyId) {
           formData.append('propertyId', uploadForm.propertyId);
@@ -390,32 +441,6 @@ export default function DocumentsClient({
     }
   };
 
-  // Filter documents based on active tab and search
-  const filteredLegalDocs = legalDocuments.filter((doc) => {
-    const matchesSearch =
-      doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (activeTab === 'leases') {
-      return matchesSearch && (doc.type === 'lease' || doc.type === 'addendum');
-    }
-    if (activeTab === 'evictions') {
-      return matchesSearch && doc.type === 'eviction';
-    }
-    if (activeTab === 'notices') {
-      return matchesSearch && (doc.type === 'notice' || doc.type === 'disclosure');
-    }
-    return matchesSearch;
-  });
-
-  const filteredScannedDocs = scannedDocuments.filter((doc) => {
-    const matchesSearch = doc.originalFileName.toLowerCase().includes(searchQuery.toLowerCase());
-    if (filterType !== 'all') {
-      return matchesSearch && doc.documentType === filterType;
-    }
-    return matchesSearch;
-  });
-
   const openUploadDialog = (type: 'legal' | 'scan', docType?: string) => {
     setUploadType(type);
     if (docType) {
@@ -424,132 +449,47 @@ export default function DocumentsClient({
     setUploadDialogOpen(true);
   };
 
-  return (
-    <main className="w-full px-2 py-4 md:px-6 lg:px-8 md:py-6">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-xl md:text-3xl font-bold text-white flex items-center gap-2">
-              <FolderOpen className="h-5 w-5 md:h-7 md:w-7 text-violet-400" />
-              Document Center
-            </h1>
-            <p className="text-xs md:text-sm text-slate-400 mt-1">
-              Manage leases, evictions, receipts, and all property documents
-            </p>
-          </div>
+  // Filter documents based on active tab and search
+  const getFilteredLegalDocs = () => {
+    return legalDocuments.filter((doc) => {
+      const matchesSearch =
+        doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={() => setSelectPropertyDialogOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 h-9 text-sm"
-            >
-              <Wand2 className="h-4 w-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Create Custom Lease</span>
-              <span className="sm:hidden">Create Lease</span>
-            </Button>
-            <Button
-              onClick={() => openUploadDialog('legal')}
-              className="bg-violet-600 hover:bg-violet-700 h-9 text-sm"
-            >
-              <Plus className="h-4 w-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Upload Document</span>
-              <span className="sm:hidden">Upload</span>
-            </Button>
-            <Button
-              onClick={() => openUploadDialog('scan')}
-              variant="outline"
-              className="border-slate-700 hover:bg-slate-800 h-9 text-sm"
-            >
-              <Camera className="h-4 w-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Scan & Categorize</span>
-              <span className="sm:hidden">Scan</span>
-            </Button>
-          </div>
-        </div>
+      if (activeTab === 'legal') {
+        return matchesSearch && (doc.type === 'lease' || doc.type === 'addendum' || doc.type === 'disclosure');
+      }
+      if (activeTab === 'notices') {
+        return matchesSearch && (doc.type === 'notice' || doc.type === 'eviction');
+      }
+      return matchesSearch;
+    });
+  };
 
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-slate-900 border-slate-700 focus:border-violet-500 h-10"
-            />
-          </div>
-        </div>
+  const getFilteredScannedDocs = () => {
+    return scannedDocuments.filter((doc) => {
+      const matchesSearch = doc.originalFileName.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (activeTab === 'receipts') {
+        return matchesSearch && (doc.documentType === 'receipt' || doc.documentType === 'invoice');
+      }
+      if (filterType !== 'all') {
+        return matchesSearch && doc.documentType === filterType;
+      }
+      return matchesSearch;
+    });
+  };
 
-        {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 md:space-y-4">
-          <TabsList className="bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 flex flex-wrap h-auto gap-1 w-full">
-            <TabsTrigger
-              value="leases"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
-            >
-              <FileSignature className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span>Documents</span>
-              <Badge variant="secondary" className="ml-0.5 md:ml-1 bg-white/10 text-[10px] md:text-xs px-1 md:px-1.5">
-                {legalDocuments.filter((d) => d.type === 'lease' || d.type === 'addendum').length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="templates"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
-            >
-              <Wand2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span>Templates</span>
-              <Badge variant="secondary" className="ml-0.5 md:ml-1 bg-white/10 text-[10px] md:text-xs px-1 md:px-1.5">
-                {leaseTemplates.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="active-leases"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
-            >
-              <Check className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">Active Leases</span>
-              <span className="sm:hidden">Active</span>
-              <Badge variant="secondary" className="ml-0.5 md:ml-1 bg-white/10 text-[10px] md:text-xs px-1 md:px-1.5">
-                {activeLeases.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="evictions"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
-            >
-              <AlertTriangle className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span>Evictions</span>
-              <Badge variant="secondary" className="ml-0.5 md:ml-1 bg-white/10 text-[10px] md:text-xs px-1 md:px-1.5">
-                {legalDocuments.filter((d) => d.type === 'eviction').length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="notices"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
-            >
-              <Scale className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span>Notices</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="scanned"
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3 py-1.5 md:py-2 text-white"
-            >
-              <Receipt className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">Receipts & Scans</span>
-              <span className="sm:hidden">Scans</span>
-              <Badge variant="secondary" className="ml-0.5 md:ml-1 bg-white/10 text-[10px] md:text-xs px-1 md:px-1.5">
-                {scannedDocuments.length}
-              </Badge>
-            </TabsTrigger>
-          </TabsList>
 
-          {/* Leases Tab */}
-          <TabsContent value="leases" className="space-y-4">
+  // Render tab content
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'legal':
+        return (
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-400">
-                Upload and manage lease agreements. Set default leases per property.
+                Lease agreements, addendums, and disclosure forms.
               </p>
               <Button
                 size="sm"
@@ -558,11 +498,11 @@ export default function DocumentsClient({
                 className="border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
               >
                 <Plus className="h-4 w-4 mr-1" />
-                Add Lease
+                Add Document
               </Button>
             </div>
             <DocumentGrid
-              documents={filteredLegalDocs}
+              documents={getFilteredLegalDocs()}
               type="legal"
               onDelete={(id) => handleDelete(id, 'legal')}
               onAssign={(doc) => {
@@ -573,10 +513,81 @@ export default function DocumentsClient({
               getTypeLabel={getTypeLabel}
               getTypeIcon={getTypeIcon}
             />
-          </TabsContent>
+          </div>
+        );
 
-          {/* Templates Tab */}
-          <TabsContent value="templates" className="space-y-4">
+      case 'notices':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-400">
+                Eviction notices, legal notices, and communications.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => openUploadDialog('legal', 'notice')}
+                className="border-amber-500/50 text-amber-300 hover:bg-amber-500/10"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Notice
+              </Button>
+            </div>
+            <DocumentGrid
+              documents={getFilteredLegalDocs()}
+              type="legal"
+              onDelete={(id) => handleDelete(id, 'legal')}
+              onAssign={(doc) => {
+                setSelectedDocForAssign(doc);
+                setAssignDialogOpen(true);
+              }}
+              formatFileSize={formatFileSize}
+              getTypeLabel={getTypeLabel}
+              getTypeIcon={getTypeIcon}
+            />
+          </div>
+        );
+
+      case 'leases':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-400">
+                Active leases and pending signatures.
+              </p>
+            </div>
+            <ActiveLeasesGrid leases={activeLeases} />
+          </div>
+        );
+
+      case 'receipts':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-400">
+                Rent receipts, invoices, and payment records.
+              </p>
+              <Button
+                size="sm"
+                onClick={() => openUploadDialog('scan', 'receipt')}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                <Camera className="h-4 w-4 mr-1" />
+                Scan Receipt
+              </Button>
+            </div>
+            <ScannedDocumentGrid
+              documents={getFilteredScannedDocs()}
+              onDelete={(id) => handleDelete(id, 'scanned')}
+              formatFileSize={formatFileSize}
+              properties={properties}
+            />
+          </div>
+        );
+
+      case 'templates':
+        return (
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-400">
                 Lease templates for automatic generation when applications are approved.
@@ -622,83 +633,15 @@ export default function DocumentsClient({
                 }
               }}
             />
-          </TabsContent>
+          </div>
+        );
 
-          {/* Active Leases Tab */}
-          <TabsContent value="active-leases" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">
-                View and manage active leases and pending signatures.
-              </p>
-            </div>
-            <ActiveLeasesGrid leases={activeLeases} />
-          </TabsContent>
-
-          {/* Evictions Tab */}
-          <TabsContent value="evictions" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">
-                Manage eviction notices and related legal documents.
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => openUploadDialog('legal', 'eviction')}
-                className="border-red-500/50 text-red-300 hover:bg-red-500/10"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Eviction Notice
-              </Button>
-            </div>
-            <DocumentGrid
-              documents={filteredLegalDocs}
-              type="legal"
-              onDelete={(id) => handleDelete(id, 'legal')}
-              onAssign={(doc) => {
-                setSelectedDocForAssign(doc);
-                setAssignDialogOpen(true);
-              }}
-              formatFileSize={formatFileSize}
-              getTypeLabel={getTypeLabel}
-              getTypeIcon={getTypeIcon}
-            />
-          </TabsContent>
-
-          {/* Notices Tab */}
-          <TabsContent value="notices" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">
-                Disclosures, notices, and other legal communications.
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => openUploadDialog('legal', 'notice')}
-                className="border-slate-600 hover:bg-slate-800"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Notice
-              </Button>
-            </div>
-            <DocumentGrid
-              documents={filteredLegalDocs}
-              type="legal"
-              onDelete={(id) => handleDelete(id, 'legal')}
-              onAssign={(doc) => {
-                setSelectedDocForAssign(doc);
-                setAssignDialogOpen(true);
-              }}
-              formatFileSize={formatFileSize}
-              getTypeLabel={getTypeLabel}
-              getTypeIcon={getTypeIcon}
-            />
-          </TabsContent>
-
-          {/* Scanned Documents Tab */}
-          <TabsContent value="scanned" className="space-y-4">
+      case 'scanned':
+        return (
+          <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <p className="text-sm text-slate-400">
-                Upload receipts, invoices, and documents for automatic categorization.
+                All scanned and OCR-processed documents.
               </p>
               <div className="flex items-center gap-2">
                 <Select value={filterType} onValueChange={setFilterType}>
@@ -726,13 +669,88 @@ export default function DocumentsClient({
               </div>
             </div>
             <ScannedDocumentGrid
-              documents={filteredScannedDocs}
+              documents={getFilteredScannedDocs()}
               onDelete={(id) => handleDelete(id, 'scanned')}
               formatFileSize={formatFileSize}
               properties={properties}
             />
-          </TabsContent>
-        </Tabs>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+
+  return (
+    <main className="w-full px-2 py-4 md:px-6 lg:px-8 md:py-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl md:text-3xl font-bold text-white flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 md:h-7 md:w-7 text-violet-400" />
+              Document Center
+            </h1>
+            <p className="text-xs md:text-sm text-slate-400 mt-1">
+              Manage all your property documents in one place
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => setSelectPropertyDialogOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 h-9 text-sm"
+            >
+              <Wand2 className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Create Custom Lease</span>
+              <span className="sm:hidden">Create Lease</span>
+            </Button>
+            <Button
+              onClick={() => openUploadDialog('legal')}
+              className="bg-violet-600 hover:bg-violet-700 h-9 text-sm"
+            >
+              <Plus className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Upload Document</span>
+              <span className="sm:hidden">Upload</span>
+            </Button>
+            <Button
+              onClick={() => openUploadDialog('scan')}
+              variant="outline"
+              className="border-slate-700 hover:bg-slate-800 h-9 text-sm"
+            >
+              <Camera className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Scan & Categorize</span>
+              <span className="sm:hidden">Scan</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search documents..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-slate-900 border-slate-700 focus:border-violet-500 h-10"
+          />
+        </div>
+
+        {/* Browser-Style Tabs */}
+        <div className="bg-gradient-to-r from-indigo-700 to-indigo-900 rounded-t-2xl pt-3 px-2 md:px-4">
+          <BrowserTabs
+            tabs={browserTabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </div>
+
+        {/* Tab Content Panel */}
+        <div className="bg-gradient-to-b from-slate-900 to-slate-900/95 border border-white/10 border-t-0 rounded-b-2xl p-4 md:p-6 -mt-4 md:-mt-6">
+          {renderTabContent()}
+        </div>
 
         {/* Upload Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
@@ -769,12 +787,8 @@ export default function DocumentsClient({
                     ) : (
                       <div className="space-y-2">
                         <Upload className="h-8 w-8 mx-auto text-slate-500" />
-                        <p className="text-sm text-slate-400">
-                          Click or drag to upload
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          PDF, Word, JPG, PNG (max 10MB)
-                        </p>
+                        <p className="text-sm text-slate-400">Click or drag to upload</p>
+                        <p className="text-xs text-slate-500">PDF, Word, JPG, PNG (max 10MB)</p>
                       </div>
                     )}
                   </label>
@@ -816,9 +830,7 @@ export default function DocumentsClient({
                     <Label>Description (Optional)</Label>
                     <Textarea
                       value={uploadForm.description}
-                      onChange={(e) =>
-                        setUploadForm((prev) => ({ ...prev, description: e.target.value }))
-                      }
+                      onChange={(e) => setUploadForm((prev) => ({ ...prev, description: e.target.value }))}
                       placeholder="Brief description..."
                       className="bg-slate-800 border-slate-700 min-h-[80px]"
                     />
@@ -829,9 +841,7 @@ export default function DocumentsClient({
                       type="checkbox"
                       id="isTemplate"
                       checked={uploadForm.isTemplate}
-                      onChange={(e) =>
-                        setUploadForm((prev) => ({ ...prev, isTemplate: e.target.checked }))
-                      }
+                      onChange={(e) => setUploadForm((prev) => ({ ...prev, isTemplate: e.target.checked }))}
                       className="rounded border-slate-700 bg-slate-800"
                     />
                     <Label htmlFor="isTemplate" className="text-sm cursor-pointer">
@@ -903,6 +913,7 @@ export default function DocumentsClient({
           </DialogContent>
         </Dialog>
 
+
         {/* Assign to Property Dialog */}
         <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
           <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-md mx-4">
@@ -947,9 +958,7 @@ export default function DocumentsClient({
                   Cancel
                 </Button>
                 <Button
-                  onClick={() =>
-                    selectedDocForAssign && handleSetDefault(selectedDocForAssign.id, assignPropertyId)
-                  }
+                  onClick={() => selectedDocForAssign && handleSetDefault(selectedDocForAssign.id, assignPropertyId)}
                   disabled={!assignPropertyId}
                   className="flex-1 bg-violet-600 hover:bg-violet-700"
                 >
@@ -1097,7 +1106,7 @@ function DocumentGrid({
 }) {
   if (documents.length === 0) {
     return (
-      <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
+      <Card className="border-white/10 bg-white/5">
         <CardContent className="py-12">
           <div className="text-center">
             <FileText className="h-12 w-12 mx-auto text-slate-400 mb-4" />
@@ -1118,7 +1127,7 @@ function DocumentGrid({
         return (
           <Card
             key={doc.id}
-            className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 hover:border-violet-400/40 transition-all group overflow-hidden"
+            className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-violet-400/40 transition-all group overflow-hidden"
           >
             <CardHeader className="pb-2 md:pb-3 p-3 md:p-4">
               <div className="flex items-start justify-between gap-2">
@@ -1213,6 +1222,7 @@ function DocumentGrid({
   );
 }
 
+
 // Scanned Document Grid Component
 function ScannedDocumentGrid({
   documents,
@@ -1227,7 +1237,7 @@ function ScannedDocumentGrid({
 }) {
   if (documents.length === 0) {
     return (
-      <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
+      <Card className="border-white/10 bg-white/5">
         <CardContent className="py-12">
           <div className="text-center">
             <Camera className="h-12 w-12 mx-auto text-slate-400 mb-4" />
@@ -1289,7 +1299,7 @@ function ScannedDocumentGrid({
         return (
           <Card
             key={doc.id}
-            className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 hover:border-emerald-400/40 transition-all group overflow-hidden"
+            className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-emerald-400/40 transition-all group overflow-hidden"
           >
             <CardContent className="p-3 md:p-4">
               <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
@@ -1390,7 +1400,7 @@ function LeaseTemplateGrid({
 }) {
   if (templates.length === 0) {
     return (
-      <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
+      <Card className="border-white/10 bg-white/5">
         <CardContent className="py-12">
           <div className="text-center">
             <Wand2 className="h-12 w-12 mx-auto text-slate-400 mb-4" />
@@ -1409,7 +1419,7 @@ function LeaseTemplateGrid({
       {templates.map((template) => (
         <Card
           key={template.id}
-          className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 hover:border-emerald-400/40 transition-all group overflow-hidden"
+          className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-emerald-400/40 transition-all group overflow-hidden"
         >
           <CardHeader className="pb-2 md:pb-3 p-3 md:p-4">
             <div className="flex items-start justify-between gap-2">
@@ -1516,7 +1526,7 @@ function LeaseTemplateGrid({
 function ActiveLeasesGrid({ leases }: { leases: ActiveLease[] }) {
   if (leases.length === 0) {
     return (
-      <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
+      <Card className="border-white/10 bg-white/5">
         <CardContent className="py-12">
           <div className="text-center">
             <FileSignature className="h-12 w-12 mx-auto text-slate-400 mb-4" />
@@ -1563,7 +1573,7 @@ function ActiveLeasesGrid({ leases }: { leases: ActiveLease[] }) {
       {leases.map((lease) => (
         <Card
           key={lease.id}
-          className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 hover:border-violet-400/40 transition-all group overflow-hidden"
+          className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-violet-400/40 transition-all group overflow-hidden"
         >
           <CardHeader className="pb-2 md:pb-3 p-3 md:p-4">
             <div className="flex items-start justify-between gap-2">
