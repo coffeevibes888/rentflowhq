@@ -373,7 +373,7 @@ export default function ContractorDirectory() {
             placeholder="Search contractors..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-slate-900 border-slate-700 text-white focus:border-violet-500"
+            className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:border-violet-500"
           />
         </div>
 

@@ -35,7 +35,7 @@ export default function ContractorWorkPage() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          <Card className="border-white/10 bg-gradient-to-br from-violet-600/20 to-violet-500/10">
+          <Card className="border-slate-700 bg-slate-800/80">
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
@@ -49,7 +49,7 @@ export default function ContractorWorkPage() {
             </CardContent>
           </Card>
           
-          <Card className="border-white/10 bg-gradient-to-br from-cyan-600/20 to-cyan-500/10">
+          <Card className="border-slate-700 bg-slate-800/80">
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
@@ -63,7 +63,7 @@ export default function ContractorWorkPage() {
             </CardContent>
           </Card>
           
-          <Card className="border-white/10 bg-gradient-to-br from-emerald-600/20 to-emerald-500/10">
+          <Card className="border-slate-700 bg-slate-800/80">
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
@@ -77,7 +77,7 @@ export default function ContractorWorkPage() {
             </CardContent>
           </Card>
           
-          <Card className="border-white/10 bg-gradient-to-br from-amber-600/20 to-amber-500/10">
+          <Card className="border-slate-700 bg-slate-800/80">
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
