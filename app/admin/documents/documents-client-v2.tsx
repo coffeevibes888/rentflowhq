@@ -339,8 +339,9 @@ export default function DocumentsClientV2({
       try {
         const res = await fetch(`/api/legal-documents/${doc.id}/preview`);
         if (res.ok) {
-          const data = await res.json();
-          setDocumentHtml(data.html || null);
+          // The API returns raw HTML, not JSON
+          const html = await res.text();
+          setDocumentHtml(html || null);
         }
       } catch (error) {
         console.error('Failed to load document preview:', error);
@@ -1123,11 +1124,12 @@ export default function DocumentsClientV2({
                   {viewingDocument.fileUrl && (
                     <a
                       href={viewingDocument.fileUrl}
-                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                     >
                       <Download className="h-4 w-4" />
-                      Download
+                      Download PDF
                     </a>
                   )}
                   <button
@@ -1149,19 +1151,12 @@ export default function DocumentsClientV2({
                   <div className="flex items-center justify-center h-96">
                     <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
                   </div>
-                ) : viewingDocument.fileUrl ? (
-                  <div className="h-full min-h-[600px]">
-                    <iframe
-                      src={viewingDocument.fileUrl}
-                      className="w-full h-full min-h-[600px]"
-                      title={viewingDocument.name}
-                    />
-                  </div>
                 ) : documentHtml ? (
                   <div className="p-8">
                     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm p-8">
                       <div
-                        className="prose prose-sm max-w-none"
+                        className="prose prose-sm max-w-none text-gray-800"
+                        style={{ fontSize: '14px', lineHeight: '1.6' }}
                         dangerouslySetInnerHTML={{ __html: documentHtml }}
                       />
                     </div>
@@ -1176,7 +1171,8 @@ export default function DocumentsClientV2({
                     {viewingDocument.fileUrl && (
                       <a
                         href={viewingDocument.fileUrl}
-                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
                       >
                         <Download className="h-4 w-4" />
