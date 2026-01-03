@@ -45,7 +45,6 @@ export const adminNavLinks: AdminNavLink[] = [
     description: 'Hire, invoice & pay contractors',
     href: '/admin/contractors',
     icon: HardHat,
-    proOnly: true,
   },
   {
     title: 'Analytics',

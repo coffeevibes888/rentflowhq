@@ -20,7 +20,7 @@ export const SUBSCRIPTION_TIERS = {
       advancedAnalytics: false,
       quickbooksIntegration: false,
       turbotaxIntegration: false,
-      contractorManagement: false, // PRO feature
+      contractorManagement: true, // FREE - Contractor marketplace is free for everyone ($1 fee on payments)
       // Enterprise-only features
       shiftScheduling: false,
       timeTracking: false,
@@ -51,7 +51,7 @@ export const SUBSCRIPTION_TIERS = {
       advancedAnalytics: true,
       quickbooksIntegration: true,
       turbotaxIntegration: true,
-      contractorManagement: true, // PRO feature - manage contractors, work orders, payments
+      contractorManagement: true, // FREE for all tiers - $1 fee on payments
       // Enterprise-only features (disabled for Pro)
       shiftScheduling: false,
       timeTracking: false,

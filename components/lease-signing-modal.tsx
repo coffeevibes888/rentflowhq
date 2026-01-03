@@ -7,21 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { X, PenTool, Type, Check, ChevronLeft, ChevronRight, Maximize2, FileText, ExternalLink } from 'lucide-react';
+import { X, PenTool, Type, Check, ChevronDown, Maximize2, Minimize2, GripHorizontal } from 'lucide-react';
 
 interface SignSession {
   leaseId: string;
   role: 'tenant' | 'landlord';
   recipientName: string;
   recipientEmail: string;
-  // HTML template fields
   leaseHtml?: string;
   documentType?: 'html_template' | 'custom_pdf';
-  // Custom PDF fields
   documentName?: string;
   documentUrl?: string;
   signatureFields?: SignatureFieldPosition[];
-  useDefaultFields?: boolean;
   leaseDetails?: {
     landlordName: string;
     tenantName: string;
@@ -52,13 +49,12 @@ interface LeaseSigningModalProps {
 }
 
 type SignatureMode = 'draw' | 'type';
-type TabType = 'initial' | 'signature';
 
-interface SignatureTab {
+interface SigningField {
   id: string;
-  type: TabType;
-  label: string;
+  type: 'initial' | 'signature';
   placeholder: string;
+  label: string;
   value: string | null;
   completed: boolean;
 }
@@ -76,20 +72,16 @@ function generateStampSignature(name: string, style: number = 0): string {
   canvas.height = 120;
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
-  
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
   ctx.fillStyle = '#1a1a2e';
   ctx.font = `italic 48px ${SIGNATURE_FONTS[style % SIGNATURE_FONTS.length].name}, cursive`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  
   const slant = -0.1;
   ctx.setTransform(1, 0, slant, 1, 0, 0);
   ctx.fillText(name, canvas.width / 2, canvas.height / 2);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  
   return canvas.toDataURL('image/png');
 }
 
@@ -109,16 +101,13 @@ function generateInitialStamp(initials: string): string {
   canvas.height = 60;
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
-  
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
   ctx.fillStyle = '#1a1a2e';
   ctx.font = 'italic 32px Georgia, serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(initials, canvas.width / 2, canvas.height / 2);
-  
   return canvas.toDataURL('image/png');
 }
 
@@ -134,15 +123,19 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   const [mounted, setMounted] = useState(false);
   
   const [signatureMode, setSignatureMode] = useState<SignatureMode>('type');
-  const [activeTabIndex, setActiveTabIndex] = useState<number | null>(null);
-  const [tabs, setTabs] = useState<SignatureTab[]>([]);
-  const [currentSignature, setCurrentSignature] = useState<string>('');
-  const [initialsByTabId, setInitialsByTabId] = useState<Record<string, string>>({});
+  const [fields, setFields] = useState<SigningField[]>([]);
+  const [activeFieldIndex, setActiveFieldIndex] = useState<number | null>(null);
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string>('');
+  const [initialsDataUrl, setInitialsDataUrl] = useState<string>('');
   const [signatureStyleIndex, setSignatureStyleIndex] = useState(0);
-  const [showFullscreenViewer, setShowFullscreenViewer] = useState(false);
   
+  const [modalSize, setModalSize] = useState({ width: 1200, height: 850 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const resizeStartRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const signaturePadRef = useRef<HTMLDivElement>(null);
+  const leaseContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -155,14 +148,51 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
     } else {
       document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, [open]);
 
+  // Resize handlers
+  const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    resizeStartRef.current = { x: e.clientX, y: e.clientY, width: modalSize.width, height: modalSize.height };
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!resizeStartRef.current) return;
+      const deltaX = moveEvent.clientX - resizeStartRef.current.x;
+      const deltaY = moveEvent.clientY - resizeStartRef.current.y;
+      let newWidth = resizeStartRef.current.width;
+      let newHeight = resizeStartRef.current.height;
+      if (direction.includes('e')) newWidth = Math.max(600, Math.min(window.innerWidth - 40, resizeStartRef.current.width + deltaX * 2));
+      if (direction.includes('w')) newWidth = Math.max(600, Math.min(window.innerWidth - 40, resizeStartRef.current.width - deltaX * 2));
+      if (direction.includes('s')) newHeight = Math.max(400, Math.min(window.innerHeight - 40, resizeStartRef.current.height + deltaY * 2));
+      if (direction.includes('n')) newHeight = Math.max(400, Math.min(window.innerHeight - 40, resizeStartRef.current.height - deltaY * 2));
+      setModalSize({ width: newWidth, height: newHeight });
+      setIsMaximized(false);
+    };
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      resizeStartRef.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [modalSize]);
+
+  const toggleMaximize = useCallback(() => {
+    if (isMaximized) {
+      setModalSize({ width: 1200, height: 850 });
+      setIsMaximized(false);
+    } else {
+      setModalSize({ width: window.innerWidth - 40, height: window.innerHeight - 40 });
+      setIsMaximized(true);
+    }
+  }, [isMaximized]);
+
+  // Load session and extract fields
   useEffect(() => {
     if (!open) return;
-    
     let canceled = false;
     setLoading(true);
     setError(null);
@@ -180,79 +210,54 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
         setSignerName(data.recipientName || '');
         setSignerEmail(data.recipientEmail || '');
         
-        const extractedTabs: SignatureTab[] = [];
+        // Extract signing fields from HTML
+        const extractedFields: SigningField[] = [];
         const role = data.role;
         
-        // Handle different document types
-        if (data.documentType === 'custom_pdf' && data.signatureFields) {
-          // Custom PDF with signature fields
-          console.log('Processing custom PDF with fields:', data.signatureFields);
-          
-          data.signatureFields.forEach((field) => {
-            if (field.role === role) {
-              extractedTabs.push({
-                id: field.id,
-                type: field.type === 'signature' ? 'signature' : 'initial',
-                label: field.label || (field.type === 'signature' ? 'Signature' : 'Initial'),
-                placeholder: field.id,
-                value: null,
-                completed: false,
-              });
-            }
-          });
-        } else if (data.leaseHtml) {
-          // HTML template with placeholders
+        if (data.leaseHtml) {
           if (role === 'tenant') {
-            for (let i = 1; i <= 6; i++) {
+            // Extract all initials
+            for (let i = 1; i <= 10; i++) {
               if (data.leaseHtml.includes(`/init${i}/`)) {
-                extractedTabs.push({
+                extractedFields.push({
                   id: `init${i}`,
                   type: 'initial',
-                  label: `Section ${i} Initial`,
                   placeholder: `/init${i}/`,
+                  label: `Initial ${i}`,
                   value: null,
                   completed: false,
                 });
               }
             }
+            // Extract tenant signature
             if (data.leaseHtml.includes('/sig_tenant/')) {
-              extractedTabs.push({
+              extractedFields.push({
                 id: 'sig_tenant',
                 type: 'signature',
-                label: 'Tenant Signature',
                 placeholder: '/sig_tenant/',
+                label: 'Tenant Signature',
                 value: null,
                 completed: false,
               });
             }
           } else {
+            // Landlord signature
             if (data.leaseHtml.includes('/sig_landlord/')) {
-              extractedTabs.push({
+              extractedFields.push({
                 id: 'sig_landlord',
                 type: 'signature',
-                label: 'Landlord Signature',
                 placeholder: '/sig_landlord/',
+                label: 'Landlord Signature',
                 value: null,
                 completed: false,
               });
             }
           }
-        } else {
-          // Fallback: create default signature tab
-          console.log('No leaseHtml or signatureFields found, creating default signature tab');
-          extractedTabs.push({
-            id: role === 'tenant' ? 'tenant_signature' : 'landlord_signature',
-            type: 'signature',
-            label: role === 'tenant' ? 'Tenant Signature' : 'Landlord Signature',
-            placeholder: role === 'tenant' ? '/sig_tenant/' : '/sig_landlord/',
-            value: null,
-            completed: false,
-          });
         }
         
-        setTabs(extractedTabs);
-        if (extractedTabs.length > 0) {
-          setActiveTabIndex(0);
+        setFields(extractedFields);
+        if (extractedFields.length > 0) {
+          setActiveFieldIndex(0);
         }
       } catch (err: any) {
         setError(err.message || 'Unable to load signing session');
@@ -261,34 +266,22 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
       }
     };
     run();
-    return () => {
-      canceled = true;
-    };
+    return () => { canceled = true; };
   }, [token, open]);
 
+  // Generate signature/initials when name changes
   useEffect(() => {
     if (signerName && signatureMode === 'type') {
-      setCurrentSignature(generateStampSignature(signerName, signatureStyleIndex));
-      // Generate default initials for any tab that doesn't have custom initials yet
-      const defaultInitials = generateInitialStamp(generateInitials(signerName));
-      setInitialsByTabId(prev => {
-        const updated = { ...prev };
-        tabs.filter(t => t.type === 'initial').forEach(tab => {
-          if (!updated[tab.id]) {
-            updated[tab.id] = defaultInitials;
-          }
-        });
-        return updated;
-      });
+      setSignatureDataUrl(generateStampSignature(signerName, signatureStyleIndex));
+      setInitialsDataUrl(generateInitialStamp(generateInitials(signerName)));
     }
-  }, [signerName, signatureMode, signatureStyleIndex, tabs]);
+  }, [signerName, signatureMode, signatureStyleIndex]);
 
   const setupCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
     const rect = canvas.getBoundingClientRect();
     const ratio = window.devicePixelRatio || 1;
     canvas.width = rect.width * ratio;
@@ -303,30 +296,23 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   }, []);
 
   useEffect(() => {
-    if (!open || signatureMode !== 'draw' || activeTabIndex === null) return;
-    
+    if (!open || signatureMode !== 'draw' || activeFieldIndex === null) return;
     const timer = setTimeout(setupCanvas, 100);
     return () => clearTimeout(timer);
-  }, [open, signatureMode, activeTabIndex, setupCanvas]);
+  }, [open, signatureMode, activeFieldIndex, setupCanvas]);
 
+  // Canvas drawing
   useEffect(() => {
-    if (!open || signatureMode !== 'draw' || activeTabIndex === null) return;
-    
+    if (!open || signatureMode !== 'draw' || activeFieldIndex === null) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
     let drawing = false;
-
     const getPos = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
-      return { 
-        x: e.clientX - rect.left, 
-        y: e.clientY - rect.top 
-      };
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     };
-
     const start = (e: PointerEvent) => {
       e.preventDefault();
       canvas.setPointerCapture(e.pointerId);
@@ -335,7 +321,6 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
       ctx.beginPath();
       ctx.moveTo(x, y);
     };
-
     const move = (e: PointerEvent) => {
       if (!drawing) return;
       e.preventDefault();
@@ -343,7 +328,6 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
       ctx.lineTo(x, y);
       ctx.stroke();
     };
-
     const end = (e: PointerEvent) => {
       if (drawing) {
         e.preventDefault();
@@ -352,21 +336,17 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
         ctx.closePath();
       }
     };
-
     canvas.addEventListener('pointerdown', start);
     canvas.addEventListener('pointermove', move);
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointerleave', end);
-    canvas.addEventListener('pointercancel', end);
-
     return () => {
       canvas.removeEventListener('pointerdown', start);
       canvas.removeEventListener('pointermove', move);
       canvas.removeEventListener('pointerup', end);
       canvas.removeEventListener('pointerleave', end);
-      canvas.removeEventListener('pointercancel', end);
     };
-  }, [open, signatureMode, activeTabIndex]);
+  }, [open, signatureMode, activeFieldIndex]);
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
@@ -378,194 +358,138 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
     ctx.fillRect(0, 0, rect.width, rect.height);
   };
 
-  const applyCurrentTab = () => {
-    if (activeTabIndex === null || !tabs[activeTabIndex]) return;
-    
-    const tab = tabs[activeTabIndex];
+  // Apply current field (initial or signature)
+  const applyCurrentField = useCallback(() => {
+    if (activeFieldIndex === null || !fields[activeFieldIndex]) return;
+    const field = fields[activeFieldIndex];
     let value: string | null = null;
     
     if (signatureMode === 'type') {
-      if (tab.type === 'signature') {
-        value = currentSignature;
-      } else {
-        // Use the specific initial for this tab
-        value = initialsByTabId[tab.id] || generateInitialStamp(generateInitials(signerName));
-      }
+      value = field.type === 'signature' ? signatureDataUrl : initialsDataUrl;
     } else {
       const canvas = canvasRef.current;
       if (canvas) {
         value = canvas.toDataURL('image/png');
-        // Store drawn initials for this specific tab
-        if (tab.type === 'initial') {
-          setInitialsByTabId(prev => ({ ...prev, [tab.id]: value! }));
+        // Store for reuse
+        if (field.type === 'signature') {
+          setSignatureDataUrl(value);
+        } else {
+          setInitialsDataUrl(value);
         }
       }
     }
     
     if (value) {
-      setTabs(prev => prev.map((t, i) => 
-        i === activeTabIndex ? { ...t, value, completed: true } : t
+      setFields(prev => prev.map((f, i) => 
+        i === activeFieldIndex ? { ...f, value, completed: true } : f
       ));
-      
-      if (activeTabIndex < tabs.length - 1) {
-        setActiveTabIndex(activeTabIndex + 1);
-        if (signatureMode === 'draw') {
-          setTimeout(setupCanvas, 100);
-        }
+      // Auto-advance to next incomplete field
+      const nextIndex = fields.findIndex((f, i) => i > activeFieldIndex && !f.completed);
+      if (nextIndex !== -1) {
+        setActiveFieldIndex(nextIndex);
+        if (signatureMode === 'draw') setTimeout(setupCanvas, 100);
       } else {
-        setActiveTabIndex(null);
+        setActiveFieldIndex(null);
       }
+    }
+  }, [activeFieldIndex, fields, signatureMode, signatureDataUrl, initialsDataUrl, setupCanvas]);
+
+  // Scroll to active field
+  const scrollToField = useCallback((fieldId: string) => {
+    if (!leaseContentRef.current) return;
+    const el = leaseContentRef.current.querySelector(`[data-field-id="${fieldId}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeFieldIndex !== null && fields[activeFieldIndex]) {
+      setTimeout(() => scrollToField(fields[activeFieldIndex].id), 150);
+    }
+  }, [activeFieldIndex, fields, scrollToField]);
+
+  // Handle click on field in document
+  const handleFieldClick = useCallback((fieldId: string) => {
+    const index = fields.findIndex(f => f.id === fieldId);
+    if (index !== -1 && !fields[index].completed) {
+      setActiveFieldIndex(index);
+      if (signatureMode === 'draw') setTimeout(setupCanvas, 100);
+    }
+  }, [fields, signatureMode, setupCanvas]);
+
+  const handleDocumentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const fieldEl = target.closest('[data-field-id]') as HTMLElement | null;
+    if (fieldEl) {
+      const fieldId = fieldEl.getAttribute('data-field-id');
+      if (fieldId) handleFieldClick(fieldId);
     }
   };
 
-  const handleTabClick = (index: number) => {
-    setActiveTabIndex(index);
-    if (signatureMode === 'draw') {
-      setTimeout(setupCanvas, 100);
-    }
-  };
-
-  const allTabsCompleted = tabs.length > 0 && tabs.every(t => t.completed);
-
-  const processedLeaseHtml = useMemo(() => {
-    if (!session) return '';
-    
-    // For custom PDFs, use the leaseHtml that the API now provides
-    if (session.documentType === 'custom_pdf') {
-      // If we have leaseHtml from the API, use it (this is the rendered lease terms)
-      if (session.leaseHtml) {
-        let html = session.leaseHtml;
-        
-        // Process any signature/initial placeholders in the HTML
-        tabs.forEach((tab) => {
-          if (tab.completed && tab.value) {
-            const imgStyle = tab.type === 'signature' 
-              ? 'height: 38px; display: block; margin: 0 auto; position: relative; bottom: 2px;'
-              : 'height: 24px; display: block; margin: 0 auto; position: relative; bottom: 2px;';
-            const imgTag = `<img src="${tab.value}" alt="${tab.type}" style="${imgStyle}" />`;
-            html = html.replace(tab.placeholder, imgTag);
-          } else {
-            const isActive = tabs[activeTabIndex ?? -1]?.id === tab.id;
-            const tabButton = `<span 
-              data-tab-id="${tab.id}" 
-              style="
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                padding: 6px 16px;
-                background: ${isActive ? '#8b5cf6' : '#fef3c7'};
-                color: ${isActive ? '#ffffff' : '#92400e'};
-                border: 2px solid ${isActive ? '#7c3aed' : '#f59e0b'};
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                pointer-events: auto;
-                white-space: nowrap;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-              "
-            >${tab.type === 'signature' ? 'Sign Here' : 'Initial'}</span>`;
-            html = html.replace(tab.placeholder, tabButton);
-          }
-        });
-        
-        return html;
-      }
-      
-      // Fallback: show lease details summary if no HTML available
-      return `
-        <div style="padding: 20px;">
-          <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 16px; padding: 24px; color: white; margin-bottom: 24px;">
-            <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">
-              ${session.documentName || 'Lease Agreement'}
-            </h2>
-            <p style="opacity: 0.9; font-size: 14px;">
-              Please review the lease document and complete your signature below.
-            </p>
-          </div>
-          ${session.leaseDetails ? `
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
-              <h3 style="font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">Lease Summary</h3>
-              <div style="display: grid; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                  <span style="color: #64748b; font-size: 14px;">Property</span>
-                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">${session.leaseDetails.propertyLabel}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                  <span style="color: #64748b; font-size: 14px;">Landlord</span>
-                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">${session.leaseDetails.landlordName}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                  <span style="color: #64748b; font-size: 14px;">Tenant</span>
-                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">${session.leaseDetails.tenantName}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                  <span style="color: #64748b; font-size: 14px;">Monthly Rent</span>
-                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">$${session.leaseDetails.rentAmount?.toLocaleString() || 'N/A'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0;">
-                  <span style="color: #64748b; font-size: 14px;">Lease Term</span>
-                  <span style="color: #1e293b; font-weight: 500; font-size: 14px;">${session.leaseDetails.startDate ? new Date(session.leaseDetails.startDate).toLocaleDateString() : 'N/A'} - ${session.leaseDetails.endDate ? new Date(session.leaseDetails.endDate).toLocaleDateString() : 'Month-to-Month'}</span>
-                </div>
-              </div>
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }
-    // HTML template processing
-    if (!session.leaseHtml) return '';
-    
+  // Process HTML with field anchors
+  const processedHtml = useMemo(() => {
+    if (!session?.leaseHtml) return '';
     let html = session.leaseHtml;
     
-    tabs.forEach((tab) => {
-      if (tab.completed && tab.value) {
-        const imgStyle = tab.type === 'signature' 
-          ? 'height: 38px; display: block; margin: 0 auto; position: relative; bottom: 2px;'
-          : 'height: 24px; display: block; margin: 0 auto; position: relative; bottom: 2px;';
-        const imgTag = `<img src="${tab.value}" alt="${tab.type}" style="${imgStyle}" />`;
-        html = html.replace(tab.placeholder, imgTag);
+    fields.forEach((field) => {
+      const isActive = fields[activeFieldIndex ?? -1]?.id === field.id;
+      
+      if (field.completed && field.value) {
+        // Show applied signature/initial
+        const imgStyle = field.type === 'signature' 
+          ? 'height: 40px; max-width: 200px;'
+          : 'height: 28px; max-width: 60px;';
+        const replacement = `<img src="${field.value}" alt="${field.type}" style="${imgStyle} display: inline-block; vertical-align: middle;" />`;
+        html = html.replace(field.placeholder, replacement);
       } else {
-        const isActive = tabs[activeTabIndex ?? -1]?.id === tab.id;
-        const tabButton = `<span 
-          data-tab-id="${tab.id}" 
+        // Show clickable anchor
+        const bgColor = isActive ? '#FEF08A' : '#FEF9C3';
+        const borderColor = isActive ? '#EAB308' : '#FACC15';
+        const shadow = isActive ? '0 0 0 3px rgba(234, 179, 8, 0.4)' : 'none';
+        const label = field.type === 'signature' ? 'Sign' : 'Initial';
+        const replacement = `<span 
+          data-field-id="${field.id}" 
           style="
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 6px 16px;
-            background: ${isActive ? '#8b5cf6' : '#fef3c7'};
-            color: ${isActive ? '#ffffff' : '#92400e'};
-            border: 2px solid ${isActive ? '#7c3aed' : '#f59e0b'};
-            border-radius: 6px;
-            font-size: 12px;
+            gap: 4px;
+            padding: 4px 12px;
+            background: ${bgColor};
+            border: 2px solid ${borderColor};
+            border-radius: 4px;
+            font-size: 13px;
             font-weight: 600;
+            color: #854D0E;
             cursor: pointer;
-            pointer-events: auto;
-            white-space: nowrap;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: ${shadow};
+            transition: all 0.15s ease;
           "
-        >${tab.type === 'signature' ? 'Sign Here' : 'Initial'}</span>`;
-        html = html.replace(tab.placeholder, tabButton);
+        ><span style="font-size: 11px;">▼</span> ${label}</span>`;
+        html = html.replace(field.placeholder, replacement);
       }
     });
     
     return html;
-  }, [session, tabs, activeTabIndex]);
+  }, [session?.leaseHtml, fields, activeFieldIndex]);
 
+  const allFieldsCompleted = fields.length > 0 && fields.every(f => f.completed);
+  const completedCount = fields.filter(f => f.completed).length;
+  const activeField = activeFieldIndex !== null ? fields[activeFieldIndex] : null;
+
+  // Submit signature
   const handleSubmit = async () => {
     if (!session) return;
-    if (!allTabsCompleted) {
-      toast({ title: 'Incomplete', description: 'Please complete all signature and initial fields.' });
+    if (!allFieldsCompleted) {
+      toast({ title: 'Incomplete', description: 'Please complete all required fields.' });
       return;
     }
     if (!consent) {
       toast({ title: 'Consent required', description: 'Please agree to sign electronically.' });
       return;
     }
-    
-    const signatureTab = tabs.find(t => t.type === 'signature');
-    if (!signatureTab?.value) {
+    const signatureField = fields.find(f => f.type === 'signature');
+    if (!signatureField?.value) {
       toast({ title: 'Missing signature', description: 'Please provide your signature.' });
       return;
     }
@@ -576,13 +500,14 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          signatureDataUrl: signatureTab.value,
+          signatureDataUrl: signatureField.value,
           signerName,
           signerEmail,
           consent: true,
-          initialsData: tabs.filter(t => t.type === 'initial').map(t => ({
-            id: t.id,
-            value: t.value,
+          signingDate: new Date().toISOString(),
+          initialsData: fields.filter(f => f.type === 'initial').map(f => ({
+            id: f.id,
+            value: f.value,
           })),
         }),
       });
@@ -590,12 +515,11 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || 'Failed to submit signature');
       }
-      toast({ title: 'Signed', description: 'Your signature was recorded.' });
+      toast({ title: 'Success', description: 'Document signed successfully!' });
       onClose();
       if (session.role === 'tenant') {
         router.push('/user/profile/rent-receipts');
       } else {
-        // Redirect landlord to admin dashboard or properties page
         router.push('/admin/products');
       }
     } catch (err: any) {
@@ -605,447 +529,233 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
     }
   };
 
-  const goToPreviousTab = () => {
-    if (activeTabIndex !== null && activeTabIndex > 0) {
-      setActiveTabIndex(activeTabIndex - 1);
-    }
-  };
-
-  const goToNextTab = () => {
-    if (activeTabIndex !== null && activeTabIndex < tabs.length - 1) {
-      setActiveTabIndex(activeTabIndex + 1);
-    }
-  };
-
-  const handleLeaseClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement | null;
-    if (!target) return;
-
-    const elWithId = target.closest('[data-tab-id]') as HTMLElement | null;
-    const tabId = elWithId?.getAttribute('data-tab-id');
-    if (!tabId) return;
-
-    const index = tabs.findIndex((t) => t.id === tabId);
-    if (index !== -1) {
-      handleTabClick(index);
-    }
-  };
-
   if (!open || !mounted) return null;
 
-  const activeTab = activeTabIndex !== null ? tabs[activeTabIndex] : null;
-  const previewSrc = activeTab?.type === 'signature' 
-    ? currentSignature 
-    : (activeTab ? (initialsByTabId[activeTab.id] || generateInitialStamp(generateInitials(signerName))) : '');
-
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2">
-      <div className="absolute inset-0 z-0 bg-black/15" onClick={onClose} />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div 
-        className="pointer-events-auto relative z-10 w-full max-w-7xl h-[98dvh] sm:h-[95dvh] max-h-[1000px] rounded-lg sm:rounded-xl shadow-2xl overflow-hidden flex flex-col"
-        style={{ background: '#ffffff' }}
-        onClick={(e) => e.stopPropagation()}
+        ref={modalRef}
+        className="relative z-10 bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col"
+        style={{ 
+          width: `min(${modalSize.width}px, calc(100vw - 16px))`,
+          height: `min(${modalSize.height}px, calc(100dvh - 16px))`,
+          transition: isResizing ? 'none' : 'width 0.2s, height 0.2s',
+        }}
       >
-        <div 
-          className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b"
-          style={{ borderColor: '#e5e5e5', background: '#ffffff' }}
-        >
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg sm:text-2xl font-semibold text-gray-900 truncate">Sign Lease</h2>
-            {session && (
-              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 truncate">
-                {session.role === 'tenant' ? 'Tenant' : 'Landlord'} • {session.recipientEmail}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="ml-2 rounded-full p-2 hover:bg-gray-100 transition-colors flex-shrink-0"
-          >
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
+        {/* Resize handles */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 cursor-n-resize hover:bg-blue-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'n')} />
+        <div className="absolute bottom-0 left-0 right-0 h-1.5 cursor-s-resize hover:bg-blue-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 's')} />
+        <div className="absolute top-0 bottom-0 left-0 w-1.5 cursor-w-resize hover:bg-blue-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'w')} />
+        <div className="absolute top-0 bottom-0 right-0 w-1.5 cursor-e-resize hover:bg-blue-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'e')} />
+        <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize hover:bg-blue-500/30 z-30 flex items-center justify-center" onMouseDown={(e) => handleResizeStart(e, 'se')}>
+          <GripHorizontal className="h-3 w-3 text-gray-400 rotate-[-45deg]" />
         </div>
 
-          {loading && (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-gray-500">Loading document...</p>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="flex-1 flex items-center justify-center p-4">
-              <div className="text-center">
-                <p className="text-red-600 mb-4">{error}</p>
-                <Button variant="outline" onClick={onClose}>Close</Button>
-              </div>
-            </div>
-          )}
-
-          {session && !loading && (
-            <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-              <div 
-                className="flex-1 flex flex-col min-h-0 lg:border-r"
-                style={{ borderColor: '#e5e5e5' }}
-              >
-                <div 
-                  className="px-4 sm:px-6 py-3 border-b flex items-center justify-between flex-shrink-0"
-                  style={{ borderColor: '#e5e5e5', background: '#ffffff' }}
-                >
-                  <h3 className="text-sm font-semibold text-gray-900">Lease Document</h3>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setShowFullscreenViewer(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg transition-colors"
-                    >
-                      <Maximize2 className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Full Screen</span>
-                    </button>
-                    <span className="text-xs text-gray-500">{tabs.filter(t => t.completed).length}/{tabs.length} completed</span>
-                  </div>
-                </div>
-                
-                <div 
-                  className="flex-1 overflow-auto min-h-0 p-2 sm:p-4" 
-                  style={{ background: '#ffffff' }}
-                  onClick={handleLeaseClick}
-                >
-                  <div
-                    className="prose prose-base sm:prose-lg max-w-none text-gray-800"
-                    style={{ fontSize: 'clamp(15px, 2.5vw, 18px)', lineHeight: '1.75' }}
-                    dangerouslySetInnerHTML={{ __html: processedLeaseHtml }}
-                  />
-                </div>
-
-                <div 
-                  className="px-4 sm:px-6 py-3 border-t flex-shrink-0 overflow-x-auto"
-                  style={{ borderColor: '#e5e5e5', background: '#f5f5f4' }}
-                >
-                  <div className="flex gap-2 min-w-max">
-                    {tabs.map((tab, index) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => handleTabClick(index)}
-                        className={
-                          'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ' +
-                          (activeTabIndex === index
-                            ? 'bg-violet-600 text-white shadow-md'
-                            : tab.completed
-                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                              : 'bg-white text-gray-700 border border-gray-300 hover:border-violet-400')
-                        }
-                      >
-                        {tab.completed && <Check className="h-4 w-4" />}
-                        <span className="whitespace-nowrap">
-                          {tab.type === 'initial' ? `Initial ${tab.id.replace('init', '')}` : tab.label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div 
-                className="w-full lg:w-80 flex flex-col flex-shrink-0 min-h-0 overflow-hidden"
-                style={{ background: '#fafaf9' }}
-              >
-                {activeTab ? (
-                  <>
-                    <div 
-                      className="px-4 sm:px-6 py-3 border-b flex items-center justify-between flex-shrink-0"
-                      style={{ borderColor: '#e5e5e5', background: '#ffffff' }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <button 
-                          onClick={goToPreviousTab}
-                          disabled={activeTabIndex === 0}
-                          className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
-                        >
-                          <ChevronLeft className="h-5 w-5 text-gray-600" />
-                        </button>
-                        <span className="text-sm font-semibold text-gray-900">
-                          {activeTab.type === 'signature' ? 'Sign Here' : 'Initial Here'}
-                        </span>
-                        <button 
-                          onClick={goToNextTab}
-                          disabled={activeTabIndex === tabs.length - 1}
-                          className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
-                        >
-                          <ChevronRight className="h-5 w-5 text-gray-600" />
-                        </button>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {(activeTabIndex ?? 0) + 1} of {tabs.length}
-                      </span>
-                    </div>
-
-                    <div className="flex-1 overflow-auto p-4 sm:p-6 space-y-4 min-h-0">
-                      <div className="space-y-3">
-                        <label className="text-sm font-medium text-gray-700">Your Name</label>
-                        <Input 
-                          value={signerName} 
-                          onChange={(e) => setSignerName(e.target.value)}
-                          placeholder="Enter your full name"
-                          className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
-                        />
-                      </div>
-
-                      <div 
-                        className="flex rounded-lg p-1 gap-1"
-                        style={{ background: '#e5e5e5' }}
-                      >
-                        <button
-                          onClick={() => setSignatureMode('type')}
-                          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${
-                            signatureMode === 'type' 
-                              ? 'bg-white text-gray-900 shadow-sm' 
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
-                        >
-                          <Type className="h-4 w-4" />
-                          <span>Auto Generate</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSignatureMode('draw');
-                            setTimeout(setupCanvas, 100);
-                          }}
-                          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${
-                            signatureMode === 'draw' 
-                              ? 'bg-white text-gray-900 shadow-sm' 
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
-                        >
-                          <PenTool className="h-4 w-4" />
-                          <span>Draw</span>
-                        </button>
-                      </div>
-
-                      {signatureMode === 'type' ? (
-                        <div className="space-y-3">
-                          <div 
-                            className="rounded-xl border-2 p-4 flex items-center justify-center min-h-[120px]"
-                            style={{ borderColor: '#d4d4d4', background: '#ffffff' }}
-                          >
-                            {signerName && previewSrc ? (
-                              <img 
-                                src={previewSrc} 
-                                alt={activeTab.type === 'signature' ? 'Signature preview' : 'Initials preview'}
-                                className="max-h-20 object-contain"
-                              />
-                            ) : (
-                              <p className="text-gray-400 text-sm">Enter your name above</p>
-                            )}
-                          </div>
-                          
-                          {activeTab.type === 'signature' && signerName && (
-                            <div className="flex justify-center gap-2">
-                              {[0, 1, 2].map((styleIdx) => (
-                                <button
-                                  key={styleIdx}
-                                  onClick={() => setSignatureStyleIndex(styleIdx)}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                                    signatureStyleIndex === styleIdx
-                                      ? 'bg-violet-600 text-white'
-                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                  }`}
-                                >
-                                  Style {styleIdx + 1}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div 
-                            ref={signaturePadRef}
-                            className="rounded-xl border-2 overflow-hidden"
-                            style={{ borderColor: '#8b5cf6', background: '#ffffff' }}
-                          >
-                            <canvas 
-                              ref={canvasRef} 
-                              className="w-full cursor-crosshair"
-                              style={{ 
-                                height: activeTab.type === 'signature' ? '140px' : '100px',
-                                touchAction: 'none' 
-                              }}
-                            />
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-xs text-gray-500">
-                              Use your finger, stylus, or mouse
-                            </p>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              onClick={clearCanvas}
-                              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                            >
-                              Clear
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      <Button 
-                        onClick={applyCurrentTab}
-                        disabled={!signerName}
-                        className="w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-5"
-                      >
-                        {activeTab.completed ? 'Update' : 'Apply'} {activeTab.type === 'signature' ? 'Signature' : 'Initial'}
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex-1 overflow-auto p-4 sm:p-6 space-y-4 min-h-0">
-                    <div 
-                      className="flex-1 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center"
-                      style={{ borderColor: '#d4d4d4', background: '#ffffff' }}
-                    >
-                      <Check className="h-12 w-12 text-emerald-500 mb-3" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">All Fields Complete</h3>
-                      <p className="text-sm text-gray-500">Review and submit your signature below</p>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <label className="text-sm font-medium text-gray-700">Email</label>
-                      <Input 
-                        value={signerEmail} 
-                        onChange={(e) => setSignerEmail(e.target.value)}
-                        placeholder="your@email.com"
-                        className="bg-white border-gray-300 text-gray-900"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div 
-                  className="px-4 sm:px-6 py-4 border-t space-y-4 flex-shrink-0 pb-[calc(env(safe-area-inset-bottom)+16px)]"
-                  style={{ borderColor: '#e5e5e5', background: '#ffffff' }}
-                >
-                  <div 
-                    className="flex items-start gap-3 rounded-lg border p-3"
-                    style={{ borderColor: '#e5e5e5', background: '#fafaf9' }}
-                  >
-                    <Checkbox 
-                      id="consent" 
-                      checked={consent} 
-                      onCheckedChange={(v) => setConsent(!!v)}
-                      className="mt-0.5"
-                    />
-                    <label htmlFor="consent" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
-                      I agree that my electronic signature is legally binding and equivalent to my handwritten signature.
-                    </label>
-                  </div>
-
-                  <Button 
-                    onClick={handleSubmit} 
-                    disabled={submitting || !allTabsCompleted || !consent}
-                    className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold py-6 text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submitting ? 'Submitting...' : 'Complete and Sign'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-  );
-
-  // Fullscreen viewer modal
-  const fullscreenViewerContent = showFullscreenViewer ? (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
-        onClick={() => setShowFullscreenViewer(false)} 
-      />
-      <div 
-        className="relative z-10 w-full h-full sm:w-[95vw] sm:h-[95vh] sm:max-w-7xl sm:rounded-2xl bg-white shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Fullscreen header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-violet-600 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <FileText className="h-5 w-5 text-white/80" />
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white">
-                {session?.documentName || 'Lease Agreement'}
-              </h2>
-              <p className="text-xs sm:text-sm text-white/70">
-                Full document view
-              </p>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <div>
+            <h2 className="text-lg font-semibold">Sign Document</h2>
+            <p className="text-xs text-blue-100">{session?.role === 'tenant' ? 'Tenant' : 'Landlord'} • {signerEmail}</p>
           </div>
           <div className="flex items-center gap-2">
-            {session?.documentUrl && (
-              <a
-                href={session.documentUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span className="hidden sm:inline">Open PDF</span>
-              </a>
-            )}
-            <button
-              onClick={() => setShowFullscreenViewer(false)}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              aria-label="Close fullscreen"
-            >
-              <X className="h-5 w-5 text-white" />
+            <button onClick={toggleMaximize} className="p-1.5 rounded hover:bg-white/20">
+              {isMaximized ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
+            <button onClick={onClose} className="p-1.5 rounded hover:bg-white/20">
+              <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        {/* Fullscreen content */}
-        <div className="flex-1 overflow-auto p-4 sm:p-8 bg-gray-50">
-          {session?.documentType === 'custom_pdf' && session?.documentUrl ? (
-            // Show PDF in iframe for custom PDFs
-            <div className="w-full h-full min-h-[600px] bg-white rounded-xl shadow-lg overflow-hidden">
-              <iframe
-                src={session.documentUrl}
-                className="w-full h-full"
-                title="Lease Document PDF"
-              />
+        {loading && (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-gray-500">Loading document...</p>
             </div>
-          ) : (
-            // Show HTML content
-            <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
-              <div
-                className="prose prose-sm sm:prose lg:prose-lg max-w-none text-gray-800"
-                style={{ fontSize: 'clamp(14px, 2.5vw, 18px)', lineHeight: '1.7' }}
-                dangerouslySetInnerHTML={{ __html: processedLeaseHtml }}
-              />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Fullscreen footer */}
-        <div className="px-4 sm:px-6 py-3 border-t border-gray-200 bg-white flex items-center justify-between flex-shrink-0">
-          <p className="text-sm text-gray-500">
-            Review the document above, then close to continue signing
-          </p>
-          <Button
-            onClick={() => setShowFullscreenViewer(false)}
-            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
-          >
-            Back to Signing
-          </Button>
-        </div>
+        {error && (
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="text-center">
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button variant="outline" onClick={onClose}>Close</Button>
+            </div>
+          </div>
+        )}
+
+        {session && !loading && !error && (
+          <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+            {/* Document Panel */}
+            <div className="flex-1 flex flex-col min-h-0 bg-gray-100">
+              {/* Progress bar */}
+              <div className="px-4 py-2 bg-white border-b flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  {completedCount} of {fields.length} fields completed
+                </span>
+                <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-500 transition-all duration-300"
+                    style={{ width: `${fields.length > 0 ? (completedCount / fields.length) * 100 : 0}%` }}
+                  />
+                </div>
+                {allFieldsCompleted && <Check className="h-5 w-5 text-green-500" />}
+              </div>
+              
+              {/* Document content */}
+              <div 
+                ref={leaseContentRef}
+                className="flex-1 overflow-auto p-4"
+                onClick={handleDocumentClick}
+              >
+                <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-8">
+                  <div
+                    className="prose prose-sm max-w-none"
+                    style={{ fontSize: '15px', lineHeight: '1.7' }}
+                    dangerouslySetInnerHTML={{ __html: processedHtml }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Signing Panel */}
+            <div className="w-full lg:w-80 bg-white border-t lg:border-t-0 lg:border-l flex flex-col">
+              {activeField ? (
+                <>
+                  {/* Active field header */}
+                  <div className="px-4 py-3 bg-yellow-50 border-b border-yellow-200">
+                    <div className="flex items-center gap-2">
+                      <ChevronDown className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-semibold text-yellow-800">
+                        {activeField.type === 'signature' ? 'Add Your Signature' : `Add Initial (${activeFieldIndex! + 1} of ${fields.filter(f => f.type === 'initial').length})`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-auto p-4 space-y-4">
+                    {/* Name input */}
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">Full Legal Name</label>
+                      <Input 
+                        value={signerName} 
+                        onChange={(e) => setSignerName(e.target.value)}
+                        placeholder="Enter your name"
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Mode toggle */}
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                      <button
+                        onClick={() => setSignatureMode('type')}
+                        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                          signatureMode === 'type' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'
+                        }`}
+                      >
+                        <Type className="h-4 w-4 inline mr-1.5" />Type
+                      </button>
+                      <button
+                        onClick={() => { setSignatureMode('draw'); setTimeout(setupCanvas, 100); }}
+                        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                          signatureMode === 'draw' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'
+                        }`}
+                      >
+                        <PenTool className="h-4 w-4 inline mr-1.5" />Draw
+                      </button>
+                    </div>
+
+                    {/* Signature/Initial preview */}
+                    {signatureMode === 'type' ? (
+                      <div className="space-y-3">
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-[100px] flex items-center justify-center bg-gray-50">
+                          {signerName ? (
+                            <img 
+                              src={activeField.type === 'signature' ? signatureDataUrl : initialsDataUrl} 
+                              alt="Preview"
+                              className={activeField.type === 'signature' ? 'max-h-16' : 'max-h-10'}
+                            />
+                          ) : (
+                            <p className="text-gray-400 text-sm">Enter your name above</p>
+                          )}
+                        </div>
+                        {activeField.type === 'signature' && signerName && (
+                          <div className="flex justify-center gap-2">
+                            {[0, 1, 2].map((i) => (
+                              <button
+                                key={i}
+                                onClick={() => setSignatureStyleIndex(i)}
+                                className={`px-3 py-1 rounded text-xs font-medium ${
+                                  signatureStyleIndex === i ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                                }`}
+                              >
+                                Style {i + 1}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="border-2 border-blue-400 rounded-lg overflow-hidden bg-white">
+                          <canvas 
+                            ref={canvasRef} 
+                            className="w-full cursor-crosshair"
+                            style={{ height: activeField.type === 'signature' ? '120px' : '80px', touchAction: 'none' }}
+                          />
+                        </div>
+                        <button onClick={clearCanvas} className="text-xs text-gray-500 hover:text-gray-700">
+                          Clear
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Apply button */}
+                    <Button 
+                      onClick={applyCurrentField}
+                      disabled={!signerName}
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-yellow-900 font-semibold"
+                    >
+                      {activeField.type === 'signature' ? 'Adopt and Sign' : 'Apply Initial'}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                  <Check className="h-12 w-12 text-green-500 mb-3" />
+                  <h3 className="text-lg font-semibold text-gray-900">All Fields Complete</h3>
+                  <p className="text-sm text-gray-500 mt-1">Review and finish signing below</p>
+                </div>
+              )}
+
+              {/* Footer with consent and submit */}
+              <div className="p-4 border-t bg-gray-50 space-y-3">
+                <div className="flex items-start gap-2">
+                  <Checkbox 
+                    id="consent" 
+                    checked={consent} 
+                    onCheckedChange={(v) => setConsent(!!v)}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor="consent" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
+                    I agree that my electronic signature is legally binding and equivalent to my handwritten signature.
+                  </label>
+                </div>
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={submitting || !allFieldsCompleted || !consent}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-5"
+                >
+                  {submitting ? 'Submitting...' : 'Finish'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  ) : null;
-
-  return (
-    <>
-      {createPortal(modalContent, document.body)}
-      {showFullscreenViewer && createPortal(fullscreenViewerContent, document.body)}
-    </>
   );
+
+  return createPortal(modalContent, document.body);
 }

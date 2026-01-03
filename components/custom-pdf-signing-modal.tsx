@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { X, PenTool, Type, Check, Loader2 } from 'lucide-react';
+import { X, PenTool, Type, Check, Loader2, Maximize2, Minimize2, GripHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Set up PDF.js worker
@@ -125,6 +125,13 @@ export default function CustomPDFSigningModal({
   const [completedFields, setCompletedFields] = useState<Set<string>>(new Set());
   const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
   
+  // Resize state
+  const [modalSize, setModalSize] = useState({ width: 1280, height: 900 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const resizeStartRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -140,6 +147,57 @@ export default function CustomPDFSigningModal({
     }
     return () => { document.body.style.overflow = ''; };
   }, [open]);
+
+  // Resize handlers
+  const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    resizeStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      width: modalSize.width,
+      height: modalSize.height,
+    };
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!resizeStartRef.current) return;
+      
+      const deltaX = moveEvent.clientX - resizeStartRef.current.x;
+      const deltaY = moveEvent.clientY - resizeStartRef.current.y;
+      
+      let newWidth = resizeStartRef.current.width;
+      let newHeight = resizeStartRef.current.height;
+      
+      if (direction.includes('e')) newWidth = Math.max(600, Math.min(window.innerWidth - 40, resizeStartRef.current.width + deltaX * 2));
+      if (direction.includes('w')) newWidth = Math.max(600, Math.min(window.innerWidth - 40, resizeStartRef.current.width - deltaX * 2));
+      if (direction.includes('s')) newHeight = Math.max(400, Math.min(window.innerHeight - 40, resizeStartRef.current.height + deltaY * 2));
+      if (direction.includes('n')) newHeight = Math.max(400, Math.min(window.innerHeight - 40, resizeStartRef.current.height - deltaY * 2));
+      
+      setModalSize({ width: newWidth, height: newHeight });
+      setIsMaximized(false);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      resizeStartRef.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [modalSize]);
+
+  const toggleMaximize = useCallback(() => {
+    if (isMaximized) {
+      setModalSize({ width: 1280, height: 900 });
+      setIsMaximized(false);
+    } else {
+      setModalSize({ width: window.innerWidth - 40, height: window.innerHeight - 40 });
+      setIsMaximized(true);
+    }
+  }, [isMaximized]);
 
   // Generate typed signature/initials when name changes
   useEffect(() => {
@@ -319,19 +377,79 @@ export default function CustomPDFSigningModal({
   const activeField = activeFieldId ? signatureFields.find(f => f.id === activeFieldId) : null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2 bg-blue-200">
       <div className="absolute inset-0 bg-black/15" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-7xl h-[98dvh] max-h-[1000px] rounded-lg bg-slate-50 shadow-2xl overflow-hidden flex flex-col">
+      <div 
+        ref={modalRef}
+        className="relative z-10 rounded-lg bg-slate-50 shadow-2xl overflow-hidden flex flex-col"
+        style={{ 
+          width: `min(${modalSize.width}px, calc(100vw - 16px))`,
+          height: `min(${modalSize.height}px, calc(100dvh - 16px))`,
+          maxWidth: 'calc(100vw - 16px)',
+          maxHeight: 'calc(100dvh - 16px)',
+          transition: isResizing ? 'none' : 'width 0.2s, height 0.2s',
+        }}
+      >
+        {/* Resize handles */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-2 cursor-n-resize hover:bg-violet-500/20 z-20"
+          onMouseDown={(e) => handleResizeStart(e, 'n')}
+        />
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize hover:bg-violet-500/20 z-20"
+          onMouseDown={(e) => handleResizeStart(e, 's')}
+        />
+        <div 
+          className="absolute top-0 bottom-0 left-0 w-2 cursor-w-resize hover:bg-violet-500/20 z-20"
+          onMouseDown={(e) => handleResizeStart(e, 'w')}
+        />
+        <div 
+          className="absolute top-0 bottom-0 right-0 w-2 cursor-e-resize hover:bg-violet-500/20 z-20"
+          onMouseDown={(e) => handleResizeStart(e, 'e')}
+        />
+        {/* Corner resize handles */}
+        <div 
+          className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize hover:bg-violet-500/30 z-30"
+          onMouseDown={(e) => handleResizeStart(e, 'nw')}
+        />
+        <div 
+          className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize hover:bg-violet-500/30 z-30"
+          onMouseDown={(e) => handleResizeStart(e, 'ne')}
+        />
+        <div 
+          className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize hover:bg-violet-500/30 z-30"
+          onMouseDown={(e) => handleResizeStart(e, 'sw')}
+        />
+        <div 
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize hover:bg-violet-500/30 z-30 flex items-center justify-center"
+          onMouseDown={(e) => handleResizeStart(e, 'se')}
+        >
+          <GripHorizontal className="h-3 w-3 text-gray-400 rotate-[-45deg]" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Sign Document</h2>
             <p className="text-xs text-gray-500">{documentName}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={toggleMaximize}
+              className="p-2 rounded-full hover:bg-gray-100"
+              title={isMaximized ? 'Restore size' : 'Maximize'}
+            >
+              {isMaximized ? (
+                <Minimize2 className="h-4 w-4 text-gray-500" />
+              ) : (
+                <Maximize2 className="h-4 w-4 text-gray-500" />
+              )}
+            </button>
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">

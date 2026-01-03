@@ -29,6 +29,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import NoListingsModal from '@/components/no-listings-modal';
 
 interface Listing {
   id: string;
@@ -199,6 +200,9 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
 
   return (
     <div className="min-h-screen">
+      {/* No Listings Modal - shows when there are no listings */}
+      <NoListingsModal show={listings.length === 0} />
+      
       {/* Hero Search Section */}
       <div className=" text-white">
         <div className="container mx-auto px-4 py-12 md:py-16">

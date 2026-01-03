@@ -58,12 +58,11 @@ const LANDLORD_TOUR_STEPS: (TourStep & { proOnly?: boolean })[] = [
   },
   {
     id: 'contractors-nav',
-    title: 'Contractor Management',
-    description: 'Add and manage maintenance contractors. Create work orders, track jobs, and process payments directly to your contractors.',
+    title: 'Contractor Marketplace',
+    description: 'Find and hire contractors, create work orders, track jobs, and pay contractors directly. Free to use - only $1 per payment!',
     targetSelector: 'a[href="/admin/contractors"]',
     route: '/admin/contractors',
     position: 'right',
-    proOnly: true, // Skip this step for non-pro users
   },
   {
     id: 'payouts-nav',

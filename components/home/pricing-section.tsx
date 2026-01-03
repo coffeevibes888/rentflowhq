@@ -28,6 +28,7 @@ const tiers = [
       { name: 'Custom Subdomain (yourname.propertyflowhq.com)', included: true },
       { name: 'Maintenance Ticket System', included: true },
       { name: 'Digital leases with E-Sign', included: true },
+      { name: 'Contractor Marketplace (Free, $1 per payment)', included: true },
       { name: 'Basic Reporting', included: true },
       { name: 'Automated Application Process', included: true },
       { name: 'Free Lease Builder', included: true },
@@ -52,7 +53,6 @@ const tiers = [
       { name: 'Auto late fee charges', included: true },
       { name: 'Up to 5 team members', included: true },
       { name: 'Team management & Slack-like chat', included: true },
-      { name: 'Contractor management & Payments', included: true },
       { name: 'ID & Paystub Scanner', included: true },
       { name: 'Advanced analytics & Reporting', included: true },
       { name: 'Priority support', included: true },
@@ -318,7 +318,7 @@ export default function PricingSection() {
                 </tr>
                 <tr className="border-b border-white/5 hover:bg-white/5">
                   <td className="p-4 text-slate-200">Contractor Management</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Pro)</span></td>
+                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">($1/payment)</span></td>
                   <td className="p-4 text-center text-amber-400 text-xs">$ Extra</td>
                   <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
                   <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>

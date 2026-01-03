@@ -13,6 +13,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ContractorSearch from './contractor-search';
+import ContractorPromoModal from '@/components/contractor-promo-modal';
+import JobsPromoModal from '@/components/jobs-promo-modal';
 
 const SPECIALTIES = [
   { name: 'Plumbing', icon: Droplets },
@@ -135,6 +137,9 @@ export default function ContractorMarketplace({
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600">
+      {/* Promo Modal - shows after 5 seconds based on view */}
+      {view === 'contractors' ? <ContractorPromoModal /> : <JobsPromoModal />}
+      
       {/* Hero Section */}
       <div className="pt-8 pb-12">
         <div className="max-w-7xl mx-auto px-4">
@@ -478,10 +483,13 @@ export default function ContractorMarketplace({
           <h2 className="text-3xl font-bold mb-4">
             {view === 'contractors' ? 'Are you a contractor?' : 'Need work done?'}
           </h2>
-          <p className="text-slate-300 mb-8 text-lg">
+          <p className="text-slate-300 mb-4 text-lg">
             {view === 'contractors'
               ? 'Join our marketplace and connect with property managers looking for reliable professionals'
               : 'Post your job and let contractors compete for your business'}
+          </p>
+          <p className="text-emerald-400 mb-8 text-sm font-medium">
+            ✓ Free to use • Only $1 fee per payment or cashout
           </p>
           <Link href={view === 'contractors' ? '/sign-up?role=contractor' : '/admin/contractors'}>
             <Button size="lg" className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90">

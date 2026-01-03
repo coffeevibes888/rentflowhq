@@ -459,3 +459,17 @@
     box-shadow: none !important;
   }
 }
+
+/* Lease signing field highlight animation */
+@keyframes signing-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.3), 0 4px 12px rgba(234, 179, 8, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(234, 179, 8, 0.2), 0 4px 16px rgba(234, 179, 8, 0.35);
+  }
+}
+
+.signing-field-active {
+  animation: signing-pulse 1.5s ease-in-out infinite;
+}
