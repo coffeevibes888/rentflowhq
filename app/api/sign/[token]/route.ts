@@ -81,17 +81,13 @@ export async function GET(
   console.log(`[Sign Session] Lease ${lease.id} - legalDocument: ${legalDoc?.name || 'none'}, fileUrl: ${legalDoc?.fileUrl ? 'yes' : 'no'}, isFieldsConfigured: ${legalDoc?.isFieldsConfigured}`);
   
   // Check if tenant already signed - we need to use the same signing method they used
+  // Also fetch their signature/initials images to display in the lease
   const tenantSignatureRequest = await prisma.documentSignatureRequest.findFirst({
     where: { 
       leaseId: lease.id, 
       role: 'tenant', 
       status: 'signed'
     },
-    select: { 
-      signedPdfUrl: true,
-      signerName: true,
-      signedAt: true
-    }
   });
   
   // IMPORTANT: If landlord is signing and tenant already signed, 
@@ -221,23 +217,31 @@ export async function GET(
     todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
   });
 
-  // If landlord is signing and tenant has already signed, show tenant's signature info
-  // (tenantSignatureRequest was already fetched above)
+  // If landlord is signing and tenant has already signed, show tenant's actual signature and initials
   if (sig.role === 'landlord' && tenantSignatureRequest) {
-    // Add a visual indicator that tenant has signed (since we can't embed their actual signature in HTML)
-    const tenantSignedInfo = `<div style="padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; margin: 8px 0; display: inline-block;">
-      <span style="color: #166534; font-size: 14px;">✓ Signed by ${tenantSignatureRequest.signerName || tenantName} on ${tenantSignatureRequest.signedAt ? new Date(tenantSignatureRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
-    </div>`;
+    // Use actual signature image if available, otherwise fall back to text indicator
+    if (tenantSignatureRequest.signatureDataUrl) {
+      const sigImgTag = `<img src="${tenantSignatureRequest.signatureDataUrl}" alt="Tenant Signature" style="height: 40px; display: inline-block; vertical-align: middle;" />`;
+      leaseHtml = leaseHtml.replace('/sig_tenant/', sigImgTag);
+    } else {
+      // Fallback to text indicator if no signature image stored
+      const tenantSignedInfo = `<div style="padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; margin: 8px 0; display: inline-block;">
+        <span style="color: #166534; font-size: 14px;">✓ Signed by ${tenantSignatureRequest.signerName || tenantName} on ${tenantSignatureRequest.signedAt ? new Date(tenantSignatureRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
+      </div>`;
+      leaseHtml = leaseHtml.replace('/sig_tenant/', tenantSignedInfo);
+    }
     
-    // Replace tenant signature placeholder with signed indicator
-    leaseHtml = leaseHtml.replace('/sig_tenant/', tenantSignedInfo);
-    
-    // Replace tenant initials with signed indicators
+    // Use actual initials image if available, otherwise fall back to checkmark
     for (let i = 1; i <= 6; i++) {
       const initPlaceholder = `/init${i}/`;
       if (leaseHtml.includes(initPlaceholder)) {
-        const initialIndicator = `<span style="padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px;">✓</span>`;
-        leaseHtml = leaseHtml.replace(initPlaceholder, initialIndicator);
+        if (tenantSignatureRequest.initialsDataUrl) {
+          const initImgTag = `<img src="${tenantSignatureRequest.initialsDataUrl}" alt="Initials" style="height: 24px; display: inline-block; vertical-align: middle;" />`;
+          leaseHtml = leaseHtml.replace(initPlaceholder, initImgTag);
+        } else {
+          const initialIndicator = `<span style="padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px;">✓</span>`;
+          leaseHtml = leaseHtml.replace(initPlaceholder, initialIndicator);
+        }
       }
     }
   }
