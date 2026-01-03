@@ -22,17 +22,6 @@ export default async function UserProfileRentReceiptsPage() {
       tenantId: userId,
       status: { in: ['active', 'pending_signature'] },
     },
-    include: {
-      unit: {
-        select: {
-          name: true,
-          property: { select: { name: true } },
-        },
-      },
-      rentPayments: {
-        orderBy: { dueDate: 'desc' },
-      },
-    },
     select: {
       id: true,
       status: true,
