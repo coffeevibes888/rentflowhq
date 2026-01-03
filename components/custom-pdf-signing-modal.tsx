@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { X, PenTool, Type, Check, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { X, PenTool, Type, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Set up PDF.js worker
@@ -113,7 +113,6 @@ export default function CustomPDFSigningModal({
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [numPages, setNumPages] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
   const [consent, setConsent] = useState(false);
   const [signerName, setSignerName] = useState(recipientName || '');
   const [signerEmail, setSignerEmail] = useState(recipientEmail || '');
@@ -265,7 +264,6 @@ export default function CustomPDFSigningModal({
     setNumPages(numPages);
   };
 
-  const currentPageFields = signatureFields.filter(f => f.page === currentPage);
   const requiredFields = signatureFields.filter(f => f.required);
   const allRequiredCompleted = requiredFields.every(f => completedFields.has(f.id));
 
@@ -321,142 +319,123 @@ export default function CustomPDFSigningModal({
   const activeField = activeFieldId ? signatureFields.find(f => f.id === activeFieldId) : null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2">
+      <div className="absolute inset-0 bg-black/15" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-6xl h-[95dvh] max-h-[900px] rounded-xl bg-slate-900 shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative z-10 w-full max-w-7xl h-[98dvh] max-h-[1000px] rounded-lg bg-slate-50 shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-slate-800">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
           <div>
-            <h2 className="text-lg font-semibold text-white">Sign Document</h2>
-            <p className="text-xs text-slate-400">{documentName}</p>
+            <h2 className="text-lg font-semibold text-gray-900">Sign Document</h2>
+            <p className="text-xs text-gray-500">{documentName}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10">
-            <X className="h-5 w-5 text-slate-400" />
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
+            <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
 
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-          {/* PDF Viewer */}
-          <div className="flex-1 flex flex-col min-h-0 bg-slate-800/50">
-            {/* Page Navigation */}
-            <div className="flex items-center justify-center gap-4 py-2 border-b border-white/10">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-slate-300">
-                Page {currentPage} of {numPages || '...'}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))}
-                disabled={currentPage >= numPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* PDF with Field Overlays */}
-            <div className="flex-1 overflow-auto p-4 flex justify-center">
-              <div className="relative bg-white shadow-lg">
+          {/* PDF Viewer - Continuous Scroll */}
+          <div className="flex-1 flex flex-col min-h-0 bg-gray-50">
+            {/* PDF with Field Overlays - Continuous scroll, no pagination */}
+            <div className="flex-1 overflow-auto p-2 sm:p-4">
+              <div className="max-w-full mx-auto">
                 <Document
                   file={documentUrl}
                   onLoadSuccess={onDocumentLoadSuccess}
                   loading={
-                    <div className="flex items-center justify-center h-[700px] w-[540px]">
+                    <div className="flex items-center justify-center h-[700px]">
                       <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
                     </div>
                   }
                 >
-                  <Page
-                    pageNumber={currentPage}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    width={540}
-                  />
-                </Document>
-
-                {/* Signature Field Overlays */}
-                {currentPageFields.map(field => {
-                  const isCompleted = completedFields.has(field.id);
-                  const isActive = activeFieldId === field.id;
-                  
-                  return (
-                    <div
-                      key={field.id}
-                      onClick={() => !isCompleted && setActiveFieldId(field.id)}
-                      className={cn(
-                        'absolute border-2 rounded cursor-pointer transition-all flex items-center justify-center',
-                        isCompleted
-                          ? 'border-emerald-500 bg-emerald-500/10'
-                          : isActive
-                          ? 'border-violet-500 bg-violet-500/20'
-                          : 'border-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
-                      )}
-                      style={{
-                        left: `${field.x}%`,
-                        top: `${field.y}%`,
-                        width: `${field.width}%`,
-                        height: `${field.height}%`,
-                      }}
-                    >
-                      {isCompleted ? (
-                        field.type === 'signature' && signatureDataUrl ? (
-                          <img src={signatureDataUrl} alt="Signature" className="max-h-full max-w-full object-contain" />
-                        ) : field.type === 'initial' && initialsDataUrl ? (
-                          <img src={initialsDataUrl} alt="Initials" className="max-h-full max-w-full object-contain" />
-                        ) : field.type === 'date' ? (
-                          <span className="text-xs text-slate-700">{new Date().toLocaleDateString()}</span>
-                        ) : field.type === 'name' ? (
-                          <span className="text-xs text-slate-700">{signerName}</span>
-                        ) : (
-                          <Check className="h-4 w-4 text-emerald-600" />
-                        )
-                      ) : (
-                        <span className="text-xs font-medium text-amber-700">
-                          {field.type === 'signature' ? 'Sign' : field.type === 'initial' ? 'Initial' : field.type}
-                        </span>
-                      )}
+                  {Array.from(new Array(numPages), (_, index) => (
+                    <div key={`page_${index + 1}`} className="relative bg-white shadow-lg mb-4 mx-auto" style={{ width: 'fit-content' }}>
+                      <Page
+                        pageNumber={index + 1}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                        width={Math.min(800, typeof window !== 'undefined' ? window.innerWidth - 32 : 800)}
+                        scale={1.2}
+                      />
+                      {/* Signature Field Overlays for this page */}
+                      {signatureFields.filter(f => f.page === index + 1).map(field => {
+                        const isCompleted = completedFields.has(field.id);
+                        const isActive = activeFieldId === field.id;
+                        
+                        return (
+                          <div
+                            key={field.id}
+                            onClick={() => !isCompleted && setActiveFieldId(field.id)}
+                            className={cn(
+                              'absolute border-2 rounded cursor-pointer transition-all flex items-center justify-center',
+                              isCompleted
+                                ? 'border-emerald-500 bg-emerald-500/10'
+                                : isActive
+                                ? 'border-violet-500 bg-violet-500/20'
+                                : 'border-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
+                            )}
+                            style={{
+                              left: `${field.x}%`,
+                              top: `${field.y}%`,
+                              width: `${field.width}%`,
+                              height: `${field.height}%`,
+                            }}
+                          >
+                            {isCompleted ? (
+                              field.type === 'signature' && signatureDataUrl ? (
+                                <img src={signatureDataUrl} alt="Signature" className="max-h-full max-w-full object-contain" />
+                              ) : field.type === 'initial' && initialsDataUrl ? (
+                                <img src={initialsDataUrl} alt="Initials" className="max-h-full max-w-full object-contain" />
+                              ) : field.type === 'date' ? (
+                                <span className="text-xs text-slate-700">{new Date().toLocaleDateString()}</span>
+                              ) : field.type === 'name' ? (
+                                <span className="text-xs text-slate-700">{signerName}</span>
+                              ) : (
+                                <Check className="h-4 w-4 text-emerald-600" />
+                              )
+                            ) : (
+                              <span className="text-xs font-medium text-amber-700">
+                                {field.type === 'signature' ? 'Sign' : field.type === 'initial' ? 'Initial' : field.type}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  ))}
+                </Document>
               </div>
             </div>
           </div>
 
           {/* Signing Panel */}
-          <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-white/10 bg-slate-900 flex flex-col">
+          <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-gray-200 bg-white flex flex-col">
             <div className="p-4 space-y-4 flex-1 overflow-y-auto">
               {/* Signer Info */}
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-slate-400">Your Name</label>
+                  <label className="text-xs text-gray-500">Your Name</label>
                   <Input
                     value={signerName}
                     onChange={(e) => setSignerName(e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-50 border-gray-200 text-gray-900"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400">Email</label>
+                  <label className="text-xs text-gray-500">Email</label>
                   <Input
                     value={signerEmail}
                     onChange={(e) => setSignerEmail(e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-50 border-gray-200 text-gray-900"
                   />
                 </div>
               </div>
 
               {/* Active Field Signing */}
               {activeField && (
-                <div className="p-4 rounded-lg border border-violet-500/30 bg-violet-500/10 space-y-3">
-                  <h4 className="text-sm font-medium text-white">
+                <div className="p-4 rounded-lg border border-violet-200 bg-violet-50 space-y-3">
+                  <h4 className="text-sm font-medium text-gray-900">
                     {activeField.type === 'signature' ? 'Add Your Signature' : 
                      activeField.type === 'initial' ? 'Add Your Initials' :
                      activeField.type === 'date' ? 'Confirm Date' :
@@ -471,7 +450,7 @@ export default function CustomPDFSigningModal({
                           onClick={() => setSignatureMode('type')}
                           className={cn(
                             'flex-1 py-2 px-3 rounded text-sm font-medium',
-                            signatureMode === 'type' ? 'bg-violet-600 text-white' : 'bg-slate-700 text-slate-300'
+                            signatureMode === 'type' ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600'
                           )}
                         >
                           <Type className="h-4 w-4 inline mr-1" />
@@ -484,7 +463,7 @@ export default function CustomPDFSigningModal({
                           }}
                           className={cn(
                             'flex-1 py-2 px-3 rounded text-sm font-medium',
-                            signatureMode === 'draw' ? 'bg-violet-600 text-white' : 'bg-slate-700 text-slate-300'
+                            signatureMode === 'draw' ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600'
                           )}
                         >
                           <PenTool className="h-4 w-4 inline mr-1" />
@@ -494,7 +473,7 @@ export default function CustomPDFSigningModal({
 
                       {signatureMode === 'type' ? (
                         <div className="space-y-2">
-                          <div className="bg-white rounded p-3 min-h-[60px] flex items-center justify-center">
+                          <div className="bg-white rounded p-3 min-h-[60px] flex items-center justify-center border border-gray-200">
                             {signerName ? (
                               <img
                                 src={activeField.type === 'signature' ? signatureDataUrl : initialsDataUrl}
@@ -502,7 +481,7 @@ export default function CustomPDFSigningModal({
                                 className="max-h-12"
                               />
                             ) : (
-                              <span className="text-slate-400 text-sm">Enter your name above</span>
+                              <span className="text-gray-400 text-sm">Enter your name above</span>
                             )}
                           </div>
                           {activeField.type === 'signature' && (
@@ -513,7 +492,7 @@ export default function CustomPDFSigningModal({
                                   onClick={() => setSignatureStyleIndex(i)}
                                   className={cn(
                                     'px-2 py-1 rounded text-xs',
-                                    signatureStyleIndex === i ? 'bg-violet-600 text-white' : 'bg-slate-700 text-slate-300'
+                                    signatureStyleIndex === i ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600'
                                   )}
                                 >
                                   Style {i + 1}
@@ -531,7 +510,7 @@ export default function CustomPDFSigningModal({
                         </div>
                       ) : (
                         <div className="space-y-2">
-                          <div className="bg-white rounded overflow-hidden">
+                          <div className="bg-white rounded overflow-hidden border border-gray-200">
                             <canvas
                               ref={canvasRef}
                               className="w-full cursor-crosshair"
@@ -553,8 +532,8 @@ export default function CustomPDFSigningModal({
 
                   {activeField.type === 'date' && (
                     <div className="space-y-2">
-                      <p className="text-sm text-slate-300">Today's date will be applied:</p>
-                      <p className="text-lg font-medium text-white">{new Date().toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-600">Today's date will be applied:</p>
+                      <p className="text-lg font-medium text-gray-900">{new Date().toLocaleDateString()}</p>
                       <Button
                         onClick={() => applyTypedField(activeField.id)}
                         className="w-full bg-violet-600 hover:bg-violet-700"
@@ -566,8 +545,8 @@ export default function CustomPDFSigningModal({
 
                   {activeField.type === 'name' && (
                     <div className="space-y-2">
-                      <p className="text-sm text-slate-300">Your name will be applied:</p>
-                      <p className="text-lg font-medium text-white">{signerName || 'Enter name above'}</p>
+                      <p className="text-sm text-gray-600">Your name will be applied:</p>
+                      <p className="text-lg font-medium text-gray-900">{signerName || 'Enter name above'}</p>
                       <Button
                         onClick={() => applyTypedField(activeField.id)}
                         disabled={!signerName}
@@ -582,11 +561,11 @@ export default function CustomPDFSigningModal({
 
               {/* Progress */}
               <div className="space-y-2">
-                <div className="flex justify-between text-xs text-slate-400">
+                <div className="flex justify-between text-xs text-gray-500">
                   <span>Progress</span>
                   <span>{completedFields.size} / {signatureFields.length} fields</span>
                 </div>
-                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-violet-500 transition-all"
                     style={{ width: `${(completedFields.size / signatureFields.length) * 100}%` }}
@@ -596,12 +575,11 @@ export default function CustomPDFSigningModal({
 
               {/* Field List */}
               <div className="space-y-1">
-                <p className="text-xs text-slate-400 mb-2">Fields to complete:</p>
+                <p className="text-xs text-gray-500 mb-2">Fields to complete:</p>
                 {signatureFields.map(field => (
                   <button
                     key={field.id}
                     onClick={() => {
-                      setCurrentPage(field.page);
                       if (!completedFields.has(field.id)) {
                         setActiveFieldId(field.id);
                       }
@@ -609,8 +587,8 @@ export default function CustomPDFSigningModal({
                     className={cn(
                       'w-full flex items-center justify-between px-3 py-2 rounded text-sm',
                       completedFields.has(field.id)
-                        ? 'bg-emerald-500/20 text-emerald-300'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                     )}
                   >
                     <span className="capitalize">{field.type} (p.{field.page})</span>
@@ -621,14 +599,14 @@ export default function CustomPDFSigningModal({
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-white/10 space-y-3">
+            <div className="p-4 border-t border-gray-200 space-y-3 bg-gray-50">
               <div className="flex items-start gap-2">
                 <Checkbox
                   id="consent"
                   checked={consent}
                   onCheckedChange={(v) => setConsent(!!v)}
                 />
-                <label htmlFor="consent" className="text-xs text-slate-400 cursor-pointer">
+                <label htmlFor="consent" className="text-xs text-gray-600 cursor-pointer">
                   I agree that my electronic signature is legally binding.
                 </label>
               </div>

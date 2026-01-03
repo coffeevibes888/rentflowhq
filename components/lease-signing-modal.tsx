@@ -137,7 +137,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   const [activeTabIndex, setActiveTabIndex] = useState<number | null>(null);
   const [tabs, setTabs] = useState<SignatureTab[]>([]);
   const [currentSignature, setCurrentSignature] = useState<string>('');
-  const [currentInitials, setCurrentInitials] = useState<string>('');
+  const [initialsByTabId, setInitialsByTabId] = useState<Record<string, string>>({});
   const [signatureStyleIndex, setSignatureStyleIndex] = useState(0);
   const [showFullscreenViewer, setShowFullscreenViewer] = useState(false);
   
@@ -269,9 +269,19 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   useEffect(() => {
     if (signerName && signatureMode === 'type') {
       setCurrentSignature(generateStampSignature(signerName, signatureStyleIndex));
-      setCurrentInitials(generateInitialStamp(generateInitials(signerName)));
+      // Generate default initials for any tab that doesn't have custom initials yet
+      const defaultInitials = generateInitialStamp(generateInitials(signerName));
+      setInitialsByTabId(prev => {
+        const updated = { ...prev };
+        tabs.filter(t => t.type === 'initial').forEach(tab => {
+          if (!updated[tab.id]) {
+            updated[tab.id] = defaultInitials;
+          }
+        });
+        return updated;
+      });
     }
-  }, [signerName, signatureMode, signatureStyleIndex]);
+  }, [signerName, signatureMode, signatureStyleIndex, tabs]);
 
   const setupCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -375,11 +385,20 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
     let value: string | null = null;
     
     if (signatureMode === 'type') {
-      value = tab.type === 'signature' ? currentSignature : currentInitials;
+      if (tab.type === 'signature') {
+        value = currentSignature;
+      } else {
+        // Use the specific initial for this tab
+        value = initialsByTabId[tab.id] || generateInitialStamp(generateInitials(signerName));
+      }
     } else {
       const canvas = canvasRef.current;
       if (canvas) {
         value = canvas.toDataURL('image/png');
+        // Store drawn initials for this specific tab
+        if (tab.type === 'initial') {
+          setInitialsByTabId(prev => ({ ...prev, [tab.id]: value! }));
+        }
       }
     }
     
@@ -615,15 +634,17 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   if (!open || !mounted) return null;
 
   const activeTab = activeTabIndex !== null ? tabs[activeTabIndex] : null;
-  const previewSrc = activeTab?.type === 'signature' ? currentSignature : currentInitials;
+  const previewSrc = activeTab?.type === 'signature' 
+    ? currentSignature 
+    : (activeTab ? (initialsByTabId[activeTab.id] || generateInitialStamp(generateInitials(signerName))) : '');
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="absolute inset-0 z-0 bg-black/30" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2">
+      <div className="absolute inset-0 z-0 bg-black/15" onClick={onClose} />
 
       <div 
-        className="pointer-events-auto relative z-10 w-full max-w-6xl h-[95dvh] sm:h-[90dvh] max-h-[900px] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-        style={{ background: '#fafaf9' }}
+        className="pointer-events-auto relative z-10 w-full max-w-7xl h-[98dvh] sm:h-[95dvh] max-h-[1000px] rounded-lg sm:rounded-xl shadow-2xl overflow-hidden flex flex-col"
+        style={{ background: '#ffffff' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div 
@@ -688,13 +709,13 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                 </div>
                 
                 <div 
-                  className="flex-1 overflow-auto min-h-0 p-4 sm:p-6" 
+                  className="flex-1 overflow-auto min-h-0 p-2 sm:p-4" 
                   style={{ background: '#ffffff' }}
                   onClick={handleLeaseClick}
                 >
                   <div
-                    className="prose prose-sm max-w-none text-gray-800"
-                    style={{ fontSize: '14px', lineHeight: '1.6' }}
+                    className="prose prose-base sm:prose-lg max-w-none text-gray-800"
+                    style={{ fontSize: 'clamp(15px, 2.5vw, 18px)', lineHeight: '1.75' }}
                     dangerouslySetInnerHTML={{ __html: processedLeaseHtml }}
                   />
                 </div>
@@ -728,7 +749,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
               </div>
 
               <div 
-                className="w-full lg:w-96 flex flex-col flex-shrink-0 min-h-0 overflow-hidden"
+                className="w-full lg:w-80 flex flex-col flex-shrink-0 min-h-0 overflow-hidden"
                 style={{ background: '#fafaf9' }}
               >
                 {activeTab ? (

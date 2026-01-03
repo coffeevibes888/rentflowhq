@@ -19,6 +19,8 @@ export async function POST(
   const { id: leaseId } = await context.params;
   const body = await req.json().catch(() => ({}));
   const role = body.role as 'tenant' | 'landlord';
+  // Allow caller to explicitly request sending email (default: false for reused sessions)
+  const sendEmailRequested = body.sendEmail === true;
 
   if (role !== 'tenant' && role !== 'landlord') {
     return NextResponse.json({ message: 'Invalid role' }, { status: 400 });
@@ -69,6 +71,74 @@ export async function POST(
     return NextResponse.json({ message: 'Property landlord missing' }, { status: 400 });
   }
 
+  const recipientEmail =
+    role === 'tenant' ? lease.tenant?.email || '' : lease.unit.property?.landlord?.owner?.email || session.user.email || '';
+  const recipientName = role === 'tenant' ? tenantName : landlordName;
+
+  // Check for existing active (non-expired, unsigned) signing session for this lease and role
+  const existingSession = await prisma.documentSignatureRequest.findFirst({
+    where: {
+      leaseId,
+      role,
+      status: 'sent',
+      signedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  // If we have a valid existing session, reuse it (no email sent unless explicitly requested)
+  if (existingSession?.token) {
+    const leaseHtml = renderDocuSignReadyLeaseHtml({
+      landlordName,
+      tenantName,
+      propertyLabel,
+      leaseStartDate: new Date(lease.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      leaseEndDate: lease.endDate
+        ? new Date(lease.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'Month-to-Month',
+      rentAmount: Number(lease.rentAmount).toLocaleString(),
+      billingDayOfMonth: String(lease.billingDayOfMonth),
+      todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    });
+
+    // Only send email if explicitly requested (e.g., "resend invitation" button)
+    if (sendEmailRequested && landlordId && recipientEmail) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const actionUrl = `${baseUrl}/sign/${existingSession.token}`;
+      try {
+        await sendBrandedEmail({
+          to: recipientEmail,
+          subject: 'Lease ready to sign',
+          template: 'notification',
+          data: {
+            landlord: lease.unit.property?.landlord,
+            recipientName,
+            notificationType: 'lease_signing',
+            title: 'Lease ready to sign',
+            message: `Click the link below to sign your lease.`,
+            actionUrl,
+            loginUrl: actionUrl,
+          },
+          landlordId,
+        } as any);
+      } catch (err) {
+        console.error('Failed to send signing email', err);
+      }
+    }
+
+    return NextResponse.json({
+      token: existingSession.token,
+      url: `/sign/${existingSession.token}`,
+      expiresAt: existingSession.expiresAt,
+      leaseHtml,
+      signatureRequestId: existingSession.id,
+      reused: true,
+    });
+  }
+
+  // No existing session - create a new one
+
   // Ensure there is a LegalDocument record tied to this lease for FK safety
   await prisma.legalDocument.upsert({
     where: { id: lease.id },
@@ -98,10 +168,6 @@ export async function POST(
   const token = crypto.randomBytes(24).toString('hex');
   const expiresAt = new Date(Date.now() + SESSION_EXPIRY_HOURS * 60 * 60 * 1000);
 
-  const recipientEmail =
-    role === 'tenant' ? lease.tenant?.email || '' : lease.unit.property?.landlord?.owner?.email || session.user.email || '';
-  const recipientName = role === 'tenant' ? tenantName : landlordName;
-
   const signatureRequest = await prisma.documentSignatureRequest.create({
     data: {
       documentId: lease.id, // using lease id as documentId reference context
@@ -119,6 +185,7 @@ export async function POST(
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const actionUrl = `${baseUrl}/sign/${token}`;
 
+  // Send email only for NEW sessions
   if (landlordId && recipientEmail) {
     try {
       await sendBrandedEmail({
@@ -147,5 +214,6 @@ export async function POST(
     expiresAt,
     leaseHtml,
     signatureRequestId: signatureRequest.id,
+    reused: false,
   });
 }
