@@ -52,6 +52,8 @@ import {
   Check,
   Bell,
   ScanLine,
+  X,
+  FileCheck,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -216,6 +218,12 @@ export default function DocumentsClientV2({
   const [selectPropertyDialogOpen, setSelectPropertyDialogOpen] = useState(false);
   const [units, setUnits] = useState<Unit[]>([]);
 
+  // Document viewer modal state
+  const [viewingDocument, setViewingDocument] = useState<LegalDocument | null>(null);
+  const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
+  const [documentHtml, setDocumentHtml] = useState<string | null>(null);
+  const [loadingDocumentPreview, setLoadingDocumentPreview] = useState(false);
+
   // Define browser tabs
   const browserTabs: BrowserTab[] = [
     {
@@ -317,6 +325,29 @@ export default function DocumentsClientV2({
   const getTypeIcon = (type: string) => {
     const docType = DOCUMENT_TYPES.find((t) => t.value === type);
     return docType?.icon || FileText;
+  };
+
+  // Handle viewing a document in modal
+  const handleViewDocument = async (doc: LegalDocument) => {
+    setViewingDocument(doc);
+    setDocumentViewerOpen(true);
+    setDocumentHtml(null);
+    
+    // If it's a lease document, try to fetch the HTML preview
+    if (doc.type === 'lease') {
+      setLoadingDocumentPreview(true);
+      try {
+        const res = await fetch(`/api/legal-documents/${doc.id}/preview`);
+        if (res.ok) {
+          const data = await res.json();
+          setDocumentHtml(data.html || null);
+        }
+      } catch (error) {
+        console.error('Failed to load document preview:', error);
+      } finally {
+        setLoadingDocumentPreview(false);
+      }
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -509,6 +540,7 @@ export default function DocumentsClientV2({
                 setSelectedDocForAssign(doc);
                 setAssignDialogOpen(true);
               }}
+              onView={handleViewDocument}
               formatFileSize={formatFileSize}
               getTypeLabel={getTypeLabel}
               getTypeIcon={getTypeIcon}
@@ -541,6 +573,7 @@ export default function DocumentsClientV2({
                 setSelectedDocForAssign(doc);
                 setAssignDialogOpen(true);
               }}
+              onView={handleViewDocument}
               formatFileSize={formatFileSize}
               getTypeLabel={getTypeLabel}
               getTypeIcon={getTypeIcon}
@@ -1062,6 +1095,100 @@ export default function DocumentsClientV2({
             }}
           />
         )}
+
+        {/* Document Viewer Modal */}
+        {documentViewerOpen && viewingDocument && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => {
+                setDocumentViewerOpen(false);
+                setViewingDocument(null);
+                setDocumentHtml(null);
+              }}
+            />
+            <div className="relative z-10 w-full max-w-5xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-violet-600 to-indigo-600">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
+                    <FileSignature className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">{viewingDocument.name}</h2>
+                    <p className="text-sm text-white/70">{getTypeLabel(viewingDocument.type)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {viewingDocument.fileUrl && (
+                    <a
+                      href={viewingDocument.fileUrl}
+                      download
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download
+                    </a>
+                  )}
+                  <button
+                    onClick={() => {
+                      setDocumentViewerOpen(false);
+                      setViewingDocument(null);
+                      setDocumentHtml(null);
+                    }}
+                    className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+                  >
+                    <X className="h-5 w-5 text-white" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-auto bg-gray-50">
+                {loadingDocumentPreview ? (
+                  <div className="flex items-center justify-center h-96">
+                    <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+                  </div>
+                ) : viewingDocument.fileUrl ? (
+                  <div className="h-full min-h-[600px]">
+                    <iframe
+                      src={viewingDocument.fileUrl}
+                      className="w-full h-full min-h-[600px]"
+                      title={viewingDocument.name}
+                    />
+                  </div>
+                ) : documentHtml ? (
+                  <div className="p-8">
+                    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm p-8">
+                      <div
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: documentHtml }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-96 text-center p-8">
+                    <FileText className="h-16 w-16 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Preview Available</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      This document doesn&apos;t have a preview. You can download it to view the contents.
+                    </p>
+                    {viewingDocument.fileUrl && (
+                      <a
+                        href={viewingDocument.fileUrl}
+                        download
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Document
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
@@ -1074,6 +1201,7 @@ function DocumentGrid({
   type,
   onDelete,
   onAssign,
+  onView,
   formatFileSize,
   getTypeLabel,
   getTypeIcon,
@@ -1082,6 +1210,7 @@ function DocumentGrid({
   type: 'legal';
   onDelete: (id: string) => void;
   onAssign: (doc: LegalDocument) => void;
+  onView: (doc: LegalDocument) => void;
   formatFileSize: (bytes?: number) => string;
   getTypeLabel: (type: string) => string;
   getTypeIcon: (type: string) => any;
@@ -1109,7 +1238,8 @@ function DocumentGrid({
         return (
           <Card
             key={doc.id}
-            className="border-white/20 bg-white/5 hover:bg-white/10 hover:border-violet-400/40 transition-all group overflow-hidden"
+            className="border-white/20 bg-white/5 hover:bg-white/10 hover:border-violet-400/40 transition-all group overflow-hidden cursor-pointer"
+            onClick={() => onView(doc)}
           >
             <CardHeader className="pb-2 md:pb-3 p-3 md:p-4">
               <div className="flex items-start justify-between gap-2">
@@ -1128,7 +1258,7 @@ function DocumentGrid({
                   </div>
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -1138,31 +1268,29 @@ function DocumentGrid({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-indigo-900 border-white/20 text-white">
+                    <DropdownMenuItem
+                      onClick={() => onView(doc)}
+                      className="cursor-pointer text-white focus:text-white focus:bg-white/10"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View
+                    </DropdownMenuItem>
                     {doc.fileUrl && (
-                      <>
-                        <DropdownMenuItem
-                          onClick={() => window.open(doc.fileUrl!, '_blank')}
-                          className="cursor-pointer text-white focus:text-white focus:bg-white/10"
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer text-white focus:text-white focus:bg-white/10">
-                          <a href={doc.fileUrl} download>
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </a>
-                        </DropdownMenuItem>
-                      </>
+                      <DropdownMenuItem asChild className="cursor-pointer text-white focus:text-white focus:bg-white/10" onClick={(e) => e.stopPropagation()}>
+                        <a href={doc.fileUrl} download onClick={(e) => e.stopPropagation()}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </a>
+                      </DropdownMenuItem>
                     )}
                     {doc.type === 'lease' && (
-                      <DropdownMenuItem onClick={() => onAssign(doc)} className="cursor-pointer text-white focus:text-white focus:bg-white/10">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onAssign(doc); }} className="cursor-pointer text-white focus:text-white focus:bg-white/10">
                         <Star className="h-4 w-4 mr-2" />
                         Set as Default
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem
-                      onClick={() => onDelete(doc.id)}
+                      onClick={(e) => { e.stopPropagation(); onDelete(doc.id); }}
                       className="cursor-pointer text-red-300 focus:text-red-200 focus:bg-white/10"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
