@@ -414,11 +414,19 @@ export async function createProduct(data: z.infer<typeof insertProductSchema>) {
 export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
   try {
     const product = updateProductSchema.parse(data);
+    
+    // Check if this is a Product or a Property (wizard-created properties don't have Product records)
     const productExists = await prisma.product.findFirst({
       where: { id: product.id },
     });
+    
+    const propertyExists = await prisma.property.findFirst({
+      where: { id: product.id },
+    });
 
-    if (!productExists) throw new Error('Product not found');
+    if (!productExists && !propertyExists) {
+      throw new Error('Property not found');
+    }
 
     // Update product, property, and units to stay in sync
     await prisma.$transaction(async (tx) => {
@@ -435,28 +443,33 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
         );
       }
       
-      const updatedProduct = await tx.product.update({ where: { id: product.id }, data: productData });
+      // Only update Product if it exists (legacy system)
+      if (productExists) {
+        await tx.product.update({ where: { id: product.id }, data: productData });
+      }
 
-      // Keep Property aligned with product fields (created during createProduct)
-      await tx.property.updateMany({
-        where: { slug: productExists.slug },
-        data: {
-          name: product.name,
-          slug: product.slug,
-          description: product.description,
-          type: product.category || 'apartment',
-          address: {
-            street: product.streetAddress || '',
-            unit: product.unitNumber || '',
-          },
-          cleaningFee: cleaningFee !== undefined && cleaningFee !== null ? cleaningFee : null,
-          petDepositAnnual: petDepositAnnual !== undefined && petDepositAnnual !== null ? petDepositAnnual : null,
-        },
-      });
-
-      // Sync Units under the property to reflect updated basics
-      const property = await tx.property.findFirst({ where: { slug: updatedProduct.slug } });
+      // Find the property - either by ID (wizard) or by slug (legacy)
+      const property = propertyExists || await tx.property.findFirst({ where: { slug: productExists?.slug } });
+      
       if (property) {
+        // Update Property
+        await tx.property.update({
+          where: { id: property.id },
+          data: {
+            name: product.name,
+            slug: product.slug,
+            description: product.description,
+            type: product.category || 'apartment',
+            address: {
+              street: product.streetAddress || '',
+              unit: product.unitNumber || '',
+            },
+            cleaningFee: cleaningFee !== undefined && cleaningFee !== null ? cleaningFee : null,
+            petDepositAnnual: petDepositAnnual !== undefined && petDepositAnnual !== null ? petDepositAnnual : null,
+          },
+        });
+
+        // Sync Units under the property to reflect updated basics
         await tx.unit.updateMany({
           where: { propertyId: property.id },
           data: {
@@ -470,8 +483,8 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
         });
       }
 
-      // If sizeIds provided, remove existing variants and recreate (colorId no longer selected in UI)
-      if (sizeIds && sizeIds.length) {
+      // If sizeIds provided and this is a legacy Product, remove existing variants and recreate
+      if (productExists && sizeIds && sizeIds.length) {
         await tx.productVariant.deleteMany({ where: { productId: product.id } });
         const variants: VariantInput[] = [];
         for (const sizeId of sizeIds) {
@@ -495,7 +508,7 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
 
     return {
       success: true,
-      message: 'Product updated successfully',
+      message: 'Property updated successfully',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

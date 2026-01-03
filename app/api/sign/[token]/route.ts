@@ -80,8 +80,26 @@ export async function GET(
   // Log which document we're using for debugging
   console.log(`[Sign Session] Lease ${lease.id} - legalDocument: ${legalDoc?.name || 'none'}, fileUrl: ${legalDoc?.fileUrl ? 'yes' : 'no'}, isFieldsConfigured: ${legalDoc?.isFieldsConfigured}`);
   
-  // Use custom PDF if we have a fileUrl (even if fields aren't configured - we'll add default signature area)
-  const hasCustomPdf = legalDoc?.fileUrl;
+  // Check if tenant already signed using HTML template - if so, landlord should use same modal
+  // This ensures consistent signing experience for both parties
+  const tenantSignatureRequest = await prisma.documentSignatureRequest.findFirst({
+    where: { 
+      leaseId: lease.id, 
+      role: 'tenant', 
+      status: 'signed'
+    },
+    select: { 
+      signedPdfUrl: true,
+      signerName: true,
+      signedAt: true
+    }
+  });
+  
+  // Only use custom PDF if:
+  // 1. We have a fileUrl AND
+  // 2. Fields are configured (meaning it's intentionally set up as a custom PDF document)
+  // Otherwise, use the HTML template for consistency
+  const hasCustomPdf = legalDoc?.fileUrl && legalDoc?.isFieldsConfigured;
   const hasConfiguredFields = legalDoc?.isFieldsConfigured && legalDoc?.signatureFields;
 
   if (hasCustomPdf) {
@@ -195,38 +213,23 @@ export async function GET(
     todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
   });
 
-  // If landlord is signing and tenant has already signed, fetch tenant's signature data
-  // and embed it into the HTML so landlord can see what tenant signed
-  if (sig.role === 'landlord') {
-    const tenantSignatureRequest = await prisma.documentSignatureRequest.findFirst({
-      where: { 
-        leaseId: lease.id, 
-        role: 'tenant', 
-        status: 'signed'
-      },
-      select: { 
-        signedPdfUrl: true,
-        signerName: true,
-        signedAt: true
-      }
-    });
+  // If landlord is signing and tenant has already signed, show tenant's signature info
+  // (tenantSignatureRequest was already fetched above)
+  if (sig.role === 'landlord' && tenantSignatureRequest) {
+    // Add a visual indicator that tenant has signed (since we can't embed their actual signature in HTML)
+    const tenantSignedInfo = `<div style="padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; margin: 8px 0; display: inline-block;">
+      <span style="color: #166534; font-size: 14px;">✓ Signed by ${tenantSignatureRequest.signerName || tenantName} on ${tenantSignatureRequest.signedAt ? new Date(tenantSignatureRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
+    </div>`;
     
-    if (tenantSignatureRequest) {
-      // Add a visual indicator that tenant has signed (since we can't embed their actual signature in HTML)
-      const tenantSignedInfo = `<div style="padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; margin: 8px 0; display: inline-block;">
-        <span style="color: #166534; font-size: 14px;">✓ Signed by ${tenantSignatureRequest.signerName || tenantName} on ${tenantSignatureRequest.signedAt ? new Date(tenantSignatureRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
-      </div>`;
-      
-      // Replace tenant signature placeholder with signed indicator
-      leaseHtml = leaseHtml.replace('/sig_tenant/', tenantSignedInfo);
-      
-      // Replace tenant initials with signed indicators
-      for (let i = 1; i <= 6; i++) {
-        const initPlaceholder = `/init${i}/`;
-        if (leaseHtml.includes(initPlaceholder)) {
-          const initialIndicator = `<span style="padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px;">✓</span>`;
-          leaseHtml = leaseHtml.replace(initPlaceholder, initialIndicator);
-        }
+    // Replace tenant signature placeholder with signed indicator
+    leaseHtml = leaseHtml.replace('/sig_tenant/', tenantSignedInfo);
+    
+    // Replace tenant initials with signed indicators
+    for (let i = 1; i <= 6; i++) {
+      const initPlaceholder = `/init${i}/`;
+      if (leaseHtml.includes(initPlaceholder)) {
+        const initialIndicator = `<span style="padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px;">✓</span>`;
+        leaseHtml = leaseHtml.replace(initPlaceholder, initialIndicator);
       }
     }
   }
@@ -356,9 +359,10 @@ export async function POST(
     leaseId: lease.id,
   };
 
-  // Check if we have a custom lease document (with or without configured fields)
+  // Check if we have a custom lease document (only use custom PDF if fields are configured)
   const legalDoc = lease.legalDocument || sig.document;
-  const hasCustomPdf = legalDoc?.fileUrl;
+  // Only use custom PDF if fields are explicitly configured - otherwise use HTML template
+  const hasCustomPdf = legalDoc?.fileUrl && legalDoc?.isFieldsConfigured;
   const hasConfiguredFields = legalDoc?.isFieldsConfigured && legalDoc?.signatureFields;
 
   console.log(`[Sign POST] Lease ${lease.id} - hasCustomPdf: ${hasCustomPdf}, hasConfiguredFields: ${hasConfiguredFields}`);

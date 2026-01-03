@@ -154,6 +154,8 @@ export default async function SubdomainRootPage({
                 {properties.map((property) => {
                   const unitCount = property.units.length;
                   const firstUnit = property.units[0];
+                  // Get first available image from any unit
+                  const propertyImage = property.units.find(u => u.images?.length > 0)?.images?.[0] || null;
                   const isApartmentComplex = property.type === 'apartment' && unitCount > 3;
                   
                   // For apartment complexes, calculate price range and bed/bath range
@@ -177,9 +179,9 @@ export default async function SubdomainRootPage({
                       className="rounded-2xl border border-slate-200 bg-white/90 backdrop-blur-xl shadow-lg overflow-hidden flex flex-col hover:border-violet-400 transition-all hover:scale-[1.02]"
                     >
                       <div className="relative h-56 w-full bg-slate-100">
-                        {firstUnit?.images?.[0] ? (
+                        {propertyImage ? (
                           <Image
-                            src={firstUnit.images[0]}
+                            src={propertyImage}
                             alt={property.name}
                             fill
                             className="object-cover"

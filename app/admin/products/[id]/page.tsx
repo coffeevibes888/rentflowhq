@@ -31,7 +31,6 @@ const AdminProductUpdatePage = async (props: {
     },
     include: {
       units: {
-        take: 1,
         orderBy: { createdAt: 'asc' },
       },
       defaultLeaseDocument: {
@@ -47,6 +46,9 @@ const AdminProductUpdatePage = async (props: {
   if (property) {
     // Convert property to product format for the form
     const unit = property.units[0];
+    // Get images from any unit that has them
+    const allImages = property.units.flatMap(u => u.images || []);
+    const uniqueImages = [...new Set(allImages)];
     const address = property.address as { street?: string; city?: string; state?: string; zipCode?: string } | null;
     
     const productForForm: Product = {
@@ -60,7 +62,7 @@ const AdminProductUpdatePage = async (props: {
       streetAddress: address ? `${address.street || ''}, ${address.city || ''}, ${address.state || ''} ${address.zipCode || ''}`.trim() : undefined,
       unitNumber: unit?.name || undefined,
       stock: property.units.length,
-      images: unit?.images || [],
+      images: uniqueImages,
       imageColors: [],
       bedrooms: unit?.bedrooms || undefined,
       bathrooms: unit?.bathrooms ? Number(unit.bathrooms) : undefined,
