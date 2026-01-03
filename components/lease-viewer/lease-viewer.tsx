@@ -319,12 +319,24 @@ export default function LeaseViewer({
                     </div>
                   </div>
                 ) : (
-                  <iframe
-                    src={signedPdfUrl}
-                    className="w-full h-full min-h-[500px] rounded-xl border border-gray-200"
-                    title="Signed Lease PDF"
-                    onError={() => setPdfError(true)}
-                  />
+                  <div className="w-full h-full min-h-[500px]">
+                    <iframe
+                      src={signedPdfUrl}
+                      className="w-full h-full rounded-xl border border-gray-200"
+                      title="Signed Lease PDF"
+                      onError={() => setPdfError(true)}
+                      onLoad={(e) => {
+                        // Check if iframe loaded successfully
+                        try {
+                          const iframe = e.target as HTMLIFrameElement;
+                          // If we can't access contentDocument, it might be a CORS issue but PDF might still display
+                          console.log('PDF iframe loaded');
+                        } catch (err) {
+                          console.log('PDF iframe load check:', err);
+                        }
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             ) : (
@@ -352,9 +364,21 @@ export default function LeaseViewer({
                       dangerouslySetInnerHTML={{ __html: leaseHtml }}
                     />
                   ) : (
-                    <p className="text-sm text-gray-500 text-center py-12">
-                      Lease content is unavailable.
-                    </p>
+                    <div className="text-center py-12">
+                      <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                      <p className="text-sm text-gray-500">
+                        Lease content is unavailable. {signedPdfUrl ? 'Try viewing the PDF instead.' : 'Please contact support.'}
+                      </p>
+                      {signedPdfUrl && (
+                        <Button 
+                          variant="outline" 
+                          className="mt-4"
+                          onClick={() => setViewMode('pdf')}
+                        >
+                          View PDF
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

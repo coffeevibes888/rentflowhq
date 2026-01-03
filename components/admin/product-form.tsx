@@ -19,7 +19,6 @@ import Image from 'next/image';
 import { z } from 'zod';
 import { useSubscriptionContext } from '@/components/subscription/subscription-provider';
 import { SubscriptionTier } from '@/lib/config/subscription-tiers';
-import LeaseSelectionModal from './lease-selection-modal';
 
 // Helper functions for video embeds
 function extractYouTubeId(url: string): string {
@@ -47,10 +46,6 @@ const ProductForm = ({
   const { toast } = useToast();
   const { showUpgradeModal } = useSubscriptionContext();
   
-  // Lease selection modal state
-  const [showLeaseModal, setShowLeaseModal] = useState(false);
-  const [createdProperty, setCreatedProperty] = useState<{ id: string; name: string } | null>(null);
-
   const form = useForm<z.infer<typeof insertProductSchema>>({
     resolver:
       type === 'Update'
@@ -89,20 +84,13 @@ const ProductForm = ({
     } else {
       toast({ description: res.message });
       
-      // For new properties, show lease selection modal
+      // For new properties, redirect to documents page to create lease
       if (type === 'Create' && res.propertyId) {
-        setCreatedProperty({ id: res.propertyId, name: res.propertyName || values.name });
-        setShowLeaseModal(true);
+        router.push('/admin/documents');
       } else {
         router.push('/admin/products');
       }
     }
-  };
-  
-  const handleLeaseModalComplete = () => {
-    setShowLeaseModal(false);
-    setCreatedProperty(null);
-    router.push('/admin/products');
   };
 
   const images = (form.watch('images') as string[]) || [];
@@ -705,17 +693,6 @@ const ProductForm = ({
           </Button>
         </div>
       </form>
-      
-      {/* Lease Selection Modal - shown after property creation */}
-      {createdProperty && (
-        <LeaseSelectionModal
-          open={showLeaseModal}
-          onOpenChange={setShowLeaseModal}
-          propertyId={createdProperty.id}
-          propertyName={createdProperty.name}
-          onComplete={handleLeaseModalComplete}
-        />
-      )}
     </Form>
   );
 };

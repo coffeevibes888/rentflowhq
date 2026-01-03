@@ -532,37 +532,43 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
   if (!open || !mounted) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2 bg-blue-200">
+      <div className="absolute inset-0 bg-black/15" onClick={onClose} />
       <div 
         ref={modalRef}
-        className="relative z-10 bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col"
+        className="relative z-10 bg-slate-50 rounded-lg shadow-2xl overflow-hidden flex flex-col"
         style={{ 
           width: `min(${modalSize.width}px, calc(100vw - 16px))`,
           height: `min(${modalSize.height}px, calc(100dvh - 16px))`,
+          maxWidth: 'calc(100vw - 16px)',
+          maxHeight: 'calc(100dvh - 16px)',
           transition: isResizing ? 'none' : 'width 0.2s, height 0.2s',
         }}
       >
         {/* Resize handles */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 cursor-n-resize hover:bg-blue-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'n')} />
-        <div className="absolute bottom-0 left-0 right-0 h-1.5 cursor-s-resize hover:bg-blue-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 's')} />
-        <div className="absolute top-0 bottom-0 left-0 w-1.5 cursor-w-resize hover:bg-blue-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'w')} />
-        <div className="absolute top-0 bottom-0 right-0 w-1.5 cursor-e-resize hover:bg-blue-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'e')} />
-        <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize hover:bg-blue-500/30 z-30 flex items-center justify-center" onMouseDown={(e) => handleResizeStart(e, 'se')}>
+        <div className="absolute top-0 left-0 right-0 h-2 cursor-n-resize hover:bg-violet-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'n')} />
+        <div className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize hover:bg-violet-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 's')} />
+        <div className="absolute top-0 bottom-0 left-0 w-2 cursor-w-resize hover:bg-violet-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'w')} />
+        <div className="absolute top-0 bottom-0 right-0 w-2 cursor-e-resize hover:bg-violet-500/20 z-20" onMouseDown={(e) => handleResizeStart(e, 'e')} />
+        {/* Corner resize handles */}
+        <div className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize hover:bg-violet-500/30 z-30" onMouseDown={(e) => handleResizeStart(e, 'nw')} />
+        <div className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize hover:bg-violet-500/30 z-30" onMouseDown={(e) => handleResizeStart(e, 'ne')} />
+        <div className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize hover:bg-violet-500/30 z-30" onMouseDown={(e) => handleResizeStart(e, 'sw')} />
+        <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize hover:bg-violet-500/30 z-30 flex items-center justify-center" onMouseDown={(e) => handleResizeStart(e, 'se')}>
           <GripHorizontal className="h-3 w-3 text-gray-400 rotate-[-45deg]" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-          <div>
-            <h2 className="text-lg font-semibold">Sign Document</h2>
-            <p className="text-xs text-blue-100">{session?.role === 'tenant' ? 'Tenant' : 'Landlord'} • {signerEmail}</p>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-indigo-600 text-white flex-shrink-0">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg font-semibold uppercase tracking-wide">Sign Document</h2>
+            <p className="text-xs text-indigo-200 truncate">{session?.role === 'tenant' ? 'Tenant' : 'Landlord'} • {signerEmail}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={toggleMaximize} className="p-1.5 rounded hover:bg-white/20">
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button onClick={toggleMaximize} className="p-2 rounded-full hover:bg-white/20" title={isMaximized ? 'Restore size' : 'Maximize'}>
               {isMaximized ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </button>
-            <button onClick={onClose} className="p-1.5 rounded hover:bg-white/20">
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-white/20">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -589,31 +595,31 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
         {session && !loading && !error && (
           <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
             {/* Document Panel */}
-            <div className="flex-1 flex flex-col min-h-0 bg-gray-100">
+            <div className="flex-1 flex flex-col min-h-0 bg-gray-50 min-w-0">
               {/* Progress bar */}
-              <div className="px-4 py-2 bg-white border-b flex items-center justify-between">
-                <span className="text-sm text-gray-600">
+              <div className="px-3 sm:px-4 py-2 bg-white border-b flex items-center justify-between gap-2 flex-shrink-0">
+                <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
                   {completedCount} of {fields.length} fields completed
                 </span>
-                <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="flex-1 mx-2 sm:mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-green-500 transition-all duration-300"
+                    className="h-full bg-emerald-500 transition-all duration-300"
                     style={{ width: `${fields.length > 0 ? (completedCount / fields.length) * 100 : 0}%` }}
                   />
                 </div>
-                {allFieldsCompleted && <Check className="h-5 w-5 text-green-500" />}
+                {allFieldsCompleted && <Check className="h-5 w-5 text-emerald-500 flex-shrink-0" />}
               </div>
               
               {/* Document content */}
               <div 
                 ref={leaseContentRef}
-                className="flex-1 overflow-auto p-4"
+                className="flex-1 overflow-auto p-2 sm:p-4"
                 onClick={handleDocumentClick}
               >
-                <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-8">
+                <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-4 sm:p-8">
                   <div
                     className="prose prose-sm max-w-none"
-                    style={{ fontSize: '15px', lineHeight: '1.7' }}
+                    style={{ fontSize: '14px', lineHeight: '1.7' }}
                     dangerouslySetInnerHTML={{ __html: processedHtml }}
                   />
                 </div>
@@ -621,20 +627,20 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
             </div>
 
             {/* Signing Panel */}
-            <div className="w-full lg:w-80 bg-white border-t lg:border-t-0 lg:border-l flex flex-col">
+            <div className="w-full lg:w-72 xl:w-80 border-t lg:border-t-0 lg:border-l border-gray-200 bg-white flex flex-col flex-shrink-0">
               {activeField ? (
                 <>
                   {/* Active field header */}
-                  <div className="px-4 py-3 bg-yellow-50 border-b border-yellow-200">
+                  <div className="px-3 sm:px-4 py-3 bg-amber-50 border-b border-amber-200 flex-shrink-0">
                     <div className="flex items-center gap-2">
-                      <ChevronDown className="h-4 w-4 text-yellow-600" />
-                      <span className="text-sm font-semibold text-yellow-800">
+                      <ChevronDown className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-semibold text-amber-800">
                         {activeField.type === 'signature' ? 'Add Your Signature' : `Add Initial (${activeFieldIndex! + 1} of ${fields.filter(f => f.type === 'initial').length})`}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-auto p-4 space-y-4">
+                  <div className="flex-1 overflow-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
                     {/* Name input */}
                     <div>
                       <label className="text-xs font-medium text-gray-600 mb-1 block">Full Legal Name</label>
@@ -650,44 +656,46 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                     <div className="flex bg-gray-100 rounded-lg p-1">
                       <button
                         onClick={() => setSignatureMode('type')}
-                        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                        className={`flex-1 py-2 px-2 sm:px-3 rounded-md text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-1 ${
                           signatureMode === 'type' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'
                         }`}
                       >
-                        <Type className="h-4 w-4 inline mr-1.5" />Type
+                        <Type className="h-4 w-4" />
+                        <span>Type</span>
                       </button>
                       <button
                         onClick={() => { setSignatureMode('draw'); setTimeout(setupCanvas, 100); }}
-                        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                        className={`flex-1 py-2 px-2 sm:px-3 rounded-md text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-1 ${
                           signatureMode === 'draw' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'
                         }`}
                       >
-                        <PenTool className="h-4 w-4 inline mr-1.5" />Draw
+                        <PenTool className="h-4 w-4" />
+                        <span>Draw</span>
                       </button>
                     </div>
 
                     {/* Signature/Initial preview */}
                     {signatureMode === 'type' ? (
-                      <div className="space-y-3">
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-[100px] flex items-center justify-center bg-gray-50">
+                      <div className="space-y-2 sm:space-y-3">
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-4 min-h-[80px] sm:min-h-[100px] flex items-center justify-center bg-gray-50">
                           {signerName ? (
                             <img 
                               src={activeField.type === 'signature' ? signatureDataUrl : initialsDataUrl} 
                               alt="Preview"
-                              className={activeField.type === 'signature' ? 'max-h-16' : 'max-h-10'}
+                              className={activeField.type === 'signature' ? 'max-h-12 sm:max-h-16' : 'max-h-8 sm:max-h-10'}
                             />
                           ) : (
-                            <p className="text-gray-400 text-sm">Enter your name above</p>
+                            <p className="text-gray-400 text-xs sm:text-sm">Enter your name above</p>
                           )}
                         </div>
                         {activeField.type === 'signature' && signerName && (
-                          <div className="flex justify-center gap-2">
+                          <div className="flex justify-center gap-1 sm:gap-2">
                             {[0, 1, 2].map((i) => (
                               <button
                                 key={i}
                                 onClick={() => setSignatureStyleIndex(i)}
-                                className={`px-3 py-1 rounded text-xs font-medium ${
-                                  signatureStyleIndex === i ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                                className={`px-2 sm:px-3 py-1 rounded text-xs font-medium ${
+                                  signatureStyleIndex === i ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'
                                 }`}
                               >
                                 Style {i + 1}
@@ -698,11 +706,11 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <div className="border-2 border-blue-400 rounded-lg overflow-hidden bg-white">
+                        <div className="border-2 border-indigo-400 rounded-lg overflow-hidden bg-white">
                           <canvas 
                             ref={canvasRef} 
                             className="w-full cursor-crosshair"
-                            style={{ height: activeField.type === 'signature' ? '120px' : '80px', touchAction: 'none' }}
+                            style={{ height: activeField.type === 'signature' ? '100px' : '70px', touchAction: 'none' }}
                           />
                         </div>
                         <button onClick={clearCanvas} className="text-xs text-gray-500 hover:text-gray-700">
@@ -715,22 +723,22 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                     <Button 
                       onClick={applyCurrentField}
                       disabled={!signerName}
-                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-yellow-900 font-semibold"
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-amber-900 font-semibold h-10"
                     >
                       {activeField.type === 'signature' ? 'Adopt and Sign' : 'Apply Initial'}
                     </Button>
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                  <Check className="h-12 w-12 text-green-500 mb-3" />
-                  <h3 className="text-lg font-semibold text-gray-900">All Fields Complete</h3>
-                  <p className="text-sm text-gray-500 mt-1">Review and finish signing below</p>
+                <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center">
+                  <Check className="h-10 w-10 sm:h-12 sm:w-12 text-emerald-500 mb-3" />
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">All Fields Complete</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">Review and finish signing below</p>
                 </div>
               )}
 
               {/* Footer with consent and submit */}
-              <div className="p-4 border-t bg-gray-50 space-y-3">
+              <div className="p-3 sm:p-4 border-t bg-gray-50 space-y-3 flex-shrink-0">
                 <div className="flex items-start gap-2">
                   <Checkbox 
                     id="consent" 
@@ -745,7 +753,7 @@ export default function LeaseSigningModal({ open, onClose, token }: LeaseSigning
                 <Button 
                   onClick={handleSubmit} 
                   disabled={submitting || !allFieldsCompleted || !consent}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-5"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold h-11 sm:h-12"
                 >
                   {submitting ? 'Submitting...' : 'Finish'}
                 </Button>

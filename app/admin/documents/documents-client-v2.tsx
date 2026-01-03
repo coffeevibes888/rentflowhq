@@ -699,33 +699,13 @@ export default function DocumentsClientV2({
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => setSelectPropertyDialogOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 h-9 text-sm"
-              >
-                <Wand2 className="h-4 w-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Create Custom Lease</span>
-                <span className="sm:hidden">Create Lease</span>
-              </Button>
-              <Button
-                onClick={() => openUploadDialog('legal')}
-                className="bg-violet-600 hover:bg-violet-700 h-9 text-sm"
-              >
-                <Plus className="h-4 w-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Upload Document</span>
-                <span className="sm:hidden">Upload</span>
-              </Button>
-              <Button
-                onClick={() => openUploadDialog('scan')}
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 h-9 text-sm"
-              >
-                <Camera className="h-4 w-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Scan & Categorize</span>
-                <span className="sm:hidden">Scan</span>
-              </Button>
-            </div>
+            <Button
+              onClick={() => setSelectPropertyDialogOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 h-10 text-sm px-4"
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              Create Your Lease With Our Free Lease Builder
+            </Button>
           </div>
         </div>
 

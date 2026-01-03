@@ -13,7 +13,6 @@ import { useWizard } from '../wizard-context';
 import { PROPERTY_TYPE_INFO } from '../types';
 import { useToast } from '@/hooks/use-toast';
 import { getStepsForPropertyType } from '../use-wizard-state';
-import LeaseSelectionModal from '../../lease-selection-modal';
 
 interface ReviewStepProps {
   onComplete?: (propertyId: string) => void;
@@ -24,8 +23,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   const { state, goToStep, submitProperty } = useWizard();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showLeaseModal, setShowLeaseModal] = useState(false);
-  const [createdPropertyId, setCreatedPropertyId] = useState<string | null>(null);
 
   const { formData, propertyType, listingType } = state;
   const isRental = listingType === 'rent';
@@ -53,9 +50,8 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
           title: 'Property created!',
           description: 'Your property listing has been published.',
         });
-        // Show lease selection modal
-        setCreatedPropertyId(result.propertyId);
-        setShowLeaseModal(true);
+        // Redirect to documents page to create lease
+        router.push('/admin/documents');
       } else {
         toast({
           variant: 'destructive',
@@ -71,16 +67,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleLeaseComplete = () => {
-    setShowLeaseModal(false);
-    if (onComplete && createdPropertyId) {
-      onComplete(createdPropertyId);
-    } else {
-      // Redirect to properties list
-      router.push('/admin/products');
     }
   };
 
@@ -412,17 +398,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
           You can edit your listing anytime after publishing
         </p>
       </div>
-
-      {/* Lease Selection Modal */}
-      {createdPropertyId && (
-        <LeaseSelectionModal
-          open={showLeaseModal}
-          onOpenChange={setShowLeaseModal}
-          propertyId={createdPropertyId}
-          propertyName={formData.name || 'New Property'}
-          onComplete={handleLeaseComplete}
-        />
-      )}
     </div>
   );
 }

@@ -30,6 +30,15 @@ export async function POST(
     where: { id: leaseId },
     include: {
       tenant: { select: { id: true, name: true, email: true } },
+      legalDocument: {
+        select: {
+          id: true,
+          name: true,
+          fileUrl: true,
+          signatureFields: true,
+          isFieldsConfigured: true,
+        },
+      },
       unit: {
         select: {
           name: true,
@@ -139,18 +148,25 @@ export async function POST(
 
   // No existing session - create a new one
 
-  // Ensure there is a LegalDocument record tied to this lease for FK safety
-  await prisma.legalDocument.upsert({
-    where: { id: lease.id },
-    update: {},
-    create: {
-      id: lease.id,
-      landlordId,
-      name: `${lease.unit.property?.name || 'Property'} - ${lease.unit.name} Lease`,
-      type: 'lease',
-      description: 'Auto-generated lease document for signing',
-    },
-  });
+  // Use the lease's assigned legal document if available, otherwise create a placeholder
+  let documentId = lease.legalDocumentId;
+  
+  if (!documentId) {
+    // No legal document assigned to lease - create a placeholder for FK safety
+    // This will cause the signing to fall back to HTML template
+    await prisma.legalDocument.upsert({
+      where: { id: lease.id },
+      update: {},
+      create: {
+        id: lease.id,
+        landlordId,
+        name: `${lease.unit.property?.name || 'Property'} - ${lease.unit.name} Lease`,
+        type: 'lease',
+        description: 'Auto-generated lease document for signing',
+      },
+    });
+    documentId = lease.id;
+  }
 
   const leaseHtml = renderDocuSignReadyLeaseHtml({
     landlordName,
@@ -170,7 +186,7 @@ export async function POST(
 
   const signatureRequest = await prisma.documentSignatureRequest.create({
     data: {
-      documentId: lease.id, // using lease id as documentId reference context
+      documentId, // Use the lease's assigned legal document
       leaseId,
       recipientEmail,
       recipientName,

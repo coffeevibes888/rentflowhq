@@ -36,11 +36,32 @@ export default async function UserProfileLeasePage() {
   });
 
   // Get the most recent signed PDF URL (could be from tenant or landlord signature)
-  const signedRequest = lease?.signatureRequests?.find(sr => sr.status === 'signed');
+  // For a fully executed lease, we want the landlord's signed PDF (which includes both signatures)
+  // Otherwise fall back to tenant's signed PDF
+  const landlordSignedRequest = lease?.signatureRequests?.find(sr => sr.role === 'landlord' && sr.status === 'signed');
+  const tenantSignedRequest = lease?.signatureRequests?.find(sr => sr.role === 'tenant' && sr.status === 'signed');
+  const signedRequest = landlordSignedRequest || tenantSignedRequest;
   
   // Generate a signed URL for authenticated Cloudinary PDFs
   const rawPdfUrl = signedRequest?.signedPdfUrl || null;
   const signedPdfUrl = rawPdfUrl ? getSignedUrlFromStoredUrl(rawPdfUrl) : null;
+  
+  // Build signatures array for display
+  const signatures: { name: string; role: string; signedAt: Date | null }[] = [];
+  if (tenantSignedRequest?.signedAt) {
+    signatures.push({
+      name: tenantSignedRequest.signerName || tenantSignedRequest.recipientName,
+      role: 'Tenant',
+      signedAt: tenantSignedRequest.signedAt,
+    });
+  }
+  if (landlordSignedRequest?.signedAt) {
+    signatures.push({
+      name: landlordSignedRequest.signerName || landlordSignedRequest.recipientName,
+      role: 'Landlord',
+      signedAt: landlordSignedRequest.signedAt,
+    });
+  }
   
   // Check if tenant needs to sign
   const tenantSignatureRequest = lease?.signatureRequests?.find(
@@ -141,7 +162,12 @@ export default async function UserProfileLeasePage() {
                 document.
               </p>
               <div className='flex gap-3'>
-                <LeaseViewer leaseHtml={leaseHtml} signedPdfUrl={signedPdfUrl} triggerLabel='View lease' />
+                <LeaseViewer 
+                  leaseHtml={leaseHtml} 
+                  signedPdfUrl={signedPdfUrl} 
+                  signatures={signatures}
+                  triggerLabel='View lease' 
+                />
                 <DocusignSignButton leaseId={lease.id} />
               </div>
             </div>
