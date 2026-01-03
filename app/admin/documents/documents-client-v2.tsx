@@ -327,21 +327,25 @@ export default function DocumentsClientV2({
     return docType?.icon || FileText;
   };
 
+  // Document viewer state
+  const [signedPdfUrl, setSignedPdfUrl] = useState<string | null>(null);
+
   // Handle viewing a document in modal
   const handleViewDocument = async (doc: LegalDocument) => {
     setViewingDocument(doc);
     setDocumentViewerOpen(true);
     setDocumentHtml(null);
+    setSignedPdfUrl(null);
     
-    // If it's a lease document, try to fetch the HTML preview
+    // If it's a lease document, try to fetch the preview
     if (doc.type === 'lease') {
       setLoadingDocumentPreview(true);
       try {
         const res = await fetch(`/api/legal-documents/${doc.id}/preview`);
         if (res.ok) {
-          // The API returns raw HTML, not JSON
-          const html = await res.text();
-          setDocumentHtml(html || null);
+          const data = await res.json();
+          setDocumentHtml(data.html || null);
+          setSignedPdfUrl(data.signedPdfUrl || null);
         }
       } catch (error) {
         console.error('Failed to load document preview:', error);

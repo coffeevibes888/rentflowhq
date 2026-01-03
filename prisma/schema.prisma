@@ -1263,6 +1263,10 @@ model DocumentSignatureRequest {
   createdAt          DateTime  @default(now()) @db.Timestamp(6)
   updatedAt          DateTime  @updatedAt
 
+  // Signature and initials data (base64 data URLs)
+  signatureDataUrl   String?   @db.Text // Base64 signature image
+  initialsDataUrl    String?   @db.Text // Base64 initials image
+
   // Progress tracking for signing wizard
   fieldSectionContext Json?     @db.Json // { fieldId: "Section Name" } - section context for each field
   completedFieldIds   String[]  @default([]) // Array of completed field IDs

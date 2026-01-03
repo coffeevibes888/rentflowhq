@@ -80,8 +80,7 @@ export async function GET(
   // Log which document we're using for debugging
   console.log(`[Sign Session] Lease ${lease.id} - legalDocument: ${legalDoc?.name || 'none'}, fileUrl: ${legalDoc?.fileUrl ? 'yes' : 'no'}, isFieldsConfigured: ${legalDoc?.isFieldsConfigured}`);
   
-  // Check if tenant already signed using HTML template - if so, landlord should use same modal
-  // This ensures consistent signing experience for both parties
+  // Check if tenant already signed - we need to use the same signing method they used
   const tenantSignatureRequest = await prisma.documentSignatureRequest.findFirst({
     where: { 
       leaseId: lease.id, 
@@ -95,12 +94,21 @@ export async function GET(
     }
   });
   
+  // IMPORTANT: If landlord is signing and tenant already signed, 
+  // ALWAYS use HTML template (LeaseSigningModal) for consistency
+  // This ensures both parties see the same nice blue modal design
+  const tenantAlreadySigned = sig.role === 'landlord' && tenantSignatureRequest?.signedAt;
+  
   // Only use custom PDF if:
   // 1. We have a fileUrl AND
-  // 2. Fields are configured (meaning it's intentionally set up as a custom PDF document)
+  // 2. Fields are configured (meaning it's intentionally set up as a custom PDF document) AND
+  // 3. Tenant hasn't already signed (if landlord is signing, use same modal as tenant)
   // Otherwise, use the HTML template for consistency
-  const hasCustomPdf = legalDoc?.fileUrl && legalDoc?.isFieldsConfigured;
+  // If tenant already signed, landlord MUST use HTML template too
+  const hasCustomPdf = !tenantAlreadySigned && legalDoc?.fileUrl && legalDoc?.isFieldsConfigured;
   const hasConfiguredFields = legalDoc?.isFieldsConfigured && legalDoc?.signatureFields;
+  
+  console.log(`[Sign Session] Role: ${sig.role}, tenantAlreadySigned: ${!!tenantAlreadySigned}, hasCustomPdf: ${hasCustomPdf}`);
 
   if (hasCustomPdf) {
     // Return info for custom PDF signing
@@ -532,7 +540,7 @@ export async function POST(
     }
   }
 
-  // Update database
+  // Update database - save signature and initials data URLs
   await prisma.$transaction([
     prisma.documentSignatureRequest.update({
       where: { token },
@@ -546,6 +554,8 @@ export async function POST(
         signedPdfUrl: stamped.signedPdfUrl,
         auditLogUrl: stamped.auditLogUrl,
         documentHash: stamped.documentHash,
+        signatureDataUrl: signatureDataUrl, // Store the signature image
+        initialsDataUrl: initialsDataUrl || (initialsData?.[0]?.value) || null, // Store initials image
       },
     }),
     prisma.lease.update({

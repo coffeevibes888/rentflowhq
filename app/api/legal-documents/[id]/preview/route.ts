@@ -4,7 +4,7 @@ import { prisma } from '@/db/prisma';
 import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -40,7 +40,8 @@ export async function GET(
     }
 
     // Try to find a lease that uses this legal document to get actual data
-    const lease = await prisma.lease.findFirst({
+    // First try by legalDocumentId
+    let lease = await prisma.lease.findFirst({
       where: {
         legalDocumentId: id,
       },
@@ -56,12 +57,84 @@ export async function GET(
           },
         },
         signatureRequests: {
-          where: { status: 'signed' },
           orderBy: { signedAt: 'desc' },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // If not found by legalDocumentId, try to find by matching document name pattern
+    // Document names are often like "Lease - Property Name - Unit Name" or similar
+    if (!lease && doc.name) {
+      
+      // Try to find any lease for this landlord's properties
+      lease = await prisma.lease.findFirst({
+        where: {
+          unit: {
+            property: {
+              landlordId: landlord.id,
+            },
+          },
+          // Match leases where the document description contains the lease info
+          OR: [
+            { legalDocumentId: id },
+            {
+              legalDocument: {
+                name: doc.name,
+              },
+            },
+          ],
+        },
+        include: {
+          tenant: { select: { name: true, email: true } },
+          unit: {
+            include: {
+              property: {
+                include: {
+                  landlord: { select: { name: true } },
+                },
+              },
+            },
+          },
+          signatureRequests: {
+            orderBy: { signedAt: 'desc' },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
+    // Also check if this document ID matches a signature request's documentId
+    if (!lease) {
+      const sigRequest = await prisma.documentSignatureRequest.findFirst({
+        where: {
+          documentId: id,
+        },
+        include: {
+          lease: {
+            include: {
+              tenant: { select: { name: true, email: true } },
+              unit: {
+                include: {
+                  property: {
+                    include: {
+                      landlord: { select: { name: true } },
+                    },
+                  },
+                },
+              },
+              signatureRequests: {
+                orderBy: { signedAt: 'desc' },
+              },
+            },
+          },
+        },
+      });
+      
+      if (sigRequest?.lease) {
+        lease = sigRequest.lease;
+      }
+    }
 
     let html: string;
     let signedPdfUrl: string | null = null;
@@ -88,9 +161,11 @@ export async function GET(
         todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       });
 
-      // Get signature info
-      const tenantSig = lease.signatureRequests?.find(sr => sr.role === 'tenant');
-      const landlordSig = lease.signatureRequests?.find(sr => sr.role === 'landlord');
+      // Get signature info - include signature data URLs
+      // Cast to any to access new fields that may not be in cached Prisma types
+      const signatureRequests = lease.signatureRequests as Array<typeof lease.signatureRequests[0] & { signatureDataUrl?: string | null; initialsDataUrl?: string | null }>;
+      const tenantSig = signatureRequests?.find(sr => sr.role === 'tenant' && sr.status === 'signed');
+      const landlordSig = signatureRequests?.find(sr => sr.role === 'landlord' && sr.status === 'signed');
 
       if (tenantSig) {
         signatures.push({
@@ -99,16 +174,31 @@ export async function GET(
           signedAt: tenantSig.signedAt,
         });
 
-        // Replace tenant signature placeholder with signed indicator
-        if (tenantSig.signedAt) {
+        // Replace tenant signature with actual signature image if available
+        if (tenantSig.signedAt && tenantSig.signatureDataUrl) {
+          const sigImgTag = `<img src="${tenantSig.signatureDataUrl}" alt="Tenant Signature" style="height: 40px; display: inline-block; vertical-align: middle;" />`;
+          html = html.replace('/sig_tenant/', sigImgTag);
+        } else if (tenantSig.signedAt) {
+          // Fallback to signed indicator if no signature image
           const tenantSignedDate = new Date(tenantSig.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
           const tenantSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px;">
             <span style="color: #166534; font-size: 14px; font-weight: 500;">✓ Signed by ${tenantSig.signerName || lease.tenant?.name || 'Tenant'}</span>
             <span style="color: #166534; font-size: 12px; display: block;">${tenantSignedDate}</span>
           </div>`;
           html = html.replace('/sig_tenant/', tenantSigHtml);
+        }
 
-          // Replace initials
+        // Replace initials with actual initials image if available
+        if (tenantSig.initialsDataUrl) {
+          for (let i = 1; i <= 6; i++) {
+            const initPlaceholder = `/init${i}/`;
+            if (html.includes(initPlaceholder)) {
+              const initImgTag = `<img src="${tenantSig.initialsDataUrl}" alt="Initials" style="height: 24px; display: inline-block; vertical-align: middle;" />`;
+              html = html.replace(initPlaceholder, initImgTag);
+            }
+          }
+        } else if (tenantSig.signedAt) {
+          // Fallback to checkmark if no initials image
           for (let i = 1; i <= 6; i++) {
             const initPlaceholder = `/init${i}/`;
             if (html.includes(initPlaceholder)) {
@@ -126,8 +216,12 @@ export async function GET(
           signedAt: landlordSig.signedAt,
         });
 
-        // Replace landlord signature placeholder with signed indicator
-        if (landlordSig.signedAt) {
+        // Replace landlord signature with actual signature image if available
+        if (landlordSig.signedAt && landlordSig.signatureDataUrl) {
+          const sigImgTag = `<img src="${landlordSig.signatureDataUrl}" alt="Landlord Signature" style="height: 40px; display: inline-block; vertical-align: middle;" />`;
+          html = html.replace('/sig_landlord/', sigImgTag);
+        } else if (landlordSig.signedAt) {
+          // Fallback to signed indicator if no signature image
           const landlordSignedDate = new Date(landlordSig.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
           const landlordSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px;">
             <span style="color: #1e40af; font-size: 14px; font-weight: 500;">✓ Signed by ${landlordSig.signerName || property?.landlord?.name || 'Landlord'}</span>
@@ -154,12 +248,13 @@ export async function GET(
       });
     }
 
-    return new NextResponse(html, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-store',
-      },
+    // Return JSON with HTML and signed PDF URL
+    return NextResponse.json({
+      html,
+      signedPdfUrl,
+      signatures,
+      hasLease: !!lease,
+      leaseStatus: lease?.status || null,
     });
   } catch (error) {
     console.error('Failed to preview legal document:', error);
