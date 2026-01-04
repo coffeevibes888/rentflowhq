@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import DocusignSignButton from './docusign-sign-button';
 import LeaseViewer from './lease-viewer';
 import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
-import { getSignedUrlFromStoredUrl } from '@/lib/cloudinary';
 
 export default async function UserProfileLeasePage() {
   const session = await auth();
@@ -50,7 +49,8 @@ export default async function UserProfileLeasePage() {
   
   // Generate a signed URL for authenticated Cloudinary PDFs
   const rawPdfUrl = signedRequest?.signedPdfUrl || null;
-  const signedPdfUrl = rawPdfUrl ? getSignedUrlFromStoredUrl(rawPdfUrl) : null;
+  // Use proxy API for PDF viewing (handles authentication properly for iframes)
+  const signedPdfUrl = rawPdfUrl && lease ? `/api/leases/${lease.id}/pdf` : null;
   
   // Build signatures array for display
   const signatures: { name: string; role: string; signedAt: Date | null }[] = [];
