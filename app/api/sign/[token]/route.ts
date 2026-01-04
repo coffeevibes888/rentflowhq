@@ -82,13 +82,19 @@ export async function GET(
   
   // Check if tenant already signed - we need to use the same signing method they used
   // Also fetch their signature/initials images to display in the lease
-  const tenantSignatureRequest = await prisma.documentSignatureRequest.findFirst({
+  const tenantSignatureRequestRaw = await prisma.documentSignatureRequest.findFirst({
     where: { 
       leaseId: lease.id, 
       role: 'tenant', 
       status: 'signed'
     },
   });
+  
+  // Cast to include new fields that may not be in cached Prisma types
+  const tenantSignatureRequest = tenantSignatureRequestRaw as typeof tenantSignatureRequestRaw & {
+    signatureDataUrl?: string | null;
+    initialsDataUrl?: string | null;
+  };
   
   // IMPORTANT: If landlord is signing and tenant already signed, 
   // ALWAYS use HTML template (LeaseSigningModal) for consistency
@@ -219,6 +225,9 @@ export async function GET(
 
   // If landlord is signing and tenant has already signed, show tenant's actual signature and initials
   if (sig.role === 'landlord' && tenantSignatureRequest) {
+    // Log what we have for debugging
+    console.log(`[Sign Session] Tenant signature data - signerName: ${tenantSignatureRequest.signerName}, hasSignatureDataUrl: ${!!tenantSignatureRequest.signatureDataUrl}, hasInitialsDataUrl: ${!!tenantSignatureRequest.initialsDataUrl}`);
+    
     // Use actual signature image if available, otherwise fall back to text indicator
     if (tenantSignatureRequest.signatureDataUrl) {
       const sigImgTag = `<img src="${tenantSignatureRequest.signatureDataUrl}" alt="Tenant Signature" style="height: 40px; display: inline-block; vertical-align: middle;" />`;

@@ -67,29 +67,43 @@ export async function GET(
       todayDate: new Date().toISOString().split('T')[0],
     });
 
-    // Get signature requests
-    const tenantSigRequest = lease.signatureRequests?.find(sr => sr.role === 'tenant' && sr.status === 'signed');
-    const landlordSigRequest = lease.signatureRequests?.find(sr => sr.role === 'landlord' && sr.status === 'signed');
+    // Get signature requests - cast to include new fields
+    const signatureRequests = lease.signatureRequests as Array<typeof lease.signatureRequests[0] & {
+      signatureDataUrl?: string | null;
+      initialsDataUrl?: string | null;
+    }>;
+    const tenantSigRequest = signatureRequests?.find(sr => sr.role === 'tenant' && sr.status === 'signed');
+    const landlordSigRequest = signatureRequests?.find(sr => sr.role === 'landlord' && sr.status === 'signed');
 
-    // Replace placeholders with signature indicators for signed leases
+    // Replace placeholders with actual signature images or fallback indicators
     if (tenantSigRequest) {
       const tenantSignedDate = tenantSigRequest.signedAt 
         ? new Date(tenantSigRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : 'N/A';
       
-      // Replace tenant signature placeholder
-      const tenantSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px;">
-        <span style="color: #166534; font-size: 14px; font-weight: 500;">✓ Signed by ${tenantSigRequest.signerName || lease.tenant?.name || 'Tenant'}</span>
-        <span style="color: #166534; font-size: 12px; display: block;">${tenantSignedDate}</span>
-      </div>`;
-      html = html.replace('/sig_tenant/', tenantSigHtml);
+      // Replace tenant signature placeholder - use actual image if available
+      if (tenantSigRequest.signatureDataUrl) {
+        const sigImgTag = `<img src="${tenantSigRequest.signatureDataUrl}" alt="Tenant Signature" style="height: 40px; display: inline-block; vertical-align: middle;" />`;
+        html = html.replace('/sig_tenant/', sigImgTag);
+      } else {
+        const tenantSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px;">
+          <span style="color: #166534; font-size: 14px; font-weight: 500;">✓ Signed by ${tenantSigRequest.signerName || lease.tenant?.name || 'Tenant'}</span>
+          <span style="color: #166534; font-size: 12px; display: block;">${tenantSignedDate}</span>
+        </div>`;
+        html = html.replace('/sig_tenant/', tenantSigHtml);
+      }
       
-      // Replace tenant initials placeholders
+      // Replace tenant initials placeholders - use actual image if available
       for (let i = 1; i <= 6; i++) {
         const initPlaceholder = `/init${i}/`;
         if (html.includes(initPlaceholder)) {
-          const initialHtml = `<span style="display: inline-block; padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px; font-weight: 500;">✓ Initialed</span>`;
-          html = html.replace(initPlaceholder, initialHtml);
+          if (tenantSigRequest.initialsDataUrl) {
+            const initImgTag = `<img src="${tenantSigRequest.initialsDataUrl}" alt="Initials" style="height: 24px; display: inline-block; vertical-align: middle;" />`;
+            html = html.replace(initPlaceholder, initImgTag);
+          } else {
+            const initialHtml = `<span style="display: inline-block; padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px; font-weight: 500;">✓ Initialed</span>`;
+            html = html.replace(initPlaceholder, initialHtml);
+          }
         }
       }
     }
@@ -99,12 +113,17 @@ export async function GET(
         ? new Date(landlordSigRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : 'N/A';
       
-      // Replace landlord signature placeholder
-      const landlordSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px;">
-        <span style="color: #1e40af; font-size: 14px; font-weight: 500;">✓ Signed by ${landlordSigRequest.signerName || property.landlord?.name || 'Landlord'}</span>
-        <span style="color: #1e40af; font-size: 12px; display: block;">${landlordSignedDate}</span>
-      </div>`;
-      html = html.replace('/sig_landlord/', landlordSigHtml);
+      // Replace landlord signature placeholder - use actual image if available
+      if (landlordSigRequest.signatureDataUrl) {
+        const sigImgTag = `<img src="${landlordSigRequest.signatureDataUrl}" alt="Landlord Signature" style="height: 40px; display: inline-block; vertical-align: middle;" />`;
+        html = html.replace('/sig_landlord/', sigImgTag);
+      } else {
+        const landlordSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px;">
+          <span style="color: #1e40af; font-size: 14px; font-weight: 500;">✓ Signed by ${landlordSigRequest.signerName || property.landlord?.name || 'Landlord'}</span>
+          <span style="color: #1e40af; font-size: 12px; display: block;">${landlordSignedDate}</span>
+        </div>`;
+        html = html.replace('/sig_landlord/', landlordSigHtml);
+      }
     }
 
     // Check if there's a signed PDF available
