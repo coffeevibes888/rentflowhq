@@ -263,11 +263,11 @@ function getOrdinal(n: number): string {
 
 /**
  * Generate the comprehensive lease HTML document
+ * Court-ready residential lease with precise legal terminology
  */
 export function generateLeaseHtml(data: LeaseBuilderData): string {
-  const tenantList = data.tenantNames.join(', ');
   const leaseEndText = data.isMonthToMonth 
-    ? 'Month-to-Month (continuing until terminated by either party with proper notice)'
+    ? 'Month-to-Month (continuing until terminated by either party with proper notice as set forth herein)'
     : formatDate(data.leaseEndDate!);
   
   return `<!DOCTYPE html>
@@ -373,43 +373,77 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
     table { width: 100%; border-collapse: collapse; margin: 12pt 0; }
     td, th { border: 1px solid #000; padding: 6pt; text-align: left; }
     th { background: #f0f0f0; font-weight: bold; }
+    .subsection { margin-left: 12pt; margin-top: 8pt; }
+    .legal-term { font-weight: bold; }
   </style>
 </head>
 <body>
   <h1>Residential Lease Agreement</h1>
 
   <div class="section">
-    <p>THIS RESIDENTIAL LEASE AGREEMENT ("Agreement" or "Lease") is entered into on 
-    <span class="field">${formatDate(data.signingDate)}</span>, by and between:</p>
+    <p>THIS RESIDENTIAL LEASE AGREEMENT (hereinafter referred to as "Agreement," "Lease," or "Lease Agreement") 
+    is made and entered into as of <span class="field">${formatDate(data.signingDate)}</span> (the "Effective Date"), 
+    by and between the following parties, who agree to be legally bound hereby:</p>
+  </div>
+  
+  <!-- RECITALS -->
+  <div class="section">
+    <p><strong>RECITALS</strong></p>
+    <p>WHEREAS, Landlord is the owner or authorized agent of the real property described herein; and</p>
+    <p>WHEREAS, Tenant desires to lease the Premises from Landlord for residential purposes only; and</p>
+    <p>WHEREAS, the parties desire to set forth their respective rights and obligations with respect to the Premises;</p>
+    <p>NOW, THEREFORE, in consideration of the mutual covenants and agreements herein contained, and for other good 
+    and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, the parties agree as follows:</p>
   </div>
 
   <!-- SECTION 1: PARTIES & PROPERTY -->
-  <h2>1. Parties & Property</h2>
+  <h2>Article 1. Parties, Premises, and Definitions</h2>
   <div class="section">
-    <p><strong>LANDLORD:</strong></p>
-    <p>Name: <span class="field">${data.landlordLegalName}</span></p>
-    ${data.landlordCompanyName ? `<p>Company: <span class="field">${data.landlordCompanyName}</span></p>` : ''}
-    ${data.landlordAddress ? `<p>Address: <span class="field">${data.landlordAddress}</span></p>` : ''}
-    ${data.landlordEmail ? `<p>Email: <span class="field">${data.landlordEmail}</span></p>` : ''}
-    ${data.landlordPhone ? `<p>Phone: <span class="field">${data.landlordPhone}</span></p>` : ''}
+    <h3>1.1 Landlord</h3>
+    <p><span class="legal-term">"Landlord"</span> refers to the following party, including their heirs, successors, assigns, and authorized agents:</p>
+    <p>Legal Name: <span class="field">${data.landlordLegalName}</span></p>
+    ${data.landlordCompanyName ? `<p>Business Entity: <span class="field">${data.landlordCompanyName}</span></p>` : ''}
+    ${data.landlordAddress ? `<p>Principal Address: <span class="field">${data.landlordAddress}</span></p>` : ''}
+    ${data.landlordEmail ? `<p>Email for Notices: <span class="field">${data.landlordEmail}</span></p>` : ''}
+    ${data.landlordPhone ? `<p>Telephone: <span class="field">${data.landlordPhone}</span></p>` : ''}
     
-    <p style="margin-top: 12pt;"><strong>TENANT(S):</strong></p>
+    <h3>1.2 Tenant</h3>
+    <p><span class="legal-term">"Tenant"</span> refers to the following individual(s), jointly and severally, including their heirs and legal representatives:</p>
     ${data.tenantNames.map((name, i) => `
-      <p>Name: <span class="field">${name}</span>${data.tenantEmails[i] ? ` | Email: <span class="field">${data.tenantEmails[i]}</span>` : ''}</p>
+      <p>Name: <span class="field">${name}</span>${data.tenantEmails[i] ? ` | Email for Notices: <span class="field">${data.tenantEmails[i]}</span>` : ''}</p>
     `).join('')}
+    <p><em>All persons listed as Tenant are jointly and severally liable for all obligations under this Lease. This means each Tenant 
+    is individually responsible for the full performance of all Lease terms, including the full amount of rent due.</em></p>
     
-    <p style="margin-top: 12pt;"><strong>PREMISES:</strong></p>
-    <p>Address: <span class="field">${data.propertyAddress}</span></p>
-    ${data.unitNumber ? `<p>Unit: <span class="field">${data.unitNumber}</span></p>` : ''}
-    ${data.propertyDescription ? `<p>Description: ${data.propertyDescription}</p>` : ''}
+    <h3>1.3 Premises</h3>
+    <p><span class="legal-term">"Premises"</span> refers to the following real property leased to Tenant for residential use only:</p>
+    <p>Street Address: <span class="field">${data.propertyAddress}</span></p>
+    ${data.unitNumber ? `<p>Unit/Apartment Number: <span class="field">${data.unitNumber}</span></p>` : ''}
+    ${data.propertyDescription ? `<p>Property Description: ${data.propertyDescription}</p>` : ''}
     
     ${data.includedAreas && data.includedAreas.length > 0 ? `
-    <p><strong>Included Areas:</strong> ${data.includedAreas.join(', ')}</p>
+    <h3>1.4 Included Areas and Appurtenances</h3>
+    <p>The following areas are included as part of the Premises: ${data.includedAreas.join(', ')}</p>
+    <p>All other common areas, if any, are for shared use and remain under Landlord's control.</p>
     ` : ''}
     
-    <p style="margin-top: 8pt;"><strong>OCCUPANCY:</strong> Only the Tenant(s) named above and their minor children may reside at the Premises. 
-    ${data.maxOccupants ? `Maximum occupancy: <span class="field">${data.maxOccupants}</span> persons.` : ''}
-    Any additional occupants require prior written consent from Landlord.</p>
+    <h3>1.5 Authorized Occupants</h3>
+    <p>The Premises shall be occupied <strong>solely and exclusively</strong> by the Tenant(s) named above and the following 
+    authorized occupants (minor children):</p>
+    <p>_____________________________________________________________________________</p>
+    ${data.maxOccupants ? `<p><strong>Maximum Occupancy:</strong> <span class="field">${data.maxOccupants}</span> persons, in compliance with applicable housing codes.</p>` : ''}
+    <p>No other persons may reside at the Premises for more than fourteen (14) consecutive days or more than thirty (30) days 
+    in any twelve-month period without Landlord's prior written consent. Unauthorized occupants constitute a material breach of this Lease.</p>
+    
+    <h3>1.6 Definitions</h3>
+    <p>For purposes of this Agreement:</p>
+    <ul class="list">
+      <li><span class="legal-term">"Rent"</span> means the monthly rental amount plus any additional charges due under this Lease.</li>
+      <li><span class="legal-term">"Security Deposit"</span> means the deposit held by Landlord as security for Tenant's performance.</li>
+      <li><span class="legal-term">"Normal Wear and Tear"</span> means deterioration that occurs from ordinary use without negligence, carelessness, accident, or abuse.</li>
+      <li><span class="legal-term">"Material Breach"</span> means a violation of this Lease that substantially impairs Landlord's rights or the value of the Premises.</li>
+      <li><span class="legal-term">"Business Day"</span> means Monday through Friday, excluding federal and state holidays.</li>
+    </ul>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -418,31 +452,69 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 2: LEASE TERM -->
-  <h2>2. Lease Term</h2>
+  <h2>Article 2. Term of Lease</h2>
   <div class="section">
-    <p><strong>Start Date:</strong> <span class="field">${formatDate(data.leaseStartDate)}</span></p>
-    <p><strong>End Date:</strong> <span class="field">${leaseEndText}</span></p>
+    <h3>2.1 Lease Term</h3>
+    <p><strong>Commencement Date:</strong> <span class="field">${formatDate(data.leaseStartDate)}</span></p>
+    <p><strong>Expiration Date:</strong> <span class="field">${leaseEndText}</span></p>
     
+    <h3>2.2 Type of Tenancy</h3>
     ${data.isMonthToMonth ? `
-    <p>This is a month-to-month tenancy. Either party may terminate this Agreement by providing 
-    <span class="field">${data.moveOutNoticeDays}</span> days written notice prior to the end of any rental period.</p>
+    <p>This Lease creates a <strong>month-to-month periodic tenancy</strong>. The tenancy shall continue from month to month 
+    until terminated by either party upon not less than <span class="field">${data.moveOutNoticeDays}</span> days' prior written 
+    notice delivered before the end of any monthly rental period. Notice shall be effective on the last day of the rental period 
+    following the notice period.</p>
     ` : `
-    <p><strong>Renewal:</strong> ${data.autoRenewal 
-      ? `This Lease will automatically renew on a month-to-month basis unless either party provides 
-         <span class="field">${data.renewalNoticeDays}</span> days written notice prior to the end date.`
-      : `This Lease will NOT automatically renew. A new agreement must be signed for continued tenancy.`
-    }</p>
+    <p>This Lease creates a <strong>fixed-term tenancy</strong> for the period specified above. Upon expiration of the initial term:</p>
+    ${data.autoRenewal 
+      ? `<p><span class="checkbox checked"></span> <strong>Automatic Renewal:</strong> This Lease shall automatically convert to a 
+         month-to-month tenancy upon the same terms and conditions, unless either party provides written notice of intent to 
+         terminate or modify at least <span class="field">${data.renewalNoticeDays}</span> days prior to the expiration date or 
+         any subsequent monthly period.</p>`
+      : `<p><span class="checkbox"></span> <strong>No Automatic Renewal:</strong> This Lease shall terminate on the expiration date. 
+         Tenant must vacate the Premises unless a new lease agreement is executed. Continued occupancy without a new agreement 
+         constitutes a holdover tenancy subject to Section 2.5.</p>`
+    }
     `}
     
+    <h3>2.3 Early Termination</h3>
     ${data.earlyTerminationFee ? `
-    <p><strong>Early Termination:</strong> Tenant may terminate this Lease early by providing 
-    <span class="field">${data.earlyTerminationNoticeDays || 60}</span> days written notice and paying an early termination fee of 
-    <span class="field">${formatCurrency(data.earlyTerminationFee)}</span>. Tenant remains responsible for rent until the Premises 
-    is re-rented or the notice period expires, whichever comes first.</p>
+    <p>Tenant may request early termination of this Lease subject to ALL of the following conditions:</p>
+    <ul class="list">
+      <li>Tenant must provide written notice at least <span class="field">${data.earlyTerminationNoticeDays || 60}</span> days prior to the requested termination date;</li>
+      <li>Tenant must pay an early termination fee of <span class="field">${formatCurrency(data.earlyTerminationFee)}</span>;</li>
+      <li>Tenant must be current on all rent and other charges;</li>
+      <li>Tenant remains liable for rent until the earlier of: (a) the termination date, (b) the date a replacement tenant takes possession, or (c) the original lease expiration date;</li>
+      <li>Landlord's acceptance of early termination is at Landlord's sole discretion.</li>
+    </ul>
     ` : `
-    <p><strong>Early Termination:</strong> Tenant may not terminate this Lease early without Landlord's written consent. 
-    Tenant remains liable for all rent due through the end of the Lease term.</p>
+    <p><strong>No Early Termination Right:</strong> Tenant has no right to terminate this Lease prior to the expiration date. 
+    Tenant shall remain liable for the full rent due through the end of the Lease term, or until the Premises is re-rented, 
+    whichever occurs first. Landlord shall make reasonable efforts to mitigate damages by re-renting the Premises, but Tenant 
+    shall be responsible for all costs associated with re-renting, including advertising and leasing commissions.</p>
     `}
+    
+    <h3>2.4 Surrender of Premises</h3>
+    <p>Upon termination or expiration of this Lease, Tenant shall:</p>
+    <ul class="list">
+      <li>Vacate the Premises completely and remove all personal property;</li>
+      <li>Return all keys, access cards, remote controls, and other entry devices;</li>
+      <li>Leave the Premises in the same condition as received, ordinary wear and tear excepted;</li>
+      <li>Provide Landlord with a forwarding address for return of the security deposit.</li>
+    </ul>
+    <p>Any personal property remaining on the Premises after termination shall be deemed abandoned and may be disposed of 
+    by Landlord at Tenant's expense, in accordance with ${data.state} law.</p>
+    
+    <h3>2.5 Holdover Tenancy</h3>
+    <p>If Tenant remains in possession of the Premises after the expiration or termination of this Lease without Landlord's 
+    express written consent, Tenant shall be deemed a <strong>holdover tenant</strong> and shall:</p>
+    <ul class="list">
+      <li>Pay holdover rent at the rate of <strong>one hundred fifty percent (150%)</strong> of the monthly rent, prorated daily;</li>
+      <li>Be subject to immediate eviction proceedings without further notice;</li>
+      <li>Be liable for all damages, costs, and attorney's fees incurred by Landlord as a result of the holdover;</li>
+      <li>Remain bound by all other terms of this Lease.</li>
+    </ul>
+    <p>Acceptance of holdover rent by Landlord shall not constitute consent to continued occupancy or create a new tenancy.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -451,38 +523,65 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 3: RENT & PAYMENT -->
-  <h2>3. Rent & Payment Terms</h2>
+  <h2>Article 3. Rent and Payment Terms</h2>
   <div class="section">
+    <h3>3.1 Base Rent</h3>
     <table>
       <tr>
-        <th>Monthly Rent</th>
-        <td><span class="field">${formatCurrency(data.monthlyRent)}</span></td>
+        <th>Monthly Base Rent</th>
+        <td><span class="field">${formatCurrency(data.monthlyRent)}</span> per month</td>
       </tr>
       <tr>
         <th>Due Date</th>
-        <td>The <span class="field">${getOrdinal(data.rentDueDay)}</span> day of each month</td>
+        <td>The <span class="field">${getOrdinal(data.rentDueDay)}</span> day of each calendar month</td>
       </tr>
       <tr>
         <th>Grace Period</th>
-        <td><span class="field">${data.gracePeriodDays}</span> days (rent received by the ${getOrdinal(data.rentDueDay + data.gracePeriodDays)} is not considered late)</td>
-      </tr>
-      <tr>
-        <th>Accepted Payment Methods</th>
-        <td>${data.acceptedPaymentMethods.join(', ')}</td>
+        <td><span class="field">${data.gracePeriodDays}</span> calendar days (rent received by 11:59 PM on the ${getOrdinal(data.rentDueDay + data.gracePeriodDays)} shall not be deemed late)</td>
       </tr>
     </table>
     
-    ${data.paymentInstructions ? `<p><strong>Payment Instructions:</strong> ${data.paymentInstructions}</p>` : ''}
+    <h3>3.2 Payment Instructions</h3>
+    <p><strong>Accepted Payment Methods:</strong> ${data.acceptedPaymentMethods.join(', ')}</p>
+    ${data.paymentInstructions ? `<p><strong>Special Instructions:</strong> ${data.paymentInstructions}</p>` : ''}
+    <p>All payments shall be made payable to <span class="field">${data.landlordLegalName}</span> and delivered to the address 
+    specified in Section 1.1 or through the designated online payment portal. Rent is deemed paid when actually received by 
+    Landlord, not when mailed or initiated.</p>
     
+    <h3>3.3 Prorated Rent</h3>
+    <p>If the Lease term begins on a day other than the first day of the month, Tenant shall pay prorated rent for the 
+    partial month calculated as follows: (Monthly Rent ÷ Days in Month) × Days of Occupancy.</p>
+    
+    <h3>3.4 Returned Payments</h3>
     ${data.bouncedCheckFee ? `
-    <p><strong>Returned Payment Fee:</strong> A fee of <span class="field">${formatCurrency(data.bouncedCheckFee)}</span> 
-    will be charged for any returned or bounced payment.</p>
+    <p>A fee of <span class="field">${formatCurrency(data.bouncedCheckFee)}</span> shall be assessed for any payment that is 
+    returned, dishonored, or reversed for any reason, including but not limited to insufficient funds, stop payment orders, 
+    or closed accounts. This fee is in addition to any late fees that may apply.</p>
     ` : ''}
+    <p>After two (2) returned payments during any twelve-month period, Landlord may require all future payments to be made 
+    by certified funds (cashier's check or money order) for the remainder of the Lease term.</p>
     
-    <p><strong>Partial Payments:</strong> ${data.allowPartialPayments 
-      ? 'Partial payments may be accepted at Landlord\'s discretion. Acceptance of partial payment does not waive Landlord\'s right to collect the remaining balance or pursue legal remedies.'
-      : 'Partial payments will NOT be accepted. Full payment of all amounts due is required.'
+    <h3>3.5 Partial Payments</h3>
+    <p>${data.allowPartialPayments 
+      ? `Landlord may, at Landlord's sole discretion, accept partial payments. <strong>HOWEVER</strong>, acceptance of any 
+         partial payment shall NOT: (a) waive Landlord's right to collect the remaining balance; (b) waive any late fees; 
+         (c) constitute a waiver of any default; (d) prevent Landlord from pursuing eviction or other legal remedies; or 
+         (e) create an accord and satisfaction. Any partial payment shall be applied first to outstanding fees and charges, 
+         then to the oldest unpaid rent.`
+      : `<strong>Partial payments shall NOT be accepted.</strong> Landlord reserves the right to refuse any payment that is 
+         less than the full amount due. If Landlord does accept a partial payment, such acceptance shall not waive any rights 
+         or remedies, and the provisions of Section 3.5 regarding partial payments shall apply.`
     }</p>
+    
+    <h3>3.6 Application of Payments</h3>
+    <p>Regardless of any notation or designation by Tenant, all payments received shall be applied in the following order:</p>
+    <ol class="list">
+      <li>Court costs and attorney's fees (if any)</li>
+      <li>Late fees and returned payment fees</li>
+      <li>Other charges and damages</li>
+      <li>Past due rent (oldest first)</li>
+      <li>Current rent</li>
+    </ol>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -491,24 +590,50 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 4: LATE FEES -->
-  <h2>4. Late Fees & Nonpayment</h2>
+  <h2>Article 4. Late Fees, Default, and Remedies</h2>
   <div class="section">
+    <h3>4.1 Late Fee Assessment</h3>
     ${data.lateFeeAmount || data.lateFeePercent ? `
-    <p><strong>Late Fee:</strong> If rent is not received by the end of the grace period, a late fee of 
-    <span class="field">${data.lateFeeAmount ? formatCurrency(data.lateFeeAmount) : `${data.lateFeePercent}% of monthly rent`}</span> 
-    will be assessed beginning on the <span class="field">${getOrdinal(data.lateFeeStartDay)}</span> day after the due date.</p>
-    ${data.maxLateFee ? `<p>Maximum late fee per month: <span class="field">${formatCurrency(data.maxLateFee)}</span> (per applicable state law).</p>` : ''}
+    <p>If rent is not received in full by the end of the grace period specified in Section 3.1, a late fee shall be assessed as follows:</p>
+    <p><strong>Late Fee Amount:</strong> <span class="field">${data.lateFeeAmount ? formatCurrency(data.lateFeeAmount) : `${data.lateFeePercent}% of the monthly rent (${formatCurrency(data.monthlyRent * (data.lateFeePercent || 0) / 100)})`}</span></p>
+    <p>The late fee shall be assessed on the <span class="field">${getOrdinal(data.lateFeeStartDay)}</span> day after the rent due date 
+    and shall be due immediately upon assessment.</p>
+    ${data.maxLateFee ? `<p><strong>Maximum Late Fee:</strong> <span class="field">${formatCurrency(data.maxLateFee)}</span> per month, in accordance with applicable ${data.state} law.</p>` : ''}
+    <p>Late fees are considered additional rent and failure to pay late fees constitutes a default under this Lease.</p>
     ` : `
-    <p><strong>Late Fee:</strong> No late fee will be charged, however Landlord reserves all legal remedies for nonpayment.</p>
+    <p>No late fee shall be charged; however, Landlord reserves all legal remedies for nonpayment of rent.</p>
     `}
     
-    <p><strong>Nonpayment Process:</strong> If rent remains unpaid after the grace period, Landlord may:</p>
+    <h3>4.2 Notice of Default</h3>
+    <p>If rent remains unpaid after the grace period, Landlord may serve Tenant with a <strong>Pay or Quit Notice</strong> 
+    (or equivalent notice as required by ${data.state} law) demanding payment of all amounts due within the time period 
+    specified by law. Failure to pay within the notice period shall entitle Landlord to pursue eviction.</p>
+    
+    <h3>4.3 Landlord's Remedies for Nonpayment</h3>
+    <p>Upon Tenant's failure to pay rent or other charges when due, Landlord shall have the following remedies, which are 
+    cumulative and not exclusive:</p>
     <ul class="list">
-      <li>Serve a Pay or Quit notice as required by ${data.state} law</li>
-      <li>Report delinquency to credit bureaus</li>
-      <li>Initiate eviction proceedings after proper notice period</li>
-      <li>Pursue collection of all amounts owed including court costs and attorney fees where permitted by law</li>
+      <li><strong>Eviction:</strong> Landlord may terminate this Lease and pursue eviction proceedings (unlawful detainer) 
+      in accordance with ${data.state} law;</li>
+      <li><strong>Acceleration:</strong> At Landlord's option, all remaining rent for the Lease term may become immediately 
+      due and payable;</li>
+      <li><strong>Collection:</strong> Landlord may pursue collection of all amounts owed through any lawful means;</li>
+      <li><strong>Credit Reporting:</strong> Landlord may report delinquent amounts to credit bureaus;</li>
+      <li><strong>Attorney's Fees:</strong> Tenant shall be liable for all reasonable attorney's fees and court costs 
+      incurred by Landlord in enforcing this Lease, to the extent permitted by law;</li>
+      <li><strong>Interest:</strong> Past due amounts shall accrue interest at the rate of 1.5% per month or the maximum 
+      rate permitted by law, whichever is less.</li>
     </ul>
+    
+    <h3>4.4 No Waiver of Rights</h3>
+    <p>Landlord's acceptance of rent or other payments after a default, or Landlord's failure to exercise any remedy, 
+    shall not constitute a waiver of Landlord's rights. Landlord may accept rent "with reservation of rights" and still 
+    pursue eviction or other remedies for any default.</p>
+    
+    <h3>4.5 Tenant's Right to Cure</h3>
+    <p>For curable defaults other than nonpayment of rent, Tenant shall have the opportunity to cure the default within 
+    the time period specified in the notice of default, as required by ${data.state} law. Repeated violations of the same 
+    nature may be deemed incurable.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -517,28 +642,52 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 5: SECURITY DEPOSIT -->
-  <h2>5. Security Deposit</h2>
+  <h2>Article 5. Security Deposit</h2>
   <div class="section">
-    <p><strong>Deposit Amount:</strong> <span class="field">${formatCurrency(data.securityDepositAmount)}</span></p>
+    <h3>5.1 Deposit Amount</h3>
+    <p><strong>Security Deposit:</strong> <span class="field">${formatCurrency(data.securityDepositAmount)}</span></p>
+    <p>The security deposit shall be held by Landlord as security for the faithful performance of Tenant's obligations 
+    under this Lease. The deposit is not an advance payment of rent and shall not be applied to rent by Tenant.</p>
     
-    <p><strong>Permitted Uses:</strong> The security deposit may be used by Landlord for:</p>
+    <h3>5.2 Permitted Deductions</h3>
+    <p>Landlord may deduct from the security deposit amounts reasonably necessary to remedy the following:</p>
     <ul class="list">
       ${data.depositUseCases.map(use => `<li>${use}</li>`).join('')}
     </ul>
+    <p>Deductions shall be limited to actual damages and shall not include normal wear and tear.</p>
     
-    <p><strong>Return of Deposit:</strong> Within <span class="field">${data.depositReturnDays}</span> days after Tenant 
-    vacates the Premises and returns all keys, Landlord will return the deposit minus any lawful deductions, along with 
-    an itemized statement of any deductions.</p>
+    <h3>5.3 Move-In/Move-Out Inspection</h3>
+    <p>Landlord and Tenant shall conduct a joint inspection of the Premises:</p>
+    <ul class="list">
+      <li><strong>Move-In Inspection:</strong> Within three (3) days of Tenant taking possession, documenting the condition 
+      of the Premises on a written checklist signed by both parties;</li>
+      <li><strong>Move-Out Inspection:</strong> Tenant may request a pre-move-out inspection to identify deficiencies that 
+      may result in deductions. Tenant shall have the opportunity to remedy identified deficiencies before final move-out.</li>
+    </ul>
+    
+    <h3>5.4 Return of Deposit</h3>
+    <p>Within <span class="field">${data.depositReturnDays}</span> days after Tenant has vacated the Premises AND returned 
+    all keys and access devices, Landlord shall:</p>
+    <ul class="list">
+      <li>Return the full security deposit; OR</li>
+      <li>Provide Tenant with a written itemized statement of deductions and return any remaining balance.</li>
+    </ul>
+    <p>The statement and any refund shall be sent to the forwarding address provided by Tenant, or if none is provided, 
+    to the Premises address.</p>
+    
+    <h3>5.5 Transfer of Deposit</h3>
+    <p>If the Premises is sold or transferred during the Lease term, Landlord shall transfer the security deposit to the 
+    new owner and notify Tenant in writing of the transfer and the new owner's name and address. Upon such transfer, 
+    Landlord shall be released from liability for the deposit.</p>
     
     ${data.depositNotLastMonthRent ? `
     <div class="legal-notice">
-      <strong>IMPORTANT:</strong> The security deposit is NOT to be used as last month's rent. Tenant must pay the 
-      final month's rent in full. Any attempt to use the security deposit as rent is a violation of this Agreement.
+      <strong>IMPORTANT NOTICE REGARDING SECURITY DEPOSIT</strong><br/><br/>
+      The security deposit is <strong>NOT</strong> to be used as last month's rent. Tenant must pay the final month's rent 
+      in full when due. Any attempt by Tenant to apply the security deposit to rent without Landlord's written consent 
+      constitutes a material breach of this Lease and may result in eviction proceedings and forfeiture of the deposit.
     </div>
     ` : ''}
-    
-    <p><strong>Inspection:</strong> Tenant has the right to request a move-out inspection to identify any issues that 
-    may result in deductions from the security deposit.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -547,12 +696,13 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 6: UTILITIES -->
-  <h2>6. Utilities & Services</h2>
+  <h2>Article 6. Utilities and Services</h2>
   <div class="section">
+    <h3>6.1 Utility Responsibility</h3>
     <table>
       <tr>
-        <th>Tenant Pays</th>
-        <th>Landlord Pays</th>
+        <th>Tenant Responsible</th>
+        <th>Landlord Responsible</th>
       </tr>
       <tr>
         <td>${data.tenantPaysUtilities.length > 0 ? data.tenantPaysUtilities.join(', ') : 'None'}</td>
@@ -562,10 +712,22 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
     
     ${data.sharedUtilitiesNote ? `<p><strong>Shared Utilities:</strong> ${data.sharedUtilitiesNote}</p>` : ''}
     
-    <p>Tenant is responsible for setting up utility accounts in Tenant's name prior to move-in for all Tenant-paid utilities. 
-    Tenant must maintain these accounts throughout the tenancy and ensure final bills are paid upon move-out.</p>
+    <h3>6.2 Tenant's Utility Obligations</h3>
+    <p>For all utilities designated as Tenant's responsibility, Tenant shall:</p>
+    <ul class="list">
+      <li>Establish accounts in Tenant's name prior to taking possession;</li>
+      <li>Maintain continuous service throughout the tenancy;</li>
+      <li>Pay all charges when due;</li>
+      <li>Ensure final bills are paid and accounts are closed upon move-out;</li>
+      <li>Not allow any utility to be disconnected due to nonpayment.</li>
+    </ul>
+    <p>Failure to maintain required utilities may constitute a default under this Lease.</p>
     
-    <p>Landlord is not responsible for any interruption of utility services due to circumstances beyond Landlord's control.</p>
+    <h3>6.3 Service Interruptions</h3>
+    <p>Landlord shall not be liable for any interruption, failure, or defect in utility services due to circumstances 
+    beyond Landlord's reasonable control, including but not limited to utility company failures, natural disasters, 
+    or governmental actions. Such interruptions shall not constitute a breach of this Lease or entitle Tenant to 
+    rent abatement, except as may be required by law.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -574,16 +736,35 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 7: USE OF PROPERTY -->
-  <h2>7. Use of the Property</h2>
+  <h2>Article 7. Use of Premises</h2>
   <div class="section">
-    <p>The Premises shall be used <strong>exclusively for residential purposes</strong>. Tenant shall not:</p>
+    <h3>7.1 Permitted Use</h3>
+    <p>The Premises shall be used <strong>solely and exclusively as a private residential dwelling</strong> for the 
+    Tenant(s) and authorized occupants named in this Lease. No other use is permitted without Landlord's prior written consent.</p>
+    
+    <h3>7.2 Prohibited Uses</h3>
+    <p>Tenant shall NOT use or permit the Premises to be used for any of the following:</p>
     <ul class="list">
-      <li>Conduct any business or commercial activity on the Premises without prior written consent</li>
-      <li>Use the Premises for any illegal purpose or activity</li>
-      <li>Create a nuisance or disturb the peace and quiet of neighbors</li>
-      <li>Exceed the maximum occupancy limits</li>
-      <li>Allow any person not named on this Lease to reside at the Premises for more than 14 consecutive days without written consent</li>
+      <li>Any business, commercial, or professional purpose (including home-based businesses) without prior written consent;</li>
+      <li>Any illegal purpose or activity whatsoever;</li>
+      <li>Any activity that increases the insurance premium or voids the insurance coverage on the Premises;</li>
+      <li>Any activity that constitutes a nuisance or unreasonably disturbs neighbors;</li>
+      <li>Short-term rentals, subletting, or listing on platforms such as Airbnb, VRBO, or similar services;</li>
+      <li>Storage of hazardous, flammable, explosive, or environmentally harmful materials;</li>
+      <li>Any activity that violates applicable zoning laws, HOA rules, or governmental regulations.</li>
     </ul>
+    
+    <h3>7.3 Compliance with Laws</h3>
+    <p>Tenant shall comply with all applicable federal, state, and local laws, ordinances, regulations, and HOA rules 
+    affecting the Premises. Tenant shall be responsible for any fines, penalties, or legal fees resulting from Tenant's 
+    violation of any such laws or rules.</p>
+    
+    <h3>7.4 Guests</h3>
+    <p>Tenant may have guests for reasonable periods. However, no guest may stay at the Premises for more than 
+    <strong>fourteen (14) consecutive days</strong> or more than <strong>thirty (30) days in any twelve-month period</strong> 
+    without Landlord's prior written consent. Guests staying beyond these limits shall be considered unauthorized occupants, 
+    which constitutes a material breach of this Lease. Tenant is responsible for the conduct of all guests and shall be 
+    liable for any damage caused by guests.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -592,27 +773,59 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 8: PROHIBITED ACTIVITIES -->
-  <h2>8. Prohibited Activities</h2>
+  <h2>Article 8. Prohibited Activities and Conduct</h2>
   <div class="section">
-    <p>The following activities are strictly prohibited on the Premises:</p>
+    <h3>8.1 Criminal Activity</h3>
+    <p>The following activities are <strong>strictly prohibited</strong> and shall constitute grounds for immediate 
+    termination of this Lease:</p>
     <ul class="list">
-      <li>Possession, use, manufacture, or distribution of illegal drugs or controlled substances</li>
-      <li>Any illegal activity of any kind</li>
-      <li>Possession of firearms or weapons in violation of applicable laws</li>
-      <li>Storage of hazardous, flammable, or explosive materials</li>
-      <li>Open flames, fireworks, or fire hazards (except normal cooking)</li>
-      <li>Harassment, threats, or intimidation of neighbors or other tenants</li>
-      <li>Excessive noise or disturbances</li>
-      <li>Vandalism or destruction of property</li>
+      <li>Possession, use, manufacture, sale, or distribution of illegal drugs or controlled substances;</li>
+      <li>Any felony or crime of violence committed on or near the Premises;</li>
+      <li>Any criminal activity that threatens the health, safety, or peaceful enjoyment of other residents or neighbors;</li>
+      <li>Prostitution or human trafficking;</li>
+      <li>Gang-related activity;</li>
+      <li>Any activity that would permit forfeiture of the Premises under state or federal law.</li>
     </ul>
     
-    <p><strong>Smoking/Vaping:</strong> 
-    ${data.smokingAllowed 
-      ? `Smoking and vaping are permitted only in the following designated areas: <span class="field">${data.smokingAreas || 'outdoor areas only'}</span>. Smoking inside the unit is prohibited.`
-      : 'Smoking and vaping are <strong>strictly prohibited</strong> anywhere on the Premises, including inside the unit, on balconies, patios, and common areas.'
-    }</p>
+    <h3>8.2 Safety Violations</h3>
+    <p>Tenant shall NOT:</p>
+    <ul class="list">
+      <li>Store firearms or weapons in violation of applicable laws;</li>
+      <li>Store gasoline, propane, or other flammable liquids (except in approved containers for lawn equipment);</li>
+      <li>Store hazardous, toxic, or explosive materials;</li>
+      <li>Tamper with, disable, or remove smoke detectors, carbon monoxide detectors, or fire safety equipment;</li>
+      <li>Block exits, hallways, or fire escapes;</li>
+      <li>Use open flames (except normal cooking) or fireworks;</li>
+      <li>Overload electrical circuits or use unsafe electrical equipment.</li>
+    </ul>
     
-    <p>Violation of any prohibited activity may result in immediate termination of this Lease and eviction.</p>
+    <h3>8.3 Smoking and Vaping Policy</h3>
+    ${data.smokingAllowed 
+      ? `<p><span class="checkbox checked"></span> <strong>Smoking Permitted in Designated Areas Only:</strong> 
+         Smoking and vaping are permitted only in the following designated areas: <span class="field">${data.smokingAreas || 'outdoor areas at least 25 feet from any building entrance'}</span>. 
+         Smoking inside the dwelling unit, on balconies/patios attached to the unit, or in common areas is <strong>strictly prohibited</strong>.</p>`
+      : `<p><span class="checkbox"></span> <strong>NO SMOKING/VAPING:</strong> Smoking and vaping of any substance (including tobacco, 
+         marijuana, and e-cigarettes) are <strong>strictly prohibited</strong> anywhere on the Premises, including but not limited to 
+         inside the dwelling unit, on balconies, patios, garages, and all common areas. This prohibition applies to Tenant, all 
+         occupants, and all guests.</p>`
+    }
+    <p>Violation of the smoking policy shall result in: (a) a cleaning/remediation fee of not less than $500; (b) liability for 
+    all damages caused by smoke; and (c) potential termination of this Lease.</p>
+    
+    <h3>8.4 Nuisance Conduct</h3>
+    <p>Tenant shall not engage in or permit any conduct that constitutes a nuisance, including but not limited to:</p>
+    <ul class="list">
+      <li>Excessive noise at any time;</li>
+      <li>Harassment, threats, or intimidation of neighbors, other tenants, or Landlord;</li>
+      <li>Offensive odors emanating from the Premises;</li>
+      <li>Accumulation of trash or debris;</li>
+      <li>Any conduct that interferes with the quiet enjoyment of neighboring properties.</li>
+    </ul>
+    
+    <h3>8.5 Consequences of Prohibited Activities</h3>
+    <p>Violation of any provision of this Article 8 shall constitute a <strong>material breach</strong> of this Lease and may 
+    result in immediate termination without opportunity to cure, to the extent permitted by ${data.state} law. Tenant shall be 
+    liable for all damages, costs, fines, and attorney's fees resulting from such violations.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -621,31 +834,63 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 9: MAINTENANCE & REPAIRS -->
-  <h2>9. Maintenance & Repairs</h2>
+  <h2>Article 9. Maintenance, Repairs, and Condition of Premises</h2>
   <div class="section">
-    <h3>Tenant Responsibilities:</h3>
+    <h3>9.1 Tenant's Maintenance Obligations</h3>
+    <p>Tenant shall maintain the Premises in a clean, sanitary, and safe condition and shall:</p>
     <ul class="list">
       ${(data.tenantMaintenanceResponsibilities || LEASE_DEFAULTS.tenantMaintenanceResponsibilities).map(r => `<li>${r}</li>`).join('')}
+      <li>Not make any holes in walls, ceilings, or floors without prior written consent;</li>
+      <li>Promptly notify Landlord of any condition requiring repair;</li>
+      <li>Take reasonable precautions to prevent frozen pipes in cold weather;</li>
+      <li>Not pour grease, oil, or other substances down drains;</li>
+      <li>Keep all drains free of obstructions caused by Tenant's use.</li>
     </ul>
     
-    <h3>Landlord Responsibilities:</h3>
+    <h3>9.2 Landlord's Maintenance Obligations</h3>
+    <p>Landlord shall maintain the Premises in compliance with all applicable building and housing codes and shall:</p>
     <ul class="list">
-      <li>Maintain the Premises in a habitable condition</li>
-      <li>Make necessary repairs to structural elements, plumbing, heating, and electrical systems</li>
-      <li>Comply with all applicable building and housing codes</li>
-      <li>Maintain common areas in a safe and clean condition</li>
+      <li>Maintain the structural components of the building (roof, walls, foundation, floors);</li>
+      <li>Maintain plumbing, electrical, heating, and air conditioning systems in good working order;</li>
+      <li>Provide and maintain appropriate receptacles for garbage removal;</li>
+      <li>Maintain common areas in a safe and clean condition;</li>
+      <li>Comply with all requirements of ${data.state} landlord-tenant law regarding habitability;</li>
+      <li>Make repairs within a reasonable time after receiving notice from Tenant.</li>
     </ul>
     
-    <h3>Repair Requests:</h3>
-    <p>Tenant must report all maintenance issues promptly through the designated maintenance request system or by contacting:</p>
-    ${data.emergencyContactPhone ? `<p>Phone: <span class="field">${data.emergencyContactPhone}</span></p>` : ''}
-    ${data.emergencyContactEmail ? `<p>Email: <span class="field">${data.emergencyContactEmail}</span></p>` : ''}
+    <h3>9.3 Repair Requests and Procedures</h3>
+    <p>Tenant must report all maintenance issues and repair needs promptly through the following methods:</p>
+    ${data.emergencyContactPhone ? `<p><strong>Phone:</strong> <span class="field">${data.emergencyContactPhone}</span></p>` : ''}
+    ${data.emergencyContactEmail ? `<p><strong>Email:</strong> <span class="field">${data.emergencyContactEmail}</span></p>` : ''}
+    <p><strong>Online Portal:</strong> Through the property management portal (if available)</p>
+    <p>Tenant shall provide Landlord reasonable access to make repairs during normal business hours with appropriate notice.</p>
     
-    <p><strong>Emergency Repairs:</strong> In case of emergency (fire, flood, gas leak, no heat in winter, etc.), 
-    Tenant should call emergency services (911) first, then contact Landlord immediately.</p>
+    <h3>9.4 Emergency Repairs</h3>
+    <p>In case of emergency (fire, flood, gas leak, sewage backup, no heat in freezing weather, or other conditions 
+    threatening health or safety), Tenant shall:</p>
+    <ol class="list">
+      <li>Call 911 or appropriate emergency services if there is immediate danger;</li>
+      <li>Take reasonable steps to prevent further damage (e.g., shut off water, evacuate if necessary);</li>
+      <li>Contact Landlord immediately at the emergency contact number;</li>
+      <li>Document the emergency with photos/video if safely possible.</li>
+    </ol>
     
-    <p><strong>Tenant-Caused Damage:</strong> Tenant is responsible for the cost of repairs for any damage caused by 
-    Tenant, Tenant's guests, or Tenant's negligence, beyond normal wear and tear.</p>
+    <h3>9.5 Tenant-Caused Damage</h3>
+    <p>Tenant shall be responsible for the cost of repairing any damage to the Premises caused by:</p>
+    <ul class="list">
+      <li>Tenant's negligence, carelessness, or intentional acts;</li>
+      <li>Acts or omissions of Tenant's family members, guests, or invitees;</li>
+      <li>Tenant's failure to report maintenance issues promptly;</li>
+      <li>Tenant's misuse of appliances, fixtures, or systems;</li>
+      <li>Any damage beyond normal wear and tear.</li>
+    </ul>
+    <p>Landlord may, at Landlord's option, make such repairs and charge Tenant for the cost, which shall be due as 
+    additional rent within ten (10) days of billing.</p>
+    
+    <h3>9.6 Landlord's Right to Inspect and Repair</h3>
+    <p>Landlord reserves the right to enter the Premises to inspect, maintain, and make repairs as provided in Article 11. 
+    If Tenant fails to maintain the Premises as required, Landlord may perform necessary maintenance and charge Tenant 
+    for the reasonable cost thereof.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -654,21 +899,41 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 10: ALTERATIONS -->
-  <h2>10. Alterations & Improvements</h2>
+  <h2>Article 10. Alterations, Improvements, and Fixtures</h2>
   <div class="section">
-    <p>Tenant shall not make any alterations, additions, or improvements to the Premises without prior written consent 
-    from Landlord. This includes but is not limited to:</p>
+    <h3>10.1 Prohibition on Alterations</h3>
+    <p>Tenant shall NOT make any alterations, additions, improvements, or modifications to the Premises without 
+    Landlord's prior written consent. This prohibition includes but is not limited to:</p>
     <ul class="list">
-      <li>Painting walls or ceilings</li>
-      <li>Installing shelving, hooks, or wall-mounted items</li>
-      <li>Changing locks or adding security devices</li>
-      <li>Installing satellite dishes or antennas</li>
-      <li>Making any structural changes</li>
-      <li>Installing or removing appliances</li>
+      <li>Painting, wallpapering, or otherwise changing wall surfaces;</li>
+      <li>Installing shelving, hooks, anchors, or wall-mounted items that require drilling;</li>
+      <li>Changing, adding, or rekeying locks or security devices;</li>
+      <li>Installing satellite dishes, antennas, or exterior equipment;</li>
+      <li>Making any structural changes or modifications;</li>
+      <li>Installing or removing appliances, fixtures, or equipment;</li>
+      <li>Modifying electrical, plumbing, or HVAC systems;</li>
+      <li>Installing flooring, carpeting, or window treatments that require permanent attachment;</li>
+      <li>Any modification that would require a permit.</li>
     </ul>
     
-    <p>Any approved alterations become the property of Landlord upon installation unless otherwise agreed in writing. 
-    Landlord may require Tenant to restore the Premises to its original condition at move-out.</p>
+    <h3>10.2 Approved Alterations</h3>
+    <p>If Landlord consents to any alteration in writing:</p>
+    <ul class="list">
+      <li>All work must be performed in a professional, workmanlike manner;</li>
+      <li>All work must comply with applicable building codes and permit requirements;</li>
+      <li>Tenant shall be responsible for all costs;</li>
+      <li>Unless otherwise agreed in writing, all alterations become the property of Landlord upon installation;</li>
+      <li>Landlord may require Tenant to restore the Premises to its original condition at move-out, at Tenant's expense.</li>
+    </ul>
+    
+    <h3>10.3 Fixtures</h3>
+    <p>All fixtures installed by Tenant shall become the property of Landlord and shall remain with the Premises upon 
+    termination, unless Landlord requires their removal. "Fixtures" include any items attached to the Premises that 
+    cannot be removed without damage.</p>
+    
+    <h3>10.4 Tenant's Personal Property</h3>
+    <p>Tenant's personal property (furniture, electronics, decorations not permanently attached) remains Tenant's property 
+    and must be removed upon termination. Landlord shall not be liable for any damage to or loss of Tenant's personal property.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -677,21 +942,53 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 11: ENTRY & ACCESS -->
-  <h2>11. Entry & Access</h2>
+  <h2>Article 11. Landlord's Right of Entry</h2>
   <div class="section">
-    <p><strong>Notice Required:</strong> Landlord will provide at least <span class="field">${data.entryNoticeDays}</span> hours 
-    advance notice before entering the Premises, except in cases of emergency.</p>
+    <h3>11.1 Notice Required</h3>
+    <p>Landlord or Landlord's agents may enter the Premises upon providing at least <span class="field">${data.entryNoticeDays}</span> 
+    hours' advance written notice to Tenant, except in cases of emergency.</p>
     
-    <p><strong>Reasons for Entry:</strong></p>
+    <h3>11.2 Permitted Purposes for Entry</h3>
+    <p>Landlord may enter the Premises for the following purposes:</p>
     <ul class="list">
       ${(data.entryReasons || LEASE_DEFAULTS.entryReasons).map(r => `<li>${r}</li>`).join('')}
+      <li>Performing routine inspections (not more than twice per year unless cause exists);</li>
+      <li>Complying with legal requirements or court orders;</li>
+      <li>Addressing health or safety concerns;</li>
+      <li>Any other purpose permitted by ${data.state} law.</li>
     </ul>
     
-    <p><strong>Emergency Entry:</strong> Landlord may enter without notice in case of emergency, including but not limited to 
-    fire, flood, gas leak, or when Landlord reasonably believes entry is necessary to prevent damage to the Premises or 
-    protect the health and safety of occupants.</p>
+    <h3>11.3 Emergency Entry</h3>
+    <p>Landlord may enter the Premises <strong>without prior notice</strong> in case of emergency, including but not limited to:</p>
+    <ul class="list">
+      <li>Fire, flood, or water leak;</li>
+      <li>Gas leak or suspected gas leak;</li>
+      <li>Structural emergency;</li>
+      <li>When Landlord reasonably believes entry is necessary to prevent imminent damage to the Premises or to protect 
+      the health and safety of occupants or neighbors;</li>
+      <li>When Tenant has abandoned the Premises;</li>
+      <li>When required by law enforcement with proper legal authority.</li>
+    </ul>
     
-    <p>Tenant agrees to provide reasonable access during normal business hours for scheduled entries.</p>
+    <h3>11.4 Tenant's Cooperation</h3>
+    <p>Tenant agrees to:</p>
+    <ul class="list">
+      <li>Provide reasonable access during normal business hours for scheduled entries;</li>
+      <li>Not unreasonably withhold consent to entry for legitimate purposes;</li>
+      <li>Not change locks or add security devices that would prevent Landlord's access without providing Landlord with keys or codes;</li>
+      <li>Ensure that pets are secured during Landlord's entry.</li>
+    </ul>
+    <p>Tenant's unreasonable refusal to allow entry shall constitute a breach of this Lease.</p>
+    
+    <h3>11.5 Showing the Premises</h3>
+    <p>During the final <span class="field">${data.moveOutNoticeDays}</span> days of the Lease term (or after notice of termination 
+    has been given), Landlord may show the Premises to prospective tenants at reasonable times with reasonable notice.</p>
+    
+    <div class="initials-row">
+      <strong>Tenant Initials:</strong> <span class="initials-line"></span>
+      <strong style="margin-left: 20pt;">Landlord Initials:</strong> <span class="initials-line"></span>
+    </div>
+  </div>easonable access during normal business hours for scheduled entries.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -700,33 +997,67 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 12: PETS -->
-  <h2>12. Pet Policy</h2>
+  <h2>Article 12. Pet Policy</h2>
   <div class="section">
     ${data.petsAllowed ? `
-    <p><span class="checkbox checked"></span> Pets ARE allowed at the Premises, subject to the following terms:</p>
+    <h3>12.1 Pets Permitted</h3>
+    <p><span class="checkbox checked"></span> Pets ARE permitted at the Premises, subject to the following terms and conditions:</p>
     
     ${data.petRestrictions ? `<p><strong>Restrictions:</strong> ${data.petRestrictions}</p>` : ''}
     
+    <h3>12.2 Pet Fees and Deposits</h3>
     <table>
-      ${data.petDeposit ? `<tr><th>Pet Deposit</th><td>${formatCurrency(data.petDeposit)} (refundable)</td></tr>` : ''}
-      ${data.petRent ? `<tr><th>Monthly Pet Rent</th><td>${formatCurrency(data.petRent)} per pet</td></tr>` : ''}
+      ${data.petDeposit ? `<tr><th>Pet Deposit (Refundable)</th><td>${formatCurrency(data.petDeposit)}</td></tr>` : ''}
+      ${data.petRent ? `<tr><th>Monthly Pet Rent</th><td>${formatCurrency(data.petRent)} per approved pet</td></tr>` : ''}
     </table>
     
-    <p><strong>Pet Rules:</strong></p>
+    <h3>12.3 Pet Rules and Requirements</h3>
+    <p>Tenant agrees to the following pet rules:</p>
     <ul class="list">
-      <li>Tenant is responsible for all damage caused by pets</li>
-      <li>Pets must be properly licensed and vaccinated as required by law</li>
-      <li>Pets must be kept under control at all times</li>
-      <li>Tenant must clean up after pets immediately</li>
-      <li>Pets may not create a nuisance through excessive noise or aggressive behavior</li>
+      <li>All pets must be approved by Landlord in writing before being brought onto the Premises;</li>
+      <li>Pets must be properly licensed and vaccinated as required by law, with proof provided to Landlord;</li>
+      <li>Pets must be kept under control at all times and shall not be allowed to roam freely;</li>
+      <li>Tenant shall immediately clean up after pets, both inside and outside the Premises;</li>
+      <li>Pets shall not create a nuisance through excessive noise, aggressive behavior, or offensive odors;</li>
+      <li>Tenant shall not breed pets or allow pets to reproduce on the Premises;</li>
+      <li>Tenant is fully responsible for all damage caused by pets, including damage to flooring, walls, doors, 
+      landscaping, and any other part of the Premises;</li>
       ${data.petRules ? `<li>${data.petRules}</li>` : ''}
     </ul>
     
-    <p>Landlord reserves the right to require removal of any pet that causes damage, creates a nuisance, or violates these rules.</p>
+    <h3>12.4 Liability for Pets</h3>
+    <p>Tenant shall be solely liable for any injury or damage caused by Tenant's pet(s) to any person or property. 
+    Tenant agrees to indemnify, defend, and hold harmless Landlord from any claims, damages, or expenses arising 
+    from Tenant's pet(s).</p>
+    
+    <h3>12.5 Removal of Pets</h3>
+    <p>Landlord reserves the right to require removal of any pet that:</p>
+    <ul class="list">
+      <li>Causes damage to the Premises;</li>
+      <li>Creates a nuisance or disturbance;</li>
+      <li>Poses a threat to the health or safety of others;</li>
+      <li>Violates any pet rule or restriction;</li>
+      <li>Is not properly licensed or vaccinated.</li>
+    </ul>
     ` : `
-    <p><span class="checkbox"></span> Pets are <strong>NOT allowed</strong> at the Premises.</p>
-    <p>This includes but is not limited to dogs, cats, birds, reptiles, rodents, and fish tanks over 10 gallons. 
-    Service animals and emotional support animals with proper documentation are exempt from this policy.</p>
+    <h3>12.1 No Pets Permitted</h3>
+    <p><span class="checkbox"></span> Pets are <strong>NOT permitted</strong> at the Premises.</p>
+    <p>This prohibition includes but is not limited to dogs, cats, birds, reptiles, rodents, fish tanks exceeding 
+    ten (10) gallons, and any other animals. Visiting pets are also prohibited.</p>
+    
+    <h3>12.2 Service and Assistance Animals</h3>
+    <p>This pet prohibition does not apply to service animals or emotional support animals for which Tenant has 
+    provided proper documentation as required by law. Tenant must request reasonable accommodation and provide 
+    supporting documentation before bringing any assistance animal onto the Premises.</p>
+    
+    <h3>12.3 Violation of Pet Policy</h3>
+    <p>Unauthorized pets constitute a material breach of this Lease. If an unauthorized pet is discovered:</p>
+    <ul class="list">
+      <li>Tenant shall immediately remove the pet;</li>
+      <li>Tenant shall pay a pet violation fee of $500 or actual damages, whichever is greater;</li>
+      <li>Tenant shall be liable for all damage caused by the pet;</li>
+      <li>Landlord may terminate this Lease upon proper notice.</li>
+    </ul>
     `}
     
     <div class="initials-row">
@@ -736,23 +1067,49 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 13: NOISE & BEHAVIOR -->
-  <h2>13. Noise & Behavior</h2>
+  <h2>Article 13. Quiet Enjoyment and Conduct</h2>
   <div class="section">
+    <h3>13.1 Covenant of Quiet Enjoyment</h3>
+    <p>Landlord covenants that Tenant, upon paying rent and performing all obligations under this Lease, shall 
+    peacefully and quietly have, hold, and enjoy the Premises during the Lease term without interference from 
+    Landlord or anyone claiming through Landlord.</p>
+    
+    <h3>13.2 Tenant's Conduct Obligations</h3>
+    <p>In consideration of the covenant of quiet enjoyment, Tenant agrees to conduct themselves and ensure that 
+    all occupants and guests conduct themselves in a manner that does not disturb the peace and quiet of neighbors 
+    or other tenants.</p>
+    
     ${data.quietHoursStart && data.quietHoursEnd ? `
-    <p><strong>Quiet Hours:</strong> <span class="field">${data.quietHoursStart}</span> to <span class="field">${data.quietHoursEnd}</span></p>
-    <p>During quiet hours, Tenant must keep noise to a minimum and avoid activities that may disturb neighbors.</p>
+    <h3>13.3 Quiet Hours</h3>
+    <p><strong>Designated Quiet Hours:</strong> <span class="field">${data.quietHoursStart}</span> to <span class="field">${data.quietHoursEnd}</span></p>
+    <p>During quiet hours, Tenant shall:</p>
+    <ul class="list">
+      <li>Keep all noise to a minimum;</li>
+      <li>Not play music, television, or other audio at volumes audible outside the Premises;</li>
+      <li>Not engage in activities that create excessive noise;</li>
+      <li>Ensure guests comply with quiet hours.</li>
+    </ul>
     ` : ''}
     
+    <h3>13.4 General Conduct Requirements</h3>
     <p>At all times, Tenant shall:</p>
     <ul class="list">
-      <li>Conduct themselves in a manner that does not disturb the peace and quiet of neighbors</li>
-      <li>Not engage in loud parties, music, or gatherings that create excessive noise</li>
-      <li>Ensure guests comply with all noise and behavior rules</li>
-      <li>Not engage in harassment, threats, or intimidating behavior toward neighbors or other tenants</li>
-      <li>Comply with all local noise ordinances</li>
+      <li>Comply with all local noise ordinances;</li>
+      <li>Not engage in loud parties, gatherings, or activities that disturb neighbors;</li>
+      <li>Keep music, television, and other audio at reasonable volumes;</li>
+      <li>Ensure that guests comply with all conduct requirements;</li>
+      <li>Not engage in harassment, threats, or intimidating behavior toward anyone;</li>
+      <li>Promptly address any complaints from neighbors or Landlord regarding noise or conduct.</li>
     </ul>
     
-    <p>Repeated noise complaints may result in lease termination.</p>
+    <h3>13.5 Consequences of Violations</h3>
+    <p>Noise complaints and conduct violations shall be addressed as follows:</p>
+    <ul class="list">
+      <li><strong>First Violation:</strong> Written warning;</li>
+      <li><strong>Second Violation:</strong> Written notice of lease violation with opportunity to cure;</li>
+      <li><strong>Third Violation:</strong> Notice of termination as permitted by ${data.state} law.</li>
+    </ul>
+    <p>Severe violations (violence, threats, criminal activity) may result in immediate termination without prior warnings.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -761,19 +1118,56 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 14: SAFETY & HEALTH -->
-  <h2>14. Safety & Health Rules</h2>
+  <h2>Article 14. Safety, Health, and Hazard Prevention</h2>
   <div class="section">
-    <p>Tenant agrees to:</p>
+    <h3>14.1 Safety Equipment</h3>
+    <p>Tenant acknowledges that the Premises is equipped with smoke detectors and carbon monoxide detectors (where required). 
+    Tenant agrees to:</p>
     <ul class="list">
-      <li>Not tamper with, disable, or remove smoke detectors, carbon monoxide detectors, or fire extinguishers</li>
-      <li>Replace batteries in smoke and CO detectors as needed and notify Landlord of any malfunctions</li>
-      <li>Keep all exits and pathways clear of obstructions</li>
-      <li>Properly dispose of all garbage and recyclables</li>
-      <li>Not store hazardous materials on the Premises</li>
-      <li>Maintain proper ventilation to prevent mold growth</li>
-      <li>Comply with all health and fire codes</li>
-      <li>Report any safety hazards to Landlord immediately</li>
+      <li>Test smoke and CO detectors monthly;</li>
+      <li>Replace batteries as needed (unless hardwired);</li>
+      <li>Never disable, disconnect, or tamper with any safety device;</li>
+      <li>Immediately notify Landlord if any detector is malfunctioning;</li>
+      <li>Not remove or cover any safety device.</li>
     </ul>
+    <p>Tampering with safety equipment is a serious violation that may result in immediate lease termination and may 
+    constitute a criminal offense.</p>
+    
+    <h3>14.2 Fire Safety</h3>
+    <p>Tenant shall:</p>
+    <ul class="list">
+      <li>Keep all exits and pathways clear of obstructions;</li>
+      <li>Not block or lock fire exits or emergency routes;</li>
+      <li>Not use or store flammable liquids (except small quantities for household use);</li>
+      <li>Not use open flames except for normal cooking;</li>
+      <li>Not use space heaters unless approved by Landlord;</li>
+      <li>Not overload electrical outlets or use damaged electrical cords;</li>
+      <li>Know the location of fire extinguishers and emergency exits.</li>
+    </ul>
+    
+    <h3>14.3 Mold Prevention</h3>
+    <p>Tenant shall take reasonable steps to prevent mold growth by:</p>
+    <ul class="list">
+      <li>Maintaining adequate ventilation, especially in bathrooms and kitchens;</li>
+      <li>Using exhaust fans when showering or cooking;</li>
+      <li>Promptly reporting any water leaks, moisture problems, or visible mold;</li>
+      <li>Not blocking air vents or HVAC returns;</li>
+      <li>Keeping the Premises reasonably clean and dry.</li>
+    </ul>
+    
+    <h3>14.4 Pest Prevention</h3>
+    <p>Tenant shall:</p>
+    <ul class="list">
+      <li>Keep the Premises clean and free of conditions that attract pests;</li>
+      <li>Properly store food in sealed containers;</li>
+      <li>Dispose of garbage regularly;</li>
+      <li>Promptly report any pest infestations to Landlord;</li>
+      <li>Cooperate with pest control treatments.</li>
+    </ul>
+    
+    <h3>14.5 Hazardous Materials</h3>
+    <p>Tenant shall not store, use, or dispose of any hazardous materials on the Premises, except for normal household 
+    cleaning products used in accordance with manufacturer instructions.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -782,31 +1176,75 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 15: INSURANCE -->
-  <h2>15. Insurance</h2>
+  <h2>Article 15. Insurance and Liability</h2>
   <div class="section">
+    <h3>15.1 Renter's Insurance</h3>
     ${data.rentersInsuranceRequired ? `
-    <p><strong>Renter's Insurance REQUIRED:</strong> Tenant must obtain and maintain renter's insurance throughout the 
-    term of this Lease with minimum coverage of <span class="field">${data.minInsuranceCoverage ? formatCurrency(data.minInsuranceCoverage) : '$100,000'}</span> 
-    in liability coverage.</p>
-    
-    <p>Tenant must provide proof of insurance to Landlord:</p>
+    <p><strong>RENTER'S INSURANCE IS REQUIRED.</strong> Tenant must obtain and maintain a renter's insurance policy 
+    throughout the entire term of this Lease with the following minimum coverage:</p>
     <ul class="list">
-      <li>Prior to move-in</li>
-      <li>Upon each policy renewal</li>
-      <li>Upon Landlord's request</li>
+      <li><strong>Personal Liability:</strong> <span class="field">${data.minInsuranceCoverage ? formatCurrency(data.minInsuranceCoverage) : '$100,000'}</span> minimum</li>
+      <li><strong>Personal Property:</strong> Sufficient to cover Tenant's belongings</li>
+      <li><strong>Additional Insured:</strong> Landlord shall be named as an additional interested party</li>
     </ul>
     
-    <p>Failure to maintain required insurance is a violation of this Lease.</p>
+    <p>Tenant shall provide proof of insurance:</p>
+    <ul class="list">
+      <li>Prior to taking possession of the Premises;</li>
+      <li>Upon each policy renewal;</li>
+      <li>Within five (5) days of Landlord's request.</li>
+    </ul>
+    
+    <p><strong>Failure to maintain required insurance is a material breach of this Lease</strong> and may result in 
+    termination. If Tenant fails to maintain insurance, Landlord may obtain insurance on Tenant's behalf and charge 
+    Tenant for the premium as additional rent.</p>
     ` : `
-    <p><strong>Renter's Insurance Recommended:</strong> While not required, Landlord strongly recommends that Tenant 
-    obtain renter's insurance to protect personal belongings and provide liability coverage.</p>
+    <p><strong>Renter's Insurance Strongly Recommended:</strong> While not required under this Lease, Landlord 
+    <strong>strongly recommends</strong> that Tenant obtain renter's insurance to protect personal belongings and 
+    provide liability coverage. Tenant acknowledges that Landlord's insurance does NOT cover Tenant's personal property 
+    or Tenant's liability.</p>
     `}
     
+    <h3>15.2 Landlord's Insurance Disclaimer</h3>
     <div class="legal-notice">
-      <strong>NOTICE:</strong> Landlord's insurance does NOT cover Tenant's personal property or liability. 
-      Landlord is not responsible for loss or damage to Tenant's belongings due to theft, fire, water damage, 
-      or any other cause.
+      <strong>IMPORTANT NOTICE:</strong> Landlord's insurance policy covers only the building structure and Landlord's 
+      liability. <strong>Landlord's insurance does NOT cover:</strong>
+      <ul style="margin-top: 8pt;">
+        <li>Tenant's personal property (furniture, electronics, clothing, etc.);</li>
+        <li>Tenant's liability for injuries to guests;</li>
+        <li>Loss or damage due to theft, fire, water damage, or any other cause;</li>
+        <li>Additional living expenses if the Premises becomes uninhabitable.</li>
+      </ul>
+      <p style="margin-top: 8pt;"><strong>Tenant assumes all risk of loss for personal property.</strong></p>
     </div>
+    
+    <h3>15.3 Waiver of Subrogation</h3>
+    <p>To the extent permitted by their respective insurance policies, Landlord and Tenant each waive any right of 
+    subrogation against the other for losses covered by insurance.</p>
+    
+    <h3>15.4 Indemnification</h3>
+    <p>Tenant agrees to indemnify, defend, and hold harmless Landlord, Landlord's agents, employees, and contractors 
+    from and against any and all claims, actions, damages, liability, and expense (including reasonable attorney's fees) 
+    arising from:</p>
+    <ul class="list">
+      <li>Tenant's use of the Premises;</li>
+      <li>Any activity, work, or thing done, permitted, or suffered by Tenant in or about the Premises;</li>
+      <li>Any breach or default by Tenant under this Lease;</li>
+      <li>Any negligent or wrongful act or omission of Tenant or Tenant's guests, invitees, or occupants;</li>
+      <li>Any injury to person or property occurring on the Premises during Tenant's occupancy.</li>
+    </ul>
+    <p>This indemnification shall survive the termination of this Lease.</p>
+    
+    <h3>15.5 Limitation of Landlord's Liability</h3>
+    <p>Landlord shall not be liable for any damage or injury to Tenant, Tenant's guests, or Tenant's property unless 
+    caused by Landlord's gross negligence or willful misconduct. Landlord shall not be liable for:</p>
+    <ul class="list">
+      <li>Theft, burglary, or criminal acts of third parties;</li>
+      <li>Damage caused by other tenants or their guests;</li>
+      <li>Damage caused by fire, flood, or other casualty (except where caused by Landlord's negligence);</li>
+      <li>Interruption of utilities or services beyond Landlord's control;</li>
+      <li>Conditions existing at the time Tenant took possession that were known or should have been known to Tenant.</li>
+    </ul>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -815,22 +1253,50 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 16: SUBLETTING -->
-  <h2>16. Subletting & Assignment</h2>
+  <h2>Article 16. Assignment and Subletting</h2>
   <div class="section">
-    <p>Tenant shall NOT sublet the Premises or assign this Lease without prior written consent from Landlord.</p>
+    <h3>16.1 Prohibition</h3>
+    <p>Tenant shall NOT assign this Lease or sublet the Premises, or any part thereof, without Landlord's prior 
+    written consent, which may be withheld in Landlord's sole discretion.</p>
     
-    <p>This includes:</p>
+    <h3>16.2 Prohibited Activities</h3>
+    <p>Without Landlord's prior written consent, Tenant shall not:</p>
     <ul class="list">
-      <li>Renting out rooms to non-approved occupants</li>
-      <li>Listing the Premises on short-term rental platforms (Airbnb, VRBO, etc.)</li>
-      <li>Allowing anyone not named on this Lease to reside at the Premises</li>
-      <li>Transferring this Lease to another party</li>
+      <li>Assign, transfer, or encumber this Lease or any interest therein;</li>
+      <li>Sublet or rent out any portion of the Premises;</li>
+      <li>Allow any person not named on this Lease to reside at the Premises;</li>
+      <li>List the Premises on any short-term rental platform (Airbnb, VRBO, HomeAway, etc.);</li>
+      <li>Allow the Premises to be used by any person or entity other than Tenant;</li>
+      <li>Grant any license or concession with respect to the Premises.</li>
     </ul>
     
-    <p>If Landlord consents to a sublet or assignment, the original Tenant remains fully responsible for all 
-    obligations under this Lease.</p>
+    <h3>16.3 Effect of Unauthorized Transfer</h3>
+    <p>Any attempted assignment, subletting, or transfer without Landlord's written consent shall be:</p>
+    <ul class="list">
+      <li>Void and of no effect;</li>
+      <li>A material breach of this Lease;</li>
+      <li>Grounds for immediate termination.</li>
+    </ul>
     
-    <p>Unauthorized subletting is grounds for immediate lease termination.</p>
+    <h3>16.4 Consent Does Not Release Tenant</h3>
+    <p>If Landlord consents to any assignment or subletting:</p>
+    <ul class="list">
+      <li>The original Tenant shall remain fully liable for all obligations under this Lease;</li>
+      <li>Consent to one assignment or subletting shall not be deemed consent to any subsequent assignment or subletting;</li>
+      <li>Landlord may require the assignee or subtenant to sign an agreement assuming all Lease obligations;</li>
+      <li>Landlord may charge a reasonable administrative fee for processing the request.</li>
+    </ul>
+    
+    <h3>16.5 Short-Term Rentals Strictly Prohibited</h3>
+    <p>Listing the Premises on any short-term rental platform or renting the Premises for periods of less than 
+    thirty (30) days is <strong>strictly prohibited</strong> and shall constitute a material breach of this Lease, 
+    regardless of whether Tenant is present during such rental. Violation may result in:</p>
+    <ul class="list">
+      <li>Immediate termination of this Lease;</li>
+      <li>Forfeiture of the security deposit;</li>
+      <li>Liability for all income received from unauthorized rentals;</li>
+      <li>Liability for all damages, fines, and legal fees incurred by Landlord.</li>
+    </ul>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -839,28 +1305,73 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 17: DEFAULT & VIOLATIONS -->
-  <h2>17. Default & Violations</h2>
+  <h2>Article 17. Default, Termination, and Remedies</h2>
   <div class="section">
-    <p><strong>Lease Violations:</strong> The following constitute violations of this Lease:</p>
+    <h3>17.1 Events of Default by Tenant</h3>
+    <p>The following shall constitute events of default under this Lease:</p>
     <ul class="list">
-      <li>Failure to pay rent or other charges when due</li>
-      <li>Violation of any term or condition of this Lease</li>
-      <li>Damage to the Premises beyond normal wear and tear</li>
-      <li>Illegal activity on the Premises</li>
-      <li>Disturbance of neighbors or other tenants</li>
-      <li>Unauthorized occupants or pets</li>
-      <li>Failure to maintain required insurance (if applicable)</li>
+      <li>Failure to pay rent or any other charge when due;</li>
+      <li>Failure to comply with any term, covenant, or condition of this Lease;</li>
+      <li>Abandonment of the Premises;</li>
+      <li>Making any false or misleading statement in the rental application;</li>
+      <li>Unauthorized occupants, pets, or subletting;</li>
+      <li>Illegal activity on the Premises;</li>
+      <li>Damage to the Premises beyond normal wear and tear;</li>
+      <li>Disturbance of neighbors or other tenants;</li>
+      <li>Failure to maintain required insurance (if applicable);</li>
+      <li>Violation of any law, ordinance, or regulation affecting the Premises;</li>
+      <li>Bankruptcy, insolvency, or assignment for benefit of creditors by Tenant.</li>
     </ul>
     
-    <p><strong>Notice and Cure:</strong> For curable violations, Landlord will provide written notice specifying the 
-    violation and a reasonable time to cure (as required by ${data.state} law). If the violation is not cured within 
-    the specified time, Landlord may proceed with termination and eviction.</p>
+    <h3>17.2 Notice and Opportunity to Cure</h3>
+    <p>Upon occurrence of a default:</p>
+    <ul class="list">
+      <li><strong>Nonpayment of Rent:</strong> Landlord shall provide notice as required by ${data.state} law 
+      (typically 3-5 days) to pay or quit;</li>
+      <li><strong>Curable Violations:</strong> Landlord shall provide written notice specifying the violation and 
+      a reasonable time to cure as required by ${data.state} law;</li>
+      <li><strong>Incurable Violations:</strong> Certain violations (illegal activity, violence, repeated violations) 
+      may result in termination without opportunity to cure, as permitted by law.</li>
+    </ul>
     
-    <p><strong>Repeated Violations:</strong> Repeated violations of the same or similar nature may result in lease 
-    termination without opportunity to cure.</p>
+    <h3>17.3 Landlord's Remedies</h3>
+    <p>Upon default by Tenant, Landlord shall have the following remedies, which are cumulative and not exclusive:</p>
+    <ul class="list">
+      <li><strong>Termination:</strong> Terminate this Lease and Tenant's right to possession;</li>
+      <li><strong>Eviction:</strong> Pursue eviction (unlawful detainer) proceedings;</li>
+      <li><strong>Damages:</strong> Recover all damages, including unpaid rent, late fees, repair costs, and 
+      re-letting expenses;</li>
+      <li><strong>Acceleration:</strong> Declare all remaining rent for the Lease term immediately due;</li>
+      <li><strong>Re-entry:</strong> Re-enter and take possession of the Premises as permitted by law;</li>
+      <li><strong>Re-letting:</strong> Re-let the Premises on Tenant's behalf and hold Tenant liable for any deficiency;</li>
+      <li><strong>Attorney's Fees:</strong> Recover reasonable attorney's fees and court costs to the extent permitted by law;</li>
+      <li><strong>Other Remedies:</strong> Pursue any other remedy available at law or in equity.</li>
+    </ul>
     
-    <p><strong>Immediate Termination:</strong> Certain violations (illegal activity, violence, serious property damage) 
-    may result in immediate termination without opportunity to cure, as permitted by law.</p>
+    <h3>17.4 Abandonment</h3>
+    <p>The Premises shall be deemed abandoned if:</p>
+    <ul class="list">
+      <li>Tenant is absent for more than <span class="field">15</span> consecutive days without notice to Landlord 
+      and rent is unpaid; OR</li>
+      <li>Tenant has removed substantially all personal property and rent is unpaid; OR</li>
+      <li>Tenant has given notice of intent to vacate and has vacated.</li>
+    </ul>
+    <p>Upon abandonment, Landlord may re-enter, take possession, and re-let the Premises. Any personal property 
+    remaining shall be handled in accordance with ${data.state} law regarding abandoned property.</p>
+    
+    <h3>17.5 Mitigation of Damages</h3>
+    <p>If Tenant defaults and vacates, Landlord shall make reasonable efforts to re-let the Premises and mitigate 
+    damages. However, Landlord shall not be required to:</p>
+    <ul class="list">
+      <li>Accept any prospective tenant who does not meet Landlord's standard qualification criteria;</li>
+      <li>Prioritize re-letting the Premises over other available units;</li>
+      <li>Lease the Premises for less than fair market rent.</li>
+    </ul>
+    
+    <h3>17.6 Waiver</h3>
+    <p>Landlord's failure to enforce any provision of this Lease, or acceptance of rent with knowledge of a default, 
+    shall not constitute a waiver of Landlord's right to enforce that provision or any other provision in the future. 
+    Any waiver must be in writing and signed by Landlord to be effective.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -869,23 +1380,58 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 18: MOVE-OUT -->
-  <h2>18. Move-Out Terms</h2>
+  <h2>Article 18. Move-Out Procedures and Requirements</h2>
   <div class="section">
-    <p><strong>Notice Required:</strong> Tenant must provide <span class="field">${data.moveOutNoticeDays}</span> days 
-    written notice before vacating the Premises.</p>
+    <h3>18.1 Notice of Intent to Vacate</h3>
+    <p>Tenant must provide written notice of intent to vacate at least <span class="field">${data.moveOutNoticeDays}</span> 
+    days prior to the intended move-out date. Notice must:</p>
+    <ul class="list">
+      <li>Be in writing (email to the address in Section 1.1 is acceptable);</li>
+      <li>Specify the exact date Tenant will vacate;</li>
+      <li>Be delivered to Landlord (not just mailed) by the required notice date.</li>
+    </ul>
+    <p>Failure to provide proper notice may result in liability for additional rent.</p>
     
-    <p><strong>Move-Out Condition:</strong> Upon vacating, Tenant must:</p>
+    <h3>18.2 Move-Out Condition Requirements</h3>
+    <p>Upon vacating, Tenant shall leave the Premises in the following condition:</p>
     <ul class="list">
       ${(data.moveOutCleaningRequirements || LEASE_DEFAULTS.moveOutCleaningRequirements).map(r => `<li>${r}</li>`).join('')}
-      <li>Return all keys, access cards, and remote controls</li>
-      <li>Provide forwarding address for security deposit return</li>
+      <li>All light bulbs working;</li>
+      <li>All smoke detector and CO detector batteries replaced (if applicable);</li>
+      <li>HVAC filters replaced;</li>
+      <li>No damage beyond normal wear and tear;</li>
+      <li>All repairs for Tenant-caused damage completed.</li>
     </ul>
     
-    <p><strong>Final Walkthrough:</strong> Tenant may request a final walkthrough inspection with Landlord to identify 
-    any issues that may result in deductions from the security deposit.</p>
+    <h3>18.3 Return of Keys and Access Devices</h3>
+    <p>Tenant must return ALL of the following on or before the move-out date:</p>
+    <ul class="list">
+      <li>All keys (including copies made by Tenant);</li>
+      <li>Garage door openers and remotes;</li>
+      <li>Access cards, fobs, or codes;</li>
+      <li>Mailbox keys;</li>
+      <li>Pool/amenity keys or cards;</li>
+      <li>Any other access devices provided by Landlord.</li>
+    </ul>
+    <p>Tenant shall be charged for replacement of any unreturned items.</p>
     
-    <p><strong>Holdover:</strong> If Tenant remains in possession after the Lease term without Landlord's consent, 
-    Tenant shall pay holdover rent at 150% of the monthly rent rate, and Landlord may pursue eviction.</p>
+    <h3>18.4 Forwarding Address</h3>
+    <p>Tenant must provide Landlord with a forwarding address in writing for return of the security deposit and 
+    any other correspondence. If no forwarding address is provided, the security deposit accounting will be sent 
+    to the Premises address.</p>
+    
+    <h3>18.5 Final Walkthrough Inspection</h3>
+    <p>Tenant may request a final walkthrough inspection with Landlord prior to move-out to identify any issues 
+    that may result in deductions from the security deposit. Tenant shall have the opportunity to remedy identified 
+    deficiencies before the final move-out inspection.</p>
+    
+    <h3>18.6 Holdover</h3>
+    <p>If Tenant fails to vacate by the termination date, the provisions of Section 2.5 (Holdover Tenancy) shall apply.</p>
+    
+    <h3>18.7 Abandoned Property</h3>
+    <p>Any personal property remaining on the Premises after Tenant has vacated shall be deemed abandoned. Landlord 
+    may dispose of abandoned property in accordance with ${data.state} law. Tenant shall be liable for all costs 
+    of removal, storage, and disposal of abandoned property.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>
@@ -894,31 +1440,75 @@ export function generateLeaseHtml(data: LeaseBuilderData): string {
   </div>
 
   <!-- SECTION 19: LEGAL CLAUSES -->
-  <h2>19. Legal & Administrative Clauses</h2>
+  <h2>Article 19. General Provisions</h2>
   <div class="section">
-    <p><strong>Governing Law:</strong> This Agreement shall be governed by and construed in accordance with the laws 
-    of the State of <span class="field">${data.state}</span>.</p>
+    <h3>19.1 Governing Law and Jurisdiction</h3>
+    <p>This Agreement shall be governed by and construed in accordance with the laws of the State of 
+    <span class="field">${data.state}</span>. Any legal action arising from this Lease shall be brought in the 
+    courts of the county where the Premises is located.</p>
     
-    <p><strong>Severability:</strong> If any provision of this Lease is found to be invalid or unenforceable, the 
-    remaining provisions shall continue in full force and effect.</p>
+    <h3>19.2 Severability</h3>
+    <p>If any provision of this Lease is found by a court of competent jurisdiction to be invalid, illegal, or 
+    unenforceable, such finding shall not affect the validity of the remaining provisions, which shall continue 
+    in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it 
+    valid and enforceable while preserving the parties' original intent.</p>
     
-    <p><strong>Waiver:</strong> Landlord's failure to enforce any provision of this Lease shall not constitute a 
-    waiver of Landlord's right to enforce that provision in the future.</p>
+    <h3>19.3 Entire Agreement</h3>
+    <p>This Lease, together with any addenda, exhibits, and attachments, constitutes the entire agreement between 
+    the parties concerning the Premises and supersedes all prior negotiations, representations, warranties, and 
+    agreements between the parties. No oral agreements, representations, or understandings shall be binding unless 
+    reduced to writing and signed by both parties.</p>
     
-    <p><strong>Entire Agreement:</strong> This Lease, together with any addenda and attachments, constitutes the 
-    entire agreement between the parties. No oral agreements or representations shall be binding.</p>
+    <h3>19.4 Amendments</h3>
+    <p>This Lease may only be amended, modified, or supplemented by a written instrument signed by both Landlord 
+    and Tenant. No oral modification shall be effective.</p>
     
-    <p><strong>Amendments:</strong> This Lease may only be modified by a written amendment signed by both parties.</p>
-    
-    <p><strong>Notices:</strong> All notices required under this Lease shall be in writing and delivered by:</p>
+    <h3>19.5 Notices</h3>
+    <p>All notices required or permitted under this Lease shall be in writing and shall be deemed delivered when:</p>
     <ul class="list">
-      <li>Personal delivery</li>
-      <li>Certified mail, return receipt requested</li>
-      <li>Email to the addresses provided in this Lease</li>
+      <li>Personally delivered to the party;</li>
+      <li>Sent by certified mail, return receipt requested, three (3) days after mailing;</li>
+      <li>Sent by email to the address specified in this Lease, upon confirmation of receipt;</li>
+      <li>Posted on the Premises door (for notices to Tenant only, where permitted by law).</li>
+    </ul>
+    <p>Notices to Landlord shall be sent to the address in Section 1.1. Notices to Tenant shall be sent to the 
+    Premises address or the email address provided.</p>
+    
+    <h3>19.6 Joint and Several Liability</h3>
+    <p>If there is more than one Tenant, all Tenants are <strong>jointly and severally liable</strong> for all 
+    obligations under this Lease. This means:</p>
+    <ul class="list">
+      <li>Each Tenant is individually responsible for the full amount of rent and all other obligations;</li>
+      <li>Landlord may pursue any one Tenant for the full amount owed;</li>
+      <li>A default by one Tenant is a default by all Tenants;</li>
+      <li>Notice to one Tenant is deemed notice to all Tenants.</li>
     </ul>
     
-    <p><strong>Joint and Several Liability:</strong> If there is more than one Tenant, all Tenants are jointly and 
-    severally liable for all obligations under this Lease.</p>
+    <h3>19.7 Binding Effect</h3>
+    <p>This Lease shall be binding upon and inure to the benefit of the parties and their respective heirs, 
+    executors, administrators, successors, and permitted assigns.</p>
+    
+    <h3>19.8 Time is of the Essence</h3>
+    <p>Time is of the essence with respect to all provisions of this Lease.</p>
+    
+    <h3>19.9 Attorney's Fees</h3>
+    <p>In any action or proceeding arising out of this Lease, the prevailing party shall be entitled to recover 
+    reasonable attorney's fees and costs from the non-prevailing party, to the extent permitted by ${data.state} law.</p>
+    
+    <h3>19.10 Waiver of Jury Trial</h3>
+    <p>TO THE EXTENT PERMITTED BY LAW, LANDLORD AND TENANT HEREBY WAIVE THEIR RESPECTIVE RIGHTS TO A JURY TRIAL 
+    OF ANY CLAIM OR CAUSE OF ACTION ARISING OUT OF OR RELATED TO THIS LEASE.</p>
+    
+    <h3>19.11 Counterparts and Electronic Signatures</h3>
+    <p>This Lease may be executed in counterparts, each of which shall be deemed an original. Electronic signatures 
+    shall be deemed valid and binding to the same extent as original signatures.</p>
+    
+    <h3>19.12 Headings</h3>
+    <p>The headings in this Lease are for convenience only and shall not affect the interpretation of any provision.</p>
+    
+    <h3>19.13 No Partnership or Agency</h3>
+    <p>Nothing in this Lease shall be construed to create a partnership, joint venture, or agency relationship 
+    between Landlord and Tenant.</p>
     
     <div class="initials-row">
       <strong>Tenant Initials:</strong> <span class="initials-line"></span>

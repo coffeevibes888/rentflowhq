@@ -65,10 +65,10 @@ export default function ScheduleTab() {
       if (membersRes.members) {
         setTeamMembers(membersRes.members
           .filter((m: { user: { name: string; image: string | null } | null }) => m.user !== null)
-          .map((m: { id: string; user: { name: string; image: string | null } }) => ({
+          .map((m: { id: string; user: { name: string; image: string | null } | null }) => ({
             id: m.id,
-            name: m.user.name,
-            image: m.user.image,
+            name: m.user?.name || 'Unknown',
+            image: m.user?.image || null,
           })));
       }
       if (propsRes.properties) {

@@ -7,6 +7,7 @@ import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { revalidatePath } from 'next/cache';
 import Stripe from 'stripe';
 import { PAYOUT_FEES, calculatePayoutFee, getEstimatedArrival, type PayoutType } from '@/lib/config/payout-fees';
+import { runPayoutSecurityChecks, logPayoutAttempt } from '@/lib/security/payout-security';
 
 function getStripe() {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -449,6 +450,27 @@ export async function createPayout(options: CreatePayoutOptions = {}): Promise<C
       return { success: false, message: 'Payment setup incomplete. Please re-add your payout method.' };
     }
 
+    // ============= SECURITY CHECKS =============
+    const securityCheck = await runPayoutSecurityChecks({
+      landlordId: landlord.id,
+      amount: requestedAmount,
+      payoutMethodId: payoutMethod.id,
+    });
+
+    if (!securityCheck.allowed) {
+      return { success: false, message: securityCheck.reason || 'Payout blocked by security check.' };
+    }
+
+    // If large payout requires verification, return early
+    if (securityCheck.requiresVerification) {
+      return { 
+        success: false, 
+        message: securityCheck.reason || 'This payout requires additional verification.',
+        // Could add a verification flow here in the future
+      };
+    }
+    // ============= END SECURITY CHECKS =============
+
     const stripe = getStripe();
 
     // Create payout record
@@ -551,6 +573,14 @@ export async function createPayout(options: CreatePayoutOptions = {}): Promise<C
       revalidatePath('/admin/payouts');
 
       const estimatedArrival = getEstimatedArrival(payoutType);
+
+      // Log successful payout for audit trail
+      await logPayoutAttempt({
+        landlordId: landlord.id,
+        amount: requestedAmount,
+        payoutMethodId: payoutMethod.id,
+        status: 'success',
+      });
 
       return {
         success: true,

@@ -34,7 +34,7 @@ interface TimesheetDetail {
   reviewedAt: Date | null;
   reviewNotes: string | null;
   teamMember: {
-    user: { name: string };
+    user: { name: string } | null;
     compensation: { payType: string; hourlyRate: { toString: () => string } | null } | null;
   };
   timeEntries: Array<{
@@ -236,7 +236,7 @@ export default function TimesheetsTab() {
                 <div className="rounded-xl bg-slate-800/50 border border-white/10 p-4 space-y-3">
                   <div className="flex items-center gap-3">
                     <User className="h-5 w-5 text-blue-400" />
-                    <span className="text-white font-medium">{selectedTimesheet.teamMember.user.name}</span>
+                    <span className="text-white font-medium">{selectedTimesheet.teamMember.user?.name || 'Unknown'}</span>
                   </div>
                   <div className="text-sm text-slate-400">
                     {format(selectedTimesheet.periodStart, 'MMM d')} - {format(selectedTimesheet.periodEnd, 'MMM d, yyyy')}

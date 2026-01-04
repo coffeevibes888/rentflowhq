@@ -87,9 +87,9 @@ export default function TimeTrackingTab() {
       if (membersRes.members) {
         setTeamMembers(membersRes.members
           .filter((m: { user: { name: string } | null }) => m.user !== null)
-          .map((m: { id: string; user: { name: string } }) => ({
+          .map((m: { id: string; user: { name: string } | null }) => ({
             id: m.id,
-            name: m.user.name,
+            name: m.user?.name || 'Unknown',
           })));
       }
     } catch (error) {

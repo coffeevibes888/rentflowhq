@@ -28,7 +28,7 @@ const tiers = [
       { name: 'Custom Subdomain (yourname.propertyflowhq.com)', included: true },
       { name: 'Maintenance Ticket System', included: true },
       { name: 'Digital leases with E-Sign', included: true },
-      { name: 'Contractor Marketplace (Free, $1 per payment)', included: true },
+      { name: 'Contractor Marketplace', included: true },
       { name: 'Basic Reporting', included: true },
       { name: 'Automated Application Process', included: true },
       { name: 'Free Lease Builder', included: true },
