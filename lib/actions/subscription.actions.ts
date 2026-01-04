@@ -294,7 +294,7 @@ export async function recordEmploymentCheck(landlordId: string, applicationId: s
 export async function getCurrentLandlordSubscription() {
   const landlordResult = await getOrCreateCurrentLandlord();
   
-  if (!landlordResult.success) {
+  if (!landlordResult.success || !landlordResult.landlord) {
     return { success: false, message: landlordResult.message };
   }
 
@@ -340,12 +340,12 @@ export async function canAddUnits(count: number = 1): Promise<{
 }> {
   const landlordResult = await getOrCreateCurrentLandlord();
   
-  if (!landlordResult.success) {
+  if (!landlordResult.success || !landlordResult.landlord) {
     return {
       allowed: false,
       currentUnitCount: 0,
       unitLimit: 0,
-      currentTier: 'free',
+      currentTier: 'starter',
       reason: landlordResult.message,
     };
   }
@@ -357,15 +357,15 @@ export async function canAddUnits(count: number = 1): Promise<{
       allowed: false,
       currentUnitCount: 0,
       unitLimit: 0,
-      currentTier: 'free',
+      currentTier: 'starter',
       reason: 'Unable to verify subscription status',
     };
   }
 
   const unitCount = result.unitCount ?? 0;
   const unitLimit = result.unitLimit ?? 24;
-  const currentTier = result.currentTier ?? 'free';
-  const tierConfig = result.tierConfig ?? SUBSCRIPTION_TIERS.free;
+  const currentTier = result.currentTier ?? 'starter';
+  const tierConfig = result.tierConfig ?? SUBSCRIPTION_TIERS.starter;
 
   const newTotal = unitCount + count;
   const wouldExceedLimit = newTotal > unitLimit;

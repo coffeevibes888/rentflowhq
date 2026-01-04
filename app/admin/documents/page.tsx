@@ -12,7 +12,7 @@ const AdminDocumentsPage = async () => {
   await requireAdmin();
 
   const landlordResult = await getOrCreateCurrentLandlord();
-  if (!landlordResult.success) {
+  if (!landlordResult.success || !landlordResult.landlord) {
     return (
       <main className="px-4 py-10">
         <div className="max-w-3xl mx-auto text-sm text-red-600">

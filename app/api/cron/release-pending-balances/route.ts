@@ -1,7 +1,8 @@
 /**
  * Cron Job: Release Pending Balances
- * Moves ACH payment funds from pending to available after 7-day hold
- * Should run daily
+ * Moves funds from pending to available when Stripe has released them
+ * Uses availableAt date instead of fixed 7-day hold
+ * Should run daily (or more frequently)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -17,15 +18,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Find pending transactions older than 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const now = new Date();
 
+    // Find pending transactions where availableAt has passed
     const pendingTransactions = await prisma.walletTransaction.findMany({
       where: {
         status: 'pending',
         type: 'credit',
-        createdAt: { lte: sevenDaysAgo },
+        availableAt: { lte: now },
       },
       include: { wallet: true },
     });

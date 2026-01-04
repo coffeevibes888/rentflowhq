@@ -20,7 +20,7 @@ interface UseSubscriptionTierResult {
 }
 
 export function useSubscriptionTier(landlordId?: string | null): UseSubscriptionTierResult {
-  const [tier, setTier] = useState<SubscriptionTier>('free');
+  const [tier, setTier] = useState<SubscriptionTier>('starter');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +57,6 @@ export function useSubscriptionTier(landlordId?: string | null): UseSubscription
     hasFeature,
     isPro: tier === 'pro' || tier === 'enterprise',
     isEnterprise: tier === 'enterprise',
-    isFree: tier === 'free',
+    isFree: tier === 'starter',
   };
 }

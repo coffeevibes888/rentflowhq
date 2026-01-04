@@ -124,7 +124,7 @@ async function sendTeamInviteEmail(params: {
 export async function getTeamMembers() {
   try {
     const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
+    if (!landlordResult.success || !landlordResult.landlord) {
       return { success: false, message: landlordResult.message };
     }
 
@@ -180,7 +180,7 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'me
     }
 
     const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
+    if (!landlordResult.success || !landlordResult.landlord) {
       return { success: false, message: landlordResult.message };
     }
 
@@ -304,7 +304,7 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'me
           userId: existingUser.id,
           type: 'message',
           title: 'Team Invitation',
-          message: `${landlordResult.landlord.name} has invited you to join their property management team as a ${role}.`,
+          message: `${landlordResult.landlord.name || 'Your landlord'} has invited you to join their property management team as a ${role}.`,
           actionUrl: acceptUrl,
           landlordId: landlordResult.landlord.id,
         });
@@ -321,7 +321,7 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'me
       await sendTeamInviteEmail({
         email,
         inviteToken,
-        landlordName: landlordResult.landlord.name,
+        landlordName: landlordResult.landlord.name || 'Property Manager',
       });
       emailSent = true;
     } catch (error: any) {
@@ -466,7 +466,7 @@ export async function acceptTeamInvite(inviteToken: string) {
 export async function updateTeamMemberRole(memberId: string, role: TeamMemberRole) {
   try {
     const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
+    if (!landlordResult.success || !landlordResult.landlord) {
       return { success: false, message: landlordResult.message };
     }
 
@@ -504,7 +504,7 @@ export async function updateTeamMemberRole(memberId: string, role: TeamMemberRol
 export async function removeTeamMember(memberId: string) {
   try {
     const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
+    if (!landlordResult.success || !landlordResult.landlord) {
       return { success: false, message: landlordResult.message };
     }
 
@@ -537,7 +537,7 @@ export async function removeTeamMember(memberId: string) {
 export async function clearPendingInvites() {
   try {
     const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
+    if (!landlordResult.success || !landlordResult.landlord) {
       return { success: false, message: landlordResult.message };
     }
 

@@ -39,7 +39,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     lockedFeature?: string;
   }>({
     open: false,
-    currentTier: 'free',
+    currentTier: 'starter',
     currentUnitCount: 0,
     unitLimit: 24,
     reason: 'unit_limit',

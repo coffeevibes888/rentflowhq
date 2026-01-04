@@ -1,66 +1,51 @@
 /**
  * Platform Fee Configuration
  * 
- * This is YOUR SaaS revenue model - the application fee per transaction
- * that Stripe automatically routes to your platform account.
+ * SUBSCRIPTION-BASED MODEL - No transaction fees!
+ * Revenue comes from monthly subscriptions ($9.99 / $19.99 / $39.99)
+ * 
+ * All platform fees are set to $0 - tenants pay only rent,
+ * landlords receive full rent minus Stripe processing fees.
  */
 
 export const PLATFORM_FEES = {
   /**
-   * Base Platform Service Fee (for all payments)
-   * Default: $0.00 - No base fee, only convenience fees
+   * Base Platform Service Fee - DISABLED (subscription model)
    */
-  BASE_FEE: parseFloat(process.env.PLATFORM_BASE_FEE || '0.00'),
+  BASE_FEE: 0,
 
   /**
-   * Convenience Fee for Instant Payment Methods
-   * Applied to: Cards, Apple Pay, Google Pay, Venmo, CashApp
-   * Default: $2.00 per transaction
-   * 
-   * This fee goes 100% to your platform account (super admin)
-   * 
-   * Example with $1,500 rent payment via Card:
-   * - Tenant pays: $1,502.00 ($1,500 rent + $2 convenience fee)
-   * - Landlord receives: $1,500.00 (minus Stripe processing fee ~$43)
-   * - You receive: $2.00 (100% profit!)
+   * Convenience Fee for Card Payments - DISABLED (subscription model)
+   * Tenants pay exact rent amount, no extra fees
    */
-  CONVENIENCE_FEE_INSTANT: parseFloat(process.env.CONVENIENCE_FEE_INSTANT || '2.00'),
+  CONVENIENCE_FEE_INSTANT: 0,
 
   /**
-   * ACH/Bank Transfer Fee
-   * Default: $0.00 - FREE for tenants to encourage bank payments
-   * 
-   * Example with $1,500 rent payment via ACH:
-   * - Tenant pays: $1,500.00 (NO convenience fee)
-   * - Landlord receives: ~$1,495.00 (minus Stripe ACH fee ~$5)
-   * - You receive: $0.00 from this payment
+   * ACH/Bank Transfer Fee - DISABLED (always free)
    */
-  CONVENIENCE_FEE_ACH: parseFloat(process.env.CONVENIENCE_FEE_ACH || '0.00'),
+  CONVENIENCE_FEE_ACH: 0,
 
   /**
-   * Card Payment Surcharge
-   * If true, pass Stripe's 2.9% + $0.30 card fee to the tenant
-   * If false, you absorb the card processing fee
+   * Card Payment Surcharge - DISABLED
+   * Stripe processing fees are absorbed by landlord (industry standard)
    */
-  PASS_CARD_FEE_TO_TENANT: process.env.PASS_CARD_FEE_TO_TENANT === 'true',
+  PASS_CARD_FEE_TO_TENANT: false,
 
   /**
-   * ACH Payment Fee Handling
-   * If true, add Stripe's 0.8% ACH fee to tenant's payment
-   * If false, you absorb the ACH fee (recommended for growth)
+   * ACH Payment Fee Handling - DISABLED
    */
-  PASS_ACH_FEE_TO_TENANT: process.env.PASS_ACH_FEE_TO_TENANT === 'true',
+  PASS_ACH_FEE_TO_TENANT: false,
 
   /**
-   * Instant Payout Fee
-   * What you charge landlords for instant payouts (on top of Stripe's 1.5%)
-   * Default: 0.5% (so total is 2% to landlord)
+   * Instant Payout Fee - DISABLED (subscription model)
+   * Landlords only pay Stripe's 1.5% for instant payouts
    */
-  INSTANT_PAYOUT_MARKUP: parseFloat(process.env.INSTANT_PAYOUT_MARKUP || '0.5'),
+  INSTANT_PAYOUT_MARKUP: 0,
 } as const;
 
 /**
- * Calculate total payment amount including fees based on payment method
+ * Calculate total payment amount - NO PLATFORM FEES
+ * Tenant pays exact rent amount
  */
 export function calculateRentPaymentAmount(
   rentAmount: number, 
@@ -72,104 +57,67 @@ export function calculateRentPaymentAmount(
   totalAmount: number;
   feeDescription: string;
 } {
-  let convenienceFee = 0;
-  let stripeFee = 0;
-  let feeDescription = '';
-
-  if (paymentMethodType === 'ach') {
-    // ACH: FREE convenience fee, optional Stripe fee passthrough
-    convenienceFee = PLATFORM_FEES.CONVENIENCE_FEE_ACH;
-    if (PLATFORM_FEES.PASS_ACH_FEE_TO_TENANT) {
-      stripeFee = calculateACHSurcharge(rentAmount);
-    }
-    feeDescription = convenienceFee > 0 ? 'Bank transfer fee' : 'Free bank transfer';
-  } else {
-    // Card/Wallet: $2 convenience fee, optional card fee passthrough
-    convenienceFee = PLATFORM_FEES.CONVENIENCE_FEE_INSTANT;
-    if (PLATFORM_FEES.PASS_CARD_FEE_TO_TENANT) {
-      stripeFee = calculateCardSurcharge(rentAmount);
-    }
-    feeDescription = 'Convenience fee (instant payment)';
-  }
-
-  const totalAmount = rentAmount + convenienceFee + stripeFee;
-
+  // No platform fees - tenant pays exact rent
   return {
     rentAmount,
-    convenienceFee,
-    stripeFee,
-    totalAmount,
-    feeDescription,
+    convenienceFee: 0,
+    stripeFee: 0,
+    totalAmount: rentAmount,
+    feeDescription: paymentMethodType === 'ach' ? 'Free bank transfer' : 'No fees',
   };
 }
 
 /**
- * Calculate card surcharge if enabled
+ * Calculate card surcharge - DISABLED
  */
 export function calculateCardSurcharge(amount: number): number {
-  if (!PLATFORM_FEES.PASS_CARD_FEE_TO_TENANT) return 0;
-  
-  // Stripe's card fee: 2.9% + $0.30
-  return amount * 0.029 + 0.30;
+  return 0;
 }
 
 /**
- * Calculate ACH fee if passed to tenant
+ * Calculate ACH fee - DISABLED
  */
 export function calculateACHSurcharge(amount: number): number {
-  if (!PLATFORM_FEES.PASS_ACH_FEE_TO_TENANT) return 0;
-  
-  // Stripe's ACH fee: 0.8% capped at $5
-  return Math.min(amount * 0.008, 5.00);
+  return 0;
 }
 
 /**
- * Get convenience fee in cents for Stripe
+ * Get convenience fee in cents - ALWAYS 0
  */
 export function getConvenienceFeeInCents(paymentMethodType: 'ach' | 'card' | 'instant' = 'card'): number {
-  if (paymentMethodType === 'ach') {
-    return Math.round(PLATFORM_FEES.CONVENIENCE_FEE_ACH * 100);
-  }
-  return Math.round(PLATFORM_FEES.CONVENIENCE_FEE_INSTANT * 100);
+  return 0;
 }
 
 /**
- * Get base platform fee in cents (legacy compatibility)
+ * Get base platform fee in cents - ALWAYS 0
  */
 export function getPlatformFeeInCents(): number {
-  return Math.round(PLATFORM_FEES.BASE_FEE * 100);
+  return 0;
 }
 
 /**
- * Revenue Projection Calculator
- * Use this to estimate your monthly revenue
+ * Revenue Projection Calculator - SUBSCRIPTION MODEL
+ * Revenue now comes from subscriptions, not transaction fees
  */
 export function estimateMonthlyRevenue(params: {
-  numberOfLandlords: number;
-  averageUnitsPerLandlord: number;
-  averageRentPerUnit: number;
-  cardPaymentRate: number; // percentage (0-100) of tenants using cards/wallets
-  instantPayoutRate: number; // percentage (0-100) of landlords using instant payouts
+  starterSubscribers: number;  // $9.99/month
+  proSubscribers: number;      // $19.99/month
+  enterpriseSubscribers: number; // $39.99/month
 }): {
-  convenienceFeeRevenue: number;
-  instantPayoutRevenue: number;
+  starterRevenue: number;
+  proRevenue: number;
+  enterpriseRevenue: number;
   totalMonthlyRevenue: number;
 } {
-  const totalUnits = params.numberOfLandlords * params.averageUnitsPerLandlord;
-  const totalRentCollected = totalUnits * params.averageRentPerUnit;
-  
-  // Convenience fee revenue (only from card/wallet payments)
-  const cardPaymentCount = totalUnits * (params.cardPaymentRate / 100);
-  const convenienceFeeRevenue = cardPaymentCount * PLATFORM_FEES.CONVENIENCE_FEE_INSTANT;
-  
-  // Instant payout revenue (% of landlords who use it)
-  const instantPayoutVolume = totalRentCollected * (params.instantPayoutRate / 100);
-  const instantPayoutRevenue = instantPayoutVolume * (PLATFORM_FEES.INSTANT_PAYOUT_MARKUP / 100);
+  const starterRevenue = params.starterSubscribers * 9.99;
+  const proRevenue = params.proSubscribers * 19.99;
+  const enterpriseRevenue = params.enterpriseSubscribers * 39.99;
   
   return {
-    convenienceFeeRevenue,
-    instantPayoutRevenue,
-    totalMonthlyRevenue: convenienceFeeRevenue + instantPayoutRevenue,
+    starterRevenue,
+    proRevenue,
+    enterpriseRevenue,
+    totalMonthlyRevenue: starterRevenue + proRevenue + enterpriseRevenue,
   };
 }
 
@@ -177,18 +125,10 @@ export function estimateMonthlyRevenue(params: {
  * Example usage:
  * 
  * const revenue = estimateMonthlyRevenue({
- *   numberOfLandlords: 50,
- *   averageUnitsPerLandlord: 5,
- *   averageRentPerUnit: 1200,
- *   cardPaymentRate: 30, // 30% of tenants use cards/wallets
- *   instantPayoutRate: 30, // 30% of landlords use instant payouts
+ *   starterSubscribers: 100,    // 100 × $9.99 = $999
+ *   proSubscribers: 50,         // 50 × $19.99 = $999.50
+ *   enterpriseSubscribers: 20,  // 20 × $39.99 = $799.80
  * });
  * 
- * console.log(revenue);
- * // {
- * //   convenienceFeeRevenue: $150 (250 units × 30% × $2)
- * //   instantPayoutRevenue: $900 (30% × $300k × 0.5%)
- * //   totalMonthlyRevenue: $1,050
- * // }
+ * console.log(revenue.totalMonthlyRevenue); // $2,798.30
  */
-

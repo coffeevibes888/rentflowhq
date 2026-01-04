@@ -12,7 +12,6 @@ import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/utils';
-import { PLATFORM_FEES } from '@/lib/config/platform-fees';
 import { CreditCard, Building2, Smartphone, Zap, Clock } from 'lucide-react';
 import PaymentMethodSelector, { PaymentMethodType } from './payment-method-selector';
 import BankAccountForm from './bank-account-form';
@@ -45,7 +44,6 @@ export default function RentStripePayment({
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [selectedPaymentType, setSelectedPaymentType] = useState<PaymentMethodType>('card');
-    const [convenienceFee, setConvenienceFee] = useState(initialConvenienceFee);
     const [achVerificationPaymentIntentId, setAchVerificationPaymentIntentId] = useState<string | null>(null);
     const [achMicrodepositAmount1, setAchMicrodepositAmount1] = useState('');
     const [achMicrodepositAmount2, setAchMicrodepositAmount2] = useState('');
@@ -57,15 +55,6 @@ export default function RentStripePayment({
     const [isPayingWithSavedAch, setIsPayingWithSavedAch] = useState(false);
     
     // No contact info collected here — tenant is authenticated
-
-    // Update fee when payment type changes
-    useEffect(() => {
-      if (selectedPaymentType === 'ach') {
-        setConvenienceFee(PLATFORM_FEES.CONVENIENCE_FEE_ACH);
-      } else {
-        setConvenienceFee(PLATFORM_FEES.CONVENIENCE_FEE_INSTANT);
-      }
-    }, [selectedPaymentType]);
 
     useEffect(() => {
       if (selectedPaymentType !== 'ach') return;
@@ -324,8 +313,6 @@ export default function RentStripePayment({
       }
     };
 
-    const displayTotal = rentAmount + convenienceFee;
-
     return (
       <form className='space-y-6' onSubmit={(e) => e.preventDefault()}>
         {/* Payment Method Selection */}
@@ -436,22 +423,15 @@ export default function RentStripePayment({
               <span className='text-slate-600'>Rent Amount</span>
               <span className='font-semibold text-slate-900'>{formatCurrency(rentAmount)}</span>
             </div>
-            {convenienceFee > 0 ? (
-              <div className='flex justify-between text-sm'>
-                <span className='text-slate-600'>Convenience Fee</span>
-                <span className='text-violet-700 font-medium'>{formatCurrency(convenienceFee)}</span>
-              </div>
-            ) : (
-              <div className='flex justify-between text-sm'>
-                <span className='text-emerald-600 flex items-center gap-1'>
-                  <span>✓</span> No convenience fee
-                </span>
-                <span className='text-emerald-700 font-semibold'>{formatCurrency(0)}</span>
-              </div>
-            )}
+            <div className='flex justify-between text-sm'>
+              <span className='text-emerald-600 flex items-center gap-1'>
+                <span>✓</span> No fees
+              </span>
+              <span className='text-emerald-700 font-semibold'>$0.00</span>
+            </div>
             <div className='border-t border-slate-300 pt-2 flex justify-between font-bold text-base'>
               <span className='text-slate-900'>Total Due</span>
-              <span className='text-slate-900'>{formatCurrency(displayTotal)}</span>
+              <span className='text-slate-900'>{formatCurrency(rentAmount)}</span>
             </div>
           </div>
         </div>
@@ -463,21 +443,21 @@ export default function RentStripePayment({
           </div>
         )}
 
-        <div className='rounded-lg border border-blue-200 bg-blue-50 p-3.5 text-sm'>
+        <div className='rounded-lg border border-emerald-200 bg-emerald-50 p-3.5 text-sm'>
           <div className='flex items-start gap-2'>
-            <div className='rounded-full bg-blue-600 p-1 mt-0.5'>
+            <div className='rounded-full bg-emerald-600 p-1 mt-0.5'>
               <Clock className='h-3 w-3 text-white' />
             </div>
             <div className='flex-1'>
-              <p className='font-semibold text-blue-900 mb-1'>💡 Payment method info</p>
-              <ul className='space-y-1 text-xs text-blue-800'>
+              <p className='font-semibold text-emerald-900 mb-1'>✓ No fees on any payment method</p>
+              <ul className='space-y-1 text-xs text-emerald-800'>
                 <li className='flex items-start gap-1.5'>
                   <span className='text-emerald-600 font-bold mt-0.5'>•</span>
-                  <span><strong>Bank Account:</strong> FREE - Best for recurring rent payments</span>
+                  <span><strong>Bank Account:</strong> 1-3 business days</span>
                 </li>
                 <li className='flex items-start gap-1.5'>
-                  <span className='text-violet-600 font-bold mt-0.5'>•</span>
-                  <span><strong>Card/Wallet:</strong> $2 fee - Instant payment confirmation</span>
+                  <span className='text-emerald-600 font-bold mt-0.5'>•</span>
+                  <span><strong>Card/Wallet:</strong> Instant confirmation</span>
                 </li>
               </ul>
             </div>

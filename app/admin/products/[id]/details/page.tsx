@@ -13,7 +13,7 @@ export default async function PropertyDetailsPage(props: {
   const { id } = await props.params;
 
   const landlordResult = await getOrCreateCurrentLandlord();
-  if (!landlordResult.success) notFound();
+  if (!landlordResult.success || !landlordResult.landlord) notFound();
 
   const property = await prisma.property.findFirst({
     where: { id, landlordId: landlordResult.landlord.id },

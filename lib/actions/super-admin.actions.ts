@@ -425,8 +425,8 @@ export async function getSuperAdminInsights() {
       status: p.status,
       initiatedAt: p.initiatedAt.toISOString(),
       paidAt: p.paidAt?.toISOString() || null,
-      landlordName: p.landlord.name,
-      landlordSubdomain: p.landlord.subdomain,
+      landlordName: p.landlord?.name || 'Unknown',
+      landlordSubdomain: p.landlord?.subdomain || '',
     }));
 
     return {

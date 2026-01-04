@@ -14,7 +14,7 @@ interface SubscriptionState {
 
 const initialState: SubscriptionState = {
   showUpgradeModal: false,
-  currentTier: 'free',
+  currentTier: 'starter',
   currentUnitCount: 0,
   unitLimit: 24,
   reason: 'unit_limit',

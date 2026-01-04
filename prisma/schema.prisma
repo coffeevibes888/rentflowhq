@@ -579,7 +579,7 @@ model Landlord {
   useSubdomain     Boolean  @default(true)
 
   // Subscription & Tier
-  subscriptionTier           String    @default("free") // free, growth, professional, enterprise
+  subscriptionTier           String    @default("starter") // starter, pro, enterprise
   stripeSubscriptionId       String?
   stripeCustomerId           String?
   subscriptionStatus         String    @default("active") // active, past_due, canceled, trialing
@@ -1264,8 +1264,8 @@ model DocumentSignatureRequest {
   updatedAt          DateTime  @updatedAt
 
   // Signature and initials data (base64 data URLs)
-  signatureDataUrl   String?   @db.Text // Base64 signature image
-  initialsDataUrl    String?   @db.Text // Base64 initials image
+  signatureDataUrl String? @db.Text // Base64 signature image
+  initialsDataUrl  String? @db.Text // Base64 initials image
 
   // Progress tracking for signing wizard
   fieldSectionContext Json?     @db.Json // { fieldId: "Section Name" } - section context for each field
@@ -1831,21 +1831,24 @@ model LandlordWallet {
 
 // Wallet transaction history
 model WalletTransaction {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  walletId    String   @db.Uuid
-  type        String // 'credit' (rent received), 'payout' (cash out), 'fee', 'refund'
-  amount      Decimal  @db.Decimal(12, 2) // Positive for credits, negative for debits
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId    String    @db.Uuid
+  type        String // 'credit' (rent received), 'payout' (cash out), 'fee', 'refund', 'contractor_payment'
+  amount      Decimal   @db.Decimal(12, 2) // Positive for credits, negative for debits
   description String?
-  status      String   @default("completed") // pending, completed, failed
-  referenceId String?  @db.Uuid // Link to RentPayment, Payout, etc.
-  metadata    Json?    @db.Json
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  status      String    @default("completed") // pending, completed, failed
+  referenceId String?   @db.Uuid // Link to RentPayment, Payout, etc.
+  metadata    Json?     @db.Json
+  availableAt DateTime? @db.Timestamp(6) // When funds become available (after Stripe hold)
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
 
   wallet LandlordWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
   @@index([walletId])
   @@index([type])
   @@index([createdAt])
+  @@index([availableAt])
+  @@index([status])
 }
 
 // ============= TENANT LIFECYCLE MANAGEMENT =============
@@ -2033,12 +2036,21 @@ model Contractor {
   email                  String
   phone                  String?
   specialties            String[] @default([])
-  stripeConnectAccountId String?
-  stripeOnboardingStatus String? // pending, complete
+  stripeConnectAccountId String? // @deprecated - no longer used
+  stripeOnboardingStatus String? // @deprecated - no longer used
   isPaymentReady         Boolean  @default(false)
   notes                  String?
-  createdAt              DateTime @default(now()) @db.Timestamp(6)
-  updatedAt              DateTime @updatedAt
+
+  // Bank account for receiving payments (platform-held model)
+  stripeCustomerId    String? // Stripe customer ID for this contractor
+  stripeBankAccountId String? // Bank account ID attached to customer
+  bankAccountLast4    String? // Last 4 digits for display
+  bankName            String? // Bank name for display
+  businessName        String? // Business name (if different from contact name)
+  contactName         String? // Contact person name
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
 
   landlord   Landlord             @relation(fields: [landlordId], references: [id], onDelete: Cascade)
   user       User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -2218,19 +2230,22 @@ model ContractorPayment {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   landlordId       String    @db.Uuid
   contractorId     String    @db.Uuid
-  workOrderId      String    @unique @db.Uuid
+  workOrderId      String?   @unique @db.Uuid // Optional - can pay without work order, unique for 1:1 relation
   amount           Decimal   @db.Decimal(12, 2)
-  platformFee      Decimal   @db.Decimal(12, 2)
-  netAmount        Decimal   @db.Decimal(12, 2)
-  status           String    @default("pending") // pending, processing, completed, failed
-  stripeTransferId String?
+  platformFee      Decimal?  @db.Decimal(12, 2)
+  netAmount        Decimal?  @db.Decimal(12, 2)
+  status           String    @default("pending") // pending, processing, paid, failed
+  stripeTransferId String? // @deprecated
+  stripePayoutId   String? // New: Payout ID from platform account
+  description      String?
   failureReason    String?
   paidAt           DateTime? @db.Timestamp(6)
+  metadata         Json?     @db.Json
   createdAt        DateTime  @default(now()) @db.Timestamp(6)
 
   landlord   Landlord   @relation(fields: [landlordId], references: [id], onDelete: Cascade)
   contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  workOrder  WorkOrder? @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
 
   @@index([landlordId])
   @@index([contractorId])
@@ -2526,7 +2541,7 @@ model Agent {
   totalListings   Int  @default(0)
 
   // Subscription
-  subscriptionTier     String    @default("free")
+  subscriptionTier     String    @default("starter")
   stripeCustomerId     String?
   stripeSubscriptionId String?
   subscriptionStatus   String    @default("active")

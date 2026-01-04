@@ -321,7 +321,7 @@ export function formatPayoutMethodInfo(
  */
 export function getLandlordCashoutOptions(
   availableBalanceInDollars: number,
-  subscriptionTier: SubscriptionTier = 'free'
+  subscriptionTier: SubscriptionTier = 'starter'
 ): Array<{
   emoji: string;
   title: string;
@@ -413,7 +413,7 @@ export function formatCashoutOption(
 export function getCashoutBreakdown(
   amountInDollars: number,
   method: 'instant' | 'ach',
-  subscriptionTier: SubscriptionTier = 'free'
+  subscriptionTier: SubscriptionTier = 'starter'
 ): {
   amountRequested: number;
   stripeFee: number;

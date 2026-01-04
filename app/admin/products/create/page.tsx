@@ -13,9 +13,9 @@ const CreateProductPage = async () => {
   
   // Get landlord subscription tier
   const landlordResult = await getOrCreateCurrentLandlord();
-  const landlordTier = landlordResult.success 
+  const landlordTier = landlordResult.success && landlordResult.landlord
     ? normalizeTier(landlordResult.landlord.subscriptionTier) 
-    : 'free';
+    : 'starter';
   const isPro = landlordTier === 'pro' || landlordTier === 'enterprise';
 
   const currentStep = 2;

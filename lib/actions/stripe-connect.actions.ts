@@ -1,8 +1,3 @@
-/**
- * Stripe Connect Actions
- * Handles landlord onboarding and payouts via Stripe Connect Express
- */
-
 'use server';
 
 import { prisma } from '@/db/prisma';
@@ -11,6 +6,7 @@ import { formatError } from '@/lib/utils';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { revalidatePath } from 'next/cache';
 import Stripe from 'stripe';
+import { PAYOUT_FEES, calculatePayoutFee, getEstimatedArrival, type PayoutType } from '@/lib/config/payout-fees';
 
 function getStripe() {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -20,13 +16,12 @@ function getStripe() {
   return new Stripe(stripeSecretKey);
 }
 
-// ============= CREATE CONNECT ACCOUNT =============
-
-/**
- * Create a Stripe Connect Express account for the landlord
- * Returns the account ID to use with embedded onboarding
- */
-export async function createConnectAccount() {
+export async function addBankAccount(data: {
+  accountHolderName: string;
+  routingNumber: string;
+  accountNumber: string;
+  accountType: 'checking' | 'savings';
+}) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -39,192 +34,352 @@ export async function createConnectAccount() {
     }
 
     const landlord = landlordResult.landlord;
-
-    // If already has a Connect account, return it
-    if (landlord.stripeConnectAccountId) {
-      return {
-        success: true,
-        accountId: landlord.stripeConnectAccountId,
-        alreadyExists: true,
-      };
-    }
-
     const stripe = getStripe();
 
-    // Create Express account
-    const account = await stripe.accounts.create({
-      type: 'express',
-      country: 'US',
-      email: session.user.email || undefined,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-      business_type: 'individual',
-      metadata: {
-        landlordId: landlord.id,
-        platform: 'property_management',
+    // Create a bank account token
+    const token = await stripe.tokens.create({
+      bank_account: {
+        country: 'US',
+        currency: 'usd',
+        account_holder_name: data.accountHolderName,
+        account_holder_type: 'individual',
+        routing_number: data.routingNumber,
+        account_number: data.accountNumber,
       },
     });
 
-    // Save to database
-    await prisma.landlord.update({
-      where: { id: landlord.id },
-      data: {
-        stripeConnectAccountId: account.id,
-        stripeOnboardingStatus: 'pending',
-      },
-    });
-
-    return {
-      success: true,
-      accountId: account.id,
-    };
-  } catch (error) {
-    console.error('Error creating Connect account:', error);
-    return { success: false, message: formatError(error) };
-  }
-}
-
-// ============= CREATE ACCOUNT SESSION FOR EMBEDDED ONBOARDING =============
-
-/**
- * Create an Account Session for embedded onboarding components
- * This allows the Connect Onboarding to appear directly in your app
- */
-export async function createConnectAccountSession() {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
-    }
-
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success || !landlordResult.landlord) {
-      return { success: false, message: landlordResult.message };
-    }
-
-    const landlord = landlordResult.landlord;
-
-    // Create account if doesn't exist
-    let accountId = landlord.stripeConnectAccountId;
-    if (!accountId) {
-      const createResult = await createConnectAccount();
-      if (!createResult.success || !createResult.accountId) {
-        return { success: false, message: createResult.message || 'Failed to create account' };
-      }
-      accountId = createResult.accountId;
-    }
-
-    const stripe = getStripe();
-
-    // Create account session for embedded components
-    const accountSession = await stripe.accountSessions.create({
-      account: accountId,
-      components: {
-        account_onboarding: { enabled: true },
-        payments: { enabled: true },
-        payouts: { enabled: true },
-      },
-    });
-
-    return {
-      success: true,
-      clientSecret: accountSession.client_secret,
-      accountId,
-    };
-  } catch (error) {
-    console.error('Error creating account session:', error);
-    return { success: false, message: formatError(error) };
-  }
-}
-
-// ============= GET CONNECT ACCOUNT STATUS =============
-
-/**
- * Get the current status of the landlord's Connect account
- */
-export async function getConnectAccountStatus() {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated', status: null };
-    }
-
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success || !landlordResult.landlord) {
-      return { success: false, message: landlordResult.message, status: null };
-    }
-
-    const landlord = landlordResult.landlord;
-
-    if (!landlord.stripeConnectAccountId) {
-      return {
-        success: true,
-        status: {
-          hasAccount: false,
-          isOnboarded: false,
-          canReceivePayouts: false,
-          payoutsEnabled: false,
-          chargesEnabled: false,
+    // Get or create Stripe customer for this landlord
+    let customerId = landlord.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: session.user.email || undefined,
+        name: landlord.name,
+        metadata: {
+          landlordId: landlord.id,
+          type: 'landlord_payout',
         },
-      };
-    }
+      });
+      customerId = customer.id;
 
-    const stripe = getStripe();
-    const account = await stripe.accounts.retrieve(landlord.stripeConnectAccountId);
-
-    const isOnboarded = account.details_submitted || false;
-    const canReceivePayouts = account.payouts_enabled || false;
-
-    // Update local status if changed
-    const newStatus = isOnboarded ? (canReceivePayouts ? 'active' : 'pending_verification') : 'pending';
-    if (landlord.stripeOnboardingStatus !== newStatus) {
       await prisma.landlord.update({
         where: { id: landlord.id },
-        data: { stripeOnboardingStatus: newStatus },
+        data: { stripeCustomerId: customerId },
       });
     }
 
+    // Attach bank account to customer
+    const bankAccount = await stripe.customers.createSource(customerId, {
+      source: token.id,
+    }) as Stripe.BankAccount;
+
+    // Check if this should be default
+    const existingMethods = await prisma.savedPayoutMethod.count({
+      where: { landlordId: landlord.id },
+    });
+
+    // Save to database
+    await prisma.savedPayoutMethod.create({
+      data: {
+        landlordId: landlord.id,
+        stripePaymentMethodId: bankAccount.id,
+        type: 'bank_account',
+        accountHolderName: data.accountHolderName,
+        last4: bankAccount.last4 || data.accountNumber.slice(-4),
+        bankName: bankAccount.bank_name || 'Bank Account',
+        accountType: data.accountType,
+        routingNumber: data.routingNumber.slice(-4),
+        isDefault: existingMethods === 0,
+        isVerified: bankAccount.status === 'verified',
+      },
+    });
+
+    revalidatePath('/admin/payouts');
+
     return {
       success: true,
-      status: {
-        hasAccount: true,
-        isOnboarded,
-        canReceivePayouts,
-        payoutsEnabled: account.payouts_enabled || false,
-        chargesEnabled: account.charges_enabled || false,
-        requirements: account.requirements,
-        bankAccountLast4: account.external_accounts?.data?.[0]?.last4 || null,
-      },
+      message: 'Bank account added successfully',
+      bankAccountId: bankAccount.id,
+      last4: bankAccount.last4,
     };
   } catch (error) {
-    console.error('Error getting Connect status:', error);
-    return { success: false, message: formatError(error), status: null };
+    console.error('Error adding bank account:', error);
+    return { success: false, message: formatError(error) };
   }
 }
+
+// ============= ADD DEBIT CARD FOR INSTANT PAYOUTS =============
+
+/**
+ * Add a debit card for instant payouts
+ * NOTE: For security, card details should be collected client-side using Stripe Elements
+ * and passed as a PaymentMethod ID. This function accepts a pre-created PaymentMethod.
+ */
+export async function addDebitCardFromPaymentMethod(paymentMethodId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+    const stripe = getStripe();
+
+    // Get or create Stripe customer
+    let customerId = landlord.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: session.user.email || undefined,
+        name: landlord.name,
+        metadata: {
+          landlordId: landlord.id,
+          type: 'landlord_payout',
+        },
+      });
+      customerId = customer.id;
+
+      await prisma.landlord.update({
+        where: { id: landlord.id },
+        data: { stripeCustomerId: customerId },
+      });
+    }
+
+    // Attach payment method to customer
+    const paymentMethod = await stripe.paymentMethods.attach(paymentMethodId, {
+      customer: customerId,
+    });
+
+    if (paymentMethod.type !== 'card' || !paymentMethod.card) {
+      return { success: false, message: 'Invalid payment method type' };
+    }
+
+    // Verify it's a debit card (required for instant payouts)
+    if (paymentMethod.card.funding !== 'debit') {
+      // Detach the payment method since it's not debit
+      await stripe.paymentMethods.detach(paymentMethodId);
+      return { 
+        success: false, 
+        message: 'Only debit cards are accepted for instant payouts. Please use a debit card.' 
+      };
+    }
+
+    // Check if this should be default
+    const existingMethods = await prisma.savedPayoutMethod.count({
+      where: { landlordId: landlord.id, type: 'card' },
+    });
+
+    // Save to database
+    await prisma.savedPayoutMethod.create({
+      data: {
+        landlordId: landlord.id,
+        stripePaymentMethodId: paymentMethod.id,
+        type: 'card',
+        accountHolderName: paymentMethod.billing_details.name || 'Debit Card',
+        last4: paymentMethod.card.last4,
+        bankName: paymentMethod.card.brand || 'Debit Card',
+        isDefault: existingMethods === 0,
+        isVerified: true,
+      },
+    });
+
+    revalidatePath('/admin/payouts');
+
+    return {
+      success: true,
+      message: 'Debit card added successfully',
+      cardId: paymentMethod.id,
+      last4: paymentMethod.card.last4,
+      brand: paymentMethod.card.brand,
+    };
+  } catch (error) {
+    console.error('Error adding debit card:', error);
+    return { success: false, message: formatError(error) };
+  }
+}
+
+/**
+ * @deprecated Use addDebitCardFromPaymentMethod with client-side Stripe Elements
+ */
+export async function addDebitCard(data: {
+  cardNumber: string;
+  expMonth: number;
+  expYear: number;
+  cvc: string;
+  cardholderName: string;
+}) {
+  // For security, raw card details should not be sent to the server
+  // Instead, use Stripe Elements on the client to create a PaymentMethod
+  // and call addDebitCardFromPaymentMethod with the PaymentMethod ID
+  return {
+    success: false,
+    message: 'Please use Stripe Elements to securely add your card. Raw card details cannot be processed server-side.',
+  };
+}
+
+// ============= LIST PAYOUT METHODS =============
+
+export async function listPayoutMethods() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated', methods: [] };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message, methods: [] };
+    }
+
+    const methods = await prisma.savedPayoutMethod.findMany({
+      where: { landlordId: landlordResult.landlord.id },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    return {
+      success: true,
+      methods: methods.map(m => ({
+        id: m.id,
+        stripeId: m.stripePaymentMethodId,
+        type: m.type,
+        last4: m.last4,
+        bankName: m.bankName,
+        accountType: m.accountType,
+        accountHolderName: m.accountHolderName,
+        isDefault: m.isDefault,
+        isVerified: m.isVerified,
+      })),
+    };
+  } catch (error) {
+    console.error('Error listing payout methods:', error);
+    return { success: false, message: formatError(error), methods: [] };
+  }
+}
+
+// ============= REMOVE PAYOUT METHOD =============
+
+export async function removePayoutMethod(methodId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+
+    const method = await prisma.savedPayoutMethod.findFirst({
+      where: { id: methodId, landlordId: landlord.id },
+    });
+
+    if (!method) {
+      return { success: false, message: 'Payout method not found' };
+    }
+
+    // Remove from Stripe
+    if (landlord.stripeCustomerId) {
+      const stripe = getStripe();
+      try {
+        await stripe.customers.deleteSource(landlord.stripeCustomerId, method.stripePaymentMethodId);
+      } catch {
+        // Ignore if already deleted from Stripe
+      }
+    }
+
+    // Remove from database
+    await prisma.savedPayoutMethod.delete({
+      where: { id: methodId },
+    });
+
+    // If this was default, make another one default
+    if (method.isDefault) {
+      const nextMethod = await prisma.savedPayoutMethod.findFirst({
+        where: { landlordId: landlord.id },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (nextMethod) {
+        await prisma.savedPayoutMethod.update({
+          where: { id: nextMethod.id },
+          data: { isDefault: true },
+        });
+      }
+    }
+
+    revalidatePath('/admin/payouts');
+
+    return { success: true, message: 'Payout method removed' };
+  } catch (error) {
+    console.error('Error removing payout method:', error);
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// ============= SET DEFAULT PAYOUT METHOD =============
+
+export async function setDefaultPayoutMethod(methodId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+
+    // Unset all defaults
+    await prisma.savedPayoutMethod.updateMany({
+      where: { landlordId: landlord.id },
+      data: { isDefault: false },
+    });
+
+    // Set new default
+    await prisma.savedPayoutMethod.update({
+      where: { id: methodId },
+      data: { isDefault: true },
+    });
+
+    revalidatePath('/admin/payouts');
+
+    return { success: true, message: 'Default payout method updated' };
+  } catch (error) {
+    console.error('Error setting default payout method:', error);
+    return { success: false, message: formatError(error) };
+  }
+}
+
 
 // ============= CREATE PAYOUT =============
 
 export interface CreatePayoutOptions {
-  amount?: number;
-  propertyId?: string; // If provided, use property's bank account as destination
-  instant?: boolean;
+  amount?: number; // If not provided, payout full available balance
+  payoutMethodId?: string; // If not provided, use default
+  payoutType?: PayoutType; // instant, same_day, or standard
 }
 
 export interface CreatePayoutResult {
   success: boolean;
   message: string;
   amount?: number;
-  transferId?: string;
-  destinationPropertyId?: string;
-  destinationPropertyName?: string;
-  destinationLast4?: string;
+  fee?: number;
+  netAmount?: number;
+  payoutId?: string;
+  estimatedArrival?: string;
 }
 
 /**
- * Transfer funds to landlord's Connect account and initiate payout
- * Optionally specify a propertyId to direct funds to that property's bank account
+ * Create a payout from landlord's available balance
+ * Sends funds directly from YOUR platform Stripe account to landlord's bank/card
  */
 export async function createPayout(options: CreatePayoutOptions = {}): Promise<CreatePayoutResult> {
   try {
@@ -239,18 +394,7 @@ export async function createPayout(options: CreatePayoutOptions = {}): Promise<C
     }
 
     const landlord = landlordResult.landlord;
-
-    if (!landlord.stripeConnectAccountId) {
-      return { success: false, message: 'Please complete payout setup first.' };
-    }
-
-    // Check account status
-    const stripe = getStripe();
-    const account = await stripe.accounts.retrieve(landlord.stripeConnectAccountId);
-
-    if (!account.payouts_enabled) {
-      return { success: false, message: 'Payouts not enabled. Please complete account verification.' };
-    }
+    const payoutType = options.payoutType || 'standard';
 
     // Get wallet balance
     const wallet = await prisma.landlordWallet.findUnique({
@@ -262,137 +406,178 @@ export async function createPayout(options: CreatePayoutOptions = {}): Promise<C
     }
 
     const availableBalance = Number(wallet.availableBalance);
-    const payoutAmount = options.amount || availableBalance;
+    const requestedAmount = options.amount || availableBalance;
 
-    if (payoutAmount > availableBalance) {
-      return { success: false, message: 'Amount exceeds available balance.' };
+    if (requestedAmount > availableBalance) {
+      return { success: false, message: `Amount exceeds available balance of $${availableBalance.toFixed(2)}.` };
     }
 
-    if (payoutAmount < 1) {
+    if (requestedAmount < 1) {
       return { success: false, message: 'Minimum payout is $1.00.' };
     }
 
-    // Fetch property bank account if propertyId is provided
-    let propertyBankAccount = null;
-    let propertyName: string | null = null;
+    // Calculate fee
+    const fee = calculatePayoutFee(requestedAmount, payoutType);
+    const netAmount = requestedAmount - fee;
 
-    if (options.propertyId) {
-      const property = await prisma.property.findFirst({
-        where: {
-          id: options.propertyId,
-          landlordId: landlord.id,
-        },
-        include: {
-          bankAccount: true,
-        },
+    if (netAmount <= 0) {
+      return { success: false, message: 'Amount too small after fees.' };
+    }
+
+    // Get payout method
+    let payoutMethod;
+    if (options.payoutMethodId) {
+      payoutMethod = await prisma.savedPayoutMethod.findFirst({
+        where: { id: options.payoutMethodId, landlordId: landlord.id },
       });
-
-      if (!property) {
-        return { success: false, message: 'Property not found or access denied.' };
-      }
-
-      propertyName = property.name;
-
-      if (property.bankAccount) {
-        propertyBankAccount = property.bankAccount;
-      }
+    } else {
+      payoutMethod = await prisma.savedPayoutMethod.findFirst({
+        where: { landlordId: landlord.id, isDefault: true },
+      });
     }
 
-    // Build metadata with destination info
-    const payoutMetadata: Record<string, unknown> = {
-      type: options.instant ? 'instant' : 'standard',
-      requestedAt: new Date().toISOString(),
-      destinationType: propertyBankAccount ? 'property_account' : 'default_account',
-    };
-
-    if (propertyBankAccount && options.propertyId) {
-      payoutMetadata.destinationPropertyId = options.propertyId;
-      payoutMetadata.destinationPropertyName = propertyName;
-      payoutMetadata.destinationBankLast4 = propertyBankAccount.last4;
+    if (!payoutMethod) {
+      return { success: false, message: 'No payout method found. Please add a bank account or debit card.' };
     }
 
-    // Create payout record with destination metadata
+    // Validate payout type matches method
+    if (payoutType === 'instant' && payoutMethod.type !== 'card') {
+      return { success: false, message: 'Instant payouts require a debit card. Please add a debit card or choose a different payout speed.' };
+    }
+
+    if (!landlord.stripeCustomerId) {
+      return { success: false, message: 'Payment setup incomplete. Please re-add your payout method.' };
+    }
+
+    const stripe = getStripe();
+
+    // Create payout record
     const payout = await prisma.payout.create({
       data: {
         landlordId: landlord.id,
-        amount: payoutAmount,
+        amount: requestedAmount,
         status: 'pending',
-        metadata: payoutMetadata,
+        metadata: {
+          payoutType,
+          fee,
+          netAmount,
+          payoutMethodId: payoutMethod.id,
+          payoutMethodLast4: payoutMethod.last4,
+        },
       },
     });
 
     try {
-      // Build transfer options
-      const transferOptions: Stripe.TransferCreateParams = {
-        amount: Math.round(payoutAmount * 100),
+      // For platform-held funds, we use Stripe Transfers to send money out
+      // First, check your platform's available balance
+      const balance = await stripe.balance.retrieve();
+      const availableStripeBalance = balance.available.find(b => b.currency === 'usd')?.amount || 0;
+      
+      if (availableStripeBalance < Math.round(netAmount * 100)) {
+        await prisma.payout.update({
+          where: { id: payout.id },
+          data: { status: 'failed' },
+        });
+        return { 
+          success: false, 
+          message: 'Insufficient platform balance. Please try again later or contact support.' 
+        };
+      }
+
+      // Create payout to the landlord's bank account or card
+      const stripePayout = await stripe.payouts.create({
+        amount: Math.round(netAmount * 100),
         currency: 'usd',
-        destination: landlord.stripeConnectAccountId,
+        destination: payoutMethod.stripePaymentMethodId,
+        method: payoutType === 'instant' ? 'instant' : 'standard',
         metadata: {
           landlordId: landlord.id,
           payoutId: payout.id,
-          ...(options.propertyId && { propertyId: options.propertyId }),
+          payoutType,
+          originalAmount: requestedAmount.toString(),
+          fee: fee.toString(),
         },
-      };
+      });
 
-      // Transfer funds to connected account
-      const transfer = await stripe.transfers.create(transferOptions);
-
-      // Update payout record with success
+      // Update payout record
       await prisma.payout.update({
         where: { id: payout.id },
         data: {
-          stripeTransferId: transfer.id,
+          stripeTransferId: stripePayout.id,
           status: 'paid',
           paidAt: new Date(),
         },
       });
 
-      // Deduct from wallet
+      // Deduct from wallet (full amount including fee)
       await prisma.landlordWallet.update({
         where: { id: wallet.id },
         data: {
-          availableBalance: { decrement: payoutAmount },
+          availableBalance: { decrement: requestedAmount },
           lastPayoutAt: new Date(),
         },
       });
 
-      // Build description with destination info
-      const description = propertyBankAccount
-        ? `Cash out to ${propertyName} (****${propertyBankAccount.last4})`
-        : 'Cash out to bank';
-
-      // Record transaction
+      // Record wallet transaction
       await prisma.walletTransaction.create({
         data: {
           walletId: wallet.id,
           type: 'payout',
-          amount: -payoutAmount,
-          description,
+          amount: -requestedAmount,
+          description: `${payoutType === 'instant' ? 'Instant' : payoutType === 'same_day' ? 'Same-day' : 'Standard'} payout to ****${payoutMethod.last4}`,
           status: 'completed',
           referenceId: payout.id,
+          metadata: {
+            payoutType,
+            fee,
+            netAmount,
+            stripePayoutId: stripePayout.id,
+          },
         },
       });
 
+      // Record fee if any
+      if (fee > 0) {
+        await prisma.platformFee.create({
+          data: {
+            payoutId: payout.id,
+            landlordId: landlord.id,
+            amount: fee,
+            type: `${payoutType}_payout_fee`,
+          },
+        });
+      }
+
       revalidatePath('/admin/payouts');
+
+      const estimatedArrival = getEstimatedArrival(payoutType);
 
       return {
         success: true,
-        message: `$${payoutAmount.toFixed(2)} sent! Funds arrive in 2-3 business days.`,
-        amount: payoutAmount,
-        transferId: transfer.id,
-        destinationPropertyId: options.propertyId,
-        destinationPropertyName: propertyName || undefined,
-        destinationLast4: propertyBankAccount?.last4,
+        message: `$${netAmount.toFixed(2)} sent to ****${payoutMethod.last4}. ${estimatedArrival}.`,
+        amount: requestedAmount,
+        fee,
+        netAmount,
+        payoutId: payout.id,
+        estimatedArrival,
       };
     } catch (stripeError) {
-      // Mark payout as failed but preserve wallet balance
       await prisma.payout.update({
         where: { id: payout.id },
         data: { status: 'failed' },
       });
 
-      const err = stripeError as { message?: string };
-      console.error('Transfer error:', err);
+      const err = stripeError as { message?: string; code?: string };
+      console.error('Payout error:', err);
+      
+      // Provide helpful error messages
+      if (err.code === 'balance_insufficient') {
+        return { success: false, message: 'Platform balance insufficient. Please try again later.' };
+      }
+      if (err.code === 'invalid_bank_account') {
+        return { success: false, message: 'Invalid bank account. Please update your payout method.' };
+      }
+      
       return { success: false, message: err.message || 'Failed to process payout.' };
     }
   } catch (error) {
@@ -401,12 +586,36 @@ export async function createPayout(options: CreatePayoutOptions = {}): Promise<C
   }
 }
 
-// ============= CREATE ONBOARDING LINK (FALLBACK) =============
+// ============= GET PAYOUT PREVIEW =============
 
 /**
- * Create a hosted onboarding link (fallback if embedded doesn't work)
+ * Preview payout fees and net amount before confirming
  */
-export async function createOnboardingLink() {
+export async function getPayoutPreview(amount: number, payoutType: PayoutType = 'standard') {
+  const fee = calculatePayoutFee(amount, payoutType);
+  const netAmount = amount - fee;
+  const estimatedArrival = getEstimatedArrival(payoutType);
+
+  return {
+    amount,
+    fee,
+    netAmount,
+    payoutType,
+    estimatedArrival,
+    feeBreakdown: payoutType === 'instant' 
+      ? `${PAYOUT_FEES.INSTANT.percentage}% (min $${PAYOUT_FEES.INSTANT.minimum.toFixed(2)})`
+      : payoutType === 'same_day'
+      ? `$${PAYOUT_FEES.SAME_DAY.flat.toFixed(2)} flat fee`
+      : 'Free',
+  };
+}
+
+// ============= GET WALLET SUMMARY =============
+
+/**
+ * Get complete wallet summary for landlord dashboard
+ */
+export async function getWalletSummary() {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -420,31 +629,115 @@ export async function createOnboardingLink() {
 
     const landlord = landlordResult.landlord;
 
-    let accountId = landlord.stripeConnectAccountId;
-    if (!accountId) {
-      const createResult = await createConnectAccount();
-      if (!createResult.success || !createResult.accountId) {
-        return { success: false, message: 'Failed to create account' };
-      }
-      accountId = createResult.accountId;
+    const wallet = await prisma.landlordWallet.findUnique({
+      where: { landlordId: landlord.id },
+    });
+
+    if (!wallet) {
+      return {
+        success: true,
+        summary: {
+          availableBalance: 0,
+          pendingBalance: 0,
+          totalBalance: 0,
+          pendingTransactions: [],
+          recentPayouts: [],
+        },
+      };
     }
 
-    const stripe = getStripe();
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Get pending transactions with availability dates
+    const pendingTransactions = await prisma.walletTransaction.findMany({
+      where: {
+        walletId: wallet.id,
+        status: 'pending',
+        type: 'credit',
+      },
+      orderBy: { availableAt: 'asc' },
+      take: 10,
+    });
 
-    const accountLink = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: `${baseUrl}/admin/payouts?refresh=true`,
-      return_url: `${baseUrl}/admin/payouts?success=true`,
-      type: 'account_onboarding',
+    // Get recent payouts
+    const recentPayouts = await prisma.payout.findMany({
+      where: { landlordId: landlord.id },
+      orderBy: { initiatedAt: 'desc' },
+      take: 5,
     });
 
     return {
       success: true,
-      url: accountLink.url,
+      summary: {
+        availableBalance: Number(wallet.availableBalance),
+        pendingBalance: Number(wallet.pendingBalance),
+        totalBalance: Number(wallet.availableBalance) + Number(wallet.pendingBalance),
+        lastPayoutAt: wallet.lastPayoutAt,
+        pendingTransactions: pendingTransactions.map(t => ({
+          id: t.id,
+          amount: Number(t.amount),
+          description: t.description,
+          availableAt: t.availableAt,
+          createdAt: t.createdAt,
+        })),
+        recentPayouts: recentPayouts.map(p => ({
+          id: p.id,
+          amount: Number(p.amount),
+          status: p.status,
+          initiatedAt: p.initiatedAt,
+          paidAt: p.paidAt,
+          metadata: p.metadata,
+        })),
+      },
     };
   } catch (error) {
-    console.error('Error creating onboarding link:', error);
+    console.error('Error getting wallet summary:', error);
     return { success: false, message: formatError(error) };
   }
+}
+
+// ============= DEPRECATED: CONNECT ACCOUNT FUNCTIONS =============
+// These are kept for backward compatibility but are no longer needed
+
+/**
+ * @deprecated No longer needed - landlords don't need Connect accounts
+ */
+export async function createConnectAccount() {
+  return { 
+    success: false, 
+    message: 'Connect accounts are no longer required. Please add a bank account or debit card for payouts.' 
+  };
+}
+
+/**
+ * @deprecated No longer needed - landlords don't need Connect accounts
+ */
+export async function createConnectAccountSession() {
+  return { 
+    success: false, 
+    message: 'Connect onboarding is no longer required. Please add a bank account or debit card for payouts.' 
+  };
+}
+
+/**
+ * @deprecated No longer needed - landlords don't need Connect accounts
+ */
+export async function getConnectAccountStatus() {
+  return { 
+    success: true, 
+    status: {
+      hasAccount: false,
+      isOnboarded: true, // Always true now - no onboarding needed
+      canReceivePayouts: true,
+      message: 'Add a bank account or debit card to receive payouts.',
+    },
+  };
+}
+
+/**
+ * @deprecated Use createPayout instead
+ */
+export async function createOnboardingLink() {
+  return { 
+    success: false, 
+    message: 'Connect onboarding is no longer required. Please add a bank account or debit card for payouts.' 
+  };
 }

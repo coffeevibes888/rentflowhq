@@ -19,13 +19,13 @@ export default async function ContractorsPage() {
 
   const landlordResult = await getOrCreateCurrentLandlord();
   
-  if (!landlordResult.success) {
+  if (!landlordResult.success || !landlordResult.landlord) {
     redirect('/admin');
   }
 
   const tier = normalizeTier(landlordResult.landlord.subscriptionTier);
   
-  if (tier === 'free') {
+  if (tier === 'starter') {
     return (
       <div className="container mx-auto py-10">
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center">

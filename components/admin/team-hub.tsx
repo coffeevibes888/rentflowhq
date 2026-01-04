@@ -65,7 +65,7 @@ interface TeamHubProps {
   };
   landlordId: string;
   teamMembers: TeamMemberData[];
-  subscriptionTier: 'free' | 'pro' | 'enterprise';
+  subscriptionTier: 'starter' | 'pro' | 'enterprise';
   features?: {
     teamManagement?: boolean;
     teamCommunications?: boolean;

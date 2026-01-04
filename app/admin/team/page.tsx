@@ -53,9 +53,9 @@ export default async function TeamPage() {
   }
 
   // Determine subscription tier
-  const tier = landlordResult.success 
+  const tier = landlordResult.success && landlordResult.landlord
     ? normalizeTier(landlordResult.landlord.subscriptionTier)
-    : 'free';
+    : 'starter';
 
   return (
     <main className="w-full min-h-[600px] pb-8">
@@ -66,9 +66,9 @@ export default async function TeamPage() {
           email: session?.user?.email || '',
           image: session?.user?.image || undefined,
         }}
-        landlordId={landlordResult.success ? landlordResult.landlord.id : ''}
+        landlordId={landlordResult.success && landlordResult.landlord ? landlordResult.landlord.id : ''}
         teamMembers={teamData.success && teamData.members ? teamData.members : []}
-        subscriptionTier={tier as 'free' | 'pro' | 'enterprise'}
+        subscriptionTier={tier as 'starter' | 'pro' | 'enterprise'}
         features={{
           teamManagement: subscriptionData.features?.teamManagement,
           teamCommunications: subscriptionData.features?.teamCommunications,

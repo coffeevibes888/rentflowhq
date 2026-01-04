@@ -18,7 +18,7 @@ import { requireAdmin } from '@/lib/auth-guard';
 
 interface User {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
   role: string;
   image: string | null;
@@ -74,18 +74,18 @@ const AdminUserPage = async (props: {
                   {user.image ? (
                     <Image
                       src={user.image}
-                      alt={user.name}
+                      alt={user.name || 'User'}
                       width={80}
                       height={80}
                       className='rounded-lg object-cover'
                     />
                   ) : (
                     <div className='w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg'>
-                      {user.name?.charAt(0).toUpperCase()}
+                      {user.name?.charAt(0).toUpperCase() || '?'}
                     </div>
                   )}
                 </TableCell>
-                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.name || 'Unknown'}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   {user.role === 'user' ? (

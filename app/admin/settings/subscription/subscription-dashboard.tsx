@@ -16,7 +16,7 @@ interface SubscriptionDashboardProps {
   features: TierFeatures;
 }
 
-const TIER_ORDER: SubscriptionTier[] = ['free', 'pro', 'enterprise'];
+const TIER_ORDER: SubscriptionTier[] = ['starter', 'pro', 'enterprise'];
 
 const FEATURE_DETAILS = [
   { key: 'automaticRentReminders', label: 'Automatic Rent Reminders', icon: Bell, description: 'Send automated reminders before rent is due' },
@@ -231,7 +231,7 @@ export function SubscriptionDashboard({
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Sync from Stripe
           </Button>
-          {currentTier !== 'free' && (
+          {currentTier !== 'starter' && (
             <>
               <Button
                 onClick={handleManageBilling}
@@ -281,8 +281,8 @@ export function SubscriptionDashboard({
         </div>
       </div>
 
-      {/* Referral Code Section - Only show for free tier users */}
-      {currentTier === 'free' && (
+      {/* Referral Code Section - Only show for starter tier users */}
+      {currentTier === 'starter' && (
         <div className="rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Gift className="h-5 w-5 text-violet-400" />

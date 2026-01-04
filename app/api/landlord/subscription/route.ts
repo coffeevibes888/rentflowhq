@@ -33,17 +33,17 @@ export async function GET() {
     });
 
     // Normalize legacy tier names (growth, professional) to new structure
-    const rawTier = subscription?.tier || landlord.subscriptionTier || 'free';
-    const currentTier = rawTier === 'growth' || rawTier === 'professional' ? 'pro' : rawTier;
+    const rawTier = subscription?.tier || landlord.subscriptionTier || 'starter';
+    const currentTier = rawTier === 'growth' || rawTier === 'professional' ? 'pro' : rawTier === 'free' ? 'starter' : rawTier;
     const tierConfig = SUBSCRIPTION_TIERS[currentTier as keyof typeof SUBSCRIPTION_TIERS];
 
     if (!tierConfig) {
-      // Fallback to free if tier is invalid
-      const fallbackConfig = SUBSCRIPTION_TIERS.free;
+      // Fallback to starter if tier is invalid
+      const fallbackConfig = SUBSCRIPTION_TIERS.starter;
       return NextResponse.json({
         success: true,
         subscription: {
-          tier: 'free',
+          tier: 'starter',
           tierName: fallbackConfig.name,
           status: subscription?.status || 'active',
           unitLimit: fallbackConfig.unitLimit,

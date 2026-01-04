@@ -1,9 +1,46 @@
 /**
  * Wallet Service
  * Handles crediting landlord wallets when rent payments are received
+ * 
+ * PLATFORM-HELD FUNDS MODEL:
+ * - All payments go to YOUR platform Stripe account
+ * - Funds are held in pending until Stripe releases them (2 days card, 5-7 days ACH)
+ * - Once available, landlords can cash out via instant/same-day/standard
  */
 
 import { prisma } from '@/db/prisma';
+
+// Hold periods based on payment method (business days)
+const HOLD_PERIODS = {
+  card: 2,           // Card payments: 2 business days
+  us_bank_account: 5, // ACH: 5-7 business days (using 5 as minimum)
+  ach_debit: 5,
+  link: 2,           // Stripe Link: same as card
+  apple_pay: 2,
+  google_pay: 2,
+  default: 2,
+};
+
+/**
+ * Calculate when funds will be available based on payment method
+ */
+function calculateAvailableAt(paymentMethod: string): Date {
+  const holdDays = HOLD_PERIODS[paymentMethod as keyof typeof HOLD_PERIODS] || HOLD_PERIODS.default;
+  
+  const availableAt = new Date();
+  let daysAdded = 0;
+  
+  // Add business days (skip weekends)
+  while (daysAdded < holdDays) {
+    availableAt.setDate(availableAt.getDate() + 1);
+    const dayOfWeek = availableAt.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      daysAdded++;
+    }
+  }
+  
+  return availableAt;
+}
 
 interface CreditWalletParams {
   landlordId: string;
@@ -16,8 +53,11 @@ interface CreditWalletParams {
 
 /**
  * Credit a landlord's wallet when a rent payment is received
- * ACH payments go to pending balance (7-day hold)
- * Card payments are available immediately
+ * 
+ * PLATFORM-HELD MODEL:
+ * - ALL payments go to pendingBalance first
+ * - Funds move to availableBalance when Stripe releases them to your account
+ * - Card: 2 business days, ACH: 5-7 business days
  */
 export async function creditLandlordWallet({
   landlordId,
@@ -42,46 +82,47 @@ export async function creditLandlordWallet({
     });
   }
 
-  // Determine if this is an ACH payment (needs 7-day hold)
-  const isACH = paymentMethod === 'us_bank_account' || paymentMethod === 'ach_debit';
+  // Calculate when funds will be available
+  const availableAt = calculateAvailableAt(paymentMethod);
+  const holdDays = HOLD_PERIODS[paymentMethod as keyof typeof HOLD_PERIODS] || HOLD_PERIODS.default;
 
-  if (isACH) {
-    // ACH payments go to pending first (7-day hold)
-    await prisma.landlordWallet.update({
-      where: { id: wallet.id },
-      data: {
-        pendingBalance: { increment: amount },
-      },
-    });
-  } else {
-    // Card payments are available immediately
-    await prisma.landlordWallet.update({
-      where: { id: wallet.id },
-      data: {
-        availableBalance: { increment: amount },
-      },
-    });
-  }
+  // ALL payments go to pending first (platform-held model)
+  await prisma.landlordWallet.update({
+    where: { id: wallet.id },
+    data: {
+      pendingBalance: { increment: amount },
+    },
+  });
 
-  // Record wallet transaction
+  // Record wallet transaction with availableAt date
   await prisma.walletTransaction.create({
     data: {
       walletId: wallet.id,
       type: 'credit',
       amount,
       description,
-      status: isACH ? 'pending' : 'completed',
+      status: 'pending',
       referenceId,
-      metadata: metadata || {},
+      availableAt,
+      metadata: {
+        ...metadata,
+        paymentMethod,
+        holdDays,
+      },
     },
   });
 
-  return { success: true, isACH };
+  return { 
+    success: true, 
+    availableAt,
+    holdDays,
+    paymentMethod,
+  };
 }
 
 /**
  * Move pending balance to available balance
- * Called by a cron job after 7-day hold period
+ * Called by cron job when funds are ready (based on availableAt date)
  */
 export async function releasePendingBalance(transactionId: string) {
   const transaction = await prisma.walletTransaction.findUnique({
@@ -135,4 +176,35 @@ export async function getWalletBalance(landlordId: string) {
     pendingBalance: Number(wallet.pendingBalance),
     totalBalance: Number(wallet.availableBalance) + Number(wallet.pendingBalance),
   };
+}
+
+/**
+ * Get pending transactions with their availability dates
+ */
+export async function getPendingTransactions(landlordId: string) {
+  const wallet = await prisma.landlordWallet.findUnique({
+    where: { landlordId },
+  });
+
+  if (!wallet) {
+    return [];
+  }
+
+  const transactions = await prisma.walletTransaction.findMany({
+    where: {
+      walletId: wallet.id,
+      status: 'pending',
+      type: 'credit',
+    },
+    orderBy: { availableAt: 'asc' },
+  });
+
+  return transactions.map(t => ({
+    id: t.id,
+    amount: Number(t.amount),
+    description: t.description,
+    availableAt: t.availableAt,
+    createdAt: t.createdAt,
+    metadata: t.metadata as Record<string, unknown>,
+  }));
 }

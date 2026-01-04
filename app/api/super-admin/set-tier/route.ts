@@ -162,19 +162,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'landlordId is required' }, { status: 400 });
     }
 
-    // Reset to free tier
-    const freeTier = SUBSCRIPTION_TIERS.free;
+    // Reset to starter tier
+    const starterTier = SUBSCRIPTION_TIERS.starter;
 
     await prisma.landlordSubscription.upsert({
       where: { landlordId },
       create: {
         landlordId,
-        tier: 'free',
+        tier: 'starter',
         status: 'active',
-        unitLimit: freeTier.unitLimit,
-        freeBackgroundChecks: freeTier.features.freeBackgroundChecks,
-        freeEvictionChecks: freeTier.features.freeEvictionChecks,
-        freeEmploymentVerification: freeTier.features.freeEmploymentVerification,
+        unitLimit: starterTier.unitLimit,
+        freeBackgroundChecks: starterTier.features.freeBackgroundChecks,
+        freeEvictionChecks: starterTier.features.freeEvictionChecks,
+        freeEmploymentVerification: starterTier.features.freeEmploymentVerification,
         currentPeriodStart: new Date(),
         currentPeriodEnd: null,
         isGranted: false,
@@ -182,12 +182,12 @@ export async function DELETE(request: NextRequest) {
         grantedAt: null,
       },
       update: {
-        tier: 'free',
+        tier: 'starter',
         status: 'active',
-        unitLimit: freeTier.unitLimit,
-        freeBackgroundChecks: freeTier.features.freeBackgroundChecks,
-        freeEvictionChecks: freeTier.features.freeEvictionChecks,
-        freeEmploymentVerification: freeTier.features.freeEmploymentVerification,
+        unitLimit: starterTier.unitLimit,
+        freeBackgroundChecks: starterTier.features.freeBackgroundChecks,
+        freeEvictionChecks: starterTier.features.freeEvictionChecks,
+        freeEmploymentVerification: starterTier.features.freeEmploymentVerification,
         currentPeriodEnd: null,
         isGranted: false,
         grantedBy: null,

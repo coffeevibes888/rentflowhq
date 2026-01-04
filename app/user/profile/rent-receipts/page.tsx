@@ -220,7 +220,6 @@ export default async function UserProfileRentReceiptsPage() {
                     <div className='sm:text-right'>
                       <RentPayClient
                         rentPaymentIds={currentPayments.map((p) => p.id)}
-                        totalInCents={Math.round(currentTotalAmount * 100)}
                       />
                       <p className='mt-1 text-[11px] text-gray-300'>Payments are securely processed and recorded via Stripe.</p>
                     </div>

@@ -56,7 +56,7 @@ const AdminOverviewPage = async (props: {
 
   const landlordResult = await getOrCreateCurrentLandlord();
 
-  if (!landlordResult.success) {
+  if (!landlordResult.success || !landlordResult.landlord) {
     throw new Error(landlordResult.message || 'Unable to determine landlord');
   }
 

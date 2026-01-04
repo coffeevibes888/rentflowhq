@@ -17,7 +17,7 @@ const AdminProductsPage = async (props: {
   await requireAdmin();
 
   const landlordResult = await getOrCreateCurrentLandlord();
-  if (!landlordResult.success) {
+  if (!landlordResult.success || !landlordResult.landlord) {
     throw new Error(landlordResult.message || 'Unable to determine landlord');
   }
   const landlordId = landlordResult.landlord.id;

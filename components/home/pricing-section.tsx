@@ -14,9 +14,9 @@ import {
 
 const tiers = [
   {
-    id: 'free',
-    name: 'Free',
-    price: 0,
+    id: 'starter',
+    name: 'Starter',
+    price: 9.99,
     description: 'Perfect for small landlords.',
     unitLimit: 'Up to 24 units',
     icon: Building2,
@@ -33,14 +33,14 @@ const tiers = [
       { name: 'Automated Application Process', included: true },
       { name: 'Free Lease Builder', included: true },
     ],
-    cta: 'Start Free',
+    cta: 'Start Free with 7 day free trial',
     iconBg: 'bg-slate-500/20',
     iconColor: 'text-slate-300',
   },
   {
     id: 'pro',
     name: 'Pro',
-    price: 29.99,
+    price: 19.99,
     description: 'For growing landlords. The only tool that scales with you.',
     unitLimit: 'Up to 75 units',
     icon: Zap,
@@ -57,14 +57,14 @@ const tiers = [
       { name: 'Advanced analytics & Reporting', included: true },
       { name: 'Priority support', included: true },
     ],
-    cta: 'Get Started',
+    cta: 'Start for free with a 7 day free trial',
     iconBg: 'bg-violet-500/20',
     iconColor: 'text-violet-300',
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: 79.99,
+    price: 39.99,
     description: 'Full-scale property management operations.',
     unitLimit: 'Unlimited units',
     icon: Crown,
@@ -83,7 +83,7 @@ const tiers = [
       { name: 'API access & webhooks', included: true },
       { name: 'Hiring Emplyees and posting jobs', included: true },
     ],
-    cta: 'Get Enterprise',
+    cta: 'Start For Free with 7 day free trial',
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-300',
   },
@@ -102,7 +102,7 @@ export default function PricingSection() {
       // Check if user is a landlord/admin
       if (session.user.role === 'admin' || session.user.role === 'landlord') {
         // Already an admin, go to subscription checkout or dashboard
-        if (tierId === 'free') {
+        if (tierId === 'starter') {
           router.push('/admin/overview');
         } else {
           // Redirect to subscription checkout page

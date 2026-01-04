@@ -21,7 +21,7 @@ const AdminProductUpdatePage = async (props: {
   const { id } = await props.params;
 
   const landlordResult = await getOrCreateCurrentLandlord();
-  if (!landlordResult.success) return notFound();
+  if (!landlordResult.success || !landlordResult.landlord) return notFound();
 
   // First try to find as a property (new system)
   const property = await prisma.property.findFirst({

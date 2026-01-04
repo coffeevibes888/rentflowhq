@@ -1,16 +1,28 @@
+/**
+ * Subscription Tiers Configuration
+ * 
+ * PRICING MODEL:
+ * - Starter: $9.99/month (up to 24 units)
+ * - Pro: $19.99/month (up to 75 units)
+ * - Enterprise: $39.99/month (unlimited)
+ * 
+ * All tiers include 7-day free trial
+ * No transaction fees - subscription only revenue model
+ */
+
 export const SUBSCRIPTION_TIERS = {
-  free: {
-    name: 'Free',
-    price: 0,
-    priceId: null,
+  starter: {
+    name: 'Starter',
+    price: 9.99,
+    priceId: process.env.STRIPE_PRICE_STARTER || null,
     unitLimit: 24,
-    noCashoutFees: false, // Free tier pays $2 platform fee on cashouts
+    trialDays: 7,
     features: {
-      automaticRentReminders: false,
+      automaticRentReminders: true,
       automaticLateFees: false,
       employmentChecksPerMonth: 0,
       teamManagement: false,
-      teamCommunications: false, // No team chat for free tier
+      teamCommunications: false,
       freeBackgroundChecks: false,
       freeEvictionChecks: false,
       freeEmploymentVerification: false,
@@ -20,7 +32,7 @@ export const SUBSCRIPTION_TIERS = {
       advancedAnalytics: false,
       quickbooksIntegration: false,
       turbotaxIntegration: false,
-      contractorManagement: true, // FREE - Contractor marketplace is free for everyone ($1 fee on payments)
+      contractorManagement: true,
       // Enterprise-only features
       shiftScheduling: false,
       timeTracking: false,
@@ -32,10 +44,10 @@ export const SUBSCRIPTION_TIERS = {
   },
   pro: {
     name: 'Pro',
-    price: 29.99,
+    price: 19.99,
     priceId: process.env.STRIPE_PRICE_PRO || null,
     unitLimit: 75,
-    noCashoutFees: true, // Paid tier - no platform cashout fees (only Stripe fees)
+    trialDays: 7,
     features: {
       automaticRentReminders: true,
       automaticLateFees: true,
@@ -51,7 +63,7 @@ export const SUBSCRIPTION_TIERS = {
       advancedAnalytics: true,
       quickbooksIntegration: true,
       turbotaxIntegration: true,
-      contractorManagement: true, // FREE for all tiers - $1 fee on payments
+      contractorManagement: true,
       // Enterprise-only features (disabled for Pro)
       shiftScheduling: false,
       timeTracking: false,
@@ -59,14 +71,14 @@ export const SUBSCRIPTION_TIERS = {
       performanceReports: false,
       unlimitedTeamMembers: false,
     },
-    description: 'Everything you need for 25-75 units with full team features',
+    description: 'Everything you need for growing portfolios up to 75 units',
   },
   enterprise: {
     name: 'Enterprise',
-    price: 79.99,
+    price: 39.99,
     priceId: process.env.STRIPE_PRICE_ENTERPRISE || null,
     unitLimit: Infinity,
-    noCashoutFees: true,
+    trialDays: 7,
     features: {
       automaticRentReminders: true,
       automaticLateFees: true,
@@ -90,7 +102,7 @@ export const SUBSCRIPTION_TIERS = {
       performanceReports: true,
       unlimitedTeamMembers: true,
     },
-    description: 'Full business operations with scheduling, time tracking, payroll, and unlimited team members.',
+    description: 'Unlimited units with full business operations suite',
   },
 } as const;
 
@@ -99,31 +111,31 @@ export type TierFeatures = typeof SUBSCRIPTION_TIERS[SubscriptionTier]['features
 
 /**
  * Normalize legacy tier names to current tier names
- * Maps old 'growth' and 'professional' tiers to 'pro'
  */
 export function normalizeTier(tier: string | null | undefined): SubscriptionTier {
-  if (!tier) return 'free';
+  if (!tier) return 'starter';
   
   // Map legacy tiers to new structure
   const tierMap: Record<string, SubscriptionTier> = {
-    'free': 'free',
-    'growth': 'pro',      // Legacy: map to pro
-    'professional': 'pro', // Legacy: map to pro
+    'free': 'starter',        // Legacy: map to starter
+    'starter': 'starter',
+    'growth': 'pro',          // Legacy: map to pro
+    'professional': 'pro',    // Legacy: map to pro
     'pro': 'pro',
     'enterprise': 'enterprise',
   };
   
-  return tierMap[tier.toLowerCase()] || 'free';
+  return tierMap[tier.toLowerCase()] || 'starter';
 }
 
 export function getTierForUnitCount(unitCount: number): SubscriptionTier {
-  if (unitCount <= 24) return 'free';
+  if (unitCount <= 24) return 'starter';
   if (unitCount <= 75) return 'pro';
   return 'enterprise';
 }
 
 export function getRequiredTierForUnitCount(unitCount: number): SubscriptionTier {
-  if (unitCount <= 24) return 'free';
+  if (unitCount <= 24) return 'starter';
   if (unitCount <= 75) return 'pro';
   return 'enterprise';
 }
@@ -171,7 +183,7 @@ export function isAtUnitLimit(currentUnitCount: number, tier: SubscriptionTier):
 
 export function getUpgradeTier(currentTier: SubscriptionTier): SubscriptionTier | null {
   switch (currentTier) {
-    case 'free':
+    case 'starter':
       return 'pro';
     case 'pro':
       return 'enterprise';
@@ -181,9 +193,15 @@ export function getUpgradeTier(currentTier: SubscriptionTier): SubscriptionTier 
 }
 
 /**
- * Check if a tier has no platform cashout fees
- * Growth, Professional, and Enterprise tiers only pay Stripe's fees
+ * Get trial period in days for a tier
+ */
+export function getTrialDays(tier: SubscriptionTier): number {
+  return SUBSCRIPTION_TIERS[tier].trialDays;
+}
+
+/**
+ * @deprecated No longer used - subscription model has no transaction fees
  */
 export function hasNoCashoutFees(tier: SubscriptionTier): boolean {
-  return SUBSCRIPTION_TIERS[tier].noCashoutFees;
+  return true; // All tiers have no platform fees now
 }

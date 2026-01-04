@@ -17,7 +17,7 @@ export default async function AdminInvoicesPage({
   const preselectedPropertyId = params.propertyId;
 
   const landlordResult = await getOrCreateCurrentLandlord();
-  if (!landlordResult.success) {
+  if (!landlordResult.success || !landlordResult.landlord) {
     return (
       <main className="w-full min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <p className="text-slate-500">Unable to load invoices.</p>

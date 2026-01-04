@@ -64,7 +64,7 @@ export function UpgradeModal({
   // Get the next tier up, default to 'pro' if current tier is invalid
   const upgradeTier = getUpgradeTier(currentTier) || 'pro';
   const upgradeConfig = SUBSCRIPTION_TIERS[upgradeTier];
-  const currentConfig = SUBSCRIPTION_TIERS[currentTier] || SUBSCRIPTION_TIERS.free;
+  const currentConfig = SUBSCRIPTION_TIERS[currentTier] || SUBSCRIPTION_TIERS.starter;
 
   const handleUpgrade = async () => {
     setLoading(true);

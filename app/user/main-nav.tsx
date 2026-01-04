@@ -11,6 +11,7 @@ import {
   ReceiptText,
   MessageCircle,
   LayoutDashboard,
+  Wallet,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -45,6 +46,12 @@ const MainNav = ({
       icon: LayoutDashboard,
     },
     {
+      title: 'Pay Rent',
+      description: 'Make a rent payment',
+      href: '/user/pay',
+      icon: Wallet,
+    },
+    {
       title: 'Profile',
       description: 'Manage your personal details',
       href: '/user/profile',
@@ -63,13 +70,13 @@ const MainNav = ({
       icon: FileSignature,
     },
     {
-      title: 'Rent Receipts',
-      description: 'Download payment receipts',
+      title: 'Payment History',
+      description: 'View past payments',
       href: '/user/profile/rent-receipts',
       icon: ReceiptText,
     },
     {
-      title: 'Create Ticket',
+      title: 'Maintenance',
       description: 'Submit a maintenance request',
       href: '/user/profile/ticket',
       icon: MessageCircle,
@@ -86,7 +93,7 @@ const MainNav = ({
     >
       {links.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname.startsWith(item.href);
+        const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
 
         return (
           <Link

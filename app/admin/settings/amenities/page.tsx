@@ -12,7 +12,7 @@ export default async function AmenitiesSettingsPage() {
   await requireAdmin();
 
   const landlordResult = await getOrCreateCurrentLandlord();
-  if (!landlordResult.success) {
+  if (!landlordResult.success || !landlordResult.landlord) {
     return <div className="text-white p-8">Unable to load landlord data</div>;
   }
 

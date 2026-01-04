@@ -3,14 +3,13 @@
 import { useState } from 'react';
 import RentStripePayment from './rent-stripe-payment';
 import { Button } from '@/components/ui/button';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function RentPayClient({
   rentPaymentIds,
-  totalInCents,
 }: {
   rentPaymentIds: string[];
-  totalInCents: number;
 }) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
@@ -21,7 +20,6 @@ export default function RentPayClient({
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
 
   const handleStartPayment = async () => {
     try {
@@ -85,63 +83,41 @@ export default function RentPayClient({
     );
   }
 
-  // Show payment method selection
-  if (showPaymentOptions) {
-    return (
-      <div className='space-y-3'>
-        {errorMessage && (
-          <div className='p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg'>
-            {errorMessage}
-          </div>
-        )}
-        
-        <p className='text-xs text-slate-300 font-medium'>Choose payment method:</p>
-        
-        {/* Card/Bank Payment */}
-        <Button
-          className='w-full inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all'
-          onClick={handleStartPayment}
-          disabled={isLoading}
-        >
-          <CreditCard className='w-4 h-4 mr-2' />
-          {isLoading ? 'Preparing payment...' : 'Pay with Card or Bank'}
-        </Button>
-
-        <Button
-          variant='ghost'
-          size='sm'
-          onClick={() => setShowPaymentOptions(false)}
-          className='w-full text-slate-400 hover:text-white'
-        >
-          Back
-        </Button>
-
-        <div className='text-xs text-slate-400 space-y-1 pt-2 border-t border-white/10'>
-          <p>✓ Bank transfer (ACH) is FREE with no convenience fee</p>
-          <p>✓ Card/wallet payments have a $2 convenience fee</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className='space-y-3'>
+    <div className='space-y-4'>
       {errorMessage && (
         <div className='p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg'>
           {errorMessage}
         </div>
       )}
+      
+      {/* Primary CTA - Link to new Pay page */}
+      <Link href='/user/pay'>
+        <Button
+          className='inline-flex items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 px-8 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all'
+          size='lg'
+        >
+          Pay Rent Now
+          <ArrowRight className='w-4 h-4 ml-2' />
+        </Button>
+      </Link>
+
+      {/* Legacy quick pay option */}
       <Button
-        className='inline-flex items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 px-8 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all'
-        size='lg'
-        onClick={() => setShowPaymentOptions(true)}
+        variant='ghost'
+        size='sm'
+        onClick={handleStartPayment}
+        disabled={isLoading}
+        className='text-slate-400 hover:text-white'
       >
-        Pay Rent Now
+        <CreditCard className='w-4 h-4 mr-2' />
+        {isLoading ? 'Loading...' : 'Quick pay here'}
       </Button>
+
       <div className='text-xs text-slate-400 space-y-1'>
-        <p>✓ Multiple payment options available</p>
-        <p>✓ Bank transfer (ACH) is FREE with no convenience fee</p>
-        <p>✓ Card and wallet payments accepted</p>
+        <p>✓ No fees on any payment method</p>
+        <p>✓ Bank transfer, debit card, Apple Pay, Google Pay</p>
+        <p>✓ Secure payments powered by Stripe</p>
       </div>
     </div>
   );

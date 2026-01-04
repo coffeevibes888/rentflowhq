@@ -6,15 +6,16 @@ import { getTenantPaymentTransparency, compareTenantPaymentMethods } from '@/lib
 import { getConvenienceFeeInCents } from '@/lib/config/platform-fees';
 
 /**
- * Rent checkout API - works with path-based routing
- * Landlord is determined from the rent payment's property, not from subdomain
+ * Rent checkout API - PLATFORM-HELD FUNDS MODEL
+ * 
+ * All payments go directly to YOUR platform Stripe account.
+ * No Connect accounts needed - landlords just add their bank/card for payouts.
  * 
  * TRANSPARENCY: Tenants see exact breakdown of:
  * - Rent amount
  * - Platform convenience fee
  * - Stripe processing fees
  * - Total to pay
- * - Money landlord receives
  */
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -76,18 +77,14 @@ export async function POST(req: NextRequest) {
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-  const landlord = await prisma.landlord.findUnique({
-    where: { id: landlordId },
-    select: { stripeConnectAccountId: true },
-  });
-
   // Get convenience fee - using 'card' as default (max fee)
   // Actual fee will be adjusted on client based on selected payment method
   const convenienceFee = getConvenienceFeeInCents('card');
   const rentAmountInCents = Math.round(totalAmount * 100);
   const totalWithFee = rentAmountInCents + convenienceFee;
 
-  // Create Payment Intent with dynamic payment method options
+  // Create Payment Intent - PLATFORM-HELD MODEL
+  // Payment goes directly to YOUR Stripe account (no on_behalf_of or transfer_data)
   const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
     amount: totalWithFee,
     currency: 'usd',
@@ -96,15 +93,12 @@ export async function POST(req: NextRequest) {
       tenantId: session.user.id as string,
       rentPaymentIds: rentPayments.map((p) => p.id).join(','),
       landlordId,
-      landlordStripeConnectAccountId: landlord?.stripeConnectAccountId ?? null,
       rentAmount: rentAmountInCents.toString(),
       convenienceFee: convenienceFee.toString(),
-      maxConvenienceFee: getConvenienceFeeInCents('card').toString(), // Max possible fee
+      maxConvenienceFee: getConvenienceFeeInCents('card').toString(),
     },
-    // Use automatic_payment_methods for card, ACH, Link, Apple Pay, Google Pay
-    // Rely on Stripe's automatic payment methods rather than specifying
-    // `payment_method_types` to avoid API conflicts.
-    payment_method_types: ['card', 'link', 'us_bank_account'],
+    // Payment methods enabled on YOUR platform account
+    payment_method_types: ['card', 'link', 'us_bank_account', 'cashapp'],
     // ACH requires customer email for mandate
     receipt_email: session.user.email || undefined,
     payment_method_options: {
@@ -112,18 +106,9 @@ export async function POST(req: NextRequest) {
         verification_method: 'automatic',
       },
     },
+    // NOTE: No on_behalf_of or transfer_data - payment goes to YOUR account
+    // Landlord receives funds via payout from your platform wallet
   };
-
-  // If landlord has Stripe Connect account, charge them directly with application fee
-  if (landlord?.stripeConnectAccountId) {
-    // The convenience fee is the application fee that goes to platform
-    paymentIntentParams.application_fee_amount = convenienceFee;
-    paymentIntentParams.on_behalf_of = landlord.stripeConnectAccountId;
-    // Transfer remaining funds (rent amount) to landlord's connected account
-    paymentIntentParams.transfer_data = {
-      destination: landlord.stripeConnectAccountId,
-    };
-  }
 
   try {
     const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
