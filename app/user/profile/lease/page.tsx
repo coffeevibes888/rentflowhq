@@ -38,8 +38,14 @@ export default async function UserProfileLeasePage() {
   // Get the most recent signed PDF URL (could be from tenant or landlord signature)
   // For a fully executed lease, we want the landlord's signed PDF (which includes both signatures)
   // Otherwise fall back to tenant's signed PDF
-  const landlordSignedRequest = lease?.signatureRequests?.find(sr => sr.role === 'landlord' && sr.status === 'signed');
-  const tenantSignedRequest = lease?.signatureRequests?.find(sr => sr.role === 'tenant' && sr.status === 'signed');
+  // Cast to include new signature data fields
+  const signatureRequests = lease?.signatureRequests as Array<typeof lease.signatureRequests[0] & {
+    signatureDataUrl?: string | null;
+    initialsDataUrl?: string | null;
+  }> | undefined;
+  
+  const landlordSignedRequest = signatureRequests?.find(sr => sr.role === 'landlord' && sr.status === 'signed');
+  const tenantSignedRequest = signatureRequests?.find(sr => sr.role === 'tenant' && sr.status === 'signed');
   const signedRequest = landlordSignedRequest || tenantSignedRequest;
   
   // Generate a signed URL for authenticated Cloudinary PDFs
@@ -70,7 +76,7 @@ export default async function UserProfileLeasePage() {
   const needsTenantSignature = tenantSignatureRequest && tenantSignatureRequest.status !== 'signed';
   const isPendingSignature = lease?.status === 'pending_signature';
 
-  const leaseHtml = lease
+  let leaseHtml = lease
     ? renderDocuSignReadyLeaseHtml({
         landlordName: lease.unit.property?.landlord?.name || lease.unit.property?.name || 'Landlord',
         tenantName: session.user.name || 'Tenant',
@@ -84,6 +90,57 @@ export default async function UserProfileLeasePage() {
         todayDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       })
     : '';
+
+  // Replace signature placeholders with actual images if available
+  if (lease && leaseHtml) {
+    // Tenant signature
+    if (tenantSignedRequest) {
+      if (tenantSignedRequest.signatureDataUrl) {
+        const sigImgTag = `<img src="${tenantSignedRequest.signatureDataUrl}" alt="Tenant Signature" style="height: 40px; display: inline-block; vertical-align: middle;" />`;
+        leaseHtml = leaseHtml.replace('/sig_tenant/', sigImgTag);
+      } else {
+        const tenantSignedDate = tenantSignedRequest.signedAt 
+          ? new Date(tenantSignedRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+          : 'N/A';
+        const tenantSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px;">
+          <span style="color: #166534; font-size: 14px; font-weight: 500;">✓ Signed by ${tenantSignedRequest.signerName || session.user.name || 'Tenant'}</span>
+          <span style="color: #166534; font-size: 12px; display: block;">${tenantSignedDate}</span>
+        </div>`;
+        leaseHtml = leaseHtml.replace('/sig_tenant/', tenantSigHtml);
+      }
+      
+      // Tenant initials
+      for (let i = 1; i <= 6; i++) {
+        const initPlaceholder = `/init${i}/`;
+        if (leaseHtml.includes(initPlaceholder)) {
+          if (tenantSignedRequest.initialsDataUrl) {
+            const initImgTag = `<img src="${tenantSignedRequest.initialsDataUrl}" alt="Initials" style="height: 24px; display: inline-block; vertical-align: middle;" />`;
+            leaseHtml = leaseHtml.replace(initPlaceholder, initImgTag);
+          } else {
+            const initialHtml = `<span style="display: inline-block; padding: 2px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; color: #166534; font-size: 12px; font-weight: 500;">✓</span>`;
+            leaseHtml = leaseHtml.replace(initPlaceholder, initialHtml);
+          }
+        }
+      }
+    }
+    
+    // Landlord signature
+    if (landlordSignedRequest) {
+      if (landlordSignedRequest.signatureDataUrl) {
+        const sigImgTag = `<img src="${landlordSignedRequest.signatureDataUrl}" alt="Landlord Signature" style="height: 40px; display: inline-block; vertical-align: middle;" />`;
+        leaseHtml = leaseHtml.replace('/sig_landlord/', sigImgTag);
+      } else {
+        const landlordSignedDate = landlordSignedRequest.signedAt 
+          ? new Date(landlordSignedRequest.signedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+          : 'N/A';
+        const landlordSigHtml = `<div style="display: inline-block; padding: 8px 16px; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px;">
+          <span style="color: #1e40af; font-size: 14px; font-weight: 500;">✓ Signed by ${landlordSignedRequest.signerName || lease.unit.property?.landlord?.name || 'Landlord'}</span>
+          <span style="color: #1e40af; font-size: 12px; display: block;">${landlordSignedDate}</span>
+        </div>`;
+        leaseHtml = leaseHtml.replace('/sig_landlord/', landlordSigHtml);
+      }
+    }
+  }
 
   return (
     <div className='w-full min-h-screen px-4 py-8 md:px-8'>
