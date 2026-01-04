@@ -1,27 +1,20 @@
-import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import LandlordOnboardingClient from './landlord-onboarding-client';
-
-export const dynamic = 'force-dynamic';
+import { auth } from '@/auth';
+import { setUserRoleAndLandlordIntake } from '@/lib/actions/user.actions';
 
 export default async function LandlordOnboardingPage() {
-  let session;
-  try {
-    session = await auth();
-  } catch (error) {
-    // JWT session error can happen during session establishment
-    // Redirect to sign-in to re-establish the session
-    console.error('Auth error in landlord onboarding:', error);
-    return redirect('/sign-in?callbackUrl=/onboarding');
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect('/sign-in');
   }
 
-  if (!session?.user) {
-    return redirect('/sign-in?callbackUrl=/onboarding');
-  }
+  // Set the user role to landlord and create landlord record
+  await setUserRoleAndLandlordIntake({
+    role: 'landlord',
+    useSubdomain: true,
+  });
 
-  if (session.user.onboardingCompleted) {
-    return redirect('/admin/dashboard');
-  }
-
-  return <LandlordOnboardingClient />;
+  // Redirect straight to subscription selection
+  redirect('/onboarding/landlord/subscription');
 }

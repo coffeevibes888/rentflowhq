@@ -66,7 +66,8 @@ export async function roleOnboardingAction(prevState: unknown, formData: FormDat
     } else if (role === 'homeowner') {
       redirect('/homeowner/dashboard');
     } else {
-      redirect('/admin/onboarding');
+      // Landlords go to subscription selection first
+      redirect('/onboarding/landlord/subscription');
     }
   } catch (error) {
     // Re-throw redirect errors - they're not actual errors, just how Next.js handles redirects

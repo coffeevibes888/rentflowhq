@@ -21,6 +21,7 @@ const tiers = [
     unitLimit: 'Up to 24 units',
     icon: Building2,
     popular: false,
+    comingSoon: false,
     features: [
       { name: 'Up to 24 units', included: true },
       { name: 'Online rent collection', included: true },
@@ -45,8 +46,9 @@ const tiers = [
     unitLimit: 'Up to 75 units',
     icon: Zap,
     popular: true,
+    comingSoon: false,
     features: [
-      { name: 'Everything in Free', included: true },
+      { name: 'Everything in Starter', included: true },
       { name: 'Up to 75 units', included: true },
       { name: 'QuickBooks & TurboTax integration', included: true },
       { name: 'Automatic rent reminders', included: true },
@@ -69,6 +71,7 @@ const tiers = [
     unitLimit: 'Unlimited units',
     icon: Crown,
     popular: false,
+    comingSoon: true,
     features: [
       { name: 'Unlimited Units', included: true },
       { name: 'Everything in Pro', included: true },
@@ -83,7 +86,7 @@ const tiers = [
       { name: 'API access & webhooks', included: true },
       { name: 'Hiring Emplyees and posting jobs', included: true },
     ],
-    cta: 'Start For Free with 7 day free trial',
+    cta: 'Coming Soon',
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-300',
   },
@@ -134,7 +137,7 @@ export default function PricingSection() {
             <span className='text-blue-800'>Simple, Transparent Pricing</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white">
-            Free for Small Landlords. Scales as You Grow.
+            Start at Just $9.99/month. Scales as You Grow.
           </h2>
           <p className="text-lg text-black font-semibold max-w-2xl mx-auto">
             Finally an Automation Tool that saves you time and money. Let's face it your time is valuable.
@@ -194,10 +197,12 @@ export default function PricingSection() {
 
                   {/* CTA Button */}
                   <button
-                    onClick={() => handleTierClick(tier.id)}
-                    disabled={loadingTier === tier.id}
+                    onClick={() => !tier.comingSoon && handleTierClick(tier.id)}
+                    disabled={loadingTier === tier.id || tier.comingSoon}
                     className={`w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 ${
-                      isPopular
+                      tier.comingSoon
+                        ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                        : isPopular
                         ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-400 hover:to-purple-400 shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105'
                         : tier.id === 'enterprise'
                         ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400'
@@ -206,6 +211,10 @@ export default function PricingSection() {
                   >
                     {loadingTier === tier.id ? (
                       <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : tier.comingSoon ? (
+                      <>
+                        {tier.cta}
+                      </>
                     ) : (
                       <>
                         {tier.cta}
@@ -360,7 +369,7 @@ export default function PricingSection() {
                 </tr>
                 <tr className="hover:bg-white/5">
                   <td className="p-4 text-slate-200 font-semibold">Price (24 units)</td>
-                  <td className="p-4 text-center bg-violet-500/5 font-bold text-emerald-400">Free</td>
+                  <td className="p-4 text-center bg-violet-500/5 font-bold text-emerald-400">$9.99/mo</td>
                   <td className="p-4 text-center text-slate-300">$55/mo</td>
                   <td className="p-4 text-center text-slate-300">$33.60/mo</td>
                   <td className="p-4 text-center text-slate-300">Free</td>

@@ -113,14 +113,15 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/admin/overview?subscription=success&tier=${targetTier}`,
-      cancel_url: `${baseUrl}/admin/settings?subscription=canceled`,
+      success_url: `${baseUrl}/admin/onboarding?subscription=success&tier=${targetTier}`,
+      cancel_url: `${baseUrl}/onboarding/landlord/subscription?canceled=true`,
       metadata: {
         landlordId: landlord.id,
         tier: targetTier,
         ...(referralCode && { affiliateCode: referralCode }),
       },
       subscription_data: {
+        trial_period_days: tierConfig.trialDays, // 7-day free trial
         metadata: {
           landlordId: landlord.id,
           tier: targetTier,
