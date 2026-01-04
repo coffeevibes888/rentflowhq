@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
-import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { getSignedCloudinaryUrl, extractPublicIdFromUrl } from '@/lib/cloudinary';
 
 export async function GET(
@@ -16,45 +15,46 @@ export async function GET(
 
     const { id: leaseId } = await params;
 
-    // Check if user is landlord or tenant
-    const landlordResult = await getOrCreateCurrentLandlord();
+    // First try to find lease as tenant (most common case for this endpoint)
+    let lease = await prisma.lease.findFirst({
+      where: {
+        id: leaseId,
+        tenantId: session.user.id,
+      },
+      include: {
+        signatureRequests: {
+          where: { status: 'signed', signedPdfUrl: { not: null } },
+          orderBy: { signedAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
     
-    let lease;
-    
-    if (landlordResult.success) {
-      // Landlord access
-      lease = await prisma.lease.findFirst({
-        where: {
-          id: leaseId,
-          unit: {
-            property: {
-              landlordId: landlordResult.landlord.id,
+    // If not found as tenant, check if user is a landlord
+    if (!lease) {
+      const landlord = await prisma.landlord.findFirst({
+        where: { ownerUserId: session.user.id },
+      });
+      
+      if (landlord) {
+        lease = await prisma.lease.findFirst({
+          where: {
+            id: leaseId,
+            unit: {
+              property: {
+                landlordId: landlord.id,
+              },
             },
           },
-        },
-        include: {
-          signatureRequests: {
-            where: { status: 'signed', signedPdfUrl: { not: null } },
-            orderBy: { signedAt: 'desc' },
-            take: 1,
+          include: {
+            signatureRequests: {
+              where: { status: 'signed', signedPdfUrl: { not: null } },
+              orderBy: { signedAt: 'desc' },
+              take: 1,
+            },
           },
-        },
-      });
-    } else {
-      // Tenant access
-      lease = await prisma.lease.findFirst({
-        where: {
-          id: leaseId,
-          tenantId: session.user.id,
-        },
-        include: {
-          signatureRequests: {
-            where: { status: 'signed', signedPdfUrl: { not: null } },
-            orderBy: { signedAt: 'desc' },
-            take: 1,
-          },
-        },
-      });
+        });
+      }
     }
 
     if (!lease) {
