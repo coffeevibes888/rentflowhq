@@ -18,7 +18,7 @@ export const SUBSCRIPTION_TIERS = {
     unitLimit: 24,
     trialDays: 7,
     features: {
-      automaticRentReminders: true,
+      automaticRentReminders: false,
       automaticLateFees: false,
       employmentChecksPerMonth: 0,
       teamManagement: false,
@@ -33,6 +33,8 @@ export const SUBSCRIPTION_TIERS = {
       quickbooksIntegration: false,
       turbotaxIntegration: false,
       contractorManagement: true,
+      idPaystubScanner: true, // Available on all plans
+      prioritySupport: false,
       // Enterprise-only features
       shiftScheduling: false,
       timeTracking: false,
@@ -64,6 +66,8 @@ export const SUBSCRIPTION_TIERS = {
       quickbooksIntegration: true,
       turbotaxIntegration: true,
       contractorManagement: true,
+      idPaystubScanner: true, // Available on all plans
+      prioritySupport: true,
       // Enterprise-only features (disabled for Pro)
       shiftScheduling: false,
       timeTracking: false,
@@ -95,6 +99,8 @@ export const SUBSCRIPTION_TIERS = {
       quickbooksIntegration: true,
       turbotaxIntegration: true,
       contractorManagement: true,
+      idPaystubScanner: true, // Available on all plans
+      prioritySupport: true,
       // Enterprise-only Team Operations features
       shiftScheduling: true,
       timeTracking: true,
