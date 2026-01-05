@@ -19,6 +19,8 @@ export function middleware(req: NextRequest) {
   // Skip middleware for API routes and static files
   if (path.startsWith('/api/') ||
       path.startsWith('/_next/') ||
+      path === '/robots.txt' ||
+      path === '/sitemap.xml' ||
       path.includes('.')) {
     return NextResponse.next();
   }
