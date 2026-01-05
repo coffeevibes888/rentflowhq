@@ -220,6 +220,7 @@ export async function getPropertiesWithBankAccounts() {
     const properties = await prisma.property.findMany({
       where: {
         landlordId: landlordResult.landlord.id,
+        status: { not: 'deleted' }, // Exclude soft-deleted properties
       },
       include: {
         bankAccount: true,

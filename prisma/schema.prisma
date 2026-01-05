@@ -784,15 +784,16 @@ model SavedPayoutMethod {
 }
 
 model Property {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
-  slug        String   @unique
+  slug        String    @unique
   description String?
-  address     Json     @db.Json
+  address     Json      @db.Json
   type        String // e.g. apartment, house, office, mixed-use
-  status      String   @default("active") // active, paused, suspended, deleted
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
-  updatedAt   DateTime @updatedAt
+  status      String    @default("active") // active, paused, suspended, deleted
+  deletedAt   DateTime? @db.Timestamp(6) // Soft delete timestamp - preserves payment history
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime  @updatedAt
 
   landlordId             String? @db.Uuid
   defaultLeaseDocumentId String? @db.Uuid // Default lease template for this property

@@ -679,7 +679,30 @@ export async function deletePropertyPermanently(propertyId: string) {
   }
 
   try {
-    // First check if property has active leases
+    // Check for uncredited payments that would be lost
+    const uncreditedPayments = await prisma.rentPayment.findMany({
+      where: {
+        lease: {
+          unit: { propertyId },
+        },
+        OR: [
+          { status: 'pending' },
+          { status: 'processing' },
+          { status: 'paid', walletCredited: false },
+        ],
+      },
+      select: { amount: true },
+    });
+
+    if (uncreditedPayments.length > 0) {
+      const totalAmount = uncreditedPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+      return { 
+        success: false, 
+        message: `Cannot delete property. There are ${uncreditedPayments.length} payment(s) totaling $${totalAmount.toFixed(2)} that haven't been credited to the landlord's wallet yet. Wait for payments to process or use soft delete instead.` 
+      };
+    }
+
+    // Check if property has active leases
     const activeLeases = await prisma.lease.count({
       where: {
         unit: { propertyId },
@@ -694,12 +717,16 @@ export async function deletePropertyPermanently(propertyId: string) {
       };
     }
 
-    // Delete the property (cascade will handle units, etc.)
-    await prisma.property.delete({
+    // Soft delete instead of hard delete to preserve payment history
+    await prisma.property.update({
       where: { id: propertyId },
+      data: {
+        status: 'deleted',
+        deletedAt: new Date(),
+      },
     });
 
-    return { success: true, message: 'Property permanently deleted' };
+    return { success: true, message: 'Property archived (soft deleted). Payment history preserved.' };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { User, Eye, EyeOff, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,34 +15,33 @@ export function PersonalStep({ setValidate }: PersonalStepProps) {
   const [showSsn, setShowSsn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    setValidate(() => {
-      const newErrors: Record<string, string> = {};
-      
-      if (!state.formData.fullName?.trim()) {
-        newErrors.fullName = 'Full name is required';
-      }
-      if (!state.formData.dateOfBirth) {
-        newErrors.dateOfBirth = 'Date of birth is required';
-      }
-      if (!state.formData.ssn?.trim()) {
-        newErrors.ssn = 'SSN is required';
-      } else if (!/^\d{3}-?\d{2}-?\d{4}$/.test(state.formData.ssn)) {
-        newErrors.ssn = 'Invalid SSN format (XXX-XX-XXXX)';
-      }
+  const validate = useCallback(() => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!state.formData.fullName?.trim()) {
+      newErrors.fullName = 'Full name is required';
+    }
+    if (!state.formData.dateOfBirth) {
+      newErrors.dateOfBirth = 'Date of birth is required';
+    }
+    if (!state.formData.ssn?.trim()) {
+      newErrors.ssn = 'SSN is required';
+    } else if (!/^\d{3}-?\d{2}-?\d{4}$/.test(state.formData.ssn)) {
+      newErrors.ssn = 'Invalid SSN format (XXX-XX-XXXX)';
+    }
 
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [state.formData.fullName, state.formData.dateOfBirth, state.formData.ssn]);
+
+  useEffect(() => {
+    setValidate(validate);
     return () => setValidate(null);
-  }, [setValidate, state.formData.fullName, state.formData.dateOfBirth, state.formData.ssn]);
+  }, [setValidate, validate]);
 
   // Format SSN as user types
   const handleSsnChange = (value: string) => {
-    // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    
-    // Format with dashes
     let formatted = digits;
     if (digits.length > 3) {
       formatted = digits.slice(0, 3) + '-' + digits.slice(3);
@@ -50,7 +49,6 @@ export function PersonalStep({ setValidate }: PersonalStepProps) {
     if (digits.length > 5) {
       formatted = digits.slice(0, 3) + '-' + digits.slice(3, 5) + '-' + digits.slice(5, 9);
     }
-    
     updateFormData({ ssn: formatted });
   };
 
@@ -67,7 +65,6 @@ export function PersonalStep({ setValidate }: PersonalStepProps) {
       </div>
 
       <div className="space-y-5">
-        {/* Full Name */}
         <div className="space-y-2">
           <Label className="text-slate-200">Full Legal Name *</Label>
           <Input
@@ -76,12 +73,9 @@ export function PersonalStep({ setValidate }: PersonalStepProps) {
             placeholder="Enter your full legal name"
             className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12"
           />
-          {errors.fullName && (
-            <p className="text-sm text-red-400">{errors.fullName}</p>
-          )}
+          {errors.fullName && <p className="text-sm text-red-400">{errors.fullName}</p>}
         </div>
 
-        {/* Date of Birth */}
         <div className="space-y-2">
           <Label className="text-slate-200">Date of Birth *</Label>
           <Input
@@ -90,12 +84,9 @@ export function PersonalStep({ setValidate }: PersonalStepProps) {
             onChange={(e) => updateFormData({ dateOfBirth: e.target.value })}
             className="bg-slate-800/50 border-slate-600 text-white h-12"
           />
-          {errors.dateOfBirth && (
-            <p className="text-sm text-red-400">{errors.dateOfBirth}</p>
-          )}
+          {errors.dateOfBirth && <p className="text-sm text-red-400">{errors.dateOfBirth}</p>}
         </div>
 
-        {/* SSN */}
         <div className="space-y-2">
           <Label className="text-slate-200">Social Security Number *</Label>
           <div className="relative">
@@ -112,16 +103,10 @@ export function PersonalStep({ setValidate }: PersonalStepProps) {
               onClick={() => setShowSsn(!showSsn)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-1"
             >
-              {showSsn ? (
-                <EyeOff className="h-5 w-5" />
-              ) : (
-                <Eye className="h-5 w-5" />
-              )}
+              {showSsn ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
-          {errors.ssn && (
-            <p className="text-sm text-red-400">{errors.ssn}</p>
-          )}
+          {errors.ssn && <p className="text-sm text-red-400">{errors.ssn}</p>}
           <div className="flex items-start gap-2 mt-2 p-3 rounded-lg bg-slate-800/30 border border-slate-700">
             <Shield className="h-4 w-4 text-emerald-400 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-slate-400">

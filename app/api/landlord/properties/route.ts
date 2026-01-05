@@ -18,7 +18,10 @@ export async function GET() {
     }
 
     const properties = await prisma.property.findMany({
-      where: { landlordId: landlord.id },
+      where: { 
+        landlordId: landlord.id,
+        status: { not: 'deleted' }, // Exclude soft-deleted properties
+      },
       select: {
         id: true,
         name: true,

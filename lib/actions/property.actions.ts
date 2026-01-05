@@ -15,22 +15,88 @@ export async function deletePropertyById(id: string) {
 
     const property = await prisma.property.findFirst({
       where: { id, landlordId: landlordResult.landlord.id },
+      include: {
+        units: {
+          include: {
+            leases: {
+              include: {
+                rentPayments: {
+                  where: {
+                    OR: [
+                      { status: 'pending' },
+                      { status: 'processing' },
+                      { status: 'paid', walletCredited: false },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!property) {
       throw new Error('Property not found');
     }
 
-    await prisma.property.delete({ where: { id: property.id } });
-    await prisma.unit.deleteMany({ where: { propertyId: property.id } });
-    // Also remove related product by slug if it exists
+    // Check for uncredited payments across all units/leases
+    let totalUncreditedAmount = 0;
+    let uncreditedPaymentCount = 0;
+
+    for (const unit of property.units) {
+      for (const lease of unit.leases) {
+        for (const payment of lease.rentPayments) {
+          totalUncreditedAmount += Number(payment.amount);
+          uncreditedPaymentCount++;
+        }
+      }
+    }
+
+    // Block deletion if there are uncredited payments
+    if (uncreditedPaymentCount > 0) {
+      return {
+        success: false,
+        message: `Cannot delete property. There are ${uncreditedPaymentCount} payment(s) totaling $${totalUncreditedAmount.toFixed(2)} that haven't been credited to your wallet yet. Please wait for all payments to process before deleting this property.`,
+      };
+    }
+
+    // Check for active leases
+    const activeLeases = await prisma.lease.count({
+      where: {
+        unit: { propertyId: property.id },
+        status: { in: ['active', 'pending'] },
+      },
+    });
+
+    if (activeLeases > 0) {
+      return {
+        success: false,
+        message: `Cannot delete property with ${activeLeases} active lease(s). Please end all leases first.`,
+      };
+    }
+
+    // Safe to delete - use soft delete by archiving instead of hard delete
+    // This preserves historical payment records
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        status: 'deleted',
+        deletedAt: new Date(),
+      },
+    });
+
+    // Hide from product listings
     if (property.slug) {
-      await prisma.product.deleteMany({ where: { slug: property.slug } });
+      await prisma.product.updateMany({
+        where: { slug: property.slug },
+        data: { isPublished: false },
+      });
     }
 
     revalidatePath('/admin/products');
 
-    return { success: true, message: 'Property deleted' };
+    return { success: true, message: 'Property archived successfully. Historical payment records have been preserved.' };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

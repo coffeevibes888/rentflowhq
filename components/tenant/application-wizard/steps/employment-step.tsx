@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Briefcase, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,31 +17,34 @@ export function EmploymentStep({ setValidate }: EmploymentStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showOtherIncome, setShowOtherIncome] = useState(false);
 
+  const validate = useCallback(() => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!state.formData.employmentStatus?.trim()) {
+      newErrors.employmentStatus = 'Employment status is required';
+    }
+    
+    const status = state.formData.employmentStatus;
+    if (status === 'employed' || status === 'part-time' || status === 'self-employed') {
+      if (!state.formData.currentEmployer?.trim()) {
+        newErrors.currentEmployer = 'Employer name is required';
+      }
+    }
+    
+    if (!state.formData.monthlySalary?.trim()) {
+      newErrors.monthlySalary = 'Monthly income is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [state.formData.employmentStatus, state.formData.currentEmployer, state.formData.monthlySalary]);
+
   useEffect(() => {
-    setValidate(() => {
-      const newErrors: Record<string, string> = {};
-      
-      if (!state.formData.employmentStatus?.trim()) {
-        newErrors.employmentStatus = 'Employment status is required';
-      }
-      
-      const status = state.formData.employmentStatus;
-      if (status === 'employed' || status === 'self-employed') {
-        if (!state.formData.currentEmployer?.trim()) {
-          newErrors.currentEmployer = 'Employer name is required';
-        }
-        if (!state.formData.monthlySalary?.trim()) {
-          newErrors.monthlySalary = 'Monthly income is required';
-        }
-      }
-
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    });
+    setValidate(validate);
     return () => setValidate(null);
-  }, [setValidate, state.formData]);
+  }, [setValidate, validate]);
 
-  const isEmployed = state.formData.employmentStatus === 'employed' || state.formData.employmentStatus === 'self-employed';
+  const isEmployed = ['employed', 'part-time', 'self-employed'].includes(state.formData.employmentStatus || '');
 
   return (
     <div className="space-y-6">
@@ -50,9 +53,7 @@ export function EmploymentStep({ setValidate }: EmploymentStepProps) {
           <Briefcase className="h-8 w-8 text-violet-400" />
         </div>
         <h2 className="text-2xl font-bold text-white">Employment & Income</h2>
-        <p className="text-slate-300 mt-2">
-          Help us verify your ability to pay rent
-        </p>
+        <p className="text-slate-300 mt-2">Help us verify your ability to pay rent</p>
       </div>
 
       <div className="space-y-5">
@@ -75,9 +76,7 @@ export function EmploymentStep({ setValidate }: EmploymentStepProps) {
               <SelectItem value="unemployed">Unemployed</SelectItem>
             </SelectContent>
           </Select>
-          {errors.employmentStatus && (
-            <p className="text-sm text-red-400">{errors.employmentStatus}</p>
-          )}
+          {errors.employmentStatus && <p className="text-sm text-red-400">{errors.employmentStatus}</p>}
         </div>
 
         {/* Employment Details (shown if employed) */}
@@ -96,9 +95,7 @@ export function EmploymentStep({ setValidate }: EmploymentStepProps) {
                   placeholder={state.formData.employmentStatus === 'self-employed' ? 'Your business name' : 'Company name'}
                   className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12"
                 />
-                {errors.currentEmployer && (
-                  <p className="text-sm text-red-400">{errors.currentEmployer}</p>
-                )}
+                {errors.currentEmployer && <p className="text-sm text-red-400">{errors.currentEmployer}</p>}
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-200">Job Title</Label>
@@ -156,9 +153,7 @@ export function EmploymentStep({ setValidate }: EmploymentStepProps) {
               className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12 pl-10"
             />
           </div>
-          {errors.monthlySalary && (
-            <p className="text-sm text-red-400">{errors.monthlySalary}</p>
-          )}
+          {errors.monthlySalary && <p className="text-sm text-red-400">{errors.monthlySalary}</p>}
           <p className="text-xs text-slate-400">Before taxes and deductions</p>
         </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Home, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,31 +17,33 @@ export function ResidenceStep({ setValidate }: ResidenceStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPrevious, setShowPrevious] = useState(false);
 
-  useEffect(() => {
-    setValidate(() => {
-      const newErrors: Record<string, string> = {};
-      
-      if (!state.formData.currentAddress?.trim()) {
-        newErrors.currentAddress = 'Current address is required';
-      }
-      if (!state.formData.currentCity?.trim()) {
-        newErrors.currentCity = 'City is required';
-      }
-      if (!state.formData.currentState?.trim()) {
-        newErrors.currentState = 'State is required';
-      }
-      if (!state.formData.currentZip?.trim()) {
-        newErrors.currentZip = 'ZIP code is required';
-      }
-      if (!state.formData.monthsAtCurrentAddress?.trim()) {
-        newErrors.monthsAtCurrentAddress = 'Time at address is required';
-      }
+  const validate = useCallback(() => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!state.formData.currentAddress?.trim()) {
+      newErrors.currentAddress = 'Current address is required';
+    }
+    if (!state.formData.currentCity?.trim()) {
+      newErrors.currentCity = 'City is required';
+    }
+    if (!state.formData.currentState?.trim()) {
+      newErrors.currentState = 'State is required';
+    }
+    if (!state.formData.currentZip?.trim()) {
+      newErrors.currentZip = 'ZIP code is required';
+    }
+    if (!state.formData.monthsAtCurrentAddress?.trim()) {
+      newErrors.monthsAtCurrentAddress = 'Time at address is required';
+    }
 
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [state.formData.currentAddress, state.formData.currentCity, state.formData.currentState, state.formData.currentZip, state.formData.monthsAtCurrentAddress]);
+
+  useEffect(() => {
+    setValidate(validate);
     return () => setValidate(null);
-  }, [setValidate, state.formData]);
+  }, [setValidate, validate]);
 
   return (
     <div className="space-y-6">
@@ -50,9 +52,7 @@ export function ResidenceStep({ setValidate }: ResidenceStepProps) {
           <Home className="h-8 w-8 text-violet-400" />
         </div>
         <h2 className="text-2xl font-bold text-white">Residence History</h2>
-        <p className="text-slate-300 mt-2">
-          Tell us about your current and previous housing
-        </p>
+        <p className="text-slate-300 mt-2">Tell us about your current and previous housing</p>
       </div>
 
       {/* Current Address Section */}
@@ -67,9 +67,7 @@ export function ResidenceStep({ setValidate }: ResidenceStepProps) {
             placeholder="123 Main Street, Apt 4B"
             className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12"
           />
-          {errors.currentAddress && (
-            <p className="text-sm text-red-400">{errors.currentAddress}</p>
-          )}
+          {errors.currentAddress && <p className="text-sm text-red-400">{errors.currentAddress}</p>}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -81,22 +79,18 @@ export function ResidenceStep({ setValidate }: ResidenceStepProps) {
               placeholder="City"
               className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12"
             />
-            {errors.currentCity && (
-              <p className="text-sm text-red-400">{errors.currentCity}</p>
-            )}
+            {errors.currentCity && <p className="text-sm text-red-400">{errors.currentCity}</p>}
           </div>
           <div className="space-y-2">
             <Label className="text-slate-200">State *</Label>
             <Input
               value={state.formData.currentState || ''}
-              onChange={(e) => updateFormData({ currentState: e.target.value })}
+              onChange={(e) => updateFormData({ currentState: e.target.value.toUpperCase() })}
               placeholder="CA"
               maxLength={2}
               className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12 uppercase"
             />
-            {errors.currentState && (
-              <p className="text-sm text-red-400">{errors.currentState}</p>
-            )}
+            {errors.currentState && <p className="text-sm text-red-400">{errors.currentState}</p>}
           </div>
           <div className="space-y-2">
             <Label className="text-slate-200">ZIP *</Label>
@@ -107,9 +101,7 @@ export function ResidenceStep({ setValidate }: ResidenceStepProps) {
               maxLength={10}
               className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12"
             />
-            {errors.currentZip && (
-              <p className="text-sm text-red-400">{errors.currentZip}</p>
-            )}
+            {errors.currentZip && <p className="text-sm text-red-400">{errors.currentZip}</p>}
           </div>
         </div>
 
@@ -122,9 +114,7 @@ export function ResidenceStep({ setValidate }: ResidenceStepProps) {
               placeholder="e.g., 2 years, 18 months"
               className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12"
             />
-            {errors.monthsAtCurrentAddress && (
-              <p className="text-sm text-red-400">{errors.monthsAtCurrentAddress}</p>
-            )}
+            {errors.monthsAtCurrentAddress && <p className="text-sm text-red-400">{errors.monthsAtCurrentAddress}</p>}
           </div>
           <div className="space-y-2">
             <Label className="text-slate-200">Current Monthly Rent</Label>

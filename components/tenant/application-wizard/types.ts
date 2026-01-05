@@ -60,6 +60,9 @@ export interface ApplicationFormData {
   otherIncomeSource: string;
   otherIncomeAmount: string;
   
+  // Co-Applicants / Additional Occupants
+  coApplicants: CoApplicant[];
+  
   // Background & Occupants
   hasBeenEvicted: string;
   hasBrokenLease: string;
@@ -68,7 +71,6 @@ export interface ApplicationFormData {
   hasPets: string;
   petDetails: string;
   numberOfOccupants: string;
-  occupantNames: string;
   numberOfVehicles: string;
   vehicleDetails: string;
   emergencyContactName: string;
@@ -81,6 +83,16 @@ export interface ApplicationFormData {
   
   // Notes
   additionalNotes: string;
+}
+
+export interface CoApplicant {
+  id: string;
+  fullName: string;
+  dateOfBirth: string;
+  email: string;
+  phone: string;
+  relationship: string; // spouse, partner, roommate, family member, etc.
+  willBeOnLease: boolean;
 }
 
 export interface ApplicationWizardState {

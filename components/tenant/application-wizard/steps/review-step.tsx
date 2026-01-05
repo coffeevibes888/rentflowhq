@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
-import { CheckCircle2, User, Phone, Home, Briefcase, Shield, FileText, Edit2 } from 'lucide-react';
+import { useEffect, useCallback } from 'react';
+import { CheckCircle2, User, Phone, Home, Briefcase, Shield, FileText, Edit2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApplicationWizard } from '../wizard-context';
 
@@ -13,10 +13,12 @@ export function ReviewStep({ setValidate }: ReviewStepProps) {
   const { state, goToStep } = useApplicationWizard();
   const { formData } = state;
 
+  const validate = useCallback(() => true, []);
+
   useEffect(() => {
-    setValidate(() => true);
+    setValidate(validate);
     return () => setValidate(null);
-  }, [setValidate]);
+  }, [setValidate, validate]);
 
   const Section = ({ 
     title, 
@@ -54,7 +56,7 @@ export function ReviewStep({ setValidate }: ReviewStepProps) {
   const Field = ({ label, value }: { label: string; value?: string }) => (
     <div className="flex justify-between py-1">
       <span className="text-slate-400">{label}</span>
-      <span className="text-white font-medium">{value || '—'}</span>
+      <span className="text-white font-medium text-right max-w-[60%]">{value || '—'}</span>
     </div>
   );
 
@@ -63,6 +65,8 @@ export function ReviewStep({ setValidate }: ReviewStepProps) {
     return `***-**-${ssn.slice(-4)}`;
   };
 
+  const coApplicants = formData.coApplicants || [];
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -70,9 +74,7 @@ export function ReviewStep({ setValidate }: ReviewStepProps) {
           <CheckCircle2 className="h-8 w-8 text-emerald-400" />
         </div>
         <h2 className="text-2xl font-bold text-white">Review Your Application</h2>
-        <p className="text-slate-300 mt-2">
-          Please review all information before submitting
-        </p>
+        <p className="text-slate-300 mt-2">Please review all information before submitting</p>
       </div>
 
       {/* Personal Info */}
@@ -112,13 +114,28 @@ export function ReviewStep({ setValidate }: ReviewStepProps) {
         )}
       </Section>
 
+      {/* Co-Applicants */}
+      {coApplicants.length > 0 && (
+        <Section title="Additional Occupants" icon={Users} stepIndex={4}>
+          {coApplicants.map((person, index) => (
+            <div key={person.id} className="py-2 border-b border-slate-700 last:border-0">
+              <div className="font-medium text-white">{person.fullName || `Person ${index + 2}`}</div>
+              <div className="text-slate-400 text-xs mt-1">
+                {person.relationship && <span className="capitalize">{person.relationship}</span>}
+                {person.email && <span> • {person.email}</span>}
+                {person.willBeOnLease && <span className="text-emerald-400"> • Will sign lease</span>}
+              </div>
+            </div>
+          ))}
+        </Section>
+      )}
+
       {/* Background */}
       <Section title="Background & Details" icon={Shield} stepIndex={4}>
         <Field label="Ever Evicted" value={formData.hasBeenEvicted === 'yes' ? 'Yes' : 'No'} />
         <Field label="Ever Broken Lease" value={formData.hasBrokenLease === 'yes' ? 'Yes' : 'No'} />
         <Field label="Felony Convictions" value={formData.hasConvictions === 'yes' ? 'Yes' : 'No'} />
         <Field label="Pets" value={formData.hasPets === 'yes' ? `Yes - ${formData.petDetails || 'Details not provided'}` : 'No'} />
-        <Field label="Number of Occupants" value={formData.numberOfOccupants} />
         <Field label="Vehicles" value={formData.numberOfVehicles || '0'} />
         <Field label="Emergency Contact" value={formData.emergencyContactName ? `${formData.emergencyContactName} (${formData.emergencyContactRelation || 'N/A'})` : undefined} />
         <Field label="Desired Move-in" value={formData.desiredMoveInDate} />

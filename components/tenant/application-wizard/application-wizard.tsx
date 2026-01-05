@@ -213,10 +213,10 @@ function WizardContent({ propertySlug, propertyName, onComplete, onCancel }: App
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-slate-800/95 to-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+      <div className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
+        <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-white">
@@ -242,15 +242,13 @@ function WizardContent({ propertySlug, propertyName, onComplete, onCancel }: App
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6 md:py-8">
-        <div className="bg-gradient-to-r from-slate-800/40 to-slate-900/40 rounded-2xl border border-slate-700/30 p-4 md:p-8 backdrop-blur-sm">
-          {renderStep()}
-          <WizardNavigation 
-            onValidate={validateFn || undefined} 
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-          />
-        </div>
+      <div className="max-w-3xl mx-auto px-4 py-6 md:py-8">
+        {renderStep()}
+        <WizardNavigation 
+          onValidate={validateFn || undefined} 
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
       </div>
 
       {/* Exit Confirmation Dialog */}

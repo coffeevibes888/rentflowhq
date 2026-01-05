@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Phone, Mail } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,33 +14,33 @@ export function ContactStep({ setValidate }: ContactStepProps) {
   const { state, updateFormData } = useApplicationWizard();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const validate = useCallback(() => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!state.formData.email?.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+    
+    if (!state.formData.phone?.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^(\+1|1)?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/.test(state.formData.phone.replace(/\s/g, ''))) {
+      newErrors.phone = 'Invalid phone format';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [state.formData.email, state.formData.phone]);
+
   useEffect(() => {
-    setValidate(() => {
-      const newErrors: Record<string, string> = {};
-      
-      if (!state.formData.email?.trim()) {
-        newErrors.email = 'Email is required';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.formData.email)) {
-        newErrors.email = 'Invalid email format';
-      }
-      
-      if (!state.formData.phone?.trim()) {
-        newErrors.phone = 'Phone number is required';
-      } else if (!/^(\+1|1)?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/.test(state.formData.phone)) {
-        newErrors.phone = 'Invalid phone format';
-      }
-
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    });
+    setValidate(validate);
     return () => setValidate(null);
-  }, [setValidate, state.formData.email, state.formData.phone]);
+  }, [setValidate, validate]);
 
-  // Format phone as user types
   const handlePhoneChange = (value: string) => {
     const digits = value.replace(/\D/g, '');
     let formatted = digits;
-    
     if (digits.length > 0) {
       formatted = '(' + digits.slice(0, 3);
     }
@@ -50,7 +50,6 @@ export function ContactStep({ setValidate }: ContactStepProps) {
     if (digits.length > 6) {
       formatted += '-' + digits.slice(6, 10);
     }
-    
     updateFormData({ phone: formatted });
   };
 
@@ -61,13 +60,10 @@ export function ContactStep({ setValidate }: ContactStepProps) {
           <Phone className="h-8 w-8 text-violet-400" />
         </div>
         <h2 className="text-2xl font-bold text-white">Contact Information</h2>
-        <p className="text-slate-300 mt-2">
-          How can the landlord reach you?
-        </p>
+        <p className="text-slate-300 mt-2">How can the landlord reach you?</p>
       </div>
 
       <div className="space-y-5">
-        {/* Email */}
         <div className="space-y-2">
           <Label className="text-slate-200">Email Address *</Label>
           <div className="relative">
@@ -80,12 +76,9 @@ export function ContactStep({ setValidate }: ContactStepProps) {
               className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12 pl-10"
             />
           </div>
-          {errors.email && (
-            <p className="text-sm text-red-400">{errors.email}</p>
-          )}
+          {errors.email && <p className="text-sm text-red-400">{errors.email}</p>}
         </div>
 
-        {/* Phone */}
         <div className="space-y-2">
           <Label className="text-slate-200">Phone Number *</Label>
           <div className="relative">
@@ -99,9 +92,7 @@ export function ContactStep({ setValidate }: ContactStepProps) {
               className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 h-12 pl-10"
             />
           </div>
-          {errors.phone && (
-            <p className="text-sm text-red-400">{errors.phone}</p>
-          )}
+          {errors.phone && <p className="text-sm text-red-400">{errors.phone}</p>}
         </div>
       </div>
     </div>

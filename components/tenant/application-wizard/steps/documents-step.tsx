@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { Upload, X, FileText, Loader2, CheckCircle2, AlertCircle, CreditCard, Receipt, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,22 +33,24 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
   const incomeInputRef = useRef<HTMLInputElement>(null);
 
   // Validation
-  useEffect(() => {
-    setValidate(() => {
-      const newErrors: Record<string, string> = {};
-      
-      if (idDocuments.length === 0) {
-        newErrors.id = 'Please upload a government-issued ID';
-      }
-      if (incomeDocuments.length === 0) {
-        newErrors.income = 'Please upload at least one income document';
-      }
+  const validate = useCallback(() => {
+    const newErrors: Record<string, string> = {};
+    
+    if (idDocuments.length === 0) {
+      newErrors.id = 'Please upload a government-issued ID';
+    }
+    if (incomeDocuments.length === 0) {
+      newErrors.income = 'Please upload at least one income document';
+    }
 
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [idDocuments.length, incomeDocuments.length]);
+
+  useEffect(() => {
+    setValidate(validate);
     return () => setValidate(null);
-  }, [setValidate, idDocuments.length, incomeDocuments.length]);
+  }, [setValidate, validate]);
 
   // Fetch existing documents on mount
   useEffect(() => {
