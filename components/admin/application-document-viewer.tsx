@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, ExternalLink, FileText, X } from 'lucide-react';
+import { Loader2, FileText, CreditCard, Receipt, Eye } from 'lucide-react';
 
 interface Document {
   id: string;
@@ -26,9 +25,6 @@ export function ApplicationDocumentViewer({
   applicationId,
 }: ApplicationDocumentViewerProps) {
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewFileName, setPreviewFileName] = useState<string>('');
-  const [showPreview, setShowPreview] = useState(false);
 
   const handleViewDocument = async (docId: string, fileName: string, isVerification: boolean) => {
     setLoadingDocId(docId);
@@ -42,8 +38,6 @@ export function ApplicationDocumentViewer({
         throw new Error('Failed to get document URL');
       }
       const data = await res.json();
-      
-      // Open in new tab
       window.open(data.url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Failed to view document:', error);
@@ -55,49 +49,71 @@ export function ApplicationDocumentViewer({
 
   const getStatusDisplay = (status: string) => {
     switch (status) {
-      case 'verified': return { text: 'Approved', color: 'text-green-600', bg: 'border-green-200 bg-green-50' };
-      case 'rejected': return { text: 'Rejected', color: 'text-red-600', bg: 'border-red-200 bg-red-50' };
+      case 'verified': return { text: 'Verified', color: 'text-emerald-400', bg: 'bg-emerald-500/20 border-emerald-500/30' };
+      case 'rejected': return { text: 'Rejected', color: 'text-red-400', bg: 'bg-red-500/20 border-red-500/30' };
       case 'processing':
       case 'pending':
       case 'needs_review':
-      default: return { text: 'Needs Review', color: 'text-amber-600', bg: 'border-amber-200 bg-amber-50' };
+      default: return { text: 'Pending', color: 'text-amber-400', bg: 'bg-amber-500/20 border-amber-500/30' };
     }
   };
 
+  const getCategoryIcon = (category: string) => {
+    if (category === 'identity') {
+      return <CreditCard className="w-4 h-4 text-violet-400" />;
+    }
+    return <Receipt className="w-4 h-4 text-emerald-400" />;
+  };
+
   return (
-    <>
+    <div className='mt-6 space-y-4'>
       {/* Verification Documents (ID & Income) */}
       {verificationDocuments.length > 0 && (
-        <div className='mt-4 space-y-2'>
-          <p className='font-semibold text-slate-900 text-sm'>ID & Income Documents</p>
-          <div className='space-y-2'>
+        <div className='space-y-3'>
+          <h4 className='text-sm font-semibold text-white flex items-center gap-2'>
+            <svg className='w-4 h-4 text-violet-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
+            </svg>
+            ID & Income Documents
+          </h4>
+          <div className='grid gap-3'>
             {verificationDocuments.map((doc) => {
               const statusDisplay = getStatusDisplay(doc.verificationStatus || 'pending');
               
               return (
                 <div
                   key={doc.id}
-                  className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${statusDisplay.bg}`}
+                  className={`flex items-center justify-between gap-4 p-4 rounded-xl border ${statusDisplay.bg} backdrop-blur-sm`}
                 >
-                  <div className='min-w-0'>
-                    <p className='text-xs font-medium text-slate-900 truncate'>{doc.originalFileName}</p>
-                    <p className='text-[11px] text-slate-500'>
-                      {doc.category === 'identity' ? '🪪 ID' : '💰 Income'} • {String(doc.docType).replace(/_/g, ' ')} • 
-                      <span className={`font-medium ${statusDisplay.color}`}>
-                        {' '}{statusDisplay.text}
-                      </span>
-                    </p>
+                  <div className='flex items-center gap-3 min-w-0'>
+                    <div className='w-10 h-10 rounded-lg bg-slate-700/50 flex items-center justify-center flex-shrink-0'>
+                      {getCategoryIcon(doc.category)}
+                    </div>
+                    <div className='min-w-0'>
+                      <p className='text-sm font-medium text-white truncate'>{doc.originalFileName}</p>
+                      <div className='flex items-center gap-2 mt-0.5'>
+                        <span className='text-xs text-slate-400'>
+                          {doc.category === 'identity' ? 'ID' : 'Income'} • {String(doc.docType).replace(/_/g, ' ')}
+                        </span>
+                        <span className={`text-xs font-medium ${statusDisplay.color}`}>
+                          • {statusDisplay.text}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <Button
                     size="sm"
                     onClick={() => handleViewDocument(doc.id, doc.originalFileName, true)}
                     disabled={loadingDocId === doc.id}
-                    className='rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-blue-700'
+                    className='rounded-lg bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 text-xs font-medium flex-shrink-0'
                   >
                     {loadingDocId === doc.id ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      'View'
+                      <>
+                        <Eye className="w-3.5 h-3.5 mr-1.5" />
+                        View
+                      </>
                     )}
                   </Button>
                 </div>
@@ -108,34 +124,46 @@ export function ApplicationDocumentViewer({
       )}
 
       {/* Other Documents */}
-      <div className='mt-4 space-y-2'>
-        <p className='font-semibold text-slate-900 text-sm'>Other documents</p>
+      <div className='space-y-3'>
+        <h4 className='text-sm font-semibold text-white flex items-center gap-2'>
+          <FileText className='w-4 h-4 text-slate-400' />
+          Other Documents
+        </h4>
         {applicationDocuments.length === 0 ? (
-          <p className='text-xs text-slate-500'>No additional documents uploaded.</p>
+          <div className='p-4 rounded-xl border border-slate-700/50 bg-slate-800/30'>
+            <p className='text-sm text-slate-500 text-center'>No additional documents uploaded</p>
+          </div>
         ) : (
-          <div className='space-y-2'>
+          <div className='grid gap-3'>
             {applicationDocuments.map((doc) => (
               <div
                 key={doc.id}
-                className='flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2'
+                className='flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-700/50 bg-slate-800/30'
               >
-                <div className='min-w-0'>
-                  <p className='text-xs font-medium text-slate-900 truncate'>{doc.originalFileName}</p>
-                  <p className='text-[11px] text-slate-500'>
-                    {String(doc.category).replace(/_/g, ' ')} • {String(doc.docType).replace(/_/g, ' ')} •{' '}
-                    {doc.status}
-                  </p>
+                <div className='flex items-center gap-3 min-w-0'>
+                  <div className='w-10 h-10 rounded-lg bg-slate-700/50 flex items-center justify-center flex-shrink-0'>
+                    <FileText className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <div className='min-w-0'>
+                    <p className='text-sm font-medium text-white truncate'>{doc.originalFileName}</p>
+                    <p className='text-xs text-slate-400 mt-0.5'>
+                      {String(doc.category).replace(/_/g, ' ')} • {String(doc.docType).replace(/_/g, ' ')} • {doc.status}
+                    </p>
+                  </div>
                 </div>
                 <Button
                   size="sm"
                   onClick={() => handleViewDocument(doc.id, doc.originalFileName, false)}
                   disabled={loadingDocId === doc.id}
-                  className='rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-slate-800'
+                  className='rounded-lg bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 text-xs font-medium flex-shrink-0'
                 >
                   {loadingDocId === doc.id ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    'View'
+                    <>
+                      <Eye className="w-3.5 h-3.5 mr-1.5" />
+                      View
+                    </>
                   )}
                 </Button>
               </div>
@@ -143,6 +171,6 @@ export function ApplicationDocumentViewer({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }

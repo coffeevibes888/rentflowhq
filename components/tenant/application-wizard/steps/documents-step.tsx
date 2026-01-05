@@ -76,49 +76,65 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
 
   const handleIdUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0 || !state.applicationId) return;
+    if (!files || files.length === 0) return;
 
     setUploadingId(true);
+    setErrors(prev => ({ ...prev, id: '' }));
 
     try {
       for (const file of Array.from(files)) {
         if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+          setErrors(prev => ({ ...prev, id: 'Please upload an image or PDF file' }));
           continue;
         }
 
         if (file.size > 10 * 1024 * 1024) {
+          setErrors(prev => ({ ...prev, id: 'File size must be under 10MB' }));
           continue;
         }
 
-        // Create preview URL before upload
+        // Create preview URL immediately
         const previewUrl = URL.createObjectURL(file);
+        const tempId = `temp-${Date.now()}-${Math.random()}`;
+        
+        // Add to state immediately for preview
+        setIdDocuments(prev => [...prev, {
+          id: tempId,
+          url: previewUrl,
+          name: file.name,
+          type: 'identity',
+          docType: 'government_id',
+        }]);
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('category', 'identity');
-        formData.append('docType', 'government_id');
+        // Upload in background if we have an application ID
+        if (state.applicationId) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('category', 'identity');
+          formData.append('docType', 'government_id');
 
-        const response = await fetch(`/api/applications/${state.applicationId}/verification/upload`, {
-          method: 'POST',
-          body: formData,
-        });
+          try {
+            const response = await fetch(`/api/applications/${state.applicationId}/verification/upload`, {
+              method: 'POST',
+              body: formData,
+            });
 
-        if (response.ok) {
-          const data = await response.json();
-          setIdDocuments(prev => [...prev, {
-            id: data.documentId || Date.now().toString(),
-            url: previewUrl,
-            name: file.name,
-            type: 'identity',
-            docType: 'government_id',
-          }]);
-        } else {
-          // Clean up preview URL if upload failed
-          URL.revokeObjectURL(previewUrl);
+            if (response.ok) {
+              const data = await response.json();
+              // Update the temp ID with the real one
+              setIdDocuments(prev => prev.map(doc => 
+                doc.id === tempId ? { ...doc, id: data.documentId || tempId } : doc
+              ));
+            } else {
+              console.error('Upload failed:', await response.text());
+            }
+          } catch (uploadError) {
+            console.error('Upload error:', uploadError);
+          }
         }
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('File processing error:', error);
     } finally {
       setUploadingId(false);
       if (idInputRef.current) {
@@ -129,49 +145,65 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
 
   const handleIncomeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0 || !state.applicationId) return;
+    if (!files || files.length === 0) return;
 
     setUploadingIncome(true);
+    setErrors(prev => ({ ...prev, income: '' }));
 
     try {
       for (const file of Array.from(files)) {
         if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+          setErrors(prev => ({ ...prev, income: 'Please upload an image or PDF file' }));
           continue;
         }
 
         if (file.size > 10 * 1024 * 1024) {
+          setErrors(prev => ({ ...prev, income: 'File size must be under 10MB' }));
           continue;
         }
 
-        // Create preview URL before upload
+        // Create preview URL immediately
         const previewUrl = URL.createObjectURL(file);
+        const tempId = `temp-${Date.now()}-${Math.random()}`;
+        
+        // Add to state immediately for preview
+        setIncomeDocuments(prev => [...prev, {
+          id: tempId,
+          url: previewUrl,
+          name: file.name,
+          type: 'income',
+          docType: selectedIncomeType,
+        }]);
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('category', 'employment');
-        formData.append('docType', selectedIncomeType);
+        // Upload in background if we have an application ID
+        if (state.applicationId) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('category', 'employment');
+          formData.append('docType', selectedIncomeType);
 
-        const response = await fetch(`/api/applications/${state.applicationId}/verification/upload`, {
-          method: 'POST',
-          body: formData,
-        });
+          try {
+            const response = await fetch(`/api/applications/${state.applicationId}/verification/upload`, {
+              method: 'POST',
+              body: formData,
+            });
 
-        if (response.ok) {
-          const data = await response.json();
-          setIncomeDocuments(prev => [...prev, {
-            id: data.documentId || Date.now().toString(),
-            url: previewUrl,
-            name: file.name,
-            type: 'income',
-            docType: selectedIncomeType,
-          }]);
-        } else {
-          // Clean up preview URL if upload failed
-          URL.revokeObjectURL(previewUrl);
+            if (response.ok) {
+              const data = await response.json();
+              // Update the temp ID with the real one
+              setIncomeDocuments(prev => prev.map(doc => 
+                doc.id === tempId ? { ...doc, id: data.documentId || tempId } : doc
+              ));
+            } else {
+              console.error('Upload failed:', await response.text());
+            }
+          } catch (uploadError) {
+            console.error('Upload error:', uploadError);
+          }
         }
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('File processing error:', error);
     } finally {
       setUploadingIncome(false);
       if (incomeInputRef.current) {
@@ -180,11 +212,21 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
     }
   };
 
-  const removeIdDocument = (id: string) => {
+  const removeIdDocument = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const doc = idDocuments.find(d => d.id === id);
+    if (doc?.url.startsWith('blob:')) {
+      URL.revokeObjectURL(doc.url);
+    }
     setIdDocuments(prev => prev.filter(doc => doc.id !== id));
   };
 
-  const removeIncomeDocument = (id: string) => {
+  const removeIncomeDocument = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const doc = incomeDocuments.find(d => d.id === id);
+    if (doc?.url.startsWith('blob:')) {
+      URL.revokeObjectURL(doc.url);
+    }
     setIncomeDocuments(prev => prev.filter(doc => doc.id !== id));
   };
 
@@ -300,7 +342,7 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
 
                   {/* Remove button */}
                   <button
-                    onClick={() => removeIdDocument(doc.id)}
+                    onClick={(e) => removeIdDocument(doc.id, e)}
                     className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="h-4 w-4" />
@@ -451,7 +493,7 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
 
                   {/* Remove button */}
                   <button
-                    onClick={() => removeIncomeDocument(doc.id)}
+                    onClick={(e) => removeIncomeDocument(doc.id, e)}
                     className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="h-4 w-4" />

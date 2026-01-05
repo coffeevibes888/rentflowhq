@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,13 +36,32 @@ interface ApplicationWizardProps {
 
 function WizardContent({ propertySlug, propertyName, onComplete, onCancel }: ApplicationWizardProps) {
   const router = useRouter();
-  const { state, resetWizard, setApplicationId } = useApplicationWizard();
+  const { data: session } = useSession();
+  const { state, resetWizard, setApplicationId, updateFormData } = useApplicationWizard();
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [validateFn, setValidateFn] = useState<{ fn: (() => boolean) | null }>({ fn: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [hasPrefilledData, setHasPrefilledData] = useState(false);
 
   const currentStepId = APPLICATION_STEPS[state.currentStep]?.id;
+
+  // Pre-fill form data from session
+  useEffect(() => {
+    if (session?.user && !hasPrefilledData && !state.isDirty) {
+      const userName = session.user.name;
+      const userEmail = session.user.email;
+      
+      // Only pre-fill if name doesn't look like an email
+      const isNameValid = userName && !userName.includes('@');
+      
+      updateFormData({
+        fullName: isNameValid ? userName : '',
+        email: userEmail || '',
+      });
+      setHasPrefilledData(true);
+    }
+  }, [session, hasPrefilledData, state.isDirty, updateFormData]);
 
   // Create draft application on mount
   useEffect(() => {
