@@ -215,7 +215,7 @@ function WizardContent({ propertySlug, propertyName, onComplete, onCancel }: App
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
+      <div className="sticky top-0 z-50 bg-slate-800/40 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>

@@ -56,7 +56,7 @@ export default function ExitIntentPopup() {
           </h2>
           
           <p className='text-slate-300'>
-            Start managing your properties for <span className='text-violet-400 font-semibold'>free</span> — up to 24 units with full features. No credit card required.
+            Try all features <span className='text-violet-400 font-semibold'>free for 7 days</span> — no credit card required. See why property managers love us.
           </p>
 
           <div className='bg-violet-500/10 border border-violet-500/20 rounded-lg p-4'>
@@ -73,7 +73,7 @@ export default function ExitIntentPopup() {
               href='/sign-up'
               className='group w-full inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-6 py-3 font-bold hover:bg-violet-400 transition-all duration-300'
             >
-              Get Started Free
+              Start Your Free Trial
               <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
             </Link>
             
@@ -81,7 +81,7 @@ export default function ExitIntentPopup() {
               onClick={() => setIsVisible(false)}
               className='w-full text-sm text-slate-400 hover:text-white transition-colors'
             >
-              No thanks, I'll keep struggling with spreadsheets
+              Maybe later
             </button>
           </div>
         </div>

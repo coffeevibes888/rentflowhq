@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { User, Eye, EyeOff, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { BirthdayPicker } from '@/components/ui/birthday-picker';
 import { useApplicationWizard } from '../wizard-context';
 
 interface PersonalStepProps {
@@ -78,11 +79,10 @@ export function PersonalStep({ setValidate }: PersonalStepProps) {
 
         <div className="space-y-2">
           <Label className="text-slate-200">Date of Birth *</Label>
-          <Input
-            type="date"
+          <BirthdayPicker
             value={state.formData.dateOfBirth || ''}
-            onChange={(e) => updateFormData({ dateOfBirth: e.target.value })}
-            className="bg-slate-800/50 border-slate-600 text-white h-12"
+            onChange={(date) => updateFormData({ dateOfBirth: date })}
+            error={!!errors.dateOfBirth}
           />
           {errors.dateOfBirth && <p className="text-sm text-red-400">{errors.dateOfBirth}</p>}
         </div>
