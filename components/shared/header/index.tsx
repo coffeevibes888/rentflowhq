@@ -49,7 +49,7 @@ const Header = async () => {
       </div>
 
       <div className="wrapper hidden md:flex items-center justify-between h-16 overflow-visible">
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0">
           <Link href='/' className="flex items-center">
             <div className="relative w-24 h-24">
               <Image
@@ -63,15 +63,15 @@ const Header = async () => {
           </Link>
         </div>
 
-        <div className="flex items-center justify-center text-sm font-medium">
-          <Link href='/' className="m-2.5 px-1 text-black hover:underline ">Home</Link>
-          <Link href='/listings' className="m-2.5 px-1 text-black hover:underline">Listings</Link>
-          <Link href='/contractors' className="m-2.5 px-1 text-black hover:underline">Contractors</Link>
-          <Link href='/about' className="m-2.5 px-1 text-black hover:underline ">About</Link>
-          <Link href='/contact' className="m-2.5 px-1 text-black hover:underline ">Contact</Link>
-          <Link href='/affiliate-program' className="m-2.5 px-1 text-black hover:underline ">Affiliates</Link>
+        <div className="flex items-center gap-1 text-sm font-medium ml-auto mr-4">
+          <Link href='/' className="px-2.5 py-1.5 text-black hover:underline">Home</Link>
+          <Link href='/listings' className="px-2.5 py-1.5 text-black hover:underline">Listings</Link>
+          <Link href='/contractors' className="px-2.5 py-1.5 text-black hover:underline">Contractors</Link>
+          <Link href='/about' className="px-2.5 py-1.5 text-black hover:underline">About</Link>
+          <Link href='/contact' className="px-2.5 py-1.5 text-black hover:underline">Contact</Link>
+          <Link href='/affiliate-program' className="px-2.5 py-1.5 text-black hover:underline">Affiliates</Link>
 
-          <div className="relative m-2.5 group">
+          <div className="relative group">
             {categories.length > 0 && (
               <div className="absolute left-0 top-full mt-1 hidden group-hover:flex border rounded-md shadow-lg z-50 min-w-[520px]">
                 <div className="w-52 border-r  py-3">

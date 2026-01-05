@@ -160,7 +160,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         </div>
 
         {/* Applicant Header Card */}
-        <div className='rounded-2xl bg-white/10 backdrop-blur-sm p-6'>
+        <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
           <div className='flex items-center gap-4 mb-4'>
             <div className='w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold'>
               {(application.fullName || application.applicant?.name || 'A').charAt(0).toUpperCase()}
@@ -174,31 +174,31 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                   {application.status}
                 </span>
               </div>
-              <p className='text-white/60 text-sm'>{unitLabel}</p>
+              <p className='text-violet-200 text-sm'>{unitLabel}</p>
             </div>
           </div>
 
           {/* Contact Info - Horizontal */}
           <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
             <div>
-              <p className='text-white/40 text-xs uppercase tracking-wide mb-1'>Email</p>
+              <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Email</p>
               <p className='text-white text-sm font-medium'>{application.email || application.applicant?.email || '—'}</p>
             </div>
             {application.phone && (
               <div>
-                <p className='text-white/40 text-xs uppercase tracking-wide mb-1'>Phone</p>
+                <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Phone</p>
                 <p className='text-white text-sm font-medium'>{application.phone}</p>
               </div>
             )}
             {decryptedSsn && (
               <div>
-                <p className='text-white/40 text-xs uppercase tracking-wide mb-1'>SSN</p>
+                <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>SSN</p>
                 <p className='text-white text-sm font-mono'>{formatSsn(decryptedSsn)}</p>
               </div>
             )}
             {application.moveInDate && (
               <div>
-                <p className='text-white/40 text-xs uppercase tracking-wide mb-1'>Move-in Date</p>
+                <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Move-in Date</p>
                 <p className='text-white text-sm font-medium'>{new Date(application.moveInDate).toLocaleDateString()}</p>
               </div>
             )}
@@ -208,36 +208,36 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         {/* Application Details - Organized Sections */}
         <div className='grid md:grid-cols-2 gap-6'>
           {/* Personal & Background */}
-          <div className='rounded-2xl bg-white/10 backdrop-blur-sm p-6 space-y-4'>
-            <h3 className='text-lg font-semibold text-white border-b border-white/10 pb-2'>Personal Information</h3>
+          <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6 space-y-4'>
+            <h3 className='text-lg font-semibold text-white border-b border-violet-500/30 pb-2'>Personal Information</h3>
             <div className='grid grid-cols-2 gap-4'>
               {parsedNotes['DOB'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Date of Birth</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Date of Birth</p>
                   <p className='text-white text-sm'>{parsedNotes['DOB']}</p>
                 </div>
               )}
               {age !== null && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Age</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Age</p>
                   <p className='text-white text-sm'>{age} years old</p>
                 </div>
               )}
               {parsedNotes['Number of occupants'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Occupants</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Occupants</p>
                   <p className='text-white text-sm'>{parsedNotes['Number of occupants']}</p>
                 </div>
               )}
               {parsedNotes['Vehicles'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Vehicles</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Vehicles</p>
                   <p className='text-white text-sm'>{parsedNotes['Vehicles']}</p>
                 </div>
               )}
               {parsedNotes['Emergency contact'] && (
                 <div className='col-span-2'>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Emergency Contact</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Emergency Contact</p>
                   <p className='text-white text-sm'>{parsedNotes['Emergency contact']}</p>
                 </div>
               )}
@@ -246,7 +246,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
             {/* Pets */}
             {parsedNotes['Has pets'] && (
               <div className='pt-2'>
-                <p className='text-white/40 text-xs uppercase tracking-wide mb-1'>Pets</p>
+                <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Pets</p>
                 <p className='text-white text-sm'>
                   {parsedNotes['Has pets']?.includes('Yes') ? '🐾 ' : ''}{parsedNotes['Has pets']}
                 </p>
@@ -255,48 +255,48 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
           </div>
 
           {/* Employment & Income */}
-          <div className='rounded-2xl bg-white/10 backdrop-blur-sm p-6 space-y-4'>
-            <h3 className='text-lg font-semibold text-white border-b border-white/10 pb-2'>Employment & Income</h3>
+          <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6 space-y-4'>
+            <h3 className='text-lg font-semibold text-white border-b border-violet-500/30 pb-2'>Employment & Income</h3>
             <div className='grid grid-cols-2 gap-4'>
               {parsedNotes['Employment status'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Status</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Status</p>
                   <p className='text-white text-sm capitalize'>{parsedNotes['Employment status']}</p>
                 </div>
               )}
               {(parsedNotes['Job title'] || application.employmentStatus) && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Job Title</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Job Title</p>
                   <p className='text-white text-sm'>{parsedNotes['Job title'] || application.employmentStatus}</p>
                 </div>
               )}
               {(employerName || parsedNotes['Employer']) && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Employer</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Employer</p>
                   <p className='text-white text-sm'>{employerName || parsedNotes['Employer']}</p>
                 </div>
               )}
               {parsedNotes['Employer phone'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Employer Phone</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Employer Phone</p>
                   <p className='text-white text-sm'>{parsedNotes['Employer phone']}</p>
                 </div>
               )}
               {parsedNotes['Supervisor'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Supervisor</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Supervisor</p>
                   <p className='text-white text-sm'>{parsedNotes['Supervisor']}</p>
                 </div>
               )}
               {parsedNotes['Time employed'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Time Employed</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Time Employed</p>
                   <p className='text-white text-sm'>{parsedNotes['Time employed']}</p>
                 </div>
               )}
               {(application.monthlyIncome || avgGrossPay) && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Monthly Income</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Monthly Income</p>
                   <p className='text-emerald-400 text-sm font-semibold'>
                     ${Number(application.monthlyIncome || avgGrossPay).toLocaleString()}
                   </p>
@@ -306,38 +306,38 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
           </div>
 
           {/* Current Residence */}
-          <div className='rounded-2xl bg-white/10 backdrop-blur-sm p-6 space-y-4'>
-            <h3 className='text-lg font-semibold text-white border-b border-white/10 pb-2'>Current Residence</h3>
+          <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6 space-y-4'>
+            <h3 className='text-lg font-semibold text-white border-b border-violet-500/30 pb-2'>Current Residence</h3>
             <div className='space-y-3'>
               {parsedNotes['Address'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Address</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Address</p>
                   <p className='text-white text-sm'>{parsedNotes['Address']}</p>
                 </div>
               )}
               <div className='grid grid-cols-2 gap-4'>
                 {parsedNotes['Time at current address'] && (
                   <div>
-                    <p className='text-white/40 text-xs uppercase tracking-wide'>Time at Address</p>
+                    <p className='text-violet-300 text-xs uppercase tracking-wide'>Time at Address</p>
                     <p className='text-white text-sm'>{parsedNotes['Time at current address']}</p>
                   </div>
                 )}
                 {parsedNotes['Current rent'] && (
                   <div>
-                    <p className='text-white/40 text-xs uppercase tracking-wide'>Current Rent</p>
+                    <p className='text-violet-300 text-xs uppercase tracking-wide'>Current Rent</p>
                     <p className='text-white text-sm'>{parsedNotes['Current rent']}</p>
                   </div>
                 )}
                 {parsedNotes['Current landlord'] && (
                   <div className='col-span-2'>
-                    <p className='text-white/40 text-xs uppercase tracking-wide'>Current Landlord</p>
+                    <p className='text-violet-300 text-xs uppercase tracking-wide'>Current Landlord</p>
                     <p className='text-white text-sm'>{parsedNotes['Current landlord']}</p>
                   </div>
                 )}
               </div>
               {parsedNotes['Reason for leaving'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Reason for Leaving</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Reason for Leaving</p>
                   <p className='text-white text-sm'>{parsedNotes['Reason for leaving']}</p>
                 </div>
               )}
@@ -345,13 +345,13 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
           </div>
 
           {/* Background & History */}
-          <div className='rounded-2xl bg-white/10 backdrop-blur-sm p-6 space-y-4'>
-            <h3 className='text-lg font-semibold text-white border-b border-white/10 pb-2'>Background</h3>
+          <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6 space-y-4'>
+            <h3 className='text-lg font-semibold text-white border-b border-violet-500/30 pb-2'>Background</h3>
             <div className='space-y-3'>
               <div className='grid grid-cols-2 gap-4'>
                 {parsedNotes['Has been evicted'] && (
                   <div>
-                    <p className='text-white/40 text-xs uppercase tracking-wide'>Prior Evictions</p>
+                    <p className='text-violet-300 text-xs uppercase tracking-wide'>Prior Evictions</p>
                     <p className={`text-sm font-medium ${parsedNotes['Has been evicted'].toLowerCase() === 'yes' ? 'text-red-400' : 'text-emerald-400'}`}>
                       {parsedNotes['Has been evicted']}
                     </p>
@@ -359,7 +359,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                 )}
                 {parsedNotes['Has broken lease'] && (
                   <div>
-                    <p className='text-white/40 text-xs uppercase tracking-wide'>Broken Lease</p>
+                    <p className='text-violet-300 text-xs uppercase tracking-wide'>Broken Lease</p>
                     <p className={`text-sm font-medium ${parsedNotes['Has broken lease'].toLowerCase() === 'yes' ? 'text-red-400' : 'text-emerald-400'}`}>
                       {parsedNotes['Has broken lease']}
                     </p>
@@ -368,13 +368,13 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               </div>
               {parsedNotes['Has convictions'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Criminal History</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Criminal History</p>
                   <p className='text-white text-sm'>{parsedNotes['Has convictions']}</p>
                 </div>
               )}
               {parsedNotes['Additional notes'] && (
                 <div>
-                  <p className='text-white/40 text-xs uppercase tracking-wide'>Additional Notes</p>
+                  <p className='text-violet-300 text-xs uppercase tracking-wide'>Additional Notes</p>
                   <p className='text-white text-sm'>{parsedNotes['Additional notes']}</p>
                 </div>
               )}
@@ -383,8 +383,8 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         </div>
 
         {/* Documents Section */}
-        <div className='rounded-2xl bg-white/10 backdrop-blur-sm p-6'>
-          <h3 className='text-lg font-semibold text-white border-b border-white/10 pb-2 mb-4'>Uploaded Documents</h3>
+        <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+          <h3 className='text-lg font-semibold text-white border-b border-violet-500/30 pb-2 mb-4'>Uploaded Documents</h3>
           <ApplicationDocumentViewer
             verificationDocuments={verificationDocuments.map(doc => ({
               id: doc.id,
@@ -405,8 +405,8 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
         </div>
 
         {/* Tenant Screening Section */}
-        <div className='rounded-2xl bg-white/10 backdrop-blur-sm p-6'>
-          <h3 className='text-lg font-semibold text-white border-b border-white/10 pb-2 mb-4'>Tenant Screening</h3>
+        <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+          <h3 className='text-lg font-semibold text-white border-b border-violet-500/30 pb-2 mb-4'>Tenant Screening</h3>
           
           {application.screeningStatus && (
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4 ${
@@ -419,23 +419,23 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
             </div>
           )}
 
-          <p className='text-white/60 text-sm mb-4'>Run a background check using one of these services:</p>
+          <p className='text-violet-200 text-sm mb-4'>Run a background check using one of these services:</p>
           
           <div className='grid grid-cols-1 md:grid-cols-3 gap-3 mb-6'>
             <a href='https://www.mysmartmove.com/' target='_blank' rel='noopener noreferrer'
-              className='p-4 rounded-xl bg-white/5 border border-white/10 hover:border-violet-400/50 hover:bg-white/10 transition-all group'>
+              className='p-4 rounded-xl bg-violet-800/50 border border-violet-500/30 hover:border-violet-400/50 hover:bg-violet-700/50 transition-all group'>
               <p className='font-semibold text-white'>SmartMove</p>
-              <p className='text-xs text-white/50'>by TransUnion</p>
+              <p className='text-xs text-violet-300'>by TransUnion</p>
             </a>
             <a href='https://www.avail.co/tenant-screening' target='_blank' rel='noopener noreferrer'
-              className='p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all group'>
+              className='p-4 rounded-xl bg-emerald-900/50 border border-emerald-500/30 hover:bg-emerald-800/50 transition-all group'>
               <p className='font-semibold text-white'>Avail <span className='text-emerald-400 text-xs'>Free</span></p>
-              <p className='text-xs text-white/50'>Easy to use</p>
+              <p className='text-xs text-emerald-300'>Easy to use</p>
             </a>
             <a href='https://www.rentprep.com/' target='_blank' rel='noopener noreferrer'
-              className='p-4 rounded-xl bg-white/5 border border-white/10 hover:border-violet-400/50 hover:bg-white/10 transition-all group'>
+              className='p-4 rounded-xl bg-violet-800/50 border border-violet-500/30 hover:border-violet-400/50 hover:bg-violet-700/50 transition-all group'>
               <p className='font-semibold text-white'>RentPrep</p>
-              <p className='text-xs text-white/50'>From $21</p>
+              <p className='text-xs text-violet-300'>From $21</p>
             </a>
           </div>
 
@@ -455,9 +455,9 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
             revalidatePath(`/admin/applications/${application.id}`);
           }} className='flex flex-wrap gap-3 items-end'>
             <div className='flex-1 min-w-[200px]'>
-              <label className='text-white/60 text-xs block mb-1'>Provider Used</label>
+              <label className='text-violet-300 text-xs block mb-1'>Provider Used</label>
               <select name='screeningProvider' defaultValue={application.screeningProvider || ''}
-                className='w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-white text-sm'>
+                className='w-full rounded-lg bg-violet-800/50 border border-violet-500/30 px-3 py-2 text-white text-sm'>
                 <option value=''>Select provider...</option>
                 <option value='smartmove'>SmartMove</option>
                 <option value='avail'>Avail</option>
@@ -466,19 +466,19 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               </select>
             </div>
             <div className='flex-1 min-w-[200px]'>
-              <label className='text-white/60 text-xs block mb-1'>Notes</label>
+              <label className='text-violet-300 text-xs block mb-1'>Notes</label>
               <input type='text' name='screeningNotes' placeholder='Add results...'
-                className='w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-white text-sm placeholder:text-white/30' />
+                className='w-full rounded-lg bg-violet-800/50 border border-violet-500/30 px-3 py-2 text-white text-sm placeholder:text-violet-400' />
             </div>
-            <button type='submit' className='px-4 py-2 rounded-lg bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors'>
+            <button type='submit' className='px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 transition-colors'>
               Update
             </button>
           </form>
         </div>
 
         {/* Decision Form with Message */}
-        <div className='rounded-2xl bg-white/10 backdrop-blur-sm p-6'>
-          <h3 className='text-lg font-semibold text-white border-b border-white/10 pb-2 mb-4'>Send Message to Applicant</h3>
+        <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+          <h3 className='text-lg font-semibold text-white border-b border-violet-500/30 pb-2 mb-4'>Send Message to Applicant</h3>
           <form action={async (formData: FormData) => {
             'use server';
             const status = formData.get('status') as string;
@@ -487,9 +487,9 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
           }} className='space-y-4'>
             <div className='grid md:grid-cols-2 gap-4'>
               <div>
-                <label className='text-white/60 text-xs block mb-1'>Decision</label>
+                <label className='text-violet-300 text-xs block mb-1'>Decision</label>
                 <select name='status' defaultValue={application.status}
-                  className='w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-white text-sm'>
+                  className='w-full rounded-lg bg-violet-800/50 border border-violet-500/30 px-3 py-2.5 text-white text-sm'>
                   <option value='pending'>Pending</option>
                   <option value='approved'>Approved</option>
                   <option value='rejected'>Rejected</option>
@@ -498,9 +498,9 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               </div>
             </div>
             <div>
-              <label className='text-white/60 text-xs block mb-1'>Message to Applicant</label>
+              <label className='text-violet-300 text-xs block mb-1'>Message to Applicant</label>
               <textarea name='adminResponse' rows={3} placeholder='Explain your decision or next steps...'
-                className='w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-white text-sm placeholder:text-white/30 resize-none' />
+                className='w-full rounded-lg bg-violet-800/50 border border-violet-500/30 px-3 py-2.5 text-white text-sm placeholder:text-violet-400 resize-none' />
             </div>
             <div className='flex gap-3'>
               <button type='submit' className='px-6 py-2.5 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-colors'>
