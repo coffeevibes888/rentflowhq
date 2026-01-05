@@ -1,68 +1,16 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { CheckCircle2, ArrowRight, Shield, Zap, Eye, EyeOff, AlertCircle } from "lucide-react";
-import Link from "next/link";
-import { VerificationWizard } from "@/components/tenant/verification-wizard";
-
-const phoneRegex = /^(\+1|1)?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/;
-const ssnRegex = /^\d{3}-?\d{2}-?\d{4}$/;
-
-const applicationSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters").max(100),
-  age: z.string().optional(),
-  email: z.string().email("Valid email is required"),
-  phone: z.string().regex(phoneRegex, "Phone format: (555) 123-4567"),
-  currentAddress: z.string().min(5, "Current address must be at least 5 characters"),
-  currentEmployer: z.string().min(2, "Current employer must be at least 2 characters"),
-  monthlySalary: z.string().optional(),
-  yearlySalary: z.string().optional(),
-  hasPets: z.string().optional(),
-  petCount: z.string().optional(),
-  ssn: z.string().regex(ssnRegex, "SSN format: XXX-XX-XXXX or XXXXXXXXX"),
-  notes: z.string().optional(),
-});
+import { ApplicationWizard } from "@/components/tenant/application-wizard";
 
 export default function SubdomainApplicationPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: session, status } = useSession();
   const propertySlug = searchParams.get("property") ?? "";
-
-  const form = useForm<z.infer<typeof applicationSchema>>({
-    resolver: zodResolver(applicationSchema),
-    defaultValues: {
-      fullName: "",
-      age: "",
-      email: "",
-      phone: "",
-      currentAddress: "",
-      currentEmployer: "",
-      monthlySalary: "",
-      yearlySalary: "",
-      hasPets: "",
-      petCount: "",
-      ssn: "",
-      notes: "",
-    },
-  });
-
-  const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSsn, setShowSsn] = useState(false);
-  const [draftApplicationId, setDraftApplicationId] = useState<string | null>(null);
-  const [showVerification, setShowVerification] = useState(false);
-  const [verificationComplete, setVerificationComplete] = useState(false);
+  const [propertyName, setPropertyName] = useState<string>("");
 
   // Redirect to sign-up if not authenticated or not a tenant
   useEffect(() => {
@@ -71,7 +19,6 @@ export default function SubdomainApplicationPage() {
       return;
     } else if (status === "unauthenticated" || (status === "authenticated" && session?.user?.role !== "tenant")) {
       // Not authenticated or not a tenant, redirect to sign-up with propertySlug
-      // After sign-up, a draft application will be created and they'll go to dashboard
       const signUpUrl = propertySlug
         ? `/sign-up?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
         : "/sign-up?fromProperty=true";
@@ -79,88 +26,19 @@ export default function SubdomainApplicationPage() {
     }
   }, [status, session?.user?.role, propertySlug, router]);
 
-  const onSubmit = async (values: z.infer<typeof applicationSchema>) => {
-    if (!session || session.user?.role !== "tenant") {
-      const signUpUrl = propertySlug
-        ? `/sign-up?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
-        : "/sign-up?fromProperty=true";
-      router.push(signUpUrl);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      console.log('[APPLICATION] Submitting application with data:', { ...values, propertySlug });
-      
-      // First, create a draft application
-      const res = await fetch("/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, propertySlug }),
-      });
-
-      console.log('[APPLICATION] Response status:', res.status);
-
-      if (res.status === 401) {
-        const signUpUrl = propertySlug
-          ? `/sign-up?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
-          : "/sign-up?fromProperty=true";
-        router.push(signUpUrl);
-        return;
-      }
-
-      if (!res.ok) {
-        const error = await res.json();
-        console.error('[APPLICATION] Error response:', error);
-        alert(error.message || "Failed to submit application. Please try again.");
-        return;
-      }
-
-      const data = await res.json();
-      console.log('[APPLICATION] Success response:', data);
-      
-      // Use the returned application ID
-      if (data.applicationId) {
-        console.log('[APPLICATION] Setting draft application ID:', data.applicationId);
-        setDraftApplicationId(data.applicationId);
-        setShowVerification(true);
-      } else {
-        console.warn('[APPLICATION] No applicationId in response, fetching applications...');
-        // Fallback: fetch the latest application
-        const appsRes = await fetch('/api/user/applications');
-        if (appsRes.ok) {
-          const apps = await appsRes.json();
-          console.log('[APPLICATION] Fetched applications:', apps);
-          const latestApp = apps.applications?.[0];
-          if (latestApp) {
-            console.log('[APPLICATION] Using latest application:', latestApp.id);
-            setDraftApplicationId(latestApp.id);
-            setShowVerification(true);
-          } else {
-            console.error('[APPLICATION] No applications found');
-            alert("Application created but unable to proceed to verification. Please check your dashboard.");
+  // Fetch property name if we have a slug
+  useEffect(() => {
+    if (propertySlug) {
+      fetch(`/api/products/slug/${propertySlug}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.name) {
+            setPropertyName(data.name);
           }
-        } else {
-          console.error('[APPLICATION] Failed to fetch applications:', appsRes.status);
-          alert("Application created but unable to proceed to verification. Please check your dashboard.");
-        }
-      }
-    } catch (error) {
-      console.error('[APPLICATION] Exception:', error);
-      alert("An error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+        })
+        .catch(() => {});
     }
-  };
-
-  const handleVerificationComplete = () => {
-    setVerificationComplete(true);
-    setSubmitted(true);
-    // Redirect to tenant dashboard after successful verification
-    setTimeout(() => {
-      router.push("/user/dashboard");
-    }, 3000);
-  };
+  }, [propertySlug]);
 
   if (status === "loading" || status === "unauthenticated" || (status === "authenticated" && session?.user?.role !== "tenant")) {
     return (
@@ -172,394 +50,20 @@ export default function SubdomainApplicationPage() {
     );
   }
 
-  // Show verification wizard after form submission
-  if (showVerification && draftApplicationId) {
-    return (
-      <VerificationWizard
-        applicationId={draftApplicationId}
-        onComplete={handleVerificationComplete}
-      />
-    );
-  }
+  const handleComplete = () => {
+    router.push("/user/dashboard");
+  };
 
-  if (submitted) {
-    return (
-      <main className="flex-1 w-full">
-        <div className="max-w-2xl mx-auto py-20 px-4">
-          <Card className="border-emerald-400/30 bg-emerald-500/10">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-6">
-                <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30">
-                  <CheckCircle2 className="h-8 w-8 text-emerald-300" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-white mb-2">Application Submitted!</h1>
-                  <p className="text-slate-200/90">
-                    Thank you for applying. Our team will review your application and contact you shortly.
-                  </p>
-                </div>
-                <div className="space-y-3 pt-4">
-                  <p className="text-sm text-slate-300/80">
-                    <strong>What happens next?</strong>
-                  </p>
-                  <ul className="text-sm text-slate-200/80 space-y-2 text-left max-w-md mx-auto">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-300 mt-0.5 shrink-0" />
-                      <span>We'll review your application within 24-48 hours</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-300 mt-0.5 shrink-0" />
-                      <span>You'll receive an email with next steps</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-300 mt-0.5 shrink-0" />
-                      <span>If approved, you can sign your lease online</span>
-                    </li>
-                  </ul>
-                </div>
-                <Link
-                  href="/"
-                  className="inline-flex items-center gap-2 rounded-lg bg-violet-500 px-6 py-3 text-sm font-semibold text-white hover:bg-violet-600 transition-colors"
-                >
-                  Back to Listings
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    );
-  }
+  const handleCancel = () => {
+    router.back();
+  };
 
   return (
-    <main className="flex-1 w-full">
-      <div className="max-w-3xl mx-auto py-12 px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            Rental Application
-          </h1>
-          <p className="text-slate-200/80">
-            {propertySlug 
-              ? `Apply for ${propertySlug}`
-              : "Complete your application in minutes - No fees, no hassle"}
-          </p>
-        </div>
-
-        {/* Benefits Banner */}
-        <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 mb-8">
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-            <div className="flex items-center gap-2 text-emerald-200">
-              <CheckCircle2 className="h-5 w-5" />
-              <span className="font-medium">No Application Fees</span>
-            </div>
-            <div className="flex items-center gap-2 text-emerald-200">
-              <Zap className="h-5 w-5" />
-              <span className="font-medium">Fast Approval Process</span>
-            </div>
-            <div className="flex items-center gap-2 text-emerald-200">
-              <Shield className="h-5 w-5" />
-              <span className="font-medium">Secure & Encrypted</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Verification Required Notice */}
-        <div className="rounded-xl border border-blue-400/30 bg-blue-500/10 p-6 mb-8">
-          <div className="flex items-start gap-4">
-            <AlertCircle className="h-6 w-6 text-blue-300 flex-shrink-0 mt-0.5" />
-            <div className="space-y-2">
-              <h3 className="font-semibold text-blue-200 text-lg">Verification Required</h3>
-              <p className="text-sm text-blue-200/80">
-                After submitting your application details, you'll need to verify your identity and income by uploading:
-              </p>
-              <ul className="text-sm text-blue-200/80 space-y-1 ml-4 list-disc">
-                <li>Government-issued ID (driver's license or state ID)</li>
-                <li>3 recent pay stubs, bank statements, or tax documents</li>
-              </ul>
-              <p className="text-xs text-blue-200/70 mt-3">
-                <Shield className="h-4 w-4 inline mr-1" />
-                Your documents are encrypted and stored securely. The landlord can view them for application and lease management purposes.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Application Form */}
-        <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl">
-          <CardHeader>
-            <CardTitle className="text-white">Application Details</CardTitle>
-            <CardDescription className="text-slate-300/80">
-              Please fill out all required fields. Your information is secure and encrypted.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-200">Full name</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Your full legal name" 
-                          {...field}
-                          className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="age"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-200">Age</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="e.g. 29" 
-                            {...field}
-                            className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-200">Phone number</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="(555) 123-4567" 
-                            {...field}
-                            className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-200">Email</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Email address" 
-                          type="email"
-                          {...field}
-                          className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="currentAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-200">Current address</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Street, city, state, ZIP" 
-                          {...field}
-                          className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="currentEmployer"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-200">Current employer</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Employer name" 
-                            {...field}
-                            className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="monthlySalary"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-200">Salary per month</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="e.g. 3,500" 
-                            {...field}
-                            className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="yearlySalary"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-200">Salary per year</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="e.g. 42,000" 
-                            {...field}
-                            className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="hasPets"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-200">Do you have pets?</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Yes or No" 
-                            {...field}
-                            className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="petCount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-200">How many pets?</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Number of pets" 
-                          {...field}
-                          className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400"
-                        />
-                      </FormControl>
-                      <p className="text-xs text-slate-300/80 mt-1">
-                        Pet-friendly units include an additional $300 pet fee once per year.
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="ssn"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-200">SSN</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input 
-                            placeholder="XXX-XX-XXXX" 
-                            type={showSsn ? "text" : "password"}
-                            {...field}
-                            className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400 pr-10"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowSsn(!showSsn)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
-                            tabIndex={-1}
-                          >
-                            {showSsn ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <p className="text-xs text-slate-300/80 mt-1">
-                        Your SSN is encrypted and stored securely. We use it for background checks only.
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-200">Additional information</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Optional notes, move-in date, roommates, pets, etc." 
-                          {...field}
-                          className="bg-slate-800/50 border-white/10 text-white placeholder:text-slate-400 min-h-[100px]"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-violet-500 hover:bg-violet-600 text-white py-6 text-base font-semibold"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    "Submitting..."
-                  ) : (
-                    <>
-                      Continue to Verification
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </>
-                  )}
-                </Button>
-                
-                <p className="text-xs text-center text-slate-400">
-                  Next step: Upload ID and income documents for verification
-                </p>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
-    </main>
+    <ApplicationWizard
+      propertySlug={propertySlug}
+      propertyName={propertyName || propertySlug}
+      onComplete={handleComplete}
+      onCancel={handleCancel}
+    />
   );
 }
