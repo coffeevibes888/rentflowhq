@@ -297,46 +297,37 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
 
   return (
     <div className='space-y-6'>
-      {/* Header with Title and Integration Buttons */}
-      <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4'>
-        <div>
-          <h1 className='text-2xl md:text-3xl font-bold text-white'>Financial Analytics</h1>
-          <p className='text-violet-200 text-sm mt-1'>Track your portfolio performance, ROI, and generate comprehensive financial reports.</p>
-        </div>
-        
-        {/* Compact Integration Buttons */}
-        <div className='flex flex-wrap gap-2'>
-          {isPro ? (
-            <>
-              <button
-                onClick={syncWithQuickBooks}
-                disabled={qbLoading}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  qbConnected 
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30' 
-                    : 'bg-violet-600/80 text-white hover:bg-violet-500'
-                }`}
-              >
-                <Building className='h-4 w-4' />
-                {qbConnected ? 'QuickBooks ✓' : 'Connect QuickBooks'}
-              </button>
-              <button
-                onClick={syncWithTurboTax}
-                className='flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-violet-600/80 text-white hover:bg-violet-500 transition-all'
-              >
-                <FileText className='h-4 w-4' />
-                TurboTax Export
-              </button>
-            </>
-          ) : (
-            <Link href='/admin/settings/subscription' className='flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-violet-600/80 text-white hover:bg-violet-500 transition-all'>
-              <Lock className='h-4 w-4' />
-              Unlock Integrations
-            </Link>
-          )}
-        </div>
+      {/* Integration Buttons */}
+      <div className='flex flex-wrap gap-2 justify-end'>
+        {isPro ? (
+          <>
+            <button
+              onClick={syncWithQuickBooks}
+              disabled={qbLoading}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                qbConnected 
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30' 
+                  : 'bg-violet-600/80 text-white hover:bg-violet-500'
+              }`}
+            >
+              <Building className='h-4 w-4' />
+              {qbConnected ? 'QuickBooks ✓' : 'Connect QuickBooks'}
+            </button>
+            <button
+              onClick={syncWithTurboTax}
+              className='flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-violet-600/80 text-white hover:bg-violet-500 transition-all'
+            >
+              <FileText className='h-4 w-4' />
+              TurboTax Export
+            </button>
+          </>
+        ) : (
+          <Link href='/admin/settings/subscription' className='flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-violet-600/80 text-white hover:bg-violet-500 transition-all'>
+            <Lock className='h-4 w-4' />
+            Unlock Integrations
+          </Link>
+        )}
       </div>
-
 
       {/* Portfolio Overview Stats - Like Property Dashboard */}
       <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
