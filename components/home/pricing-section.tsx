@@ -35,8 +35,8 @@ const tiers = [
       { name: 'Free Lease Builder', included: true },
     ],
     cta: 'Start Free with 7 day free trial',
-    iconBg: 'bg-slate-500/20',
-    iconColor: 'text-slate-300',
+    iconBg: 'bg-blue-500/20',
+    iconColor: 'text-blue-300',
   },
   {
     id: 'pro',
@@ -206,6 +206,8 @@ export default function PricingSection() {
                         ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-400 hover:to-purple-400 shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105'
                         : tier.id === 'enterprise'
                         ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400'
+                        : tier.id === 'starter'
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-400 hover:to-cyan-400 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105'
                         : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
                     }`}
                   >
@@ -240,6 +242,8 @@ export default function PricingSection() {
                             feature.included 
                               ? isPopular 
                                 ? 'bg-violet-500/20 text-violet-400' 
+                                : tier.id === 'starter'
+                                ? 'bg-blue-500/20 text-blue-400'
                                 : 'bg-emerald-500/20 text-emerald-400'
                               : 'bg-slate-700 text-slate-500'
                           }`}>
