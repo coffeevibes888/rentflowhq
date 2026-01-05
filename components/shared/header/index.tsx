@@ -69,6 +69,7 @@ const Header = async () => {
           <Link href='/contractors' className="m-2.5 px-1 text-black hover:underline">Contractors</Link>
           <Link href='/about' className="m-2.5 px-1 text-black hover:underline ">About</Link>
           <Link href='/contact' className="m-2.5 px-1 text-black hover:underline ">Contact</Link>
+          <Link href='/affiliate-program' className="m-2.5 px-1 text-black hover:underline ">Affiliates</Link>
 
           <div className="relative m-2.5 group">
             {categories.length > 0 && (

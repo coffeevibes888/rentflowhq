@@ -202,7 +202,7 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-700">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
         <DialogHeader>
           <DialogTitle className="text-white">
             {step === 'info' && 'Create Affiliate Account'}
@@ -414,11 +414,11 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
 
         {/* Step 3: Agreement */}
         {step === 'agreement' && (
-          <div className="space-y-6">
-            <div className="max-h-48 overflow-y-auto p-4 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-300">
+          <div className="space-y-4">
+            <div className="max-h-32 overflow-y-auto p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-300">
               <h4 className="font-semibold text-white mb-2">Affiliate Program Terms</h4>
-              <p className="mb-3">By joining the Property Flow HQ Affiliate Program, you agree to:</p>
-              <ul className="list-disc list-inside space-y-1 text-slate-400">
+              <p className="mb-2">By joining the Property Flow HQ Affiliate Program, you agree to:</p>
+              <ul className="list-disc list-inside space-y-1 text-slate-400 text-xs">
                 <li>Promote Property Flow HQ honestly and ethically</li>
                 <li>Not engage in spam, misleading advertising, or fraudulent activities</li>
                 <li>Not bid on Property Flow HQ brand terms in paid advertising</li>
@@ -435,25 +435,22 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
                 id="terms"
                 checked={formData.agreedToTerms}
                 onCheckedChange={(checked) => updateFormData('agreedToTerms', checked as boolean)}
-                className="mt-1"
+                className="mt-0.5"
               />
               <Label htmlFor="terms" className="text-slate-300 text-sm cursor-pointer">
-                I have read and agree to the <a href="/terms" target="_blank" className="text-violet-400 hover:underline">Terms of Service</a> and Affiliate Program Terms
+                I agree to the <a href="/terms" target="_blank" className="text-violet-400 hover:underline">Terms of Service</a> and Affiliate Program Terms
               </Label>
             </div>
 
-            <div className="max-h-48 overflow-y-auto p-4 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-300">
+            <div className="max-h-32 overflow-y-auto p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-300">
               <h4 className="font-semibold text-white mb-2">Liability Waiver</h4>
-              <p className="text-slate-400">
-                I understand and acknowledge that:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-slate-400 mt-2">
-                <li>Property Flow HQ is not responsible for any claims, damages, or losses arising from my promotional activities</li>
-                <li>I am an independent contractor, not an employee of Property Flow HQ</li>
-                <li>I am responsible for reporting and paying taxes on my affiliate earnings</li>
-                <li>Property Flow HQ may terminate my affiliate account at any time for violation of terms</li>
-                <li>Pending commissions may be forfeited if my account is terminated for cause</li>
-                <li>I will not make any guarantees or promises on behalf of Property Flow HQ</li>
+              <ul className="list-disc list-inside space-y-1 text-slate-400 text-xs">
+                <li>Property Flow HQ is not responsible for claims arising from my promotional activities</li>
+                <li>I am an independent contractor, not an employee</li>
+                <li>I am responsible for reporting and paying taxes on my earnings</li>
+                <li>Property Flow HQ may terminate my account for violation of terms</li>
+                <li>Pending commissions may be forfeited if terminated for cause</li>
+                <li>I will not make guarantees on behalf of Property Flow HQ</li>
               </ul>
             </div>
 
@@ -462,10 +459,10 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
                 id="waiver"
                 checked={formData.agreedToWaiver}
                 onCheckedChange={(checked) => updateFormData('agreedToWaiver', checked as boolean)}
-                className="mt-1"
+                className="mt-0.5"
               />
               <Label htmlFor="waiver" className="text-slate-300 text-sm cursor-pointer">
-                I have read and agree to the Liability Waiver and understand my responsibilities as an affiliate
+                I agree to the Liability Waiver and understand my responsibilities
               </Label>
             </div>
           </div>
