@@ -12,13 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -27,7 +20,7 @@ interface AffiliateSignUpModalProps {
   onClose: () => void;
 }
 
-type Step = 'info' | 'payment' | 'agreement' | 'success';
+type Step = 'info' | 'agreement' | 'success';
 
 export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignUpModalProps) {
   const router = useRouter();
@@ -43,12 +36,6 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
     password: '',
     confirmPassword: '',
     referralCode: '',
-    paymentMethod: '',
-    paymentEmail: '',
-    paymentPhone: '',
-    bankRoutingNumber: '',
-    bankAccountNumber: '',
-    bankAccountType: 'checking',
     agreedToTerms: false,
     agreedToWaiver: false,
   });
@@ -84,24 +71,6 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
           return false;
         }
         return true;
-      case 'payment':
-        if (!formData.paymentMethod) {
-          setError('Please select a payment method');
-          return false;
-        }
-        if (formData.paymentMethod === 'paypal' && !formData.paymentEmail) {
-          setError('Please enter your PayPal email');
-          return false;
-        }
-        if (formData.paymentMethod === 'venmo' && !formData.paymentPhone) {
-          setError('Please enter your Venmo phone number');
-          return false;
-        }
-        if (formData.paymentMethod === 'bank' && (!formData.bankRoutingNumber || !formData.bankAccountNumber)) {
-          setError('Please enter your bank account details');
-          return false;
-        }
-        return true;
       case 'agreement':
         if (!formData.agreedToTerms || !formData.agreedToWaiver) {
           setError('You must agree to all terms to continue');
@@ -117,8 +86,6 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
     if (!validateStep(step)) return;
 
     if (step === 'info') {
-      setStep('payment');
-    } else if (step === 'payment') {
       setStep('agreement');
     } else if (step === 'agreement') {
       await handleSubmit();
@@ -126,8 +93,7 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
   };
 
   const handleBack = () => {
-    if (step === 'payment') setStep('info');
-    else if (step === 'agreement') setStep('payment');
+    if (step === 'agreement') setStep('info');
   };
 
   const handleSubmit = async () => {
@@ -144,12 +110,6 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
           phone: formData.phone,
           password: formData.password,
           preferredCode: formData.referralCode || undefined,
-          paymentMethod: formData.paymentMethod,
-          paymentEmail: formData.paymentEmail || undefined,
-          paymentPhone: formData.paymentPhone || undefined,
-          bankRoutingNumber: formData.bankRoutingNumber || undefined,
-          bankAccountNumber: formData.bankAccountNumber || undefined,
-          bankAccountType: formData.bankAccountType,
         }),
       });
 
@@ -186,12 +146,6 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
         password: '',
         confirmPassword: '',
         referralCode: '',
-        paymentMethod: '',
-        paymentEmail: '',
-        paymentPhone: '',
-        bankRoutingNumber: '',
-        bankAccountNumber: '',
-        bankAccountType: 'checking',
         agreedToTerms: false,
         agreedToWaiver: false,
       });
@@ -206,13 +160,11 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
         <DialogHeader>
           <DialogTitle className="text-white">
             {step === 'info' && 'Create Affiliate Account'}
-            {step === 'payment' && 'Payment Information'}
             {step === 'agreement' && 'Terms & Agreement'}
             {step === 'success' && 'Welcome to the Program!'}
           </DialogTitle>
           <DialogDescription className="text-slate-400">
             {step === 'info' && 'Enter your details to join the affiliate program'}
-            {step === 'payment' && 'How would you like to receive your commissions?'}
             {step === 'agreement' && 'Please review and accept our terms'}
             {step === 'success' && 'Your affiliate account has been created'}
           </DialogDescription>
@@ -221,17 +173,17 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
         {/* Progress Indicator */}
         {step !== 'success' && (
           <div className="flex items-center justify-center gap-2 py-4">
-            {['info', 'payment', 'agreement'].map((s, i) => (
+            {['info', 'agreement'].map((s, i) => (
               <div key={s} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   step === s ? 'bg-violet-600 text-white' : 
-                  ['info', 'payment', 'agreement'].indexOf(step) > i ? 'bg-green-600 text-white' : 
+                  ['info', 'agreement'].indexOf(step) > i ? 'bg-green-600 text-white' : 
                   'bg-slate-700 text-slate-400'
                 }`}>
-                  {['info', 'payment', 'agreement'].indexOf(step) > i ? '✓' : i + 1}
+                  {['info', 'agreement'].indexOf(step) > i ? '✓' : i + 1}
                 </div>
-                {i < 2 && <div className={`w-12 h-0.5 ${
-                  ['info', 'payment', 'agreement'].indexOf(step) > i ? 'bg-green-600' : 'bg-slate-700'
+                {i < 1 && <div className={`w-12 h-0.5 ${
+                  ['info', 'agreement'].indexOf(step) > i ? 'bg-green-600' : 'bg-slate-700'
                 }`} />}
               </div>
             ))}
@@ -317,102 +269,7 @@ export default function AffiliateSignUpModal({ isOpen, onClose }: AffiliateSignU
           </div>
         )}
 
-        {/* Step 2: Payment Info */}
-        {step === 'payment' && (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-slate-300">Payment Method *</Label>
-              <Select
-                value={formData.paymentMethod}
-                onValueChange={(value) => updateFormData('paymentMethod', value)}
-              >
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="paypal">PayPal</SelectItem>
-                  <SelectItem value="venmo">Venmo</SelectItem>
-                  <SelectItem value="bank">Bank Transfer (ACH)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {formData.paymentMethod === 'paypal' && (
-              <div>
-                <Label htmlFor="paymentEmail" className="text-slate-300">PayPal Email *</Label>
-                <Input
-                  id="paymentEmail"
-                  type="email"
-                  value={formData.paymentEmail}
-                  onChange={(e) => updateFormData('paymentEmail', e.target.value)}
-                  className="bg-slate-800 border-slate-600 text-white"
-                  placeholder="paypal@example.com"
-                />
-              </div>
-            )}
-
-            {formData.paymentMethod === 'venmo' && (
-              <div>
-                <Label htmlFor="paymentPhone" className="text-slate-300">Venmo Phone Number *</Label>
-                <Input
-                  id="paymentPhone"
-                  type="tel"
-                  value={formData.paymentPhone}
-                  onChange={(e) => updateFormData('paymentPhone', e.target.value)}
-                  className="bg-slate-800 border-slate-600 text-white"
-                  placeholder="(555) 123-4567"
-                />
-              </div>
-            )}
-
-            {formData.paymentMethod === 'bank' && (
-              <>
-                <div>
-                  <Label htmlFor="bankRoutingNumber" className="text-slate-300">Routing Number *</Label>
-                  <Input
-                    id="bankRoutingNumber"
-                    value={formData.bankRoutingNumber}
-                    onChange={(e) => updateFormData('bankRoutingNumber', e.target.value.replace(/\D/g, ''))}
-                    className="bg-slate-800 border-slate-600 text-white"
-                    placeholder="9 digits"
-                    maxLength={9}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bankAccountNumber" className="text-slate-300">Account Number *</Label>
-                  <Input
-                    id="bankAccountNumber"
-                    value={formData.bankAccountNumber}
-                    onChange={(e) => updateFormData('bankAccountNumber', e.target.value.replace(/\D/g, ''))}
-                    className="bg-slate-800 border-slate-600 text-white"
-                    placeholder="Account number"
-                  />
-                </div>
-                <div>
-                  <Label className="text-slate-300">Account Type</Label>
-                  <Select
-                    value={formData.bankAccountType}
-                    onValueChange={(value) => updateFormData('bankAccountType', value)}
-                  >
-                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-600">
-                      <SelectItem value="checking">Checking</SelectItem>
-                      <SelectItem value="savings">Savings</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
-
-            <p className="text-xs text-slate-500">
-              Your payment information is encrypted and secure. You can update this later in your dashboard.
-            </p>
-          </div>
-        )}
-
-        {/* Step 3: Agreement */}
+        {/* Step 2: Agreement */}
         {step === 'agreement' && (
           <div className="space-y-4">
             <div className="max-h-32 overflow-y-auto p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-300">

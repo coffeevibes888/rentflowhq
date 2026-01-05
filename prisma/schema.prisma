@@ -2725,9 +2725,9 @@ model Affiliate {
   status String @default("active") // active, paused, terminated
 
   // Commission settings (can override defaults)
-  commissionBasic      Decimal @default(5) @db.Decimal(10, 2) // $5 for $29.99 plan
-  commissionPro        Decimal @default(10) @db.Decimal(10, 2) // $10 for $79.99 plan
-  commissionEnterprise Decimal @default(25) @db.Decimal(10, 2) // $25 for enterprise (optional)
+  commissionBasic      Decimal @default(5) @db.Decimal(10, 2) // $5 for $19.99 Starter plan
+  commissionPro        Decimal @default(10) @db.Decimal(10, 2) // $10 for $39.99 Pro plan
+  commissionEnterprise Decimal @default(25) @db.Decimal(10, 2) // $25 for $79.99 Enterprise plan
 
   // Payment info
   paymentMethod    String? // paypal, venmo, check, bank_transfer

@@ -694,10 +694,16 @@ const SuperAdminDashboard = ({
       {/* Subscription Breakdown */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-white">Subscription Breakdown</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard label="Free Tier" value={formatNumber(insights?.subscriptionBreakdown?.free ?? 0)} />
+          <div className="rounded-xl bg-slate-950/50 border border-slate-800/50 p-4">
+            <p className="text-xs text-slate-400 mb-1">Starter ($19.99/mo)</p>
+            <p className="text-2xl font-bold text-slate-300">
+              {formatNumber(insights?.subscriptionBreakdown?.starter ?? 0)}
+            </p>
+          </div>
           <div className="rounded-xl bg-violet-950/50 border border-violet-800/50 p-4">
-            <p className="text-xs text-violet-400 mb-1">Pro ($29.99/mo)</p>
+            <p className="text-xs text-violet-400 mb-1">Pro ($39.99/mo)</p>
             <p className="text-2xl font-bold text-violet-300">
               {formatNumber((insights?.subscriptionBreakdown?.pro ?? 0) + (insights?.subscriptionBreakdown?.growth ?? 0) + (insights?.subscriptionBreakdown?.professional ?? 0))}
             </p>
@@ -1011,12 +1017,15 @@ const SuperAdminDashboard = ({
           <h2 className="text-lg font-semibold text-white">Subscription Tiers</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <StatCard label="Free" value={formatNumber(insights.subscriptionBreakdown.free)} />
+            <div className="rounded-xl bg-slate-950/50 border border-slate-800/50 p-4">
+              <p className="text-xs text-slate-400 mb-1">Starter ($19.99/mo)</p>
+              <p className="text-2xl font-bold text-slate-300">{formatNumber(insights.subscriptionBreakdown.starter ?? 0)}</p>
+            </div>
             <div className="rounded-xl bg-violet-950/50 border border-violet-800/50 p-4">
-              <p className="text-xs text-violet-400 mb-1">Pro ($29.99/mo)</p>
+              <p className="text-xs text-violet-400 mb-1">Pro ($39.99/mo)</p>
               <p className="text-2xl font-bold text-violet-300">{formatNumber(insights.subscriptionBreakdown.pro)}</p>
             </div>
-            <StatCard label="Growth (legacy)" value={formatNumber(insights.subscriptionBreakdown.growth)} />
-            <StatCard label="Professional (legacy)" value={formatNumber(insights.subscriptionBreakdown.professional)} />
+            <StatCard label="Legacy (growth/pro)" value={formatNumber((insights.subscriptionBreakdown.growth ?? 0) + (insights.subscriptionBreakdown.professional ?? 0))} />
             <div className="rounded-xl bg-amber-950/50 border border-amber-800/50 p-4">
               <p className="text-xs text-amber-400 mb-1">Enterprise ($79.99/mo)</p>
               <p className="text-2xl font-bold text-amber-300">{formatNumber(insights.subscriptionBreakdown.enterprise)}</p>

@@ -96,7 +96,7 @@ export default function LiveChatWidget() {
 
     // Pricing questions
     if (lower.includes('pricing') || lower.includes('cost') || lower.includes('price') || lower.includes('plan') || lower.includes('subscription')) {
-      return "We offer simple, transparent pricing:\n\n• **Starter** ($9.99/mo) - Up to 24 units\n• **Pro** ($19.99/mo) - Up to 75 units\n• **Enterprise** ($39.99/mo) - Unlimited units\n\nAll plans include a 7-day free trial, rent collection, maintenance tracking, and your own branded tenant portal. Would you like to start a free trial?";
+      return "We offer simple, transparent pricing:\n\n• **Starter** ($19.99/mo) - Up to 24 units\n• **Pro** ($39.99/mo) - Up to 75 units\n• **Enterprise** ($79.99/mo) - Unlimited units\n\nAll plans include a 7-day free trial, rent collection, maintenance tracking, and your own branded tenant portal. Would you like to start a free trial?";
     }
 
     // Tenant screening

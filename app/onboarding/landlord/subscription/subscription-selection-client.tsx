@@ -23,7 +23,7 @@ const tiers = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 9.99,
+    price: 19.99,
     description: 'Perfect for small landlords.',
     unitLimit: 'Up to 24 units',
     icon: Building2,
@@ -46,7 +46,7 @@ const tiers = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 19.99,
+    price: 39.99,
     description: 'For growing portfolios.',
     unitLimit: 'Up to 75 units',
     icon: Zap,
@@ -70,7 +70,7 @@ const tiers = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: 39.99,
+    price: 79.99,
     description: 'Full-scale operations.',
     unitLimit: 'Unlimited units',
     icon: Crown,

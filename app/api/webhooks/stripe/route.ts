@@ -253,11 +253,14 @@ export async function POST(req: NextRequest) {
               let commissionAmount = 0;
               let subscriptionPrice = 0;
               
-              if (tier === 'pro') {
-                commissionAmount = Number(affiliate.commissionBasic); // $5 for $29.99 plan
-                subscriptionPrice = 29.99;
+              if (tier === 'starter') {
+                commissionAmount = Number(affiliate.commissionBasic); // $5 for $19.99 Starter plan
+                subscriptionPrice = 19.99;
+              } else if (tier === 'pro') {
+                commissionAmount = Number(affiliate.commissionPro); // $10 for $39.99 Pro plan
+                subscriptionPrice = 39.99;
               } else if (tier === 'enterprise') {
-                commissionAmount = Number(affiliate.commissionPro); // $10 for $79.99 plan
+                commissionAmount = Number(affiliate.commissionEnterprise); // $15 for $79.99 Enterprise plan
                 subscriptionPrice = 79.99;
               }
 

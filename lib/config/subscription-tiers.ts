@@ -2,9 +2,9 @@
  * Subscription Tiers Configuration
  * 
  * PRICING MODEL:
- * - Starter: $9.99/month (up to 24 units)
- * - Pro: $19.99/month (up to 75 units)
- * - Enterprise: $39.99/month (unlimited)
+ * - Starter: $19.99/month (up to 24 units)
+ * - Pro: $39.99/month (up to 75 units)
+ * - Enterprise: $79.99/month (unlimited)
  * 
  * All tiers include 7-day free trial
  * No transaction fees - subscription only revenue model
@@ -13,7 +13,7 @@
 export const SUBSCRIPTION_TIERS = {
   starter: {
     name: 'Starter',
-    price: 9.99,
+    price: 19.99,
     priceId: process.env.STRIPE_PRICE_STARTER || null,
     unitLimit: 24,
     trialDays: 7,
@@ -44,7 +44,7 @@ export const SUBSCRIPTION_TIERS = {
   },
   pro: {
     name: 'Pro',
-    price: 19.99,
+    price: 39.99,
     priceId: process.env.STRIPE_PRICE_PRO || null,
     unitLimit: 75,
     trialDays: 7,
@@ -75,7 +75,7 @@ export const SUBSCRIPTION_TIERS = {
   },
   enterprise: {
     name: 'Enterprise',
-    price: 39.99,
+    price: 79.99,
     priceId: process.env.STRIPE_PRICE_ENTERPRISE || null,
     unitLimit: Infinity,
     trialDays: 7,

@@ -33,8 +33,9 @@ export default function AffiliateProgramClient() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const commissionTiers = [
-    { plan: 'Pro Plan', price: '$29.99/mo', commission: '$5', color: 'bg-violet-500' },
-    { plan: 'Enterprise Plan', price: '$79.99/mo', commission: '$10', color: 'bg-amber-500' },
+    { plan: 'Starter Plan', price: '$19.99/mo', commission: '$5', color: 'bg-slate-500' },
+    { plan: 'Pro Plan', price: '$39.99/mo', commission: '$10', color: 'bg-violet-500' },
+    { plan: 'Enterprise Plan', price: '$79.99/mo', commission: '$25', color: 'bg-amber-500' },
   ];
 
   const benefits = [

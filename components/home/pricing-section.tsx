@@ -16,7 +16,7 @@ const tiers = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 9.99,
+    price: 19.99,
     description: 'Perfect for small landlords.',
     unitLimit: 'Up to 24 units',
     icon: Building2,
@@ -41,7 +41,7 @@ const tiers = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 19.99,
+    price: 39.99,
     description: 'For growing landlords. The only tool that scales with you.',
     unitLimit: 'Up to 75 units',
     icon: Zap,
@@ -66,7 +66,7 @@ const tiers = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: 39.99,
+    price: 79.99,
     description: 'Full-scale property management operations.',
     unitLimit: 'Unlimited units',
     icon: Crown,
@@ -137,7 +137,7 @@ export default function PricingSection() {
             <span className='text-blue-800'>Simple, Transparent Pricing</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white">
-            Start at Just $9.99/month. Scales as You Grow.
+            Start at Just $19.99/month. Scales as You Grow.
           </h2>
           <p className="text-lg text-black font-semibold max-w-2xl mx-auto">
             Finally an Automation Tool that saves you time and money. Let's face it your time is valuable.
@@ -369,7 +369,7 @@ export default function PricingSection() {
                 </tr>
                 <tr className="hover:bg-white/5">
                   <td className="p-4 text-slate-200 font-semibold">Price (24 units)</td>
-                  <td className="p-4 text-center bg-violet-500/5 font-bold text-emerald-400">$9.99/mo</td>
+                  <td className="p-4 text-center bg-violet-500/5 font-bold text-emerald-400">$19.99/mo</td>
                   <td className="p-4 text-center text-slate-300">$55/mo</td>
                   <td className="p-4 text-center text-slate-300">$33.60/mo</td>
                   <td className="p-4 text-center text-slate-300">Free</td>

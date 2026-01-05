@@ -131,8 +131,9 @@ export async function POST(request: NextRequest) {
       affiliateName: affiliate.name,
       referralCode: affiliate.code,
       referralLink,
-      commissionPro: Number(affiliate.commissionBasic), // Pro plan ($29.99)
-      commissionEnterprise: Number(affiliate.commissionPro), // Enterprise plan ($79.99)
+      commissionStarter: Number(affiliate.commissionBasic), // Starter plan ($19.99)
+      commissionPro: Number(affiliate.commissionPro), // Pro plan ($39.99)
+      commissionEnterprise: Number(affiliate.commissionEnterprise), // Enterprise plan ($79.99)
     });
 
     return NextResponse.json({ affiliate, success: true });

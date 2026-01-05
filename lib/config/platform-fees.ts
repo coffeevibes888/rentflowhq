@@ -2,7 +2,7 @@
  * Platform Fee Configuration
  * 
  * SUBSCRIPTION-BASED MODEL - No transaction fees!
- * Revenue comes from monthly subscriptions ($9.99 / $19.99 / $39.99)
+ * Revenue comes from monthly subscriptions ($19.99 / $39.99 / $79.99)
  * 
  * All platform fees are set to $0 - tenants pay only rent,
  * landlords receive full rent minus Stripe processing fees.
@@ -100,18 +100,18 @@ export function getPlatformFeeInCents(): number {
  * Revenue now comes from subscriptions, not transaction fees
  */
 export function estimateMonthlyRevenue(params: {
-  starterSubscribers: number;  // $9.99/month
-  proSubscribers: number;      // $19.99/month
-  enterpriseSubscribers: number; // $39.99/month
+  starterSubscribers: number;  // $19.99/month
+  proSubscribers: number;      // $39.99/month
+  enterpriseSubscribers: number; // $79.99/month
 }): {
   starterRevenue: number;
   proRevenue: number;
   enterpriseRevenue: number;
   totalMonthlyRevenue: number;
 } {
-  const starterRevenue = params.starterSubscribers * 9.99;
-  const proRevenue = params.proSubscribers * 19.99;
-  const enterpriseRevenue = params.enterpriseSubscribers * 39.99;
+  const starterRevenue = params.starterSubscribers * 19.99;
+  const proRevenue = params.proSubscribers * 39.99;
+  const enterpriseRevenue = params.enterpriseSubscribers * 79.99;
   
   return {
     starterRevenue,
@@ -125,10 +125,10 @@ export function estimateMonthlyRevenue(params: {
  * Example usage:
  * 
  * const revenue = estimateMonthlyRevenue({
- *   starterSubscribers: 100,    // 100 × $9.99 = $999
- *   proSubscribers: 50,         // 50 × $19.99 = $999.50
- *   enterpriseSubscribers: 20,  // 20 × $39.99 = $799.80
+ *   starterSubscribers: 100,    // 100 × $19.99 = $1,999
+ *   proSubscribers: 50,         // 50 × $39.99 = $1,999.50
+ *   enterpriseSubscribers: 20,  // 20 × $79.99 = $1,599.80
  * });
  * 
- * console.log(revenue.totalMonthlyRevenue); // $2,798.30
+ * console.log(revenue.totalMonthlyRevenue); // $5,598.30
  */

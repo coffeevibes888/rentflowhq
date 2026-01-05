@@ -18,6 +18,7 @@ interface AffiliateWelcomeEmailProps {
   affiliateName: string;
   referralCode: string;
   referralLink: string;
+  commissionStarter?: number;
   commissionPro: number;
   commissionEnterprise: number;
 }
@@ -26,8 +27,9 @@ export default function AffiliateWelcomeEmail({
   affiliateName,
   referralCode,
   referralLink,
-  commissionPro,
-  commissionEnterprise,
+  commissionStarter = 5,
+  commissionPro = 10,
+  commissionEnterprise = 25,
 }: AffiliateWelcomeEmailProps) {
   return (
     <Html>
@@ -78,8 +80,14 @@ export default function AffiliateWelcomeEmail({
             
             <Section style={commissionGrid}>
               <Section style={commissionCard}>
+                <Text style={planName}>Starter Plan</Text>
+                <Text style={planPrice}>$19.99/month</Text>
+                <Text style={commissionAmount}>${commissionStarter} per signup</Text>
+              </Section>
+              
+              <Section style={commissionCard}>
                 <Text style={planName}>Pro Plan</Text>
-                <Text style={planPrice}>$29.99/month</Text>
+                <Text style={planPrice}>$39.99/month</Text>
                 <Text style={commissionAmount}>${commissionPro} per signup</Text>
               </Section>
               

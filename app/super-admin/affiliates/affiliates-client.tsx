@@ -516,7 +516,7 @@ export default function AffiliatesClient({
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label className="text-slate-300">Pro ($29.99)</Label>
+                <Label className="text-slate-300">Starter ($19.99)</Label>
                 <Input
                   type="number"
                   value={formData.commissionBasic}
@@ -525,7 +525,7 @@ export default function AffiliatesClient({
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300">Enterprise ($79.99)</Label>
+                <Label className="text-slate-300">Pro ($39.99)</Label>
                 <Input
                   type="number"
                   value={formData.commissionPro}
@@ -534,7 +534,7 @@ export default function AffiliatesClient({
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300">Custom</Label>
+                <Label className="text-slate-300">Enterprise ($79.99)</Label>
                 <Input
                   type="number"
                   value={formData.commissionEnterprise}
@@ -645,15 +645,15 @@ export default function AffiliatesClient({
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-3 bg-slate-800 rounded-lg">
                     <p className="text-lg font-bold text-white">{formatCurrency(selectedAffiliate.commissionBasic)}</p>
-                    <p className="text-xs text-slate-400">Basic Plan ($29.99)</p>
+                    <p className="text-xs text-slate-400">Starter ($19.99)</p>
                   </div>
                   <div className="p-3 bg-slate-800 rounded-lg">
                     <p className="text-lg font-bold text-white">{formatCurrency(selectedAffiliate.commissionPro)}</p>
-                    <p className="text-xs text-slate-400">Pro Plan ($79.99)</p>
+                    <p className="text-xs text-slate-400">Pro ($39.99)</p>
                   </div>
                   <div className="p-3 bg-slate-800 rounded-lg">
                     <p className="text-lg font-bold text-white">{formatCurrency(selectedAffiliate.commissionEnterprise)}</p>
-                    <p className="text-xs text-slate-400">Enterprise</p>
+                    <p className="text-xs text-slate-400">Enterprise ($79.99)</p>
                   </div>
                 </div>
               </div>

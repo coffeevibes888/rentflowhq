@@ -135,8 +135,9 @@ export async function POST(request: NextRequest) {
         affiliateName: affiliate.name,
         referralCode: affiliate.code,
         referralLink,
-        commissionPro: Number(affiliate.commissionBasic),
-        commissionEnterprise: Number(affiliate.commissionPro),
+        commissionStarter: Number(affiliate.commissionBasic),
+        commissionPro: Number(affiliate.commissionPro),
+        commissionEnterprise: Number(affiliate.commissionEnterprise),
       });
     } catch (emailError) {
       console.error('Failed to send affiliate welcome email:', emailError);
