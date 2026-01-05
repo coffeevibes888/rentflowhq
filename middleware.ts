@@ -45,6 +45,7 @@ export function middleware(req: NextRequest) {
     // Add the slug to headers so pages can access it
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-landlord-slug', potentialSlug);
+    requestHeaders.set('x-pathname', path);
 
     return NextResponse.next({
       request: {

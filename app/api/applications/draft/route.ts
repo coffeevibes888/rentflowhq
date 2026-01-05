@@ -37,9 +37,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Create a new draft application
+    // Don't pre-populate fullName - let user enter it manually to avoid email being used as name
     const application = await prisma.rentalApplication.create({
       data: {
-        fullName: session.user.name || '',
+        fullName: '',
         email: session.user.email || '',
         phone: '',
         notes: '',

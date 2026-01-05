@@ -90,6 +90,9 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
           continue;
         }
 
+        // Create preview URL before upload
+        const previewUrl = URL.createObjectURL(file);
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('category', 'identity');
@@ -104,11 +107,14 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
           const data = await response.json();
           setIdDocuments(prev => [...prev, {
             id: data.documentId || Date.now().toString(),
-            url: data.url || URL.createObjectURL(file),
+            url: previewUrl,
             name: file.name,
             type: 'identity',
             docType: 'government_id',
           }]);
+        } else {
+          // Clean up preview URL if upload failed
+          URL.revokeObjectURL(previewUrl);
         }
       }
     } catch (error) {
@@ -137,6 +143,9 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
           continue;
         }
 
+        // Create preview URL before upload
+        const previewUrl = URL.createObjectURL(file);
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('category', 'employment');
@@ -151,11 +160,14 @@ export function DocumentsStep({ setValidate }: DocumentsStepProps) {
           const data = await response.json();
           setIncomeDocuments(prev => [...prev, {
             id: data.documentId || Date.now().toString(),
-            url: data.url || URL.createObjectURL(file),
+            url: previewUrl,
             name: file.name,
             type: 'income',
             docType: selectedIncomeType,
           }]);
+        } else {
+          // Clean up preview URL if upload failed
+          URL.revokeObjectURL(previewUrl);
         }
       }
     } catch (error) {

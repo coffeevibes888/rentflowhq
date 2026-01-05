@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,7 @@ function WizardContent({ propertySlug, propertyName, onComplete, onCancel }: App
   const router = useRouter();
   const { state, resetWizard, setApplicationId } = useApplicationWizard();
   const [showExitDialog, setShowExitDialog] = useState(false);
-  const [validateFn, setValidateFn] = useState<(() => boolean) | null>(null);
+  const [validateFn, setValidateFn] = useState<{ fn: (() => boolean) | null }>({ fn: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -166,25 +166,30 @@ function WizardContent({ propertySlug, propertyName, onComplete, onCancel }: App
     return parts.join('\n');
   };
 
+  // Helper to set validate function wrapped in object to avoid React treating it as updater
+  const handleSetValidateFn = useCallback((fn: (() => boolean) | null) => {
+    setValidateFn({ fn });
+  }, []);
+
   // Render current step
   const renderStep = () => {
     switch (currentStepId) {
       case 'personal':
-        return <PersonalStep setValidate={setValidateFn} />;
+        return <PersonalStep setValidate={handleSetValidateFn} />;
       case 'contact':
-        return <ContactStep setValidate={setValidateFn} />;
+        return <ContactStep setValidate={handleSetValidateFn} />;
       case 'residence':
-        return <ResidenceStep setValidate={setValidateFn} />;
+        return <ResidenceStep setValidate={handleSetValidateFn} />;
       case 'employment':
-        return <EmploymentStep setValidate={setValidateFn} />;
+        return <EmploymentStep setValidate={handleSetValidateFn} />;
       case 'background':
-        return <BackgroundStep setValidate={setValidateFn} />;
+        return <BackgroundStep setValidate={handleSetValidateFn} />;
       case 'documents':
-        return <DocumentsStep setValidate={setValidateFn} />;
+        return <DocumentsStep setValidate={handleSetValidateFn} />;
       case 'review':
-        return <ReviewStep setValidate={setValidateFn} />;
+        return <ReviewStep setValidate={handleSetValidateFn} />;
       default:
-        return <PersonalStep setValidate={setValidateFn} />;
+        return <PersonalStep setValidate={handleSetValidateFn} />;
     }
   };
 
@@ -245,7 +250,7 @@ function WizardContent({ propertySlug, propertyName, onComplete, onCancel }: App
       <div className="max-w-3xl mx-auto px-4 py-6 md:py-8">
         {renderStep()}
         <WizardNavigation 
-          onValidate={validateFn || undefined} 
+          onValidate={validateFn.fn || undefined} 
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
         />
