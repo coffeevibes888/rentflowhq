@@ -242,7 +242,7 @@ const ContactClient = () => {
                     <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400/90">
                       Email
                     </p>
-                    <p className="mt-1 font-medium break-all">allen@rockenmyvibe.com</p>
+                    <p className="mt-1 font-medium break-all">allen@propertyflowhq.com</p>
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-slate-900/60 px-3.5 py-3 text-xs text-slate-200/90">

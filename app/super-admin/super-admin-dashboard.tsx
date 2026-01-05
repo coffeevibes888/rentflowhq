@@ -96,7 +96,7 @@ type PlatformRevenue = {
   subscriptionRevenue: RentTotals;
   total: RentTotals;
 };
-type SubscriptionBreakdown = { free: number; pro: number; growth: number; professional: number; enterprise: number };
+type SubscriptionBreakdown = { free: number; starter: number; pro: number; growth: number; professional: number; enterprise: number };
 type StripeConnectStatus = { completed: number; pendingVerification: number; pending: number; notStarted: number };
 type MaintenanceSummary = { open: number; inProgress: number; resolved: number; closed: number; urgent: number; high: number; total: number };
 type RecentSignups = { usersThisWeek: number; usersThisMonth: number; landlordsThisWeek: number; landlordsThisMonth: number };

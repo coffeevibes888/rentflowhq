@@ -24,29 +24,18 @@ import {
   TrendingUp,
   DollarSign,
   Download,
-  Calculator,
   FileText,
   Building,
   Building2,
-  CreditCard,
-  PenTool,
   Plus,
   Wrench,
   ShieldAlert,
   Percent,
   Activity,
   LineChart,
-  Landmark,
   Lock,
-  Sparkles,
   Home,
   Users,
-  Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  BarChart3,
-  PieChart,
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
@@ -132,25 +121,16 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [qbConnected, setQbConnected] = useState<boolean>(false);
-  const [qbCompanyName, setQbCompanyName] = useState<string | null>(null);
   const [qbLoading, setQbLoading] = useState<boolean>(false);
-  const [dsConnected, setDsConnected] = useState<boolean>(false);
-  const [dsLoading, setDsLoading] = useState<boolean>(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
-  const [benchmarkDialogOpen, setBenchmarkDialogOpen] = useState(false);
   const [expenseCategory, setExpenseCategory] = useState('maintenance');
   const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseIncurredAt, setExpenseIncurredAt] = useState('');
   const [expenseDescription, setExpenseDescription] = useState('');
   const [expenseIsRecurring, setExpenseIsRecurring] = useState(false);
   const [expenseSubmitting, setExpenseSubmitting] = useState(false);
-  const [benchmarkAverageRent, setBenchmarkAverageRent] = useState('');
-  const [benchmarkEffectiveDate, setBenchmarkEffectiveDate] = useState('');
-  const [benchmarkSource, setBenchmarkSource] = useState('manual');
-  const [benchmarkZip, setBenchmarkZip] = useState('');
-  const [benchmarkSubmitting, setBenchmarkSubmitting] = useState(false);
 
-  const { hasFeature, isPro, tierName } = useSubscriptionTier(landlordId);
+  const { isPro } = useSubscriptionTier(landlordId);
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -158,7 +138,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
 
   useEffect(() => {
     fetchQuickBooksStatus();
-    fetchDocuSignStatus();
   }, [landlordId]);
 
   const fetchAnalyticsData = async () => {
@@ -181,22 +160,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       const json = await res.json();
       if (json?.success) {
         setQbConnected(Boolean(json?.data?.connected));
-        setQbCompanyName(json?.data?.companyInfo?.CompanyInfo?.CompanyName || null);
       }
     } catch (e) {
       console.error('Failed to fetch QuickBooks status:', e);
-    }
-  };
-
-  const fetchDocuSignStatus = async () => {
-    try {
-      const res = await fetch(`/api/integrations/docusign/status?landlordId=${landlordId}`);
-      const json = await res.json();
-      if (json?.success) {
-        setDsConnected(Boolean(json?.data?.connected));
-      }
-    } catch (e) {
-      console.error('Failed to fetch DocuSign status:', e);
     }
   };
 
@@ -231,38 +197,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       alert('Failed to add expense');
     } finally {
       setExpenseSubmitting(false);
-    }
-  };
-
-  const submitBenchmark = async () => {
-    try {
-      setBenchmarkSubmitting(true);
-      const payload = {
-        landlordId,
-        averageRent: benchmarkAverageRent,
-        effectiveDate: benchmarkEffectiveDate || new Date().toISOString().slice(0, 10),
-        source: benchmarkSource,
-        zip: benchmarkZip || null,
-      };
-      const res = await fetch('/api/landlord/market-benchmarks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        alert(json?.message || 'Failed to set market benchmark');
-        return;
-      }
-      setBenchmarkAverageRent('');
-      setBenchmarkZip('');
-      setBenchmarkDialogOpen(false);
-      await fetchAnalyticsData();
-    } catch (e) {
-      console.error('Failed to set benchmark:', e);
-      alert('Failed to set market benchmark');
-    } finally {
-      setBenchmarkSubmitting(false);
     }
   };
 
@@ -311,23 +245,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       alert('QuickBooks sync failed');
     } finally {
       setQbLoading(false);
-    }
-  };
-
-  const connectDocuSign = async () => {
-    try {
-      setDsLoading(true);
-      if (!dsConnected) {
-        window.location.href = `/api/docusign/connect?landlordId=${landlordId}`;
-        return;
-      }
-      await fetchDocuSignStatus();
-      alert('DocuSign connection verified.');
-    } catch (error) {
-      console.error('DocuSign connection failed:', error);
-      alert('DocuSign connection failed');
-    } finally {
-      setDsLoading(false);
     }
   };
 
@@ -409,18 +326,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
               >
                 <FileText className='h-4 w-4' />
                 TurboTax Export
-              </button>
-              <button
-                onClick={connectDocuSign}
-                disabled={dsLoading}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  dsConnected 
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30' 
-                    : 'bg-violet-600/80 text-white hover:bg-violet-500'
-                }`}
-              >
-                <PenTool className='h-4 w-4' />
-                {dsConnected ? 'DocuSign ✓' : 'Connect DocuSign'}
               </button>
             </>
           ) : (
@@ -533,19 +438,12 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           <TabsList className='bg-violet-900/50 border border-violet-500/20'>
             <TabsTrigger triggerValue='overview'>Overview</TabsTrigger>
             <TabsTrigger triggerValue='properties'>Properties</TabsTrigger>
-            <TabsTrigger triggerValue='roi' className='relative'>
-              ROI Analysis
-              {!isPro && <Lock className='h-3 w-3 ml-1 text-violet-400' />}
-            </TabsTrigger>
             <TabsTrigger triggerValue='market'>Market</TabsTrigger>
           </TabsList>
 
           <div className='flex flex-wrap gap-2'>
             <Button variant='outline' size='sm' onClick={() => setExpenseDialogOpen(true)} className='border-violet-500/30 text-violet-200 hover:bg-violet-500/20'>
               <Plus className='h-4 w-4 mr-1' /> Add Expense
-            </Button>
-            <Button variant='outline' size='sm' onClick={() => setBenchmarkDialogOpen(true)} className='border-violet-500/30 text-violet-200 hover:bg-violet-500/20'>
-              <Landmark className='h-4 w-4 mr-1' /> Set Market Avg
             </Button>
             <Button variant='outline' size='sm' onClick={() => downloadReport('csv')} className='border-violet-500/30 text-violet-200 hover:bg-violet-500/20'>
               <Download className='h-4 w-4 mr-1' /> CSV
@@ -778,82 +676,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           </div>
         </TabsContent>
 
-        {/* ROI Tab */}
-        <TabsContent contentValue='roi' className='space-y-6 mt-6'>
-          {isPro ? (
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-              <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
-                <h3 className='text-lg font-semibold text-white mb-1'>ROI Calculator</h3>
-                <p className='text-xs text-violet-300 mb-4'>Calculate return on investment</p>
-                
-                <div className='space-y-4'>
-                  <div>
-                    <label className='text-sm text-violet-200 block mb-1'>Total Investment</label>
-                    <Input type='number' className='bg-violet-800/50 border-violet-500/30 text-white' placeholder='100000' />
-                  </div>
-                  <div>
-                    <label className='text-sm text-violet-200 block mb-1'>Annual Net Income</label>
-                    <Input type='number' className='bg-violet-800/50 border-violet-500/30 text-white' placeholder='12000' />
-                  </div>
-                  <Button className='w-full bg-violet-600 hover:bg-violet-500'>
-                    <Calculator className='h-4 w-4 mr-2' />
-                    Calculate ROI
-                  </Button>
-                  <div className='rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-4 text-center'>
-                    <div className='text-3xl font-bold text-emerald-400'>12.0%</div>
-                    <div className='text-sm text-emerald-300'>Annual ROI</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
-                <h3 className='text-lg font-semibold text-white mb-1'>Investment Projections</h3>
-                <p className='text-xs text-violet-300 mb-4'>5-year growth forecast</p>
-                
-                <div className='h-64 flex items-center justify-center text-violet-300 rounded-lg bg-violet-800/30 border border-violet-500/20'>
-                  <div className='text-center'>
-                    <TrendingUp className='h-12 w-12 mx-auto mb-2 text-violet-400' />
-                    <p>Projection chart coming soon</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/30 p-8'>
-              <div className='flex items-center gap-2 mb-2'>
-                <Lock className='h-5 w-5 text-violet-400' />
-                <h3 className='text-lg font-semibold text-white'>Advanced ROI Analysis</h3>
-              </div>
-              <p className='text-violet-300 text-sm mb-6'>ROI calculators and investment projections are available on Pro and Enterprise plans</p>
-              
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-4'>
-                  <Calculator className='h-6 w-6 text-violet-400 mb-2' />
-                  <h4 className='font-medium text-white mb-1'>ROI Calculator</h4>
-                  <p className='text-xs text-violet-300'>Calculate returns on your investments</p>
-                </div>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-4'>
-                  <TrendingUp className='h-6 w-6 text-violet-400 mb-2' />
-                  <h4 className='font-medium text-white mb-1'>5-Year Projections</h4>
-                  <p className='text-xs text-violet-300'>Forecast your portfolio growth</p>
-                </div>
-              </div>
-              
-              <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
-                <div className='flex-1 text-sm text-violet-300'>
-                  You&apos;re currently on the <span className='font-medium text-white'>{tierName}</span> plan.
-                </div>
-                <Button asChild className='bg-violet-600 hover:bg-violet-500'>
-                  <Link href='/admin/settings/subscription'>
-                    <Sparkles className='h-4 w-4 mr-2' />
-                    Upgrade to Pro
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          )}
-        </TabsContent>
-
         {/* Market Tab */}
         <TabsContent contentValue='market' className='space-y-6 mt-6'>
           <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
@@ -976,59 +798,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
         </DialogContent>
       </Dialog>
 
-      {/* Set Market Benchmark Dialog */}
-      <Dialog open={benchmarkDialogOpen} onOpenChange={setBenchmarkDialogOpen}>
-        <DialogContent className='sm:max-w-lg bg-slate-900 border-violet-500/30'>
-          <DialogHeader>
-            <DialogTitle className='text-white'>Set Market Benchmark</DialogTitle>
-            <DialogDescription className='text-violet-300'>
-              Store a market average rent for comparison (manual input is fine).
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className='grid gap-4'>
-            <div className='grid gap-2'>
-              <label className='text-sm font-medium text-violet-200'>Market average rent</label>
-              <Input
-                type='number'
-                value={benchmarkAverageRent}
-                onChange={(e) => setBenchmarkAverageRent(e.target.value)}
-                placeholder='2150'
-                className='bg-violet-800/50 border-violet-500/30 text-white'
-              />
-            </div>
-
-            <div className='grid gap-2'>
-              <label className='text-sm font-medium text-violet-200'>Effective date</label>
-              <Input
-                type='date'
-                value={benchmarkEffectiveDate}
-                onChange={(e) => setBenchmarkEffectiveDate(e.target.value)}
-                className='bg-violet-800/50 border-violet-500/30 text-white'
-              />
-            </div>
-
-            <div className='grid gap-2'>
-              <label className='text-sm font-medium text-violet-200'>ZIP (optional)</label>
-              <Input value={benchmarkZip} onChange={(e) => setBenchmarkZip(e.target.value)} placeholder='89101' className='bg-violet-800/50 border-violet-500/30 text-white' />
-            </div>
-
-            <div className='grid gap-2'>
-              <label className='text-sm font-medium text-violet-200'>Source</label>
-              <Input value={benchmarkSource} onChange={(e) => setBenchmarkSource(e.target.value)} placeholder='manual' className='bg-violet-800/50 border-violet-500/30 text-white' />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setBenchmarkDialogOpen(false)} disabled={benchmarkSubmitting} className='border-violet-500/30 text-violet-200'>
-              Cancel
-            </Button>
-            <Button onClick={submitBenchmark} disabled={benchmarkSubmitting} className='bg-violet-600 hover:bg-violet-500'>
-              {benchmarkSubmitting ? 'Saving…' : 'Save Benchmark'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
