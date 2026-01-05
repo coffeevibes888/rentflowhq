@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     description: APP_DESCRIPTION,
     images: [
       {
-        url: '/images/propertyflowhqOG.png',
+        url: `${resolvedMetadataBase.toString()}images/propertyflowhqOG.png`,
         width: 1200,
         height: 630,
         alt: 'Property Flow HQ - Property Management Software',
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: APP_NAME,
     description: APP_DESCRIPTION,
-    images: ['/images/propertyflowhqOG.png'],
+    images: [`${resolvedMetadataBase.toString()}images/propertyflowhqOG.png`],
   },
   robots: {
     index: true,

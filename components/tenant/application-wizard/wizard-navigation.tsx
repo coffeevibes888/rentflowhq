@@ -18,8 +18,13 @@ export function WizardNavigation({ onValidate, onSubmit, isSubmitting = false }:
   const isLastStep = state.currentStep === APPLICATION_STEPS.length - 1;
 
   const handleNext = () => {
-    if (onValidate && !onValidate()) {
-      return;
+    console.log('Continue clicked, validating...');
+    if (onValidate) {
+      const isValid = onValidate();
+      console.log('Validation result:', isValid);
+      if (!isValid) {
+        return;
+      }
     }
     nextStep();
   };
@@ -31,7 +36,7 @@ export function WizardNavigation({ onValidate, onSubmit, isSubmitting = false }:
   };
 
   return (
-    <div className="flex justify-between items-center pt-8 mt-8 border-t border-slate-700/50">
+    <div className="flex justify-between items-center pt-8 mt-8 border-t border-slate-700/50 relative z-10">
       <Button
         variant="ghost"
         onClick={prevStep}

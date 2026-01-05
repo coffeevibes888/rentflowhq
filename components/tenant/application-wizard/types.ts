@@ -71,6 +71,7 @@ export interface ApplicationFormData {
   hasPets: string;
   petDetails: string;
   numberOfOccupants: string;
+  occupantNames: string;
   numberOfVehicles: string;
   vehicleDetails: string;
   emergencyContactName: string;
