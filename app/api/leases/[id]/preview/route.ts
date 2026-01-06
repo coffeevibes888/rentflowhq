@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
-import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
+import { renderLeaseHtml } from '@/lib/services/lease-template';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 
 export async function GET(
@@ -54,7 +54,7 @@ export async function GET(
     const property = lease.unit.property;
     const address = property.address as any;
 
-    let html = renderDocuSignReadyLeaseHtml({
+    let html = renderLeaseHtml({
       propertyLabel: address
         ? `${address.street || ''}, ${address.city || ''}, ${address.state || ''} ${address.zip || ''}`
         : property.name,

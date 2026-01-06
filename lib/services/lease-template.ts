@@ -35,7 +35,7 @@ export interface LeaseTemplateData {
   entryNoticeDays?: string;
 }
 
-export const renderDocuSignReadyLeaseHtml = (data: LeaseTemplateData | {
+export const renderLeaseHtml = (data: LeaseTemplateData | {
   landlordName: string;
   tenantName: string;
   propertyLabel: string;

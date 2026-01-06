@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { Badge } from '@/components/ui/badge';
 import { Bell } from 'lucide-react';
-import LandlordSignButton from './landlord-docusign-sign-button';
+import LandlordSignButton from './landlord-sign-button';
 
 interface AdminLeaseDetailPageProps {
   params: Promise<{ id: string }>;

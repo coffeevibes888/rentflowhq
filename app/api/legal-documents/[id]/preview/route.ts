@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
-import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
+import { renderLeaseHtml } from '@/lib/services/lease-template';
 
 export async function GET(
   _request: NextRequest,
@@ -148,7 +148,7 @@ export async function GET(
         ? `${address.street || ''}, ${address.city || ''}, ${address.state || ''} ${address.zip || ''}`
         : `${property?.name || 'Property'} - ${lease.unit.name}`;
 
-      html = renderDocuSignReadyLeaseHtml({
+      html = renderLeaseHtml({
         landlordName: property?.landlord?.name || landlord.name || 'Landlord',
         tenantName: lease.tenant?.name || 'Tenant',
         propertyLabel,
@@ -236,7 +236,7 @@ export async function GET(
       signedPdfUrl = signedRequest?.signedPdfUrl || null;
     } else {
       // No lease found, use generic template
-      html = renderDocuSignReadyLeaseHtml({
+      html = renderLeaseHtml({
         landlordName: landlord.name || 'Landlord',
         tenantName: '[Tenant Name]',
         propertyLabel: '[Property / Unit]',

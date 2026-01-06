@@ -43,7 +43,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Plus, ClipboardList, Loader2, Building2, DollarSign, Calendar,
   User, Globe, Send, Users, Pencil, Upload, X, Image as ImageIcon, Video,
-  MoreVertical, Trash2, Play, CheckCircle, CreditCard, AlertTriangle,
+  MoreVertical, Trash2, Play, CheckCircle, CreditCard, AlertTriangle, Scale,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
@@ -487,6 +487,11 @@ export default function WorkOrdersTab() {
                       {wo.status === 'open' && wo._count && wo._count.bids > 0 && (
                         <DropdownMenuItem onClick={() => { window.location.href = `/admin/contractors?viewBids=${wo.id}`; }} className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-500/10 cursor-pointer">
                           <Users className="h-4 w-4 mr-2" />View Bids ({wo._count.bids})
+                        </DropdownMenuItem>
+                      )}
+                      {(wo.status === 'in_progress' || wo.status === 'completed' || wo.status === 'paid') && (
+                        <DropdownMenuItem onClick={() => { window.location.href = `/admin/contractors/dispute?workOrderId=${wo.id}`; }} className="text-amber-400 focus:text-amber-300 focus:bg-amber-500/10 cursor-pointer">
+                          <Scale className="h-4 w-4 mr-2" />File Dispute
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator className="bg-slate-700" />

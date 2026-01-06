@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { HousePlus, Briefcase, Wrench, Settings, LogOut } from 'lucide-react';
+import { HousePlus, Briefcase, Wrench, Settings, LogOut, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default async function HomeownerLayout({
@@ -23,6 +23,7 @@ export default async function HomeownerLayout({
     { href: '/homeowner/dashboard', label: 'Dashboard', icon: HousePlus },
     { href: '/homeowner/jobs', label: 'My Jobs', icon: Briefcase },
     { href: '/contractors', label: 'Find Contractors', icon: Wrench },
+    { href: '/homeowner/disputes', label: 'Disputes', icon: Scale },
     { href: '/homeowner/settings', label: 'Settings', icon: Settings },
   ];
 

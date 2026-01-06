@@ -78,18 +78,22 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
           }
         } else {
           // User doesn't belong to this landlord's portal
-          // But if they're a landlord/admin, still send them to admin
+          // Redirect based on role to their appropriate dashboard
           if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
             return '/admin/overview';
+          } else if (userRole === 'super_admin') {
+            return '/super-admin';
           }
-          return '/';
+          return '/user/dashboard';
         }
       } else {
         // Landlord slug doesn't exist, redirect based on role
         if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
           return '/admin/overview';
+        } else if (userRole === 'super_admin') {
+          return '/super-admin';
         }
-        return '/';
+        return '/user/dashboard';
       }
     }
 
@@ -99,23 +103,23 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
       case 'landlord':
       case 'property_manager':
         return '/admin/overview';
-      case 'tenant': {
-        // For tenants signing in from main domain, just go to dashboard
-        // The dashboard will show their lease info regardless of which landlord
-        return '/user/dashboard';
-      }
+      case 'super_admin':
+        return '/super-admin';
+      case 'tenant':
       default:
-        return '/';
+        // All users go to their dashboard - no one goes to homepage after login
+        return '/user/dashboard';
     }
   } catch (error) {
     console.error('Error determining redirect:', error);
     // Fallback based on role even if there's an error
     if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
       return '/admin/overview';
-    } else if (userRole === 'tenant') {
-      return '/user/dashboard';
+    } else if (userRole === 'super_admin') {
+      return '/super-admin';
     }
-    return '/';
+    // Default to user dashboard for all other roles
+    return '/user/dashboard';
   }
 }
 

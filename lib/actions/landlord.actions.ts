@@ -409,6 +409,168 @@ export async function uploadLandlordAboutMedia(formData: FormData) {
   }
 }
 
+export async function deleteLandlordLogo() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error('Unauthorized');
+    }
+
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+    });
+
+    if (!landlord) {
+      throw new Error('Landlord not found');
+    }
+
+    await prisma.landlord.update({
+      where: { id: landlord.id },
+      data: { logoUrl: null },
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Failed to delete logo' };
+  }
+}
+
+export async function deleteLandlordHeroImage(imageUrl: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error('Unauthorized');
+    }
+
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+    });
+
+    if (!landlord) {
+      throw new Error('Landlord not found');
+    }
+
+    const currentImages = (landlord as any).heroImages || [];
+    const updatedImages = currentImages.filter((url: string) => url !== imageUrl);
+
+    await prisma.landlord.update({
+      where: { id: landlord.id },
+      data: { heroImages: { set: updatedImages } },
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Failed to delete hero image' };
+  }
+}
+
+export async function deleteAllLandlordHeroImages() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error('Unauthorized');
+    }
+
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+    });
+
+    if (!landlord) {
+      throw new Error('Landlord not found');
+    }
+
+    await prisma.landlord.update({
+      where: { id: landlord.id },
+      data: { heroImages: { set: [] } },
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Failed to delete hero images' };
+  }
+}
+
+export async function deleteLandlordAboutPhoto() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error('Unauthorized');
+    }
+
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+    });
+
+    if (!landlord) {
+      throw new Error('Landlord not found');
+    }
+
+    await prisma.landlord.update({
+      where: { id: landlord.id },
+      data: { aboutPhoto: null } as any,
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Failed to delete about photo' };
+  }
+}
+
+export async function deleteLandlordAboutGalleryImage(imageUrl: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error('Unauthorized');
+    }
+
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+    });
+
+    if (!landlord) {
+      throw new Error('Landlord not found');
+    }
+
+    const currentGallery = (landlord as any).aboutGallery || [];
+    const updatedGallery = currentGallery.filter((url: string) => url !== imageUrl);
+
+    await prisma.landlord.update({
+      where: { id: landlord.id },
+      data: { aboutGallery: updatedGallery } as any,
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Failed to delete gallery image' };
+  }
+}
+
+export async function deleteAllLandlordAboutGallery() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error('Unauthorized');
+    }
+
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+    });
+
+    if (!landlord) {
+      throw new Error('Landlord not found');
+    }
+
+    await prisma.landlord.update({
+      where: { id: landlord.id },
+      data: { aboutGallery: [] } as any,
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Failed to delete gallery' };
+  }
+}
+
 export async function updateCustomDomain(formData: FormData) {
   try {
     const session = await auth();

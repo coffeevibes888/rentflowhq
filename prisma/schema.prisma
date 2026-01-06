@@ -114,6 +114,14 @@ model User {
 
   // Homeowner
   homeownerProfile Homeowner?
+
+  // Dispute Center
+  disputesFiled       Dispute[]         @relation("DisputeFiledBy")
+  disputesAssigned    Dispute[]         @relation("DisputeAssignedTo")
+  disputesResolved    Dispute[]         @relation("DisputeResolvedBy")
+  disputeMessages     DisputeMessage[]
+  disputeEvidence     DisputeEvidence[]
+  disputeTimeline     DisputeTimeline[]
 }
 
 model Account {
@@ -659,6 +667,9 @@ model Landlord {
 
   // Affiliate tracking
   affiliateReferral AffiliateReferral?
+
+  // Dispute Center
+  disputes Dispute[]
 }
 
 // Homeowner - A homeowner who hires contractors for their home
@@ -2980,4 +2991,133 @@ model NewsletterSubscriber {
 
   @@index([email])
   @@index([status])
+}
+
+
+// ============= DISPUTE CENTER =============
+
+// Dispute - Contractor marketplace disputes
+model Dispute {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caseNumber        String    @unique // AUTO-GENERATED: DSP-YYYYMMDD-XXXX
+  
+  // Parties involved
+  landlordId        String    @db.Uuid
+  contractorId      String?   @db.Uuid
+  homeownerId       String?   @db.Uuid
+  workOrderId       String?   @db.Uuid
+  
+  // Dispute details
+  type              String    // payment, quality, timeline, scope, communication, other
+  category          String    // work_not_completed, poor_quality, overcharge, damage, no_show, contract_breach, other
+  status            String    @default("open") // open, under_review, mediation, escalated, resolved, closed, cancelled
+  priority          String    @default("medium") // low, medium, high, urgent
+  
+  // Financial
+  disputedAmount    Decimal?  @db.Decimal(12, 2)
+  resolvedAmount    Decimal?  @db.Decimal(12, 2)
+  escrowHeld        Decimal?  @db.Decimal(12, 2)
+  
+  // Description
+  title             String
+  description       String
+  desiredResolution String?
+  
+  // Resolution
+  resolution        String?
+  resolutionType    String?   // refund_full, refund_partial, work_redo, mediated_agreement, dismissed, other
+  resolvedById      String?   @db.Uuid
+  resolvedAt        DateTime? @db.Timestamp(6)
+  
+  // Assignment
+  assignedToId      String?   @db.Uuid
+  assignedAt        DateTime? @db.Timestamp(6)
+  
+  // SLA tracking
+  responseDeadline  DateTime? @db.Timestamp(6)
+  resolutionDeadline DateTime? @db.Timestamp(6)
+  
+  // Metadata
+  filedById         String    @db.Uuid
+  filedByRole       String    // landlord, contractor, homeowner, admin
+  
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  landlord          Landlord  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  filedBy           User      @relation("DisputeFiledBy", fields: [filedById], references: [id], onDelete: Cascade)
+  assignedTo        User?     @relation("DisputeAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  resolvedBy        User?     @relation("DisputeResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  messages          DisputeMessage[]
+  evidence          DisputeEvidence[]
+  timeline          DisputeTimeline[]
+
+  @@index([landlordId])
+  @@index([contractorId])
+  @@index([homeownerId])
+  @@index([workOrderId])
+  @@index([status])
+  @@index([priority])
+  @@index([caseNumber])
+  @@index([createdAt])
+}
+
+// DisputeMessage - Communication thread for disputes
+model DisputeMessage {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeId   String   @db.Uuid
+  senderId    String   @db.Uuid
+  senderRole  String   // landlord, contractor, homeowner, admin, mediator
+  message     String
+  isInternal  Boolean  @default(false) // Internal notes not visible to parties
+  readAt      DateTime? @db.Timestamp(6)
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([disputeId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// DisputeEvidence - Supporting documents and media
+model DisputeEvidence {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeId   String   @db.Uuid
+  uploadedById String  @db.Uuid
+  type        String   // image, video, document, contract, invoice, receipt, screenshot, other
+  url         String
+  fileName    String?
+  fileSize    Int?
+  mimeType    String?
+  description String?
+  category    String?  // before_work, after_work, communication, contract, payment, other
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  uploadedBy  User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([disputeId])
+  @@index([uploadedById])
+}
+
+// DisputeTimeline - Audit trail of dispute actions
+model DisputeTimeline {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeId   String   @db.Uuid
+  action      String   // created, status_changed, assigned, message_sent, evidence_added, escalated, resolved, closed
+  description String
+  previousValue String?
+  newValue    String?
+  performedById String @db.Uuid
+  metadata    Json?    @db.Json
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  performedBy User     @relation(fields: [performedById], references: [id], onDelete: Cascade)
+
+  @@index([disputeId])
+  @@index([createdAt])
 }

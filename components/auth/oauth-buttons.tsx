@@ -15,7 +15,8 @@ export default function OAuthButtons({ callbackUrl = '/onboarding' }: OAuthButto
     setIsGoogleLoading(true);
     try {
       // Use onboarding as default callback - the page will redirect based on user state
-      const finalCallbackUrl = callbackUrl === '/' ? '/onboarding' : callbackUrl;
+      // Never redirect to homepage - always go to onboarding first, then dashboard
+      const finalCallbackUrl = callbackUrl === '/' ? '/onboarding' : (callbackUrl || '/onboarding');
       await signIn('google', { callbackUrl: finalCallbackUrl });
     } catch (error) {
       console.error('Google sign-in error:', error);

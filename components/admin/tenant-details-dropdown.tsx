@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Bell, Phone, Mail, FileText, Calendar, Home, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import LandlordSignButton from '@/app/admin/leases/[id]/landlord-docusign-sign-button';
+import LandlordSignButton from '@/app/admin/leases/[id]/landlord-sign-button';
 
 type TenantDetails = {
   leaseId: string;

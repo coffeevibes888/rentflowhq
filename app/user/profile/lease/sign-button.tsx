@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import LeaseSigningModal from '@/components/lease-signing-modal';
 
-export default function DocusignSignButton({ leaseId }: { leaseId: string }) {
+export default function SignButton({ leaseId }: { leaseId: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);

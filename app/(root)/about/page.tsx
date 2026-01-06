@@ -1,7 +1,7 @@
 const AboutPage = () => {
   const photos = [
     { id: 1, label: 'Founder', src: '/images/allenPic2.jpg' },
-    { id: 2, label: 'Me', src: '/images/me2.PNG' },
+    { id: 2, label: 'Me', src: '/images/me.png' },
   ];
 
   return (

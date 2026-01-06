@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db/prisma';
-import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
+import { renderLeaseHtml } from '@/lib/services/lease-template';
 import { generateLeasePdf, stampSignatureOnPdf } from '@/lib/services/signing';
 import { fetchPdfBuffer, applySignaturesToPdf, SignatureFieldPosition } from '@/lib/services/custom-pdf-signing';
 import crypto from 'crypto';
 import { sendBrandedEmail } from '@/lib/services/email-service';
+import { NotificationService } from '@/lib/services/notification-service';
 
 function getClientIp(req: NextRequest) {
   const xfwd = req.headers.get('x-forwarded-for');
@@ -174,7 +175,7 @@ export async function GET(
     const roleFields = fields.filter(f => f.role === sig.role);
 
     // Also generate HTML preview for custom PDFs so users can read the lease terms
-    const leaseHtml = renderDocuSignReadyLeaseHtml({
+    const leaseHtml = renderLeaseHtml({
       landlordName,
       tenantName,
       propertyLabel,
@@ -210,7 +211,7 @@ export async function GET(
   }
 
   // Fall back to HTML template
-  let leaseHtml = renderDocuSignReadyLeaseHtml({
+  let leaseHtml = renderLeaseHtml({
     landlordName,
     tenantName,
     propertyLabel,
@@ -314,9 +315,15 @@ export async function POST(
           },
           tenant: { select: { id: true, name: true, email: true } },
           unit: {
-            include: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              propertyId: true,
               property: {
-                include: {
+                select: {
+                  id: true,
+                  name: true,
                   landlord: { select: { id: true, name: true, ownerUserId: true, owner: { select: { email: true, name: true } } } },
                 },
               },
@@ -491,7 +498,7 @@ export async function POST(
     
     // If we don't have a stamped result yet (tenant signing or fallback), generate from HTML
     if (!stamped) {
-      let leaseHtml = renderDocuSignReadyLeaseHtml({
+      let leaseHtml = renderLeaseHtml({
         landlordName,
         tenantName,
         propertyLabel,
@@ -579,19 +586,21 @@ export async function POST(
     }),
   ]);
 
-  // If tenant just signed, create landlord signature request
+  // If tenant just signed, create landlord signature request and notification
   if (sig.role === 'tenant' && !lease.landlordSignedAt) {
     const existingLandlordRequest = await prisma.documentSignatureRequest.findFirst({
       where: { leaseId: lease.id, role: 'landlord', status: { not: 'signed' } },
     });
 
+    const landlordEmail = lease.unit.property?.landlord?.owner?.email;
+    const landlordNameForEmail = lease.unit.property?.landlord?.name || 'Landlord';
+    const landlordId = lease.unit.property?.landlord?.id;
+    const landlordUserId = lease.unit.property?.landlord?.ownerUserId;
+    let landlordToken: string | null = null;
+
     if (!existingLandlordRequest) {
-      const landlordEmail = lease.unit.property?.landlord?.owner?.email;
-      const landlordNameForEmail = lease.unit.property?.landlord?.name || 'Landlord';
-      const landlordId = lease.unit.property?.landlord?.id;
-      
       if (landlordEmail && landlordId) {
-        const landlordToken = crypto.randomBytes(24).toString('hex');
+        landlordToken = crypto.randomBytes(24).toString('hex');
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
         await prisma.documentSignatureRequest.create({
@@ -629,6 +638,25 @@ export async function POST(
         } catch (err) {
           console.error('Failed to email landlord signing link', err);
         }
+      }
+    } else {
+      landlordToken = existingLandlordRequest.token;
+    }
+
+    // Create in-app notification with direct signing link
+    if (landlordUserId && landlordId && landlordToken) {
+      try {
+        await NotificationService.createNotification({
+          userId: landlordUserId,
+          type: 'reminder',
+          title: 'Lease Signed by Tenant',
+          message: `${tenantName} has signed their lease. Click to sign and complete the agreement.`,
+          actionUrl: `/sign/${landlordToken}`,
+          metadata: { leaseId: lease.id, propertyId: lease.unit.propertyId },
+          landlordId,
+        });
+      } catch (err) {
+        console.error('Failed to create landlord notification', err);
       }
     }
   }

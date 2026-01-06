@@ -181,80 +181,80 @@ export default function PricingSection() {
                   </div>
                 </div>
 
-                  {/* Price */}
-                  <div className="mb-4">
-                    {tier.price !== null ? (
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold text-white">${tier.price}</span>
-                        <span className="text-slate-400">/month</span>
-                      </div>
-                    ) : (
-                      <div className="text-2xl font-bold text-white">Custom Pricing</div>
-                    )}
-                  </div>
-
-                  <p className="text-sm text-slate-400 mb-6">{tier.description}</p>
-
-                  {/* CTA Button */}
-                  <button
-                    onClick={() => !tier.comingSoon && handleTierClick(tier.id)}
-                    disabled={loadingTier === tier.id || tier.comingSoon}
-                    className={`w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 ${
-                      tier.comingSoon
-                        ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                        : isPopular
-                        ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-400 hover:to-purple-400 shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105'
-                        : tier.id === 'enterprise'
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400'
-                        : tier.id === 'starter'
-                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-400 hover:to-cyan-400 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105'
-                        : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
-                    }`}
-                  >
-                    {loadingTier === tier.id ? (
-                      <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : tier.comingSoon ? (
-                      <>
-                        {tier.cta}
-                      </>
-                    ) : (
-                      <>
-                        {tier.cta}
-                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </button>
-
-                  {/* Features list */}
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
-                      What's included
-                    </p>
-                    <ul className="space-y-3">
-                      {tier.features.map((feature, i) => (
-                        <li 
-                          key={i} 
-                          className={`flex items-start gap-3 text-sm ${
-                            feature.included ? 'text-slate-200' : 'text-slate-500'
-                          }`}
-                        >
-                          <div className={`mt-0.5 rounded-full p-0.5 ${
-                            feature.included 
-                              ? isPopular 
-                                ? 'bg-violet-500/20 text-violet-400' 
-                                : tier.id === 'starter'
-                                ? 'bg-blue-500/20 text-blue-400'
-                                : 'bg-emerald-500/20 text-emerald-400'
-                              : 'bg-slate-700 text-slate-500'
-                          }`}>
-                            <Check className="h-3.5 w-3.5" />
-                          </div>
-                          <span className={feature.included ? '' : 'line-through'}>{feature.name}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                {/* Price */}
+                <div className="mb-4">
+                  {tier.price !== null ? (
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold text-white">${tier.price}</span>
+                      <span className="text-slate-400">/month</span>
+                    </div>
+                  ) : (
+                    <div className="text-2xl font-bold text-white">Custom Pricing</div>
+                  )}
                 </div>
+
+                <p className="text-sm text-slate-400 mb-6">{tier.description}</p>
+
+                {/* CTA Button */}
+                <button
+                  onClick={() => !tier.comingSoon && handleTierClick(tier.id)}
+                  disabled={loadingTier === tier.id || tier.comingSoon}
+                  className={`w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 ${
+                    tier.comingSoon
+                      ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                      : isPopular
+                      ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-400 hover:to-purple-400 shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105'
+                      : tier.id === 'enterprise'
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400'
+                      : tier.id === 'starter'
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-400 hover:to-cyan-400 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105'
+                      : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                  }`}
+                >
+                  {loadingTier === tier.id ? (
+                    <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : tier.comingSoon ? (
+                    <>
+                      {tier.cta}
+                    </>
+                  ) : (
+                    <>
+                      {tier.cta}
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+
+                {/* Features list */}
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+                    What's included
+                  </p>
+                  <ul className="space-y-3">
+                    {tier.features.map((feature, i) => (
+                      <li 
+                        key={i} 
+                        className={`flex items-start gap-3 text-sm ${
+                          feature.included ? 'text-slate-200' : 'text-slate-500'
+                        }`}
+                      >
+                        <div className={`mt-0.5 rounded-full p-0.5 ${
+                          feature.included 
+                            ? isPopular 
+                              ? 'bg-violet-500/20 text-violet-400' 
+                              : tier.id === 'starter'
+                              ? 'bg-blue-500/20 text-blue-400'
+                              : 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-slate-700 text-slate-500'
+                        }`}>
+                          <Check className="h-3.5 w-3.5" />
+                        </div>
+                        <span className={feature.included ? '' : 'line-through'}>{feature.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             );
           })}
         </div>
@@ -269,124 +269,6 @@ export default function PricingSection() {
               Talk to our team
             </a>
           </p>
-        </div>
-
-        {/* Competitor Comparison Table */}
-        <div className="mt-20 animate-in fade-in duration-700">
-          <div className="text-center space-y-4 mb-10">
-            <h3 className="text-2xl md:text-3xl font-bold text-white">
-              How We Compare to Competitors
-            </h3>
-            <p className="text-black font-semibold max-w-xl mx-auto">
-              See why landlords are switching to Rent Flow HQ
-            </p>
-          </div>
-          
-          <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-sm">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left p-4 font-semibold text-white">Feature</th>
-                  <th className="p-4 font-semibold text-violet-300 bg-violet-500/10">Rent Flow HQ</th>
-                  <th className="p-4 font-semibold text-slate-300">Buildium<br/><span className="text-xs font-normal text-slate-500">$55-183/mo</span></th>
-                  <th className="p-4 font-semibold text-slate-300">AppFolio<br/><span className="text-xs font-normal text-slate-500">$1.40/unit</span></th>
-                  <th className="p-4 font-semibold text-slate-300">TurboTenant<br/><span className="text-xs font-normal text-slate-500">Free</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Online Rent Collection</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Maintenance Tickets</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Digital Leases</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center text-amber-400 text-xs">Limited</td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">White-label Tenant Portal</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Team Chat</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Pro)</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Contractor Management</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">($1/payment)</span></td>
-                  <td className="p-4 text-center text-amber-400 text-xs">$ Extra</td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Shift Scheduling</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Enterprise)</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Time Tracking & Payroll</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Enterprise)</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">Custom Subdomain</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">ID & Paystub Verification</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Pro)</span></td>
-                  <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
-                  <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-4 text-slate-200">QuickBooks & TurboTax</td>
-                  <td className="p-4 text-center bg-violet-500/5"><span className="text-emerald-400 text-lg">✓</span> <span className="text-xs text-slate-400">(Pro)</span></td>
-                  <td className="p-4 text-center text-amber-400 text-xs">$$ Extra</td>
-                  <td className="p-4 text-center"><span className="text-emerald-400 text-lg">✓</span></td>
-                  <td className="p-4 text-center"><span className="text-red-400 text-lg">✗</span></td>
-                </tr>
-                <tr className="hover:bg-white/5">
-                  <td className="p-4 text-slate-200 font-semibold">Price (24 units)</td>
-                  <td className="p-4 text-center bg-violet-500/5 font-bold text-emerald-400">$19.99/mo</td>
-                  <td className="p-4 text-center text-slate-300">$55/mo</td>
-                  <td className="p-4 text-center text-slate-300">$33.60/mo</td>
-                  <td className="p-4 text-center text-slate-300">Free</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <div className="mt-6 text-center">
-            <p className="text-xs text-black">
-              Comparison based on publicly available pricing as of December 2024. Features may vary by plan.
-            </p>
-          </div>
         </div>
       </div>
     </section>

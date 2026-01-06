@@ -72,6 +72,9 @@ const UserButton = async () => {
                 <Link href='/super-admin' className='text-black font-semibold hover:bg-gray-800 hover:text-white'>Owner</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link href='/dispute-center' className='text-black font-semibold hover:bg-gray-800 hover:text-white'>⚖️ Dispute Center</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href='/admin/blog/create' className='text-black font-semibold hover:bg-gray-800 hover:text-white'>Create Blog</Link>
               </DropdownMenuItem>
             </>

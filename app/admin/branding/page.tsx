@@ -2,7 +2,6 @@ import { requireAdmin } from '@/lib/auth-guard';
 import {
   getOrCreateCurrentLandlord,
   uploadLandlordLogo,
-  updateCustomDomain,
   updateLandlordBrandingProfile,
   uploadLandlordHeroImages,
   uploadLandlordAboutMedia,
@@ -10,8 +9,15 @@ import {
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import SubdomainForm from '@/components/admin/subdomain-form';
-import DomainSearch from '@/components/admin/domain-search';
-import { Image, Globe, Palette, Sparkles, UserCircle } from 'lucide-react';
+import { Palette, Sparkles, UserCircle, Link2, Star } from 'lucide-react';
+import {
+  DeleteLogoButton,
+  DeleteHeroImageButton,
+  DeleteAllHeroImagesButton,
+  DeleteAboutPhotoButton,
+  DeleteAboutGalleryImageButton,
+  DeleteAllAboutGalleryButton,
+} from '@/components/admin/branding-image-delete';
 
 export const metadata: Metadata = {
   title: 'Branding & Domain',
@@ -83,23 +89,6 @@ const AdminBrandingPage = async (props: {
     redirect('/admin/branding?success=About%20media%20updated');
   };
 
-  const themeOptions: { value: string; label: string; swatch: string }[] = [
-    { value: 'violet', label: 'Violet pulse', swatch: 'from-violet-500 to-fuchsia-500' },
-    { value: 'emerald', label: 'Emerald dusk', swatch: 'from-emerald-500 to-teal-400' },
-    { value: 'blue', label: 'Blue horizon', swatch: 'from-blue-500 to-cyan-400' },
-    { value: 'rose', label: 'Rose quartz', swatch: 'from-rose-500 to-pink-400' },
-    { value: 'amber', label: 'Amber glow', swatch: 'from-amber-500 to-orange-400' },
-  ];
-
-  const handleCustomDomainUpdate = async (formData: FormData) => {
-    'use server';
-    const result = await updateCustomDomain(formData);
-    if (!result.success) {
-      redirect(`/admin/branding?error=${encodeURIComponent(result.message || 'Failed to update custom domain')}`);
-    }
-    redirect('/admin/branding?success=Domain%20updated');
-  };
-
   const handleBrandingProfileUpdate = async (formData: FormData) => {
     'use server';
     const result = await updateLandlordBrandingProfile(formData);
@@ -130,64 +119,131 @@ const AdminBrandingPage = async (props: {
           </p>
         </div>
 
-        {/* Logo Section */}
-        <section data-tour="logo-upload" className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-          <div className='flex-1 space-y-4'>
-            <div className='space-y-1'>
-              <h2 className='text-sm font-semibold text-black'>Logo</h2>
-              <p className='text-xs text-slate-300/80'>
-                Upload your company logo to display on your public tenant portal. Recommended size: 200x200px.
+        {/* YOUR TENANT PORTAL - Featured Section at Top */}
+        <section className='rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 border-2 border-violet-400/50 p-6 space-y-4 backdrop-blur-sm shadow-2xl drop-shadow-2xl relative overflow-hidden'>
+          {/* Featured badge */}
+          <div className='absolute top-0 right-0 bg-amber-500 text-amber-950 text-xs font-bold px-3 py-1 rounded-bl-lg flex items-center gap-1'>
+            <Star className='h-3 w-3' />
+            KEY FEATURE
+          </div>
+          
+          <div className='flex items-start gap-4'>
+            <div className='h-12 w-12 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 ring-2 ring-white/20'>
+              <Link2 className='h-6 w-6' />
+            </div>
+            <div className='flex-1 space-y-1'>
+              <h2 className='text-xl font-bold text-white'>Your Tenant Portal</h2>
+              <p className='text-sm text-violet-100'>
+                This is your branded website where tenants can browse your listings, submit applications, sign leases, and pay rent online. Share this link everywhere!
               </p>
-            </div>
-
-          <div className='flex items-center gap-4'>
-            <div className='relative h-16 w-16 rounded-lg border border-white/10 overflow-hidden bg-slate-900/80 flex items-center justify-center'>
-              {landlord.logoUrl ? (
-                <img
-                  src={landlord.logoUrl}
-                  alt={`${landlord.name} logo`}
-                  className='h-full w-full object-contain'
-                />
-              ) : (
-                <span className='text-xs text-slate-400'>No logo yet</span>
-              )}
-            </div>
-            <div className='text-sm text-slate-200/90'>
-              <p className='font-medium text-slate-50'>Current logo</p>
-              <p className='text-xs text-black'>Displayed on your tenant portal</p>
             </div>
           </div>
 
-          <form action={handleLogoUpload} className='space-y-3'>
-            <div>
-              <label className='block text-sm font-medium text-black mb-2'>Upload Logo</label>
-              <input
-                type='file'
-                name='logo'
-                accept='image/jpeg,image/png,image/svg+xml,image/webp'
-                className='block w-full text-sm text-black file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/5 file:text-violet-200/80 file:ring-1 file:ring-white/10 hover:file:bg-white/10'
-                required
-              />
+          <SubdomainForm currentSubdomain={landlord.subdomain} baseUrl={baseUrl} />
+          
+          {!landlord.subdomain && (
+            <div className='rounded-lg bg-amber-500/20 border border-amber-400/40 p-3'>
+              <p className='text-sm text-amber-100 font-medium'>
+                ⚡ Set up your portal URL to start accepting online applications and rent payments!
+              </p>
             </div>
-            <div className='flex flex-wrap items-center gap-3'>
-              <button
-                type='submit'
-                className='inline-flex items-center justify-center rounded-full bg-violet-500 px-5 py-2 text-sm font-medium text-white hover:bg-violet-400 transition-colors'
-              >
-                Upload logo
-              </button>
+          )}
+        </section>
+
+        {/* Logo Section */}
+        <section data-tour="logo-upload" className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-4 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+          <div className='flex-1 space-y-4'>
+            <div className='space-y-1'>
+              <h2 className='text-lg font-semibold text-white'>Company Logo</h2>
+              <p className='text-sm text-slate-100'>
+                Your logo appears on your tenant portal, emails, and documents.
+              </p>
+            </div>
+
+            {/* Current Logo Preview */}
+            <div className='flex items-center gap-4 p-4 rounded-lg bg-slate-900/50 border border-white/10'>
+              <div className='relative h-20 w-20 rounded-lg border-2 border-dashed border-white/20 overflow-hidden bg-[repeating-conic-gradient(#1e293b_0%_25%,#334155_0%_50%)] bg-[length:16px_16px] flex items-center justify-center'>
+                {landlord.logoUrl ? (
+                  <img
+                    src={landlord.logoUrl}
+                    alt={`${landlord.name} logo`}
+                    className='h-full w-full object-contain'
+                  />
+                ) : (
+                  <span className='text-xs text-slate-400 text-center px-2'>No logo</span>
+                )}
+              </div>
+              <div className='flex-1'>
+                <p className='font-medium text-white text-sm'>Current logo</p>
+                <p className='text-xs text-slate-300'>
+                  {landlord.logoUrl ? 'Displayed on your tenant portal' : 'Upload a logo to brand your portal'}
+                </p>
+                {landlord.logoUrl && (
+                  <div className='mt-2'>
+                    <DeleteLogoButton />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Requirements Box */}
+            <div className='rounded-lg bg-amber-500/10 border border-amber-400/30 p-4 space-y-2'>
+              <p className='text-sm font-semibold text-amber-200'>📋 Logo Requirements</p>
+              <ul className='text-xs text-amber-100/90 space-y-1.5'>
+                <li className='flex items-start gap-2'>
+                  <span className='text-amber-400'>✓</span>
+                  <span><strong>Transparent background</strong> — PNG or SVG format works best</span>
+                </li>
+                <li className='flex items-start gap-2'>
+                  <span className='text-amber-400'>✓</span>
+                  <span><strong>Recommended size:</strong> 400×400 pixels (square) or 600×200 pixels (wide)</span>
+                </li>
+                <li className='flex items-start gap-2'>
+                  <span className='text-amber-400'>✓</span>
+                  <span><strong>Max file size:</strong> 5MB</span>
+                </li>
+                <li className='flex items-start gap-2'>
+                  <span className='text-slate-400'>💡</span>
+                  <span>Tip: A transparent PNG ensures your logo looks great on any background color</span>
+                </li>
+              </ul>
+            </div>
+
+            <form action={handleLogoUpload} className='space-y-3'>
+              <div>
+                <label className='block text-sm font-medium text-white mb-2'>Upload New Logo</label>
+                <input
+                  type='file'
+                  name='logo'
+                  accept='image/png,image/svg+xml,image/webp'
+                  className='block w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white file:ring-1 file:ring-white/20 hover:file:bg-white/20 file:cursor-pointer cursor-pointer'
+                  required
+                />
+                <p className='text-xs text-slate-300 mt-1'>Accepts PNG, SVG, or WebP (transparent background recommended)</p>
+              </div>
+              <div className='flex flex-wrap items-center gap-3'>
+                <button
+                  type='submit'
+                  className='inline-flex items-center justify-center rounded-full bg-violet-500 px-5 py-2 text-sm font-medium text-white hover:bg-violet-400 transition-colors'
+                >
+                  Upload logo
+                </button>
+              </div>
+            </form>
+
+            {/* Custom Logo Design Upsell */}
+            <div className='rounded-lg bg-emerald-500/10 border border-emerald-400/30 p-4 space-y-2'>
+              <p className='text-sm font-semibold text-emerald-200'>🎨 Need a professional logo?</p>
+              <p className='text-xs text-emerald-100/80'>
+                We'll design a custom logo for your brand with transparent background, multiple sizes, and 1 revision included. Delivered within 3 business days.
+              </p>
               <button
                 type='button'
-                className='inline-flex items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/20 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-500/30 transition-colors ring-1 ring-emerald-400/40'
+                className='inline-flex items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/20 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-500/30 transition-colors'
               >
-                Request custom logo design ($99)
+                Request custom logo design — $99
               </button>
             </div>
-          </form>
-
-            <p className='text-xs text-black font-bold'>
-              We'll design a professional logo for your brand (1 revision included). Delivered within 3 business days.
-            </p>
           </div>
         </section>
 
@@ -271,12 +327,16 @@ const AdminBrandingPage = async (props: {
             </div>
 
             {landlord.heroImages?.length ? (
-              <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-                {landlord.heroImages.map((src, idx) => (
-                  <div key={idx} className='relative h-32 rounded-lg border border-white/10 overflow-hidden bg-slate-900/70'>
-                    <img src={src} alt={`Hero ${idx + 1}`} className='h-full w-full object-cover' />
-                  </div>
-                ))}
+              <div className='space-y-3'>
+                <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+                  {landlord.heroImages.map((src, idx) => (
+                    <div key={idx} className='relative h-32 rounded-lg border border-white/10 overflow-hidden bg-slate-900/70 group'>
+                      <img src={src} alt={`Hero ${idx + 1}`} className='h-full w-full object-cover' />
+                      <DeleteHeroImageButton imageUrl={src} />
+                    </div>
+                  ))}
+                </div>
+                <DeleteAllHeroImagesButton />
               </div>
             ) : (
               <p className='text-xs text-slate-400'>No hero images yet.</p>
@@ -343,7 +403,10 @@ const AdminBrandingPage = async (props: {
                   <p className='text-xs text-slate-300/80 mb-2'>Primary photo</p>
                   <div className='relative h-32 rounded-md overflow-hidden border border-white/10 bg-slate-950/50'>
                     {landlord.aboutPhoto ? (
-                      <img src={landlord.aboutPhoto} alt='About photo' className='h-full w-full object-cover' />
+                      <>
+                        <img src={landlord.aboutPhoto} alt='About photo' className='h-full w-full object-cover' />
+                        <DeleteAboutPhotoButton />
+                      </>
                     ) : (
                       <div className='h-full w-full flex items-center justify-center text-slate-500 text-xs'>No photo</div>
                     )}
@@ -352,12 +415,16 @@ const AdminBrandingPage = async (props: {
                 <div className='sm:col-span-2 rounded-lg border border-white/10 bg-slate-900/70 p-3'>
                   <p className='text-xs text-slate-300/80 mb-2'>Gallery</p>
                   {landlord.aboutGallery?.length ? (
-                    <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
-                      {landlord.aboutGallery.map((src, idx) => (
-                        <div key={idx} className='relative h-24 rounded-md overflow-hidden border border-white/10 bg-slate-950/50'>
-                          <img src={src} alt={`Gallery ${idx + 1}`} className='h-full w-full object-cover' />
-                        </div>
-                      ))}
+                    <div className='space-y-3'>
+                      <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
+                        {landlord.aboutGallery.map((src, idx) => (
+                          <div key={idx} className='relative h-24 rounded-md overflow-hidden border border-white/10 bg-slate-950/50 group'>
+                            <img src={src} alt={`Gallery ${idx + 1}`} className='h-full w-full object-cover' />
+                            <DeleteAboutGalleryImageButton imageUrl={src} />
+                          </div>
+                        ))}
+                      </div>
+                      <DeleteAllAboutGalleryButton />
                     </div>
                   ) : (
                     <p className='text-xs text-slate-400'>No gallery images yet.</p>
@@ -397,79 +464,6 @@ const AdminBrandingPage = async (props: {
                 </button>
               </form>
             </div>
-          </div>
-        </section>
-
-        {/* Portal Slug Section */}
-        <section className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-          <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
-            <Globe className='h-4 w-4' />
-          </div>
-          <div className='flex-1 space-y-4'>
-            <div className='space-y-1'>
-              <h2 className='text-sm font-semibold text-slate-50'>Portal URL Slug</h2>
-              <p className='text-xs text-slate-300/80'>
-                Your unique URL slug where tenants can view listings, apply, and pay rent online.
-              </p>
-            </div>
-
-          <SubdomainForm currentSubdomain={landlord.subdomain} baseUrl={baseUrl} />
-
-            {landlord.subdomain && (
-              <p className='text-xs text-slate-200/90'>
-                Your tenant portal:{' '}
-                <a
-                  href={`${baseUrl}/${landlord.subdomain}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='font-mono text-violet-200/80 hover:text-violet-100 transition-colors'
-                >
-                  {`${baseUrl}/${landlord.subdomain}`}
-                </a>
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* Custom Domain Section */}
-        <section className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-          <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
-            <Palette className='h-4 w-4' />
-          </div>
-          <div className='flex-1 space-y-4'>
-            <div className='space-y-1'>
-              <h2 className='text-sm font-semibold text-slate-50'>Custom Domain</h2>
-              <p className='text-xs text-slate-300/80'>
-                Use your own domain (e.g., www.yourcompany.com) for your tenant portal. We'll host it for 2 years free.
-              </p>
-            </div>
-
-          {landlord.customDomain ? (
-            <div className='space-y-3'>
-              <div className='rounded-lg bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-                <p className='text-sm font-medium text-emerald-200/90'>Active custom domain</p>
-                <p className='text-lg font-semibold text-emerald-200/90 mt-1'>{landlord.customDomain}</p>
-                <p className='text-xs text-emerald-200/80 mt-2'>Hosting included until Dec 2026</p>
-              </div>
-            </div>
-          ) : (
-            <div className='space-y-4'>
-              <div className='rounded-lg border border-white/10 bg-slate-900/80 p-4 space-y-2'>
-                <p className='text-sm font-semibold text-slate-50'>Premium feature</p>
-                <p className='text-sm text-slate-200/90'>
-                  Search and purchase your own domain. We handle DNS setup and provide 2 years of free hosting.
-                </p>
-                <ul className='text-xs text-slate-300/80 space-y-1 mt-2'>
-                  <li>• Full DNS and SSL setup included</li>
-                  <li>• 2 years of hosting completely free</li>
-                  <li>• Professional email forwarding</li>
-                  <li>• Priority support</li>
-                </ul>
-              </div>
-
-              <DomainSearch />
-            </div>
-          )}
           </div>
         </section>
       </div>

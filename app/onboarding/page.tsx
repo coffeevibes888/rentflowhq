@@ -22,7 +22,10 @@ export default async function OnboardingPage() {
     switch (session.user.role) {
       case 'landlord':
       case 'property_manager':
-        return redirect('/admin/dashboard');
+      case 'admin':
+        return redirect('/admin/overview');
+      case 'super_admin':
+        return redirect('/super-admin');
       case 'tenant':
         return redirect('/user/dashboard');
       case 'agent':
@@ -32,7 +35,8 @@ export default async function OnboardingPage() {
       case 'homeowner':
         return redirect('/homeowner/dashboard');
       default:
-        return redirect('/');
+        // All users go to user dashboard by default, never to homepage
+        return redirect('/user/dashboard');
     }
   }
 

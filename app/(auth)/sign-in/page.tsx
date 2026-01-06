@@ -40,14 +40,15 @@ const SignInPage = async (props: {
       return redirect(callbackUrl);
     }
     
-    // Role-based redirect
+    // Role-based redirect - all users go to their dashboard, never to homepage
     const role = session.user.role;
-    if (role === 'admin' || role === 'landlord') {
-      return redirect('/admin');
+    if (role === 'admin' || role === 'landlord' || role === 'property_manager') {
+      return redirect('/admin/overview');
     } else if (role === 'super_admin') {
       return redirect('/super-admin');
     } else {
-      return redirect('/user');
+      // All other roles (tenant, user, etc.) go to user dashboard
+      return redirect('/user/dashboard');
     }
   }
 

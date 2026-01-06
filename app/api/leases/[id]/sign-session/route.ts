@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import crypto from 'crypto';
-import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
+import { renderLeaseHtml } from '@/lib/services/lease-template';
 import { sendBrandedEmail } from '@/lib/services/email-service';
 
 const SESSION_EXPIRY_HOURS = 24;
@@ -98,7 +98,7 @@ export async function POST(
 
   // If we have a valid existing session, reuse it (no email sent unless explicitly requested)
   if (existingSession?.token) {
-    const leaseHtml = renderDocuSignReadyLeaseHtml({
+    const leaseHtml = renderLeaseHtml({
       landlordName,
       tenantName,
       propertyLabel,
@@ -168,7 +168,7 @@ export async function POST(
     documentId = lease.id;
   }
 
-  const leaseHtml = renderDocuSignReadyLeaseHtml({
+  const leaseHtml = renderLeaseHtml({
     landlordName,
     tenantName,
     propertyLabel,

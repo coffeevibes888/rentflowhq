@@ -24,7 +24,8 @@ const CredentialsSignInForm = ({
 }: CredentialsSignInFormProps = {}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = propCallbackUrl || searchParams.get('callbackUrl') || '/';
+  // Default to user dashboard instead of homepage - users should always land on their dashboard
+  const callbackUrl = propCallbackUrl || searchParams.get('callbackUrl') || '/user/dashboard';
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

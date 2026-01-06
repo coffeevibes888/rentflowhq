@@ -1,9 +1,9 @@
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { redirect } from 'next/navigation';
-import DocusignSignButton from './docusign-sign-button';
+import SignButton from './sign-button';
 import LeaseViewer from './lease-viewer';
-import { renderDocuSignReadyLeaseHtml } from '@/lib/services/lease-template';
+import { renderLeaseHtml } from '@/lib/services/lease-template';
 
 export default async function UserProfileLeasePage() {
   const session = await auth();
@@ -77,7 +77,7 @@ export default async function UserProfileLeasePage() {
   const isPendingSignature = lease?.status === 'pending_signature';
 
   let leaseHtml = lease
-    ? renderDocuSignReadyLeaseHtml({
+    ? renderLeaseHtml({
         landlordName: lease.unit.property?.landlord?.name || lease.unit.property?.name || 'Landlord',
         tenantName: session.user.name || 'Tenant',
         propertyLabel: `${lease.unit.property?.name || 'Property'} - ${lease.unit.name} (${lease.unit.type})`,
@@ -225,7 +225,7 @@ export default async function UserProfileLeasePage() {
                   signatures={signatures}
                   triggerLabel='View lease' 
                 />
-                <DocusignSignButton leaseId={lease.id} />
+                <SignButton leaseId={lease.id} />
               </div>
             </div>
           </div>

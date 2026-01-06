@@ -14,7 +14,7 @@ export default function SignOutButton() {
     <Button
       onClick={handleClick}
       variant='ghost'
-      className='w-full py-4 px-2 h-4 justify-start'
+      className='w-full py-4 px-2 h-4 justify-start text-black hover:bg-gray-100'
     >
       Sign Out
     </Button>

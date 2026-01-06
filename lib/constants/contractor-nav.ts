@@ -8,6 +8,7 @@ import {
   Camera,
   Clock,
   Briefcase,
+  Scale,
   LucideIcon 
 } from 'lucide-react';
 
@@ -66,6 +67,12 @@ export const contractorNavLinks: ContractorNavLink[] = [
     description: 'Earnings and payment history',
     href: '/contractor/payouts',
     icon: Wallet,
+  },
+  {
+    title: 'Disputes',
+    description: 'File or view disputes',
+    href: '/contractor/disputes',
+    icon: Scale,
   },
   {
     title: 'My Profile',
