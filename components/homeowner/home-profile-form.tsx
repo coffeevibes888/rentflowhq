@@ -144,13 +144,13 @@ export default function HomeProfileForm({ homeowner }: HomeProfileFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Home Images */}
-      <Card>
+      <Card className="bg-white border-slate-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-slate-900">
             <HousePlus className="h-5 w-5 text-sky-600" />
             Home Photos
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-slate-600">
             Add photos of your home to help contractors understand your property
           </CardDescription>
         </CardHeader>
@@ -170,13 +170,13 @@ export default function HomeProfileForm({ homeowner }: HomeProfileFormProps) {
             ))}
             
             {images.length < 10 && (
-              <label className="aspect-video rounded-lg border-2 border-dashed border-slate-300 hover:border-sky-400 flex flex-col items-center justify-center cursor-pointer transition-colors">
+              <label className="aspect-video rounded-lg border-2 border-dashed border-slate-300 hover:border-sky-400 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-50">
                 {isUploading ? (
-                  <Loader2 className="h-8 w-8 text-slate-400 animate-spin" />
+                  <Loader2 className="h-8 w-8 text-slate-500 animate-spin" />
                 ) : (
                   <>
-                    <Upload className="h-8 w-8 text-slate-400 mb-2" />
-                    <span className="text-sm text-slate-500">Add Photo</span>
+                    <Upload className="h-8 w-8 text-slate-500 mb-2" />
+                    <span className="text-sm text-slate-600">Add Photo</span>
                   </>
                 )}
                 <input
@@ -190,14 +190,14 @@ export default function HomeProfileForm({ homeowner }: HomeProfileFormProps) {
               </label>
             )}
           </div>
-          <p className="text-xs text-slate-500">Upload up to 10 photos (JPEG, PNG, WebP, max 5MB each)</p>
+          <p className="text-xs text-slate-600">Upload up to 10 photos (JPEG, PNG, WebP, max 5MB each)</p>
         </CardContent>
       </Card>
 
       {/* Basic Info */}
-      <Card>
+      <Card className="bg-white border-slate-200">
         <CardHeader>
-          <CardTitle>Home Details</CardTitle>
+          <CardTitle className="text-slate-900">Home Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,9 +243,9 @@ export default function HomeProfileForm({ homeowner }: HomeProfileFormProps) {
       </Card>
 
       {/* Address */}
-      <Card>
+      <Card className="bg-white border-slate-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-slate-900">
             <MapPin className="h-5 w-5 text-sky-600" />
             Address
           </CardTitle>
@@ -294,9 +294,9 @@ export default function HomeProfileForm({ homeowner }: HomeProfileFormProps) {
       </Card>
 
       {/* Property Details */}
-      <Card>
+      <Card className="bg-white border-slate-200">
         <CardHeader>
-          <CardTitle>Property Specifications</CardTitle>
+          <CardTitle className="text-slate-900">Property Specifications</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -364,10 +364,10 @@ export default function HomeProfileForm({ homeowner }: HomeProfileFormProps) {
       </Card>
 
       {/* Services Interested In */}
-      <Card>
+      <Card className="bg-white border-slate-200">
         <CardHeader>
-          <CardTitle>Services You Need</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-slate-900">Services You Need</CardTitle>
+          <CardDescription className="text-slate-600">
             Select the types of work you're interested in - we'll recommend matching contractors
           </CardDescription>
         </CardHeader>
@@ -383,7 +383,7 @@ export default function HomeProfileForm({ homeowner }: HomeProfileFormProps) {
                   className={`p-3 rounded-lg border text-left transition-all ${
                     isSelected
                       ? 'border-sky-500 bg-sky-50 text-sky-700'
-                      : 'border-slate-200 hover:border-sky-300'
+                      : 'border-slate-200 hover:border-sky-300 text-slate-700'
                   }`}
                 >
                   <span className="font-medium">{service.label}</span>

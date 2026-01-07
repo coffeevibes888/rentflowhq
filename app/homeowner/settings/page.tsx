@@ -42,7 +42,7 @@ export default async function HomeownerSettingsPage() {
   } : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
@@ -50,7 +50,7 @@ export default async function HomeownerSettingsPage() {
         </div>
 
         <Tabs defaultValue="home" className="space-y-6">
-          <TabsList className="bg-white/80 border">
+          <TabsList className="bg-white border">
             <TabsTrigger value="home" className="flex items-center gap-2">
               <HousePlus className="h-4 w-4" />
               My Home
@@ -65,19 +65,19 @@ export default async function HomeownerSettingsPage() {
             {serializedHomeowner ? (
               <HomeProfileForm homeowner={serializedHomeowner} />
             ) : (
-              <Card>
+              <Card className="bg-white border-slate-200">
                 <CardContent className="py-12 text-center">
-                  <HousePlus className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                  <p className="text-slate-600">Unable to load home profile. Please try again.</p>
+                  <HousePlus className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+                  <p className="text-slate-700">Unable to load home profile. Please try again.</p>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
 
           <TabsContent value="account" className="space-y-4">
-            <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+            <Card className="bg-white border-slate-200">
               <CardHeader>
-                <CardTitle>Account</CardTitle>
+                <CardTitle className="text-slate-900">Account</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
@@ -86,43 +86,43 @@ export default async function HomeownerSettingsPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-slate-900">{session.user.name}</p>
-                    <p className="text-sm text-slate-500">{session.user.email}</p>
+                    <p className="text-sm text-slate-600">{session.user.email}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <div className="space-y-3">
-              <Card className="bg-white/80 backdrop-blur-sm border-white/20 hover:border-sky-300 transition-colors cursor-pointer">
+              <Card className="bg-white border-slate-200 hover:border-sky-300 transition-colors cursor-pointer">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
                     <div className="p-2 rounded-lg bg-slate-100">
-                      <Bell className="h-5 w-5 text-slate-600" />
+                      <Bell className="h-5 w-5 text-slate-700" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-slate-900">Notifications</p>
-                      <p className="text-sm text-slate-500">Manage email and push notifications</p>
+                      <p className="text-sm text-slate-600">Manage email and push notifications</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/80 backdrop-blur-sm border-white/20 hover:border-sky-300 transition-colors cursor-pointer">
+              <Card className="bg-white border-slate-200 hover:border-sky-300 transition-colors cursor-pointer">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
                     <div className="p-2 rounded-lg bg-slate-100">
-                      <Shield className="h-5 w-5 text-slate-600" />
+                      <Shield className="h-5 w-5 text-slate-700" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-slate-900">Privacy & Security</p>
-                      <p className="text-sm text-slate-500">Password and security settings</p>
+                      <p className="text-sm text-slate-600">Password and security settings</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <Card className="bg-white/80 backdrop-blur-sm border-red-200">
+            <Card className="bg-white border-red-200">
               <CardContent className="p-4">
                 <Link href="/api/auth/signout">
                   <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50">

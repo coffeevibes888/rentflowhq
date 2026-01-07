@@ -91,7 +91,7 @@ export default async function HomeownerDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -248,7 +248,7 @@ export default async function HomeownerDashboardPage() {
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.title} className="bg-white/80 backdrop-blur-sm border-white/20">
+              <Card key={stat.title} className="bg-white border-slate-200">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${stat.bgColor}`}>
@@ -256,7 +256,7 @@ export default async function HomeownerDashboardPage() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-                      <p className="text-xs text-slate-500">{stat.title}</p>
+                      <p className="text-xs text-slate-600">{stat.title}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -269,7 +269,7 @@ export default async function HomeownerDashboardPage() {
         <RecommendedContractors interestedServices={homeowner?.interestedServices || []} />
 
         {/* Recent Jobs */}
-        <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+        <Card className="bg-white border-slate-200">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-slate-900">Your Jobs</CardTitle>
             <Link href="/homeowner/jobs" className="text-sm text-sky-600 hover:text-sky-500">
@@ -279,9 +279,9 @@ export default async function HomeownerDashboardPage() {
           <CardContent>
             {workOrders.length === 0 ? (
               <div className="text-center py-12">
-                <Briefcase className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">No jobs yet</h3>
-                <p className="text-slate-500 mb-4">Post your first job to get bids from contractors</p>
+                <Briefcase className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">No jobs yet</h3>
+                <p className="text-slate-600 mb-4">Post your first job to get bids from contractors</p>
                 <Link href="/homeowner/jobs/new">
                   <Button className="bg-gradient-to-r from-sky-500 to-blue-600">
                     <Plus className="h-4 w-4 mr-2" />
@@ -299,11 +299,11 @@ export default async function HomeownerDashboardPage() {
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-slate-900 truncate">{job.title}</p>
-                      <p className="text-sm text-slate-500 capitalize">{job.category}</p>
+                      <p className="text-sm text-slate-600 capitalize">{job.category}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       {job.bids.length > 0 && (
-                        <span className="text-sm text-slate-500">
+                        <span className="text-sm text-slate-600">
                           {job.bids.length} bid{job.bids.length !== 1 ? 's' : ''}
                         </span>
                       )}

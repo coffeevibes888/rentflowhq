@@ -53,16 +53,16 @@ export default function RecommendedContractors({ interestedServices }: Recommend
 
   if (contractors.length === 0) {
     return (
-      <Card>
+      <Card className="bg-white border-slate-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-slate-900">
             <Sparkles className="h-5 w-5 text-amber-500" />
             Recommended Contractors
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8">
-          <Wrench className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-600 mb-4">No contractors found matching your preferences yet.</p>
+          <Wrench className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+          <p className="text-slate-700 mb-4">No contractors found matching your preferences yet.</p>
           <Link href="/contractors">
             <Button variant="outline">Browse All Contractors</Button>
           </Link>
@@ -72,9 +72,9 @@ export default function RecommendedContractors({ interestedServices }: Recommend
   }
 
   return (
-    <Card>
+    <Card className="bg-white border-slate-200">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-slate-900">
           <Sparkles className="h-5 w-5 text-amber-500" />
           Recommended For You
         </CardTitle>
@@ -99,10 +99,10 @@ export default function RecommendedContractors({ interestedServices }: Recommend
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-slate-900 truncate">{contractor.name}</h4>
-                    <div className="flex items-center gap-1 text-sm text-amber-500">
+                    <div className="flex items-center gap-1 text-sm text-amber-600">
                       <Star className="h-3.5 w-3.5 fill-current" />
                       <span>{contractor.rating.toFixed(1)}</span>
-                      <span className="text-slate-400">• {contractor.completedJobs} jobs</span>
+                      <span className="text-slate-500">• {contractor.completedJobs} jobs</span>
                     </div>
                   </div>
                   {contractor.matchScore >= 80 && (
