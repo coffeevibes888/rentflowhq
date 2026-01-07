@@ -105,6 +105,8 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
         return '/admin/overview';
       case 'super_admin':
         return '/super-admin';
+      case 'contractor':
+        return '/contractor';
       case 'tenant':
       default:
         // All users go to their dashboard - no one goes to homepage after login

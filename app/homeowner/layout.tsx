@@ -28,16 +28,16 @@ export default async function HomeownerLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-600 via-blue-600 to-sky-700">
       {/* Top Navigation */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <nav className="bg-white/10 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link href="/homeowner/dashboard" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-white/20 flex items-center justify-center">
                 <HousePlus className="h-5 w-5 text-white" />
               </div>
-              <span className="font-semibold text-slate-900">PropertyFlow</span>
+              <span className="font-semibold text-white">PropertyFlow</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-1">
@@ -45,7 +45,7 @@ export default async function HomeownerLayout({
                 const Icon = item.icon;
                 return (
                   <Link key={item.href} href={item.href}>
-                    <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
+                    <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">
                       <Icon className="h-4 w-4 mr-2" />
                       {item.label}
                     </Button>
@@ -55,11 +55,11 @@ export default async function HomeownerLayout({
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-600 hidden sm:block">
+              <span className="text-sm text-white/80 hidden sm:block">
                 {session.user.name}
               </span>
               <Link href="/api/auth/signout">
-                <Button variant="ghost" size="sm" className="text-slate-500">
+                <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10">
                   <LogOut className="h-4 w-4" />
                 </Button>
               </Link>
@@ -68,12 +68,12 @@ export default async function HomeownerLayout({
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden border-t border-slate-100 px-4 py-2 flex gap-1 overflow-x-auto">
+        <div className="md:hidden border-t border-white/10 px-4 py-2 flex gap-1 overflow-x-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.href} href={item.href}>
-                <Button variant="ghost" size="sm" className="text-slate-600 whitespace-nowrap">
+                <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 whitespace-nowrap">
                   <Icon className="h-4 w-4 mr-1" />
                   {item.label}
                 </Button>

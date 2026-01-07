@@ -76,11 +76,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 
-    // Determine redirect URL
-    const hasSpecificCallback = callbackUrl && callbackUrl.trim().startsWith('/') && callbackUrl.trim() !== '/';
-    const redirectUrl = hasSpecificCallback 
-      ? callbackUrl.trim()
-      : await getSubdomainRedirectUrl(user.role, user.id);
+    // Determine redirect URL - ignore default callback URLs, use role-based routing
+    const isDefaultCallback = !callbackUrl || 
+      callbackUrl.trim() === '/' || 
+      callbackUrl.trim() === '/user/dashboard' ||
+      callbackUrl.trim() === '/sign-in';
+    
+    const redirectUrl = isDefaultCallback
+      ? await getSubdomainRedirectUrl(user.role, user.id)
+      : callbackUrl.trim();
 
     return NextResponse.json({ 
       success: true, 
