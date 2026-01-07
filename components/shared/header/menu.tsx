@@ -29,6 +29,9 @@ const Menu = async () => {
   } else if (userRole === 'contractor') {
     dashboardLabel = 'Contractor Dashboard';
     dashboardLink = '/contractor/dashboard';
+  } else if (userRole === 'homeowner') {
+    dashboardLabel = 'Homeowner Dashboard';
+    dashboardLink = '/homeowner/dashboard';
   }
   
   return (

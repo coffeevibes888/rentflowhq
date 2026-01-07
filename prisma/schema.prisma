@@ -676,10 +676,18 @@ model Landlord {
 model Homeowner {
   id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId             String   @unique @db.Uuid
+  name               String?  // Home name (e.g., "My Beach House")
   homeType           String? // single_family, townhouse, condo, multi_family
   interestedServices String[] @default([])
   projectTimeline    String? // urgent, this_week, this_month, planning
   address            Json?    @db.Json
+  images             String[] @default([])
+  yearBuilt          Int?
+  squareFootage      Int?
+  bedrooms           Int?
+  bathrooms          Decimal? @db.Decimal(3, 1)
+  lotSize            String?
+  description        String?
   createdAt          DateTime @default(now()) @db.Timestamp(6)
   updatedAt          DateTime @updatedAt
 

@@ -2,10 +2,15 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
-import { HousePlus, Wrench, Plus, Briefcase, Clock, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
+import { 
+  HousePlus, Wrench, Plus, Briefcase, Clock, CheckCircle, 
+  MapPin, Camera, AlertCircle, Sparkles, ArrowRight
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import RecommendedContractors from '@/components/homeowner/recommended-contractors';
 
 interface WorkOrder {
   id: string;
@@ -26,10 +31,10 @@ export default async function HomeownerDashboardPage() {
     return redirect('/');
   }
 
-  // Try to get homeowner profile - may not exist if migration hasn't run
-  let homeowner: { workOrders: WorkOrder[] } | null = null;
+  // Get homeowner profile with work orders
+  let homeowner: any = null;
   try {
-    homeowner = await (prisma as any).homeowner.findUnique({
+    homeowner = await prisma.homeowner.findUnique({
       where: { userId: session.user.id },
       include: {
         workOrders: {
@@ -54,6 +59,12 @@ export default async function HomeownerDashboardPage() {
   const pendingBids = workOrders.reduce((sum: number, wo: WorkOrder) => 
     sum + wo.bids.filter((b: { status: string }) => b.status === 'pending').length, 0
   );
+
+  // Check profile completeness
+  const hasAddress = homeowner?.address && (homeowner.address as any)?.street;
+  const hasImages = homeowner?.images?.length > 0;
+  const hasHomeType = Boolean(homeowner?.homeType);
+  const profileComplete = hasAddress && hasImages && hasHomeType;
 
   const stats = [
     {
@@ -88,7 +99,7 @@ export default async function HomeownerDashboardPage() {
             <h1 className="text-3xl font-bold text-slate-900">
               Welcome back, {session.user.name?.split(' ')[0] || 'Homeowner'}!
             </h1>
-            <p className="text-slate-600 mt-1">Manage your home projects and find contractors</p>
+            <p className="text-slate-600 mt-1">Manage your home and find contractors</p>
           </div>
           <Link href="/homeowner/jobs/new">
             <Button className="bg-gradient-to-r from-sky-500 to-blue-600 hover:opacity-90">
@@ -97,6 +108,140 @@ export default async function HomeownerDashboardPage() {
             </Button>
           </Link>
         </div>
+
+        {/* Profile Completion Banner */}
+        {!profileComplete && (
+          <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-4">
+                <div className="p-2 rounded-lg bg-amber-100">
+                  <AlertCircle className="h-5 w-5 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-amber-900">Complete your home profile</h3>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Add your address and photos to help contractors understand your property better.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {!hasAddress && (
+                      <Badge variant="outline" className="border-amber-300 text-amber-700">
+                        <MapPin className="h-3 w-3 mr-1" /> Add address
+                      </Badge>
+                    )}
+                    {!hasImages && (
+                      <Badge variant="outline" className="border-amber-300 text-amber-700">
+                        <Camera className="h-3 w-3 mr-1" /> Add photos
+                      </Badge>
+                    )}
+                    {!hasHomeType && (
+                      <Badge variant="outline" className="border-amber-300 text-amber-700">
+                        <HousePlus className="h-3 w-3 mr-1" /> Set home type
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <Link href="/homeowner/settings">
+                  <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
+                    Complete Profile
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* My Home Card */}
+        <Card className="overflow-hidden">
+          <div className="flex flex-col md:flex-row">
+            {/* Home Image */}
+            <div className="md:w-1/3 relative">
+              {hasImages ? (
+                <div className="relative h-48 md:h-full">
+                  <Image 
+                    src={homeowner.images[0]} 
+                    alt="My Home" 
+                    fill 
+                    className="object-cover"
+                  />
+                  {homeowner.images.length > 1 && (
+                    <Badge className="absolute bottom-2 right-2 bg-black/60">
+                      +{homeowner.images.length - 1} photos
+                    </Badge>
+                  )}
+                </div>
+              ) : (
+                <div className="h-48 md:h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                  <div className="text-center">
+                    <Camera className="h-12 w-12 mx-auto text-slate-300 mb-2" />
+                    <p className="text-sm text-slate-500">No photos yet</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Home Details */}
+            <div className="md:w-2/3 p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">
+                    {homeowner?.name || 'My Home'}
+                  </h2>
+                  {hasAddress && (
+                    <p className="text-slate-600 flex items-center gap-1 mt-1">
+                      <MapPin className="h-4 w-4" />
+                      {(homeowner.address as any).street}, {(homeowner.address as any).city}, {(homeowner.address as any).state}
+                    </p>
+                  )}
+                </div>
+                <Link href="/homeowner/settings">
+                  <Button variant="outline" size="sm">Edit Home</Button>
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                {homeowner?.homeType && (
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase">Type</p>
+                    <p className="font-medium text-slate-900 capitalize">
+                      {homeowner.homeType.replace('_', ' ')}
+                    </p>
+                  </div>
+                )}
+                {homeowner?.bedrooms && (
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase">Bedrooms</p>
+                    <p className="font-medium text-slate-900">{homeowner.bedrooms}</p>
+                  </div>
+                )}
+                {homeowner?.bathrooms && (
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase">Bathrooms</p>
+                    <p className="font-medium text-slate-900">{Number(homeowner.bathrooms)}</p>
+                  </div>
+                )}
+                {homeowner?.squareFootage && (
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase">Sq. Ft.</p>
+                    <p className="font-medium text-slate-900">{homeowner.squareFootage.toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+
+              {homeowner?.interestedServices?.length > 0 && (
+                <div>
+                  <p className="text-xs text-slate-500 uppercase mb-2">Services Needed</p>
+                  <div className="flex flex-wrap gap-2">
+                    {homeowner.interestedServices.map((service: string) => (
+                      <Badge key={service} variant="secondary" className="capitalize">
+                        {service}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
@@ -119,6 +264,9 @@ export default async function HomeownerDashboardPage() {
             );
           })}
         </div>
+
+        {/* Recommended Contractors */}
+        <RecommendedContractors interestedServices={homeowner?.interestedServices || []} />
 
         {/* Recent Jobs */}
         <Card className="bg-white/80 backdrop-blur-sm border-white/20">
@@ -178,15 +326,15 @@ export default async function HomeownerDashboardPage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link href="/homeowner/jobs/new">
-            <Card className="bg-gradient-to-r from-sky-500 to-blue-600 border-white/20 hover:opacity-90 transition-opacity cursor-pointer">
+            <Card className="bg-gradient-to-r from-sky-500 to-blue-600 border-white/20 hover:opacity-90 transition-opacity cursor-pointer h-full">
               <CardContent className="p-4 text-center">
                 <Plus className="h-8 w-8 mx-auto text-white mb-2" />
                 <p className="text-sm font-medium text-white">Post a Job</p>
               </CardContent>
             </Card>
           </Link>
-          <Link href="/contractors?view=contractors">
-            <Card className="bg-gradient-to-r from-cyan-500 to-sky-600 border-white/20 hover:opacity-90 transition-opacity cursor-pointer">
+          <Link href="/contractors">
+            <Card className="bg-gradient-to-r from-cyan-500 to-sky-600 border-white/20 hover:opacity-90 transition-opacity cursor-pointer h-full">
               <CardContent className="p-4 text-center">
                 <Wrench className="h-8 w-8 mx-auto text-white mb-2" />
                 <p className="text-sm font-medium text-white">Find Contractors</p>
@@ -194,7 +342,7 @@ export default async function HomeownerDashboardPage() {
             </Card>
           </Link>
           <Link href="/homeowner/jobs">
-            <Card className="bg-gradient-to-r from-blue-500 to-indigo-600 border-white/20 hover:opacity-90 transition-opacity cursor-pointer">
+            <Card className="bg-gradient-to-r from-blue-500 to-indigo-600 border-white/20 hover:opacity-90 transition-opacity cursor-pointer h-full">
               <CardContent className="p-4 text-center">
                 <Briefcase className="h-8 w-8 mx-auto text-white mb-2" />
                 <p className="text-sm font-medium text-white">My Jobs</p>
@@ -202,10 +350,10 @@ export default async function HomeownerDashboardPage() {
             </Card>
           </Link>
           <Link href="/homeowner/settings">
-            <Card className="bg-gradient-to-r from-slate-600 to-slate-700 border-white/20 hover:opacity-90 transition-opacity cursor-pointer">
+            <Card className="bg-gradient-to-r from-slate-600 to-slate-700 border-white/20 hover:opacity-90 transition-opacity cursor-pointer h-full">
               <CardContent className="p-4 text-center">
                 <HousePlus className="h-8 w-8 mx-auto text-white mb-2" />
-                <p className="text-sm font-medium text-white">Settings</p>
+                <p className="text-sm font-medium text-white">My Home</p>
               </CardContent>
             </Card>
           </Link>
