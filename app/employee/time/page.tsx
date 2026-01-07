@@ -19,7 +19,18 @@ export default async function TimePage() {
   });
 
   if (!teamMember) {
-    redirect('/');
+    // Return a helpful message instead of redirecting
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <h1 className="text-2xl font-bold text-white mb-4">Not a Team Member</h1>
+        <p className="text-slate-400 mb-6">
+          You don&apos;t have an active team membership. Please contact your employer to be added as a team member.
+        </p>
+        <a href="/" className="text-emerald-400 hover:underline">
+          Return to Home
+        </a>
+      </div>
+    );
   }
 
   // Get active time entry

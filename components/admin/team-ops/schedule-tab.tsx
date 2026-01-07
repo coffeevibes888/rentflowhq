@@ -55,14 +55,16 @@ export default function ScheduleTab() {
     try {
       const [shiftsResult, membersRes, propsRes] = await Promise.all([
         getShifts({ startDate: weekStart, endDate: weekEnd }),
-        fetch('/api/landlord/team/members').then(r => r.json()),
-        fetch('/api/admin/properties').then(r => r.json()),
+        fetch('/api/landlord/team/members').then(r => r.json()).catch(() => ({ success: false, members: [] })),
+        fetch('/api/admin/properties').then(r => r.json()).catch(() => ({ properties: [] })),
       ]);
 
       if (shiftsResult.success) {
         setShifts(shiftsResult.shifts.map(s => ({ ...s, date: new Date(s.date) })));
       }
-      if (membersRes.members) {
+      
+      // Handle team members response
+      if (membersRes.success && membersRes.members) {
         setTeamMembers(membersRes.members
           .filter((m: { user: { name: string; image: string | null } | null }) => m.user !== null)
           .map((m: { id: string; user: { name: string; image: string | null } | null }) => ({
@@ -70,12 +72,17 @@ export default function ScheduleTab() {
             name: m.user?.name || 'Unknown',
             image: m.user?.image || null,
           })));
+      } else if (membersRes.featureLocked) {
+        toast.error('Team management requires a higher subscription tier');
       }
+      
+      // Handle properties response
       if (propsRes.properties) {
         setProperties(propsRes.properties);
       }
     } catch (error) {
       console.error('Failed to load schedule data:', error);
+      toast.error('Failed to load schedule data');
     } finally {
       setIsLoading(false);
     }

@@ -31,7 +31,7 @@ interface ActiveWorker {
 interface TimeEntry {
   id: string;
   teamMemberName: string;
-  propertyName: string | null;
+  propertyName: string | null | undefined;
   clockIn: Date;
   clockOut: Date | null;
   breakMinutes: number;
@@ -68,7 +68,7 @@ export default function TimeTrackingTab() {
         getWhosWorkingNow(),
         getTimeEntries(),
         getActiveTimeEntry(),
-        fetch('/api/landlord/team/members').then(r => r.json()),
+        fetch('/api/landlord/team/members').then(r => r.json()).catch(() => ({ success: false, members: [] })),
       ]);
 
       if (workersResult.success) {
@@ -84,7 +84,7 @@ export default function TimeTrackingTab() {
       if (activeResult.success && activeResult.entry) {
         setMyActiveEntry({ id: activeResult.entry.id, clockIn: new Date(activeResult.entry.clockIn) });
       }
-      if (membersRes.members) {
+      if (membersRes.success && membersRes.members) {
         setTeamMembers(membersRes.members
           .filter((m: { user: { name: string } | null }) => m.user !== null)
           .map((m: { id: string; user: { name: string } | null }) => ({
@@ -94,6 +94,7 @@ export default function TimeTrackingTab() {
       }
     } catch (error) {
       console.error('Failed to load time tracking data:', error);
+      toast.error('Failed to load time tracking data');
     } finally {
       setIsLoading(false);
     }

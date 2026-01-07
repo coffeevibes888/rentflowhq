@@ -59,17 +59,22 @@ export default function HiringTab() {
     setIsLoading(true);
     try {
       const [jobsRes, applicantsRes] = await Promise.all([
-        fetch('/api/landlord/hiring/jobs'),
-        fetch('/api/landlord/hiring/applicants'),
+        fetch('/api/landlord/hiring/jobs').then(r => r.json()).catch(() => ({ success: false, jobs: [] })),
+        fetch('/api/landlord/hiring/applicants').then(r => r.json()).catch(() => ({ success: false, applicants: [] })),
       ]);
 
-      const jobsData = await jobsRes.json();
-      const applicantsData = await applicantsRes.json();
-
-      if (jobsData.success) setJobs(jobsData.jobs);
-      if (applicantsData.success) setApplicants(applicantsData.applicants);
+      if (jobsRes.success) {
+        setJobs(jobsRes.jobs);
+      } else if (jobsRes.message) {
+        toast.error(jobsRes.message);
+      }
+      
+      if (applicantsRes.success) {
+        setApplicants(applicantsRes.applicants);
+      }
     } catch (error) {
       console.error('Failed to load hiring data:', error);
+      toast.error('Failed to load hiring data');
     } finally {
       setIsLoading(false);
     }
