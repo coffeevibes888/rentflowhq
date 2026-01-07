@@ -2,11 +2,10 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Bell, Shield, LogOut, HousePlus } from 'lucide-react';
-import Link from 'next/link';
+import { User, Bell, Shield, HousePlus } from 'lucide-react';
 import HomeProfileForm from '@/components/homeowner/home-profile-form';
+import { SignOutButtonGeneric } from '@/components/shared/sign-out-button-generic';
 
 export default async function HomeownerSettingsPage() {
   const session = await auth();
@@ -124,12 +123,12 @@ export default async function HomeownerSettingsPage() {
 
             <Card className="bg-white border-red-200">
               <CardContent className="p-4">
-                <Link href="/api/auth/signout">
-                  <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </Link>
+                <SignOutButtonGeneric 
+                  variant="outline" 
+                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                  showIcon={true}
+                  showText={true}
+                />
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,8 +1,9 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { HousePlus, Briefcase, Wrench, Settings, LogOut, Scale } from 'lucide-react';
+import { HousePlus, Briefcase, Wrench, Settings, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SignOutButtonGeneric } from '@/components/shared/sign-out-button-generic';
 
 export default async function HomeownerLayout({
   children,
@@ -58,11 +59,7 @@ export default async function HomeownerLayout({
               <span className="text-sm text-white/80 hidden sm:block">
                 {session.user.name}
               </span>
-              <Link href="/api/auth/signout">
-                <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10">
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </Link>
+              <SignOutButtonGeneric className="text-white/60 hover:text-white hover:bg-white/10" />
             </div>
           </div>
         </div>
