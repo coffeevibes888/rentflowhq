@@ -180,8 +180,8 @@ export async function createFinancialAccount(
         (addr) => addr.type === 'aba'
       );
       if (abaAddress?.aba) {
-        routingNumber = abaAddress.aba.routing_number;
-        accountNumber = abaAddress.aba.account_number;
+        routingNumber = abaAddress.aba.routing_number ?? undefined;
+        accountNumber = abaAddress.aba.account_number ?? undefined;
       }
     }
 
@@ -426,6 +426,124 @@ export async function getTransactionHistory(
     };
   } catch (error: any) {
     console.error('Error getting transaction history:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// ============= WALLET-TO-WALLET TRANSFERS =============
+
+/**
+ * Transfer funds between two Treasury Financial Accounts
+ * Used for contractor marketplace payments (landlord wallet → contractor wallet)
+ * 
+ * This uses OutboundPayment with the destination's Treasury account routing info.
+ * Stripe recognizes it as an intra-Stripe transfer and processes it faster.
+ */
+export async function transferBetweenWallets(params: {
+  fromConnectedAccountId: string;
+  fromFinancialAccountId: string;
+  toConnectedAccountId: string;
+  toFinancialAccountId: string;
+  amount: number; // in dollars
+  description?: string;
+  metadata?: Record<string, string>;
+}): Promise<{ 
+  success: boolean; 
+  paymentId?: string; 
+  status?: string;
+  error?: string 
+}> {
+  try {
+    const stripe = getStripe();
+
+    // Get the destination financial account's ABA routing info
+    const destFA = await stripe.treasury.financialAccounts.retrieve(
+      params.toFinancialAccountId,
+      { expand: ['financial_addresses'] },
+      { stripeAccount: params.toConnectedAccountId }
+    );
+
+    const destABA = destFA.financial_addresses?.find(a => a.type === 'aba')?.aba;
+    
+    if (!destABA || !destABA.account_number) {
+      return { 
+        success: false, 
+        error: 'Destination account does not have ABA routing info' 
+      };
+    }
+
+    // Create OutboundPayment from source to destination
+    const payment = await stripe.treasury.outboundPayments.create(
+      {
+        financial_account: params.fromFinancialAccountId,
+        amount: Math.round(params.amount * 100),
+        currency: 'usd',
+        destination_payment_method_data: {
+          type: 'us_bank_account',
+          us_bank_account: {
+            routing_number: destABA.routing_number,
+            account_number: destABA.account_number,
+            account_holder_type: 'individual',
+          },
+          billing_details: {
+            name: 'Contractor Payment', // Could be dynamic
+          },
+        },
+        statement_descriptor: 'Platform Payment',
+        description: params.description || 'Wallet transfer',
+        metadata: params.metadata,
+      },
+      { stripeAccount: params.fromConnectedAccountId }
+    );
+
+    return {
+      success: true,
+      paymentId: payment.id,
+      status: payment.status,
+    };
+  } catch (error: any) {
+    console.error('Error transferring between wallets:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get the ABA routing info for a financial account
+ * Useful for displaying account details or setting up transfers
+ */
+export async function getFinancialAccountABA(
+  connectedAccountId: string,
+  financialAccountId: string
+): Promise<{
+  success: boolean;
+  routingNumber?: string;
+  accountNumber?: string;
+  accountNumberLast4?: string;
+  error?: string;
+}> {
+  try {
+    const stripe = getStripe();
+
+    const fa = await stripe.treasury.financialAccounts.retrieve(
+      financialAccountId,
+      { expand: ['financial_addresses'] },
+      { stripeAccount: connectedAccountId }
+    );
+
+    const aba = fa.financial_addresses?.find(a => a.type === 'aba')?.aba;
+
+    if (!aba) {
+      return { success: false, error: 'No ABA address found' };
+    }
+
+    return {
+      success: true,
+      routingNumber: aba.routing_number ?? undefined,
+      accountNumber: aba.account_number ?? undefined,
+      accountNumberLast4: aba.account_number_last4 ?? undefined,
+    };
+  } catch (error: any) {
+    console.error('Error getting ABA info:', error);
     return { success: false, error: error.message };
   }
 }

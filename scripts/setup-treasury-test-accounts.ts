@@ -12,6 +12,19 @@
  */
 
 import Stripe from 'stripe';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+import * as fs from 'fs';
+
+// Load environment variables - check .env.local first, then .env
+const envLocalPath = path.resolve(process.cwd(), '.env.local');
+const envPath = path.resolve(process.cwd(), '.env');
+
+if (fs.existsSync(envLocalPath)) {
+  dotenv.config({ path: envLocalPath });
+} else {
+  dotenv.config({ path: envPath });
+}
 
 // Test account emails
 const TEST_ACCOUNTS = {
@@ -50,13 +63,15 @@ const TEST_INDIVIDUAL = {
 };
 
 async function main() {
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  const stripeSecretKey = process.env.STRIPE_TREASURY_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
   
   if (!stripeSecretKey) {
-    console.error('❌ STRIPE_SECRET_KEY not found in environment');
+    console.error('❌ STRIPE_SECRET_KEY or STRIPE_TREASURY_SECRET_KEY not found in environment');
     console.log('Make sure you have a .env file with your Stripe test key');
     process.exit(1);
   }
+
+  console.log(`Using key: ${stripeSecretKey.substring(0, 12)}...`);
 
   if (!stripeSecretKey.startsWith('sk_test_')) {
     console.error('❌ Please use TEST mode API key (sk_test_...)');
@@ -87,7 +102,6 @@ async function main() {
       console.log('  → Creating Custom connected account...');
       
       const account = await stripe.accounts.create({
-        type: 'custom',
         country: 'US',
         email: config.email,
         capabilities: {
@@ -102,7 +116,7 @@ async function main() {
           product_description: role === 'landlord' 
             ? 'Property management and rent collection'
             : 'Contractor services',
-          url: 'https://example.com',
+          url: 'https://propertyflowhq.com',
         },
         controller: {
           fees: { payer: 'application' },
@@ -203,6 +217,11 @@ async function main() {
 
     } catch (error: any) {
       console.error(`  ❌ Error: ${error.message}`);
+      
+      // Log full error for debugging
+      if (error.raw) {
+        console.error(`  Raw error:`, JSON.stringify(error.raw, null, 2));
+      }
       
       // Check if it's a capability error
       if (error.message.includes('treasury')) {
