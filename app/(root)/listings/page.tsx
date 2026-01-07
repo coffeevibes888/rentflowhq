@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { prisma } from '@/db/prisma';
+import { unstable_cache } from 'next/cache';
 import ListingsClient from './listings-client';
 
 export const metadata: Metadata = {
@@ -12,6 +13,43 @@ export const metadata: Metadata = {
     type: 'website',
   },
 };
+
+// Cache filter options for 5 minutes (cities, price ranges)
+const getCachedFilterOptions = unstable_cache(
+  async () => {
+    const [allUnits, allAgentListings] = await Promise.all([
+      prisma.unit.findMany({
+        where: { 
+          isAvailable: true,
+          property: {
+            landlord: {
+              ownerUserId: { not: null },
+            },
+          },
+        },
+        include: { property: { select: { address: true } } },
+      }),
+      prisma.agentListing.findMany({
+        where: { status: 'active' },
+        select: { address: true, price: true },
+      }),
+    ]);
+
+    const citiesFromUnits = allUnits.map(u => (u.property.address as any)?.city).filter(Boolean);
+    const citiesFromAgents = allAgentListings.map(l => (l.address as any)?.city).filter(Boolean);
+    const cities = [...new Set([...citiesFromUnits, ...citiesFromAgents])].sort();
+
+    const unitPrices = allUnits.map(u => Number(u.rentAmount)).filter(p => p > 0);
+    const agentPrices = allAgentListings.map(l => Number((l as any).price)).filter(p => p > 0);
+    const allPrices = [...unitPrices, ...agentPrices];
+    const minPriceVal = allPrices.length > 0 ? Math.min(...allPrices) : 0;
+    const maxPriceVal = allPrices.length > 0 ? Math.max(...allPrices) : 5000000;
+
+    return { cities, minPrice: minPriceVal, maxPrice: maxPriceVal };
+  },
+  ['listings-filter-options'],
+  { revalidate: 300 }
+);
 
 async function getListings(searchParams: {
   minPrice?: string;
@@ -343,42 +381,12 @@ async function getListings(searchParams: {
   // Combine and sort all listings
   const allListings = [...rentalListings, ...agentListings].sort((a, b) => a.price - b.price);
 
-  // Get unique cities for filter (from both sources)
-  const allUnits = await prisma.unit.findMany({
-    where: { 
-      isAvailable: true,
-      property: {
-        landlord: {
-          ownerUserId: { not: null },
-        },
-      },
-    },
-    include: { property: { select: { address: true } } },
-  });
-  
-  const allAgentListings = await prisma.agentListing.findMany({
-    where: { status: 'active' },
-    select: { address: true },
-  });
-
-  const citiesFromUnits = allUnits.map(u => (u.property.address as any)?.city).filter(Boolean);
-  const citiesFromAgents = allAgentListings.map(l => (l.address as any)?.city).filter(Boolean);
-  const cities = [...new Set([...citiesFromUnits, ...citiesFromAgents])].sort();
-
-  // Get price range from both sources
-  const unitPrices = allUnits.map(u => Number(u.rentAmount)).filter(p => p > 0);
-  const agentPrices = allAgentListings.map(l => Number((l as any).price)).filter(p => p > 0);
-  const allPrices = [...unitPrices, ...agentPrices];
-  const minPriceVal = allPrices.length > 0 ? Math.min(...allPrices) : 0;
-  const maxPriceVal = allPrices.length > 0 ? Math.max(...allPrices) : 5000000;
+  // Use cached filter options
+  const filters = await getCachedFilterOptions();
 
   return {
     listings: allListings,
-    filters: {
-      cities,
-      minPrice: minPriceVal,
-      maxPrice: maxPriceVal,
-    },
+    filters,
     total: allListings.length,
   };
 }

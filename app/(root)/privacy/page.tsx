@@ -1,5 +1,8 @@
 import { Metadata } from 'next';
 
+// Cache this static page for 24 hours
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'Property Flow HQ Privacy Policy',

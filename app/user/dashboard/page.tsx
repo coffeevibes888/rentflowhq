@@ -1,6 +1,7 @@
 import { requireUser } from '@/lib/auth-guard';
 import { Metadata } from 'next';
 import { prisma } from '@/db/prisma';
+import { unstable_cache } from 'next/cache';
 import { 
   Home, 
   FileText, 
@@ -26,53 +27,60 @@ export const metadata: Metadata = {
   title: 'Tenant Dashboard',
 };
 
+// Cache tenant dashboard data for 30 seconds
+const getCachedTenantData = unstable_cache(
+  async (userId: string) => {
+    const [activeLease, pendingRentPayments, openTickets] = await Promise.all([
+      prisma.lease.findFirst({
+        where: {
+          tenantId: userId,
+          status: { in: ['active', 'pending_signature'] },
+        },
+        include: {
+          unit: {
+            include: {
+              property: {
+                include: {
+                  landlord: true,
+                },
+              },
+            },
+          },
+          signatureRequests: {
+            select: { role: true, status: true },
+          },
+        },
+      }),
+      prisma.rentPayment.findMany({
+        where: {
+          tenantId: userId,
+          status: 'pending',
+        },
+        orderBy: {
+          dueDate: 'asc',
+        },
+        take: 3,
+      }),
+      prisma.maintenanceTicket.findMany({
+        where: {
+          tenant: { id: userId },
+          status: { in: ['open', 'in_progress'] },
+        },
+        take: 3,
+      }),
+    ]);
+
+    return { activeLease, pendingRentPayments, openTickets };
+  },
+  ['tenant-dashboard'],
+  { revalidate: 30 }
+);
+
 export default async function TenantDashboardPage() {
   const session = await requireUser();
   
-  // Get tenant's active or pending signature lease
-  const activeLease = await prisma.lease.findFirst({
-    where: {
-      tenantId: session.user.id,
-      status: { in: ['active', 'pending_signature'] },
-    },
-    include: {
-      unit: {
-        include: {
-          property: {
-            include: {
-              landlord: true,
-            },
-          },
-        },
-      },
-      signatureRequests: {
-        select: { role: true, status: true },
-      },
-    },
-  });
-
-  // Get pending rent payments
-  const pendingRentPayments = await prisma.rentPayment.findMany({
-    where: {
-      tenantId: session.user.id,
-      status: 'pending',
-    },
-    orderBy: {
-      dueDate: 'asc',
-    },
-    take: 3,
-  });
-
-  // Get open maintenance tickets
-  const openTickets = await prisma.maintenanceTicket.findMany({
-    where: {
-      tenant: {
-        id: session.user.id,
-      },
-      status: { in: ['open', 'in_progress'] },
-    },
-    take: 3,
-  });
+  // Use cached tenant data
+  const { activeLease, pendingRentPayments, openTickets } = await getCachedTenantData(session.user.id);
 
   const totalPendingRent = pendingRentPayments.reduce(
     (sum, payment) => sum + Number(payment.amount), 

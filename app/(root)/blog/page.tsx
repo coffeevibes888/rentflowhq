@@ -2,6 +2,9 @@ import { getPublishedBlogPosts } from '@/lib/actions/blog.actions';
 import Link from 'next/link';
 import { formatDateTime } from '@/lib/utils';
 
+// Cache blog list for 5 minutes
+export const revalidate = 300;
+
 type BlogListPost = Awaited<ReturnType<typeof getPublishedBlogPosts>>[number] & {
   reactions?: { type: string }[];
   comments?: { id: string }[];

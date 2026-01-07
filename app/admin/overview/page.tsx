@@ -18,10 +18,101 @@ import { cookies } from 'next/headers';
 import { SERVER_URL } from '@/lib/constants';
 import ShareListingCard from '@/components/admin/share-listing-card';
 import ShareContractorCard from '@/components/admin/share-contractor-card';
+import { unstable_cache } from 'next/cache';
 
 export const metadata: Metadata = {
   title: 'Property Dashboard',
 };
+
+// Cache dashboard stats for 60 seconds to reduce DB load
+const getCachedDashboardStats = unstable_cache(
+  async (landlordId: string, startOfMonth: Date, startOfYear: Date) => {
+    const prismaAny = prisma as any;
+    
+    const [
+      propertiesCount,
+      applicationsCount,
+      tenantsCount,
+      ticketsCount,
+      totalUnits,
+      occupiedUnits,
+      urgentTickets,
+      rentPaidThisMonth,
+      rentPaidYtd,
+      scheduledRent,
+      unpaidRent,
+    ] = await Promise.all([
+      prisma.property.count({ where: { landlordId } }),
+      prisma.rentalApplication.count({
+        where: { unit: { property: { landlordId } } },
+      }),
+      prisma.user.count({
+        where: {
+          role: 'tenant',
+          leasesAsTenant: { some: { unit: { property: { landlordId } } } },
+        },
+      }),
+      prisma.maintenanceTicket.count({
+        where: { unit: { property: { landlordId } } },
+      }),
+      prisma.unit.count({ where: { property: { landlordId } } }),
+      prisma.lease.count({
+        where: { status: 'active', unit: { property: { landlordId } } },
+      }),
+      prisma.maintenanceTicket.count({
+        where: {
+          status: { in: ['open', 'in_progress'] },
+          priority: 'urgent',
+          unit: { property: { landlordId } },
+        },
+      }),
+      prisma.rentPayment.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: 'paid',
+          paidAt: { gte: startOfMonth },
+          lease: { unit: { property: { landlordId } } },
+        },
+      }),
+      prisma.rentPayment.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: 'paid',
+          paidAt: { gte: startOfYear },
+          lease: { unit: { property: { landlordId } } },
+        },
+      }),
+      prisma.lease.aggregate({
+        _sum: { rentAmount: true },
+        where: { status: 'active', unit: { property: { landlordId } } },
+      }),
+      prisma.rentPayment.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: 'paid',
+          payoutId: null,
+          lease: { unit: { property: { landlordId } } },
+        },
+      }),
+    ]);
+
+    return {
+      propertiesCount,
+      applicationsCount,
+      tenantsCount,
+      ticketsCount,
+      totalUnits,
+      occupiedUnits,
+      urgentTickets,
+      rentPaidThisMonth,
+      rentPaidYtd,
+      scheduledRent,
+      unpaidRent,
+    };
+  },
+  ['admin-dashboard-stats'],
+  { revalidate: 60 } // Cache for 60 seconds
+);
 
 const AdminOverviewPage = async (props: {
   searchParams?: Promise<{ subscription?: string; tier?: string }>;
@@ -83,7 +174,10 @@ const AdminOverviewPage = async (props: {
 
   const prismaAny = prisma as any;
 
-  const [
+  // Use cached dashboard stats for main metrics
+  const cachedStats = await getCachedDashboardStats(landlordId, startOfMonth, startOfYear);
+  
+  const {
     propertiesCount,
     applicationsCount,
     tenantsCount,
@@ -95,123 +189,10 @@ const AdminOverviewPage = async (props: {
     rentPaidYtd,
     scheduledRent,
     unpaidRent,
-    openSupportThreads,
-    threadParticipants,
-  ] = await Promise.all([
-    prisma.property.count({ where: { landlordId } }),
-    prisma.rentalApplication.count({
-      where: {
-        unit: {
-          property: {
-            landlordId,
-          },
-        },
-      },
-    }),
-    prisma.user.count({
-      where: {
-        role: 'tenant',
-        leasesAsTenant: {
-          some: {
-            unit: {
-              property: {
-                landlordId,
-              },
-            },
-          },
-        },
-      },
-    }),
-    prisma.maintenanceTicket.count({
-      where: {
-        unit: {
-          property: {
-            landlordId,
-          },
-        },
-      },
-    }),
-    prisma.unit.count({
-      where: {
-        property: {
-          landlordId,
-        },
-      },
-    }),
-    prisma.lease.count({
-      where: {
-        status: 'active',
-        unit: {
-          property: {
-            landlordId,
-          },
-        },
-      },
-    }),
-    prisma.maintenanceTicket.count({
-      where: {
-        status: { in: ['open', 'in_progress'] },
-        priority: 'urgent',
-        unit: {
-          property: {
-            landlordId,
-          },
-        },
-      },
-    }),
-    prisma.rentPayment.aggregate({
-      _sum: { amount: true },
-      where: {
-        status: 'paid',
-        paidAt: { gte: startOfMonth },
-        lease: {
-          unit: {
-            property: {
-              landlordId,
-            },
-          },
-        },
-      },
-    }),
-    prisma.rentPayment.aggregate({
-      _sum: { amount: true },
-      where: {
-        status: 'paid',
-        paidAt: { gte: startOfYear },
-        lease: {
-          unit: {
-            property: {
-              landlordId,
-            },
-          },
-        },
-      },
-    }),
-    prisma.lease.aggregate({
-      _sum: { rentAmount: true },
-      where: {
-        status: 'active',
-        unit: {
-          property: {
-            landlordId,
-          },
-        },
-      },
-    }),
-    prisma.rentPayment.aggregate({
-      _sum: { amount: true },
-      where: {
-        status: 'paid',
-        payoutId: null,
-        lease: {
-          unit: {
-            property: {
-              landlordId,
-            },
-          },
-        },
-      },
-    }),
+  } = cachedStats;
+
+  // These need to be fetched fresh (user-specific)
+  const [openSupportThreads, threadParticipants] = await Promise.all([
     isAdmin
       ? prismaAny.thread.count({
           where: {

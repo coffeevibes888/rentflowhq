@@ -107,7 +107,8 @@ export default function PayoutsVerificationPanel() {
     };
 
     void fetchStatus();
-    interval = setInterval(fetchStatus, 3000);
+    // Poll every 15 seconds instead of 3 to reduce CPU usage
+    interval = setInterval(fetchStatus, 15000);
 
     return () => {
       mounted = false;

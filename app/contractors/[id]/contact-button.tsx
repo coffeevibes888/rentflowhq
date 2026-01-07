@@ -52,7 +52,8 @@ export default function ContactContractorButton({
   useEffect(() => {
     if (!threadId || !open) return;
     
-    const interval = setInterval(fetchMessages, 3000);
+    // Poll every 10 seconds instead of 3 to reduce CPU usage
+    const interval = setInterval(fetchMessages, 10000);
     return () => clearInterval(interval);
   }, [threadId, open]);
 

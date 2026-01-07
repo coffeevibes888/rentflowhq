@@ -38,8 +38,8 @@ export function VerificationStatusCard({ applicationId, onComplete }: Verificati
   useEffect(() => {
     fetchStatus();
     
-    // Poll for status updates every 5 seconds
-    const interval = setInterval(fetchStatus, 5000);
+    // Poll for status updates every 30 seconds (reduced from 5s to save CPU)
+    const interval = setInterval(fetchStatus, 30000);
     return () => clearInterval(interval);
   }, [applicationId]);
 
@@ -226,7 +226,7 @@ export function VerificationStatusCard({ applicationId, onComplete }: Verificati
       {/* Help Text */}
       <div className="text-center text-sm text-muted-foreground">
         <p>
-          Status updates automatically every 5 seconds.
+          Status updates automatically every 30 seconds.
           If you experience any issues, please contact support.
         </p>
       </div>

@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
 import AffiliateProgramClient from './affiliate-program-client';
 
+// Cache this static page for 1 hour
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: 'Affiliate Program | Property Flow HQ',
   description: 'Join the Property Flow HQ Affiliate Program. Earn commissions by referring property managers and landlords to our platform.',

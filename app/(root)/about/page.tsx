@@ -1,3 +1,6 @@
+// Cache this page for 1 hour - it's static content
+export const revalidate = 3600;
+
 const AboutPage = () => {
   const photos = [
     { id: 1, label: 'Founder', src: '/images/allenPic2.jpg' },

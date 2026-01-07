@@ -12,6 +12,41 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
 import { Clock, DollarSign, FileText, MessageSquare, Wrench, Building2, Users, CreditCard, Calendar, Shield, TrendingUp, ArrowRight } from 'lucide-react';
+import { unstable_cache } from 'next/cache';
+
+// Cache landlord lookup for 5 minutes to reduce DB queries
+const getCachedLandlord = unstable_cache(
+  async (subdomain: string) => {
+    return prisma.landlord.findUnique({ where: { subdomain } });
+  },
+  ['landlord-by-subdomain'],
+  { revalidate: 300 } // 5 minutes
+);
+
+// Cache properties for a landlord for 2 minutes
+const getCachedProperties = unstable_cache(
+  async (landlordId: string) => {
+    return prisma.property.findMany({
+      where: {
+        landlordId,
+        units: {
+          some: {
+            isAvailable: true,
+          },
+        },
+      },
+      include: {
+        units: {
+          where: { isAvailable: true },
+          take: 3,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  },
+  ['landlord-properties'],
+  { revalidate: 120 } // 2 minutes
+);
 
 async function getLandlordForRequest() {
   const headersList = await headers();
@@ -43,7 +78,8 @@ async function getLandlordForRequest() {
     return null;
   }
 
-  const landlord = await prisma.landlord.findUnique({ where: { subdomain } });
+  // Use cached version instead of direct DB query
+  const landlord = await getCachedLandlord(subdomain);
   return landlord;
 }
 
@@ -51,23 +87,8 @@ const Homepage = async () => {
   const landlord = await getLandlordForRequest();
 
   if (landlord) {
-    const properties = await prisma.property.findMany({
-      where: {
-        landlordId: landlord.id,
-        units: {
-          some: {
-            isAvailable: true,
-          },
-        },
-      },
-      include: {
-        units: {
-          where: { isAvailable: true },
-          take: 3,
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    // Use cached properties query
+    const properties = await getCachedProperties(landlord.id);
 
     return (
       <main className='flex-1 w-full'>
