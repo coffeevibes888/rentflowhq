@@ -364,12 +364,11 @@ export default async function ContractorDashboardPage() {
 
       {/* Not Connected Notice */}
       {contractors.length === 0 && (
-        <Card className="bg-amber-50 border-amber-200">
+        <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-4 lg:p-6">
-            <p className="text-amber-800">
-              <strong>Note:</strong> You're not yet connected to any property managers. 
-              If you have an invite code, you can enter it in your profile settings. 
-              Otherwise, property managers can find you in the contractor marketplace.
+            <p className="text-blue-800">
+              <strong>Welcome!</strong> Browse available jobs in the marketplace or wait for property managers and homeowners to find you. 
+              Make sure your profile is complete to increase your visibility.
             </p>
           </CardContent>
         </Card>

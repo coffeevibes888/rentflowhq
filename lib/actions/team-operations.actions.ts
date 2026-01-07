@@ -18,7 +18,6 @@ import {
   payrollSettingsSchema,
   timeOffRequestSchema,
   reviewTimeOffSchema,
-  TEAM_PLATFORM_FEE_PERCENT,
 } from '../validators';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { normalizeTier } from '../config/subscription-tiers';
@@ -706,8 +705,9 @@ async function calculatePayroll(timesheetId: string) {
     regularPay = grossAmount;
   }
 
-  const platformFee = Number((grossAmount * TEAM_PLATFORM_FEE_PERCENT / 100).toFixed(2));
-  const netAmount = Number((grossAmount - platformFee).toFixed(2));
+  // Enterprise tier - no platform fee on internal payroll
+  const platformFee = 0;
+  const netAmount = grossAmount;
 
   return {
     timesheetId,
@@ -917,8 +917,9 @@ export async function sendBonusPayment(data: z.infer<typeof bonusPaymentSchema>)
     }
 
     const amount = validatedData.amount;
-    const platformFee = Number((amount * TEAM_PLATFORM_FEE_PERCENT / 100).toFixed(2));
-    const netAmount = Number((amount - platformFee).toFixed(2));
+    // Enterprise tier - no platform fee on internal payroll
+    const platformFee = 0;
+    const netAmount = amount;
 
     // Check wallet balance
     const wallet = await prisma.landlordWallet.findUnique({

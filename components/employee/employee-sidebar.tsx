@@ -35,7 +35,7 @@ const navItems = [
     icon: FileText,
   },
   {
-    title: 'Pay Stubs',
+    title: 'Earnings',
     href: '/employee/pay',
     icon: DollarSign,
   },

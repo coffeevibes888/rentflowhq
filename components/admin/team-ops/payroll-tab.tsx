@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { DollarSign, CreditCard, Gift, AlertCircle, Check, User } from 'lucide-react';
+import { DollarSign, Gift, Check, User } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   getPendingPayroll,
@@ -164,7 +164,7 @@ export default function PayrollTab() {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4">
           <div className="flex items-center justify-between">
             <div className="text-xs text-black">Pending Payroll</div>
@@ -172,15 +172,6 @@ export default function PayrollTab() {
           </div>
           <div className="text-2xl font-bold text-white mt-2">${summary.totalGross.toFixed(2)}</div>
           <div className="text-xs text-white/80">{summary.count} timesheets ready</div>
-        </div>
-
-        <div className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-black">Platform Fees</div>
-            <CreditCard className="h-4 w-4 text-white/90" />
-          </div>
-          <div className="text-2xl font-bold text-white mt-2">${summary.totalFees.toFixed(2)}</div>
-          <div className="text-xs text-white/80">2.5% of payroll</div>
         </div>
 
         <div className="rounded-xl bg-slate-900/60 border border-white/10 p-4">
@@ -245,11 +236,6 @@ export default function PayrollTab() {
                       placeholder="Performance bonus, holiday bonus, etc."
                       className="bg-white/5 border-white/10"
                     />
-                  </div>
-
-                  <div className="text-xs text-slate-400 flex items-center gap-2">
-                    <AlertCircle className="h-3 w-3" />
-                    2.5% platform fee will be applied
                   </div>
 
                   <Button type="submit" disabled={isPending} className="w-full bg-gradient-to-r from-blue-600 to-cyan-500">
@@ -329,7 +315,6 @@ export default function PayrollTab() {
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-semibold text-white">${item.grossAmount.toFixed(2)}</div>
-                      <div className="text-xs text-slate-400">-${item.platformFee.toFixed(2)} fee</div>
                     </div>
                   </div>
                 </div>

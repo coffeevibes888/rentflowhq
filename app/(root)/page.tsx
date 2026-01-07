@@ -421,7 +421,7 @@ const Homepage = async () => {
           <div className='max-w-6xl mx-auto space-y-8 md:space-y-12'>
             <div className='text-center space-y-2 md:space-y-3 animate-in fade-in duration-700'>
               <h2 className='text-2xl md:text-4xl font-bold text-white'>
-                We Get It. Property Management is Exhausting.
+                FINALLY A SOULTION THAT YOU CAN TRUST
               </h2>
               <p className='text-sm md:text-lg text-black font-semibold max-w-2xl mx-auto'>
                 You didn't become a landlord to spend hours on admin work. Here's how we solve your biggest headaches.

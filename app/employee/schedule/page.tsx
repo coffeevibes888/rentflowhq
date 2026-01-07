@@ -2,52 +2,62 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { EmployeeSchedulePage } from '@/components/employee/employee-schedule-page';
-
-export const metadata = {
-  title: 'My Schedule - Employee Portal',
-};
+import { startOfWeek, endOfWeek, addWeeks } from 'date-fns';
 
 export default async function SchedulePage() {
   const session = await auth();
   
   if (!session?.user?.id) {
-    redirect('/sign-in?callbackUrl=/employee/schedule');
+    redirect('/sign-in');
   }
 
+  // Find team member
   const teamMember = await prisma.teamMember.findFirst({
-    where: {
-      userId: session.user.id,
-      status: 'active',
-    },
+    where: { userId: session.user.id, status: 'active' },
   });
 
   if (!teamMember) {
-    redirect('/admin');
+    redirect('/');
   }
 
-  // Get shifts for the next 30 days
-  const startDate = new Date();
-  startDate.setHours(0, 0, 0, 0);
-  const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + 30);
+  // Get shifts for current and next week
+  const today = new Date();
+  const weekStart = startOfWeek(today, { weekStartsOn: 0 });
+  const twoWeeksEnd = endOfWeek(addWeeks(today, 1), { weekStartsOn: 0 });
 
   const shifts = await prisma.shift.findMany({
     where: {
       teamMemberId: teamMember.id,
-      date: { gte: startDate, lte: endDate },
+      date: { gte: weekStart, lte: twoWeeksEnd },
     },
     orderBy: { date: 'asc' },
-  }).catch(() => []);
+    include: {
+      property: { select: { name: true } },
+    },
+  });
+
+  // Get availability
+  const availability = await prisma.teamMemberAvailability.findMany({
+    where: { teamMemberId: teamMember.id },
+    orderBy: { dayOfWeek: 'asc' },
+  });
 
   return (
     <EmployeeSchedulePage
       shifts={shifts.map(s => ({
         id: s.id,
         date: s.date.toISOString(),
-        startTime: s.startTime, // String format "09:00"
-        endTime: s.endTime,     // String format "17:00"
-        notes: s.notes || undefined,
+        startTime: s.startTime,
+        endTime: s.endTime,
         status: s.status,
+        notes: s.notes,
+        propertyName: s.property?.name,
+      }))}
+      availability={availability.map(a => ({
+        dayOfWeek: a.dayOfWeek,
+        startTime: a.startTime,
+        endTime: a.endTime,
+        isAvailable: a.isAvailable,
       }))}
     />
   );

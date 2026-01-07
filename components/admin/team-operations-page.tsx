@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, FileText, DollarSign, BarChart3 } from 'lucide-react';
+import { Calendar, Clock, FileText, DollarSign, BarChart3, Briefcase, Settings } from 'lucide-react';
 import ScheduleTab from './team-ops/schedule-tab';
 import TimeTrackingTab from './team-ops/time-tracking-tab';
 import TimesheetsTab from './team-ops/timesheets-tab';
 import PayrollTab from './team-ops/payroll-tab';
 import ReportsTab from './team-ops/reports-tab';
+import HiringTab from './team-ops/hiring-tab';
+import SettingsTab from './team-ops/settings-tab';
 
 export default function TeamOperationsPage() {
   const [activeTab, setActiveTab] = useState('schedule');
@@ -20,7 +22,7 @@ export default function TeamOperationsPage() {
             Team Operations
           </h1>
           <p className="text-sm text-slate-300/80">
-            Manage scheduling, time tracking, timesheets, and payroll for your team.
+            Manage scheduling, time tracking, timesheets, payroll, and hiring for your team.
           </p>
         </div>
 
@@ -28,7 +30,7 @@ export default function TeamOperationsPage() {
           <div className="absolute inset-0 bg-blue-700" />
           <div className="relative p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5 bg-slate-900/60 border border-white/10 rounded-xl p-1">
+              <TabsList className="grid w-full grid-cols-7 bg-slate-900/60 border border-white/10 rounded-xl p-1">
                 <TabsTrigger
                   value="schedule"
                   className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg"
@@ -58,11 +60,25 @@ export default function TeamOperationsPage() {
                   <span className="hidden sm:inline">Payroll</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="hiring"
+                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg"
+                >
+                  <Briefcase className="h-4 w-4" />
+                  <span className="hidden sm:inline">Hiring</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="reports"
                   className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg"
                 >
                   <BarChart3 className="h-4 w-4" />
                   <span className="hidden sm:inline">Reports</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="settings"
+                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden sm:inline">Settings</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -79,8 +95,14 @@ export default function TeamOperationsPage() {
                 <TabsContent value="payroll" className="mt-0">
                   <PayrollTab />
                 </TabsContent>
+                <TabsContent value="hiring" className="mt-0">
+                  <HiringTab />
+                </TabsContent>
                 <TabsContent value="reports" className="mt-0">
                   <ReportsTab />
+                </TabsContent>
+                <TabsContent value="settings" className="mt-0">
+                  <SettingsTab />
                 </TabsContent>
               </div>
             </Tabs>

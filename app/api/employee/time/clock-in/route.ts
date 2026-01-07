@@ -2,66 +2,54 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    
     if (!session?.user?.id) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
     }
 
-    // Find the user's team membership
+    const body = await request.json();
+    const { location, propertyId, shiftId, notes } = body;
+
+    // Find team member for current user
     const teamMember = await prisma.teamMember.findFirst({
-      where: {
-        userId: session.user.id,
-        status: 'active',
-      },
+      where: { userId: session.user.id, status: 'active' },
+      include: { landlord: { select: { subscriptionTier: true } } },
     });
 
     if (!teamMember) {
-      return NextResponse.json({ success: false, message: 'Not a team member' }, { status: 403 });
+      return NextResponse.json({ success: false, message: 'You are not a team member' }, { status: 403 });
     }
 
     // Check if already clocked in
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const existingEntry = await prisma.timeEntry.findFirst({
-      where: {
-        teamMemberId: teamMember.id,
-        clockIn: { gte: today },
-        clockOut: null,
-      },
+    const activeEntry = await prisma.timeEntry.findFirst({
+      where: { teamMemberId: teamMember.id, clockOut: null },
     });
 
-    if (existingEntry) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Already clocked in. Please clock out first.' 
-      }, { status: 400 });
+    if (activeEntry) {
+      return NextResponse.json({ success: false, message: 'You are already clocked in' }, { status: 400 });
     }
 
-    // Get location from request body
-    const body = await req.json().catch(() => ({}));
-    const location = body.location;
-
     // Create time entry
-    const timeEntry = await prisma.timeEntry.create({
+    const entry = await prisma.timeEntry.create({
       data: {
+        landlordId: teamMember.landlordId,
         teamMemberId: teamMember.id,
+        shiftId: shiftId || null,
+        propertyId: propertyId || null,
         clockIn: new Date(),
-        clockInLatitude: location?.latitude ? String(location.latitude) : null,
-        clockInLongitude: location?.longitude ? String(location.longitude) : null,
+        clockInLat: location?.latitude,
+        clockInLng: location?.longitude,
+        notes: notes || null,
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Clocked in successfully',
-      timeEntry: {
-        id: timeEntry.id,
-        clockIn: timeEntry.clockIn.toISOString(),
-      },
+      timeEntryId: entry.id,
+      clockIn: entry.clockIn,
     });
   } catch (error) {
     console.error('Clock in error:', error);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Combined daily maintenance cron job
-// Runs: cleanup expired documents, release pending balances, check verification expiration
+// Runs: cleanup expired documents, release pending balances, check verification expiration, process webhook retries
 // Schedule: 3 AM UTC daily (off-peak hours)
 
 export async function GET(req: NextRequest) {
@@ -102,6 +102,67 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Verification expiration error:', error);
     errors.push(`Verification expiration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // 4. Process Webhook Retries (Enterprise API)
+  try {
+    const { prisma } = await import('@/db/prisma');
+    const { deliverWebhook } = await import('@/lib/services/webhook.service');
+    
+    const now = new Date();
+
+    // Find webhooks due for retry
+    const pendingDeliveries = await prisma.webhookDelivery.findMany({
+      where: {
+        status: 'retrying',
+        nextRetryAt: { lte: now },
+      },
+      take: 100,
+      orderBy: { nextRetryAt: 'asc' },
+    });
+
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const delivery of pendingDeliveries) {
+      try {
+        await deliverWebhook(delivery.id);
+        succeeded++;
+      } catch (e) {
+        failed++;
+        console.error('Webhook retry failed:', delivery.id, e);
+      }
+    }
+
+    results.webhookRetries = {
+      processed: pendingDeliveries.length,
+      succeeded,
+      failed,
+    };
+  } catch (error) {
+    console.error('Webhook retries error:', error);
+    errors.push(`Webhook retries: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // 5. Cleanup Old API Request Logs (keep 30 days)
+  try {
+    const { prisma } = await import('@/db/prisma');
+    
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const deletedLogs = await prisma.apiRequestLog.deleteMany({
+      where: {
+        createdAt: { lt: thirtyDaysAgo },
+      },
+    });
+
+    results.cleanupApiLogs = {
+      deleted: deletedLogs.count,
+    };
+  } catch (error) {
+    console.error('Cleanup API logs error:', error);
+    errors.push(`Cleanup API logs: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
   return NextResponse.json({

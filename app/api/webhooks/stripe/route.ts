@@ -4,7 +4,15 @@ import { updateOrderToPaid } from '@/lib/actions/order-actions';
 import { prisma } from '@/db/prisma';
 import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-tiers';
 import { NotificationService } from '@/lib/services/notification-service';
-import { creditLandlordWallet } from '@/lib/services/wallet.service';
+
+/**
+ * Stripe Webhook Handler
+ * 
+ * DIRECT PAYMENT MODEL:
+ * - Rent payments go directly to landlord's Connect account
+ * - No wallet crediting needed - landlord receives funds immediately
+ * - We just update payment status and send notifications
+ */
 
 export async function POST(req: NextRequest) {
   const payload = await req.text();
@@ -22,9 +30,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid Stripe webhook signature' }, { status: 400 });
   }
 
+  // Handle successful charges
   if (event.type === 'charge.succeeded') {
     const charge = event.data.object as Stripe.Charge;
 
+    // Handle e-commerce orders
     if (charge.metadata?.orderId) {
       await updateOrderToPaid({
         orderId: charge.metadata.orderId,
@@ -37,6 +47,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Handle rent payments
     const paymentIntentIdRaw = charge.payment_intent;
     const paymentIntentId =
       typeof paymentIntentIdRaw === 'string'
@@ -45,13 +56,10 @@ export async function POST(req: NextRequest) {
 
     if (paymentIntentId) {
       const now = new Date();
-      
       const paymentMethodType = charge.payment_method_details?.type || 'unknown';
-      const convenienceFee = charge.metadata?.convenienceFee 
-        ? parseFloat(charge.metadata.convenienceFee) / 100 
-        : 0;
 
-      const updatedPayments = await prisma.rentPayment.findMany({
+      // Get rent payments linked to this payment intent
+      const rentPayments = await prisma.rentPayment.findMany({
         where: {
           stripePaymentIntentId: paymentIntentId,
         },
@@ -81,6 +89,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // Update payment status to paid
       await prisma.rentPayment.updateMany({
         where: {
           stripePaymentIntentId: paymentIntentId,
@@ -89,12 +98,12 @@ export async function POST(req: NextRequest) {
           status: 'paid',
           paidAt: now,
           paymentMethod: paymentMethodType,
-          convenienceFee: convenienceFee,
         },
       });
 
       // Notify landlord about successful payment
-      for (const payment of updatedPayments) {
+      // NOTE: No wallet crediting - payment went directly to their Connect account
+      for (const payment of rentPayments) {
         const landlordId = payment.lease.unit.property.landlordId;
         const landlord = payment.lease.unit.property.landlord;
         
@@ -103,25 +112,10 @@ export async function POST(req: NextRequest) {
             userId: landlord.owner.id,
             type: 'payment',
             title: 'Rent Payment Received',
-            message: `Payment of $${payment.amount.toFixed(2)} received from ${payment.tenant.name} for ${payment.lease.unit.property.name} - ${payment.lease.unit.name}`,
+            message: `Payment of $${Number(payment.amount).toFixed(2)} received from ${payment.tenant.name} for ${payment.lease.unit.property.name} - ${payment.lease.unit.name}. Funds sent directly to your bank.`,
             actionUrl: `/admin/analytics`,
             metadata: { paymentId: payment.id, leaseId: payment.leaseId },
             landlordId,
-          });
-
-          // Credit landlord wallet
-          await creditLandlordWallet({
-            landlordId,
-            amount: Number(payment.amount),
-            paymentMethod: paymentMethodType,
-            description: `Rent payment from ${payment.tenant.name || 'Tenant'}`,
-            referenceId: payment.id,
-            metadata: {
-              type: 'rent_payment',
-              leaseId: payment.leaseId,
-              unitName: payment.lease.unit.name,
-              propertyName: payment.lease.unit.property.name,
-            },
           });
         }
       }
@@ -132,6 +126,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Handle payment processing (ACH takes time)
   if (event.type === 'payment_intent.processing') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
@@ -151,6 +146,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Handle failed payments
   if (event.type === 'payment_intent.payment_failed') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
@@ -170,10 +166,11 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Handle subscription events
   if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
     const subscription = event.data.object as Stripe.Subscription;
     const landlordId = subscription.metadata?.landlordId;
-    const tier = (subscription.metadata?.tier || 'free') as SubscriptionTier;
+    const tier = (subscription.metadata?.tier || 'starter') as SubscriptionTier;
     const affiliateCode = subscription.metadata?.affiliateCode;
 
     if (landlordId) {
@@ -236,36 +233,33 @@ export async function POST(req: NextRequest) {
       });
 
       // Handle affiliate commission for new subscriptions
-      if (event.type === 'customer.subscription.created' && affiliateCode && tier !== 'free') {
+      if (event.type === 'customer.subscription.created' && affiliateCode) {
         try {
           const affiliate = await prisma.affiliate.findUnique({
             where: { code: affiliateCode },
           });
 
           if (affiliate && affiliate.status === 'active') {
-            // Check if referral already exists for this landlord
             const existingReferral = await prisma.affiliateReferral.findUnique({
               where: { landlordId },
             });
 
             if (!existingReferral) {
-              // Determine commission based on tier
               let commissionAmount = 0;
               let subscriptionPrice = 0;
               
               if (tier === 'starter') {
-                commissionAmount = Number(affiliate.commissionBasic); // $5 for $19.99 Starter plan
+                commissionAmount = Number(affiliate.commissionBasic);
                 subscriptionPrice = 19.99;
               } else if (tier === 'pro') {
-                commissionAmount = Number(affiliate.commissionPro); // $10 for $39.99 Pro plan
+                commissionAmount = Number(affiliate.commissionPro);
                 subscriptionPrice = 39.99;
               } else if (tier === 'enterprise') {
-                commissionAmount = Number(affiliate.commissionEnterprise); // $15 for $79.99 Enterprise plan
+                commissionAmount = Number(affiliate.commissionEnterprise);
                 subscriptionPrice = 79.99;
               }
 
               if (commissionAmount > 0) {
-                // Create referral with 30-day pending period
                 const pendingUntil = new Date();
                 pendingUntil.setDate(pendingUntil.getDate() + 30);
 
@@ -281,7 +275,6 @@ export async function POST(req: NextRequest) {
                   },
                 });
 
-                // Update affiliate stats
                 await prisma.affiliate.update({
                   where: { id: affiliate.id },
                   data: {
@@ -290,14 +283,11 @@ export async function POST(req: NextRequest) {
                     pendingEarnings: { increment: commissionAmount },
                   },
                 });
-
-                console.log(`Affiliate commission created: ${affiliate.code} earned $${commissionAmount} for ${tier} signup`);
               }
             }
           }
         } catch (affiliateError) {
           console.error('Error processing affiliate commission:', affiliateError);
-          // Don't fail the webhook for affiliate errors
         }
       }
     }
@@ -307,6 +297,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Handle subscription cancellation
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription;
     const landlordId = subscription.metadata?.landlordId;
@@ -317,7 +308,7 @@ export async function POST(req: NextRequest) {
         data: {
           status: 'canceled',
           canceledAt: new Date(),
-          tier: 'free',
+          tier: 'starter',
           unitLimit: 24,
           freeBackgroundChecks: false,
           freeEvictionChecks: false,
@@ -328,7 +319,7 @@ export async function POST(req: NextRequest) {
       await prisma.landlord.update({
         where: { id: landlordId },
         data: {
-          subscriptionTier: 'free',
+          subscriptionTier: 'starter',
           subscriptionStatus: 'canceled',
           freeBackgroundChecks: false,
           freeEmploymentVerification: false,
@@ -340,7 +331,7 @@ export async function POST(req: NextRequest) {
           landlordId,
           eventType: 'canceled',
           fromTier: subscription.metadata?.tier,
-          toTier: 'free',
+          toTier: 'starter',
           stripeEventId: event.id,
         },
       });
@@ -351,6 +342,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Handle successful invoice payments (subscription renewals)
   if (event.type === 'invoice.payment_succeeded') {
     const invoice = event.data.object as Stripe.Invoice;
     
@@ -374,6 +366,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Handle failed invoice payments
   if (event.type === 'invoice.payment_failed') {
     const invoice = event.data.object as Stripe.Invoice;
     
@@ -412,7 +405,7 @@ export async function POST(req: NextRequest) {
   if (event.type === 'account.updated') {
     const account = event.data.object as Stripe.Account;
     
-    // Find landlord by Connect account ID
+    // Find landlord or contractor by Connect account ID
     const landlord = await prisma.landlord.findFirst({
       where: { stripeConnectAccountId: account.id },
     });
@@ -427,11 +420,40 @@ export async function POST(req: NextRequest) {
         data: { stripeOnboardingStatus: newStatus },
       });
 
-      console.log(`Connect account ${account.id} updated: ${newStatus}`);
+      console.log(`Landlord Connect account ${account.id} updated: ${newStatus}`);
+    }
+
+    // Also check contractors
+    const contractor = await prisma.contractor.findFirst({
+      where: { stripeConnectAccountId: account.id },
+    });
+
+    if (contractor) {
+      const isPaymentReady = account.payouts_enabled || false;
+      
+      await prisma.contractor.update({
+        where: { id: contractor.id },
+        data: { isPaymentReady },
+      });
+
+      console.log(`Contractor Connect account ${account.id} updated: paymentReady=${isPaymentReady}`);
     }
 
     return NextResponse.json({
       message: 'Webhook processed: account.updated',
+    });
+  }
+
+  // Handle transfer events (for contractor payments)
+  if (event.type === 'transfer.created') {
+    const transfer = event.data.object as Stripe.Transfer;
+    
+    if (transfer.metadata?.type === 'contractor_payout') {
+      console.log(`Contractor transfer created: ${transfer.id} for ${transfer.amount / 100}`);
+    }
+
+    return NextResponse.json({
+      message: 'Webhook processed: transfer.created',
     });
   }
 

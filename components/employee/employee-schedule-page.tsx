@@ -11,15 +11,24 @@ interface Shift {
   date: string;      // ISO date string
   startTime: string; // "09:00" format
   endTime: string;   // "17:00" format
-  notes?: string;
+  notes?: string | null;
   status: string;
+  propertyName?: string | null;
+}
+
+interface Availability {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
 }
 
 interface EmployeeSchedulePageProps {
   shifts: Shift[];
+  availability: Availability[];
 }
 
-export function EmployeeSchedulePage({ shifts }: EmployeeSchedulePageProps) {
+export function EmployeeSchedulePage({ shifts, availability }: EmployeeSchedulePageProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const daysInMonth = new Date(

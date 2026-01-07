@@ -2,21 +2,20 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { stripe } from '@/lib/stripe';
 import { NextRequest, NextResponse } from 'next/server';
+import { PLATFORM_FEES, calculateContractorPaymentFees } from '@/lib/config/platform-fees';
 
 /**
- * Fund escrow for a work order (PM/Landlord action)
+ * Fund escrow for a work order (PM/Landlord/Homeowner action)
  * 
- * PRICING:
- * - Landlord pays: Agreed Price + $1 Platform Fee
- * - Platform fee is clearly shown before payment
+ * DIRECT PAYMENT MODEL:
+ * - Payer pays: Job Amount + $1 Platform Fee
+ * - Money held in escrow until work is completed
+ * - On release: Contractor receives Job Amount - $1 Platform Fee
+ * - Total platform revenue: $2 per transaction
  * 
- * SECURITY: Only charges the exact agreed price + $1 fee - no hidden charges
- * 
- * NOTE: Run `npx prisma db push` to add escrow fields to WorkOrder model
+ * NOTE: This creates a payment intent that charges the payer directly.
+ * The funds go to YOUR platform account and are transferred to contractor on release.
  */
-
-// Platform fee constants
-const LANDLORD_PLATFORM_FEE = 1.00; // $1 flat fee for landlords
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,14 +39,18 @@ export async function POST(req: NextRequest) {
             id: true,
             ownerUserId: true,
             stripeCustomerId: true,
-            wallet: true,
           },
         },
         contractor: {
-          select: { id: true, name: true, stripeConnectAccountId: true },
+          select: { 
+            id: true, 
+            name: true, 
+            stripeConnectAccountId: true,
+            isPaymentReady: true,
+          },
         },
       },
-    }) as any; // Type assertion for new fields
+    }) as any;
 
     if (!workOrder) {
       return NextResponse.json({ error: 'Work order not found' }, { status: 404 });
@@ -58,7 +61,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Check work order status - must be assigned (accepted by contractor)
+    // Check work order status
     if (!['assigned', 'in_progress'].includes(workOrder.status)) {
       return NextResponse.json({ 
         error: 'Work order must be assigned before funding escrow' 
@@ -70,128 +73,76 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Escrow already funded' }, { status: 400 });
     }
 
-    // CRITICAL: Use the agreed price - this is locked and cannot be changed
+    // Verify contractor can receive payments
+    if (!workOrder.contractor?.stripeConnectAccountId || !workOrder.contractor?.isPaymentReady) {
+      return NextResponse.json({ 
+        error: 'Contractor has not set up their payment account. Please ask them to complete their payout setup.' 
+      }, { status: 400 });
+    }
+
+    // Get agreed price
     const agreedPrice = workOrder.agreedPrice;
     if (!agreedPrice || Number(agreedPrice) <= 0) {
       return NextResponse.json({ error: 'Invalid agreed price' }, { status: 400 });
     }
 
     const jobAmount = Number(agreedPrice);
-    const platformFee = LANDLORD_PLATFORM_FEE;
-    const totalAmount = jobAmount + platformFee;
-    const totalAmountCents = Math.round(totalAmount * 100);
+    const fees = calculateContractorPaymentFees(jobAmount);
+    const totalAmountCents = Math.round(fees.payerTotal * 100);
 
-    // Check if landlord has sufficient wallet balance first
-    const walletBalance = workOrder.landlord.wallet 
-      ? Number(workOrder.landlord.wallet.availableBalance) 
-      : 0;
-
-    let paymentMethod: 'wallet' | 'card' = 'card';
-
-    if (walletBalance >= totalAmount) {
-      // Deduct from wallet (job amount + platform fee)
-      paymentMethod = 'wallet';
-      
-      await prisma.$transaction([
-        // Deduct total from wallet
-        prisma.landlordWallet.update({
-          where: { landlordId: workOrder.landlordId },
-          data: {
-            availableBalance: { decrement: totalAmount },
-          },
-        }),
-        // Record escrow transaction
-        prisma.walletTransaction.create({
-          data: {
-            walletId: workOrder.landlord.wallet!.id,
-            type: 'escrow_hold',
-            amount: -jobAmount,
-            description: `Escrow for work order: ${workOrder.title}`,
-            referenceId: workOrder.id,
-            status: 'completed',
-          },
-        }),
-        // Record platform fee transaction
-        prisma.walletTransaction.create({
-          data: {
-            walletId: workOrder.landlord.wallet!.id,
-            type: 'fee',
-            amount: -platformFee,
-            description: `Platform fee for work order: ${workOrder.title}`,
-            referenceId: workOrder.id,
-            status: 'completed',
-          },
-        }),
-        // Update work order escrow status
-        (prisma.workOrder.update as any)({
-          where: { id: workOrderId },
-          data: {
-            escrowStatus: 'funded',
-            escrowAmount: jobAmount,
-            escrowFundedAt: new Date(),
-          },
-        }),
-      ]);
-
-      return NextResponse.json({
-        success: true,
-        requiresPayment: false,
-        paymentMethod,
-        breakdown: {
-          jobAmount,
-          platformFee,
-          totalAmount,
-        },
-        message: `Escrow funded from wallet. Job: $${jobAmount.toFixed(2)} + Platform Fee: $${platformFee.toFixed(2)} = Total: $${totalAmount.toFixed(2)}`,
-      });
-    } else {
-      // Charge card via Stripe
-      if (!workOrder.landlord.stripeCustomerId) {
-        return NextResponse.json({ 
-          error: 'No payment method on file. Please add a payment method first.' 
-        }, { status: 400 });
-      }
-
-      // Create payment intent - total amount includes platform fee
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: totalAmountCents,
-        currency: 'usd',
-        customer: workOrder.landlord.stripeCustomerId,
-        capture_method: 'automatic',
-        metadata: {
-          type: 'contractor_escrow',
-          workOrderId: workOrder.id,
-          landlordId: workOrder.landlordId,
-          contractorId: workOrder.contractorId || '',
-          jobAmount: jobAmount.toString(),
-          platformFee: platformFee.toString(),
-          totalAmount: totalAmount.toString(),
-        },
-        description: `Escrow for: ${workOrder.title} ($${jobAmount.toFixed(2)} + $${platformFee.toFixed(2)} platform fee)`,
-      });
-
-      // Update work order with payment intent
-      await (prisma.workOrder.update as any)({
-        where: { id: workOrderId },
-        data: {
-          stripePaymentIntentId: paymentIntent.id,
-          escrowAmount: jobAmount,
-          escrowStatus: 'pending',
-        },
-      });
-
-      return NextResponse.json({
-        success: true,
-        requiresPayment: true,
-        clientSecret: paymentIntent.client_secret,
-        breakdown: {
-          jobAmount,
-          platformFee,
-          totalAmount,
-        },
-        message: `Complete payment: Job $${jobAmount.toFixed(2)} + Platform Fee $${platformFee.toFixed(2)} = Total $${totalAmount.toFixed(2)}`,
-      });
+    // Ensure landlord has a Stripe customer ID for payment
+    if (!workOrder.landlord.stripeCustomerId) {
+      return NextResponse.json({ 
+        error: 'No payment method on file. Please add a payment method first.' 
+      }, { status: 400 });
     }
+
+    // Create payment intent
+    // Money goes to YOUR platform account, then transferred to contractor on release
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: totalAmountCents,
+      currency: 'usd',
+      customer: workOrder.landlord.stripeCustomerId,
+      capture_method: 'automatic',
+      // Platform fee is collected when we transfer to contractor (on release)
+      // For now, full amount goes to platform account
+      metadata: {
+        type: 'contractor_escrow',
+        workOrderId: workOrder.id,
+        landlordId: workOrder.landlordId,
+        contractorId: workOrder.contractorId || '',
+        contractorConnectId: workOrder.contractor.stripeConnectAccountId,
+        jobAmount: jobAmount.toString(),
+        payerFee: fees.payerFee.toString(),
+        contractorFee: fees.contractorFee.toString(),
+        totalAmount: fees.payerTotal.toString(),
+      },
+      description: `Escrow for: ${workOrder.title} ($${jobAmount.toFixed(2)} + $${fees.payerFee.toFixed(2)} platform fee)`,
+    });
+
+    // Update work order with payment intent
+    await (prisma.workOrder.update as any)({
+      where: { id: workOrderId },
+      data: {
+        stripePaymentIntentId: paymentIntent.id,
+        escrowAmount: jobAmount,
+        escrowStatus: 'pending',
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      requiresPayment: true,
+      clientSecret: paymentIntent.client_secret,
+      breakdown: {
+        jobAmount,
+        payerFee: fees.payerFee,
+        payerTotal: fees.payerTotal,
+        contractorFee: fees.contractorFee,
+        contractorReceives: fees.contractorReceives,
+      },
+      message: `Pay $${fees.payerTotal.toFixed(2)} (Job: $${jobAmount.toFixed(2)} + $${fees.payerFee.toFixed(2)} platform fee). Contractor will receive $${fees.contractorReceives.toFixed(2)} after $${fees.contractorFee.toFixed(2)} fee.`,
+    });
   } catch (error) {
     console.error('Error funding escrow:', error);
     return NextResponse.json({ error: 'Failed to fund escrow' }, { status: 500 });
@@ -219,6 +170,14 @@ export async function GET(req: NextRequest) {
         id: true,
         title: true,
         agreedPrice: true,
+        escrowStatus: true,
+        contractor: {
+          select: { 
+            name: true,
+            stripeConnectAccountId: true,
+            isPaymentReady: true,
+          },
+        },
         landlord: {
           select: { ownerUserId: true },
         },
@@ -234,18 +193,22 @@ export async function GET(req: NextRequest) {
     }
 
     const jobAmount = Number(workOrder.agreedPrice) || 0;
-    const platformFee = LANDLORD_PLATFORM_FEE;
-    const totalAmount = jobAmount + platformFee;
+    const fees = calculateContractorPaymentFees(jobAmount);
 
     return NextResponse.json({
       workOrderId: workOrder.id,
       title: workOrder.title,
+      contractorName: workOrder.contractor?.name,
       escrowStatus: workOrder.escrowStatus || 'none',
+      contractorPaymentReady: workOrder.contractor?.isPaymentReady || false,
       breakdown: {
         jobAmount,
-        platformFee,
-        totalAmount,
-        platformFeeLabel: 'Platform Fee',
+        payerFee: fees.payerFee,
+        payerTotal: fees.payerTotal,
+        contractorFee: fees.contractorFee,
+        contractorReceives: fees.contractorReceives,
+        payerFeeLabel: 'Platform Fee (you pay)',
+        contractorFeeLabel: 'Platform Fee (deducted from contractor)',
       },
     });
   } catch (error) {

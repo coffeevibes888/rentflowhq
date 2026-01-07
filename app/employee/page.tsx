@@ -3,117 +3,98 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { EmployeeDashboard } from '@/components/employee/employee-dashboard';
 
-export const metadata = {
-  title: 'Employee Dashboard',
-};
-
 export default async function EmployeePage() {
   const session = await auth();
   
   if (!session?.user?.id) {
-    redirect('/sign-in?callbackUrl=/employee');
+    redirect('/sign-in');
   }
 
-  // Check if user is a team member (employee)
-  const teamMembership = await prisma.teamMember.findFirst({
-    where: {
-      userId: session.user.id,
-      status: 'active',
-    },
+  // Find team member record for current user
+  const teamMember = await prisma.teamMember.findFirst({
+    where: { userId: session.user.id, status: 'active' },
     include: {
-      landlord: {
-        select: {
-          id: true,
-          name: true,
-          subdomain: true,
-        },
-      },
+      landlord: { select: { id: true, companyName: true } },
+      user: { select: { name: true, email: true, image: true } },
     },
   });
 
-  if (!teamMembership) {
-    // Not an employee - redirect to appropriate dashboard
-    redirect('/admin');
+  if (!teamMember) {
+    redirect('/');
   }
 
-  // Get employee's upcoming shifts
+  // Get upcoming shifts
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
   const upcomingShifts = await prisma.shift.findMany({
     where: {
-      teamMemberId: teamMembership.id,
-      date: { gte: new Date() },
+      teamMemberId: teamMember.id,
+      date: { gte: today },
+      status: { in: ['scheduled'] },
     },
     orderBy: { date: 'asc' },
     take: 5,
-  }).catch(() => []);
+  });
 
   // Get today's time entries
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-
+  
   const todayTimeEntries = await prisma.timeEntry.findMany({
     where: {
-      teamMemberId: teamMembership.id,
+      teamMemberId: teamMember.id,
       clockIn: { gte: today, lt: tomorrow },
     },
-    orderBy: { clockIn: 'desc' },
-  }).catch(() => []);
+    orderBy: { clockIn: 'asc' },
+  });
+
+  // Get active time entry (clocked in but not out)
+  const activeEntry = await prisma.timeEntry.findFirst({
+    where: { teamMemberId: teamMember.id, clockOut: null },
+  });
 
   // Get pending time off requests
   const pendingTimeOff = await prisma.timeOffRequest.findMany({
-    where: {
-      teamMemberId: teamMembership.id,
-      status: 'pending',
-    },
+    where: { teamMemberId: teamMember.id, status: 'pending' },
     orderBy: { startDate: 'asc' },
-  }).catch(() => []);
-
-  // Helper to extract type from reason field
-  const parseTypeFromReason = (reason: string | null) => {
-    if (!reason) return 'vacation';
-    const match = reason.match(/^\[(\w+)\]/);
-    return match ? match[1].toLowerCase() : 'vacation';
-  };
-
-  // Check if currently clocked in
-  const activeTimeEntry = todayTimeEntries.find(entry => !entry.clockOut);
+  });
 
   return (
     <EmployeeDashboard
       employee={{
-        id: teamMembership.id,
-        userId: session.user.id,
-        name: session.user.name || 'Employee',
-        email: session.user.email || '',
-        image: session.user.image || undefined,
-        role: teamMembership.role,
+        id: teamMember.id,
+        userId: teamMember.userId!,
+        name: teamMember.user?.name || 'Unknown',
+        email: teamMember.user?.email || '',
+        image: teamMember.user?.image || undefined,
+        role: teamMember.role,
       }}
       company={{
-        id: teamMembership.landlord.id,
-        name: teamMembership.landlord.name,
+        id: teamMember.landlord.id,
+        name: teamMember.landlord.companyName || 'Company',
       }}
       upcomingShifts={upcomingShifts.map(s => ({
         id: s.id,
         date: s.date.toISOString(),
-        startTime: s.startTime, // String format "09:00"
-        endTime: s.endTime,     // String format "17:00"
+        startTime: s.startTime,
+        endTime: s.endTime,
         notes: s.notes || undefined,
       }))}
-      todayTimeEntries={todayTimeEntries.map(t => ({
-        id: t.id,
-        clockIn: t.clockIn.toISOString(),
-        clockOut: t.clockOut?.toISOString() || null,
+      todayTimeEntries={todayTimeEntries.map(e => ({
+        id: e.id,
+        clockIn: e.clockIn.toISOString(),
+        clockOut: e.clockOut?.toISOString() || null,
       }))}
       pendingTimeOff={pendingTimeOff.map(r => ({
         id: r.id,
-        type: parseTypeFromReason(r.reason),
+        type: 'time-off',
         startDate: r.startDate.toISOString(),
         endDate: r.endDate.toISOString(),
         status: r.status,
       }))}
-      isClockedIn={!!activeTimeEntry}
-      activeTimeEntryId={activeTimeEntry?.id}
+      isClockedIn={!!activeEntry}
+      activeTimeEntryId={activeEntry?.id}
     />
   );
 }

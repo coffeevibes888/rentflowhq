@@ -2,20 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import Stripe from 'stripe';
-import { getTenantPaymentTransparency, compareTenantPaymentMethods } from '@/lib/utils/stripe-transparency';
-import { getConvenienceFeeInCents } from '@/lib/config/platform-fees';
 
 /**
- * Rent checkout API - PLATFORM-HELD FUNDS MODEL
+ * Rent checkout API - DIRECT TO LANDLORD MODEL
  * 
- * All payments go directly to YOUR platform Stripe account.
- * No Connect accounts needed - landlords just add their bank/card for payouts.
+ * Payments go directly to landlord's Stripe Connect account.
+ * No platform fees on rent - landlords pay subscription instead.
  * 
- * TRANSPARENCY: Tenants see exact breakdown of:
- * - Rent amount
- * - Platform convenience fee
- * - Stripe processing fees
- * - Total to pay
+ * Flow:
+ * 1. Tenant pays rent
+ * 2. Money goes directly to landlord's Connect account
+ * 3. Stripe takes their processing fee
+ * 4. Landlord receives the rest immediately
  */
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -44,7 +42,17 @@ export async function POST(req: NextRequest) {
         include: {
           unit: {
             include: {
-              property: true,
+              property: {
+                include: {
+                  landlord: {
+                    select: {
+                      id: true,
+                      stripeConnectAccountId: true,
+                      stripeOnboardingStatus: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -56,14 +64,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'No pending rent payments found' }, { status: 400 });
   }
 
-  // Get landlordId from the rent payment's property
-  const firstPayment = rentPayments[0] as typeof rentPayments[0] & {
-    lease: { unit: { property: { landlordId: string } } };
-  };
-  const landlordId = firstPayment.lease?.unit?.property?.landlordId || null;
+  // Get landlord info
+  const firstPayment = rentPayments[0];
+  const landlord = firstPayment.lease?.unit?.property?.landlord;
 
-  if (!landlordId) {
+  if (!landlord) {
     return NextResponse.json({ message: 'Could not determine landlord for payment' }, { status: 400 });
+  }
+
+  // Verify landlord has completed Stripe Connect onboarding
+  if (!landlord.stripeConnectAccountId) {
+    return NextResponse.json({ 
+      message: 'Your landlord has not set up payment receiving. Please contact them.',
+      code: 'LANDLORD_NOT_ONBOARDED'
+    }, { status: 400 });
+  }
+
+  if (landlord.stripeOnboardingStatus !== 'active') {
+    return NextResponse.json({ 
+      message: 'Your landlord\'s payment account is pending verification. Please try again later or contact them.',
+      code: 'LANDLORD_PENDING_VERIFICATION'
+    }, { status: 400 });
   }
 
   const totalAmount = rentPayments.reduce((sum, p) => {
@@ -76,38 +97,32 @@ export async function POST(req: NextRequest) {
   }
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
-  // Get convenience fee - using 'card' as default (max fee)
-  // Actual fee will be adjusted on client based on selected payment method
-  const convenienceFee = getConvenienceFeeInCents('card');
   const rentAmountInCents = Math.round(totalAmount * 100);
-  const totalWithFee = rentAmountInCents + convenienceFee;
 
-  // Create Payment Intent - PLATFORM-HELD MODEL
-  // Payment goes directly to YOUR Stripe account (no on_behalf_of or transfer_data)
+  // Create Payment Intent - DIRECT TO LANDLORD
+  // Uses Stripe Connect destination charges
   const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
-    amount: totalWithFee,
+    amount: rentAmountInCents,
     currency: 'usd',
+    // DIRECT PAYMENT: Money goes to landlord's Connect account
+    transfer_data: {
+      destination: landlord.stripeConnectAccountId,
+    },
+    // No application_fee_amount - subscription model, no per-transaction fees
     metadata: {
       type: 'rent_payment',
       tenantId: session.user.id as string,
       rentPaymentIds: rentPayments.map((p) => p.id).join(','),
-      landlordId,
+      landlordId: landlord.id,
       rentAmount: rentAmountInCents.toString(),
-      convenienceFee: convenienceFee.toString(),
-      maxConvenienceFee: getConvenienceFeeInCents('card').toString(),
     },
-    // Payment methods enabled on YOUR platform account
-    payment_method_types: ['card', 'link', 'us_bank_account', 'cashapp'],
-    // ACH requires customer email for mandate
+    payment_method_types: ['card', 'link', 'us_bank_account'],
     receipt_email: session.user.email || undefined,
     payment_method_options: {
       us_bank_account: {
         verification_method: 'automatic',
       },
     },
-    // NOTE: No on_behalf_of or transfer_data - payment goes to YOUR account
-    // Landlord receives funds via payout from your platform wallet
   };
 
   try {
@@ -118,47 +133,27 @@ export async function POST(req: NextRequest) {
       data: { stripePaymentIntentId: paymentIntent.id },
     });
 
-    // Get transparency info - use 'CARD' as the default shown method
-    const transparency = getTenantPaymentTransparency(totalAmount, 'CARD');
-    const comparisons = compareTenantPaymentMethods(totalAmount);
-
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      
-      // TRANSPARENCY: What tenant will pay
-      convenienceFee: convenienceFee / 100, // Return as dollars
       rentAmount: totalAmount,
-      totalAmount: totalWithFee / 100,
-      
-      // TRANSPARENCY: Detailed breakdown
-      transparency: {
-        rentAmount: transparency.rentAmount,
-        platformFee: transparency.platformFee,
-        stripeFee: transparency.stripeFee,
-        totalFees: transparency.totalFees,
-        totalToPay: transparency.totalToPay,
-        breakdown: transparency.breakdown,
-        paymentMethod: transparency.paymentMethod,
-        timeline: transparency.timeline,
-        processingTime: transparency.processingTime,
-      },
-      
-      // TRANSPARENCY: Compare all payment methods
-      paymentMethodComparisons: comparisons.map(m => ({
-        name: m.name,
-        type: m.type,
-        fee: m.fee,
-        total: m.total,
-        savings: m.savings,
-        timeline: m.timeline,
-        description: m.description,
-        recommended: m.recommended,
-      })),
+      totalAmount: totalAmount, // Same as rent - no fees
+      platformFee: 0,
+      message: 'Payment goes directly to your landlord. No platform fees.',
     });
   } catch (error) {
     console.error('Stripe payment intent creation failed:', error);
-    const message = error instanceof Error ? error.message : 'Payment initialization failed';
+    const stripeError = error as { message?: string; code?: string };
+    
+    // Handle specific Connect errors
+    if (stripeError.code === 'account_invalid') {
+      return NextResponse.json({ 
+        message: 'Your landlord\'s payment account needs attention. Please contact them.',
+        code: 'LANDLORD_ACCOUNT_INVALID'
+      }, { status: 400 });
+    }
+    
+    const message = stripeError.message || 'Payment initialization failed';
     return NextResponse.json({ message }, { status: 500 });
   }
 }
