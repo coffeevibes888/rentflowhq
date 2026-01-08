@@ -116,12 +116,13 @@ model User {
   homeownerProfile Homeowner?
 
   // Dispute Center
-  disputesFiled       Dispute[]         @relation("DisputeFiledBy")
-  disputesAssigned    Dispute[]         @relation("DisputeAssignedTo")
-  disputesResolved    Dispute[]         @relation("DisputeResolvedBy")
-  disputeMessages     DisputeMessage[]
-  disputeEvidence     DisputeEvidence[]
-  disputeTimeline     DisputeTimeline[]
+  disputesFiled    Dispute[]         @relation("DisputeFiledBy")
+  disputesAssigned Dispute[]         @relation("DisputeAssignedTo")
+  disputesResolved Dispute[]         @relation("DisputeResolvedBy")
+  disputeMessages  DisputeMessage[]
+  disputeEvidence  DisputeEvidence[]
+  disputeTimeline  DisputeTimeline[]
+  recurringCharges RecurringCharge[]
 }
 
 model Account {
@@ -675,13 +676,14 @@ model Landlord {
   apiKeys          ApiKey[]
   webhookEndpoints WebhookEndpoint[]
   apiRequestLogs   ApiRequestLog[]
+  recurringCharges RecurringCharge[]
 }
 
 // Homeowner - A homeowner who hires contractors for their home
 model Homeowner {
   id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId             String   @unique @db.Uuid
-  name               String?  // Home name (e.g., "My Beach House")
+  name               String? // Home name (e.g., "My Beach House")
   homeType           String? // single_family, townhouse, condo, multi_family
   interestedServices String[] @default([])
   projectTimeline    String? // urgent, this_week, this_month, planning
@@ -929,6 +931,7 @@ model Lease {
 
   rentPayments      RentPayment[]
   signatureRequests DocumentSignatureRequest[]
+  recurringCharges  RecurringCharge[]
 
   violations LeaseViolation[]
 
@@ -938,6 +941,30 @@ model Lease {
   depositDispositions DepositDisposition[]
 
   @@index([templateId])
+}
+
+// Model for recurring charges associated with a lease
+model RecurringCharge {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId       String    @db.Uuid
+  leaseId          String    @db.Uuid
+  tenantId         String    @db.Uuid
+  description      String // e.g., "Monthly Rent", "Parking Fee"
+  amount           Decimal   @db.Decimal(12, 2)
+  dayOfMonthToPost Int // 1-31, the day the charge should be posted
+  status           String    @default("active") // active, paused, ended
+  startDate        DateTime  @db.Date
+  endDate          DateTime? @db.Date
+  lastPostedDate   DateTime? @db.Date
+  nextPostDate     DateTime  @db.Date
+  createdAt        DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime  @updatedAt
+  landlord         Landlord  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  lease            Lease     @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  tenant           User      @relation(fields: [tenantId], references: [id], onDelete: Cascade, map: "recurring_charge_tenant_fk")
+
+  @@index([landlordId, status, nextPostDate])
+  @@index([leaseId])
 }
 
 model RentPayment {
@@ -965,6 +992,24 @@ model RentPayment {
   tenant User  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   payout Payout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  // For Partial Payments
+  amountPaid   Decimal              @default(0) @db.Decimal(12, 2)
+  transactions PaymentTransaction[]
+}
+
+model PaymentTransaction {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rentPaymentId String @db.Uuid
+  amount      Decimal  @db.Decimal(12, 2)
+  status      String // "succeeded", "failed", "pending"
+  method      String? // "card", "ach", "cash"
+  referenceId String? // e.g., Stripe charge ID
+  processedAt DateTime @default(now())
+
+  rentPayment RentPayment @relation(fields: [rentPaymentId], references: [id], onDelete: Cascade)
+
+  @@index([rentPaymentId])
 }
 
 model Payout {
@@ -3006,65 +3051,64 @@ model NewsletterSubscriber {
   @@index([status])
 }
 
-
 // ============= DISPUTE CENTER =============
 
 // Dispute - Contractor marketplace disputes
 model Dispute {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  caseNumber        String    @unique // AUTO-GENERATED: DSP-YYYYMMDD-XXXX
-  
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caseNumber String @unique // AUTO-GENERATED: DSP-YYYYMMDD-XXXX
+
   // Parties involved
-  landlordId        String    @db.Uuid
-  contractorId      String?   @db.Uuid
-  homeownerId       String?   @db.Uuid
-  workOrderId       String?   @db.Uuid
-  
+  landlordId   String  @db.Uuid
+  contractorId String? @db.Uuid
+  homeownerId  String? @db.Uuid
+  workOrderId  String? @db.Uuid
+
   // Dispute details
-  type              String    // payment, quality, timeline, scope, communication, other
-  category          String    // work_not_completed, poor_quality, overcharge, damage, no_show, contract_breach, other
-  status            String    @default("open") // open, under_review, mediation, escalated, resolved, closed, cancelled
-  priority          String    @default("medium") // low, medium, high, urgent
-  
+  type     String // payment, quality, timeline, scope, communication, other
+  category String // work_not_completed, poor_quality, overcharge, damage, no_show, contract_breach, other
+  status   String @default("open") // open, under_review, mediation, escalated, resolved, closed, cancelled
+  priority String @default("medium") // low, medium, high, urgent
+
   // Financial
-  disputedAmount    Decimal?  @db.Decimal(12, 2)
-  resolvedAmount    Decimal?  @db.Decimal(12, 2)
-  escrowHeld        Decimal?  @db.Decimal(12, 2)
-  
+  disputedAmount Decimal? @db.Decimal(12, 2)
+  resolvedAmount Decimal? @db.Decimal(12, 2)
+  escrowHeld     Decimal? @db.Decimal(12, 2)
+
   // Description
   title             String
   description       String
   desiredResolution String?
-  
+
   // Resolution
-  resolution        String?
-  resolutionType    String?   // refund_full, refund_partial, work_redo, mediated_agreement, dismissed, other
-  resolvedById      String?   @db.Uuid
-  resolvedAt        DateTime? @db.Timestamp(6)
-  
+  resolution     String?
+  resolutionType String? // refund_full, refund_partial, work_redo, mediated_agreement, dismissed, other
+  resolvedById   String?   @db.Uuid
+  resolvedAt     DateTime? @db.Timestamp(6)
+
   // Assignment
-  assignedToId      String?   @db.Uuid
-  assignedAt        DateTime? @db.Timestamp(6)
-  
+  assignedToId String?   @db.Uuid
+  assignedAt   DateTime? @db.Timestamp(6)
+
   // SLA tracking
-  responseDeadline  DateTime? @db.Timestamp(6)
+  responseDeadline   DateTime? @db.Timestamp(6)
   resolutionDeadline DateTime? @db.Timestamp(6)
-  
+
   // Metadata
-  filedById         String    @db.Uuid
-  filedByRole       String    // landlord, contractor, homeowner, admin
-  
-  createdAt         DateTime  @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime  @updatedAt
+  filedById   String @db.Uuid
+  filedByRole String // landlord, contractor, homeowner, admin
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
 
   // Relations
-  landlord          Landlord  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
-  filedBy           User      @relation("DisputeFiledBy", fields: [filedById], references: [id], onDelete: Cascade)
-  assignedTo        User?     @relation("DisputeAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
-  resolvedBy        User?     @relation("DisputeResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
-  messages          DisputeMessage[]
-  evidence          DisputeEvidence[]
-  timeline          DisputeTimeline[]
+  landlord   Landlord          @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  filedBy    User              @relation("DisputeFiledBy", fields: [filedById], references: [id], onDelete: Cascade)
+  assignedTo User?             @relation("DisputeAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  resolvedBy User?             @relation("DisputeResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  messages   DisputeMessage[]
+  evidence   DisputeEvidence[]
+  timeline   DisputeTimeline[]
 
   @@index([landlordId])
   @@index([contractorId])
@@ -3078,17 +3122,17 @@ model Dispute {
 
 // DisputeMessage - Communication thread for disputes
 model DisputeMessage {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  disputeId   String   @db.Uuid
-  senderId    String   @db.Uuid
-  senderRole  String   // landlord, contractor, homeowner, admin, mediator
-  message     String
-  isInternal  Boolean  @default(false) // Internal notes not visible to parties
-  readAt      DateTime? @db.Timestamp(6)
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeId  String    @db.Uuid
+  senderId   String    @db.Uuid
+  senderRole String // landlord, contractor, homeowner, admin, mediator
+  message    String
+  isInternal Boolean   @default(false) // Internal notes not visible to parties
+  readAt     DateTime? @db.Timestamp(6)
+  createdAt  DateTime  @default(now()) @db.Timestamp(6)
 
-  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
-  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([disputeId])
   @@index([senderId])
@@ -3097,20 +3141,20 @@ model DisputeMessage {
 
 // DisputeEvidence - Supporting documents and media
 model DisputeEvidence {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  disputeId   String   @db.Uuid
-  uploadedById String  @db.Uuid
-  type        String   // image, video, document, contract, invoice, receipt, screenshot, other
-  url         String
-  fileName    String?
-  fileSize    Int?
-  mimeType    String?
-  description String?
-  category    String?  // before_work, after_work, communication, contract, payment, other
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeId    String   @db.Uuid
+  uploadedById String   @db.Uuid
+  type         String // image, video, document, contract, invoice, receipt, screenshot, other
+  url          String
+  fileName     String?
+  fileSize     Int?
+  mimeType     String?
+  description  String?
+  category     String? // before_work, after_work, communication, contract, payment, other
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
 
-  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
-  uploadedBy  User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  dispute    Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 
   @@index([disputeId])
   @@index([uploadedById])
@@ -3118,23 +3162,22 @@ model DisputeEvidence {
 
 // DisputeTimeline - Audit trail of dispute actions
 model DisputeTimeline {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  disputeId   String   @db.Uuid
-  action      String   // created, status_changed, assigned, message_sent, evidence_added, escalated, resolved, closed
-  description String
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeId     String   @db.Uuid
+  action        String // created, status_changed, assigned, message_sent, evidence_added, escalated, resolved, closed
+  description   String
   previousValue String?
-  newValue    String?
-  performedById String @db.Uuid
-  metadata    Json?    @db.Json
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  newValue      String?
+  performedById String   @db.Uuid
+  metadata      Json?    @db.Json
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
 
-  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
-  performedBy User     @relation(fields: [performedById], references: [id], onDelete: Cascade)
+  dispute     Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  performedBy User    @relation(fields: [performedById], references: [id], onDelete: Cascade)
 
   @@index([disputeId])
   @@index([createdAt])
 }
-
 
 // ============= ENTERPRISE API & WEBHOOKS =============
 
@@ -3238,20 +3281,20 @@ model ApiRequestLog {
 
 // Financial Account - Stripe Treasury account for holding funds
 model FinancialAccount {
-  id                        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  landlordId                String?   @db.Uuid
-  contractorId              String?   @db.Uuid
-  stripeConnectedAccountId  String    @db.VarChar(255) // acct_xxx
-  stripeFinancialAccountId  String    @unique @db.VarChar(255) // fa_xxx
-  status                    String    @default("pending") @db.VarChar(50) // pending, active, closed
-  routingNumber             String?   @db.VarChar(20)
-  accountNumberLast4        String?   @db.VarChar(4)
-  bankName                  String?   @db.VarChar(100)
-  availableBalance          Decimal   @default(0) @db.Decimal(12, 2)
-  pendingBalance            Decimal   @default(0) @db.Decimal(12, 2)
-  activeFeatures            String[]  @default([])
-  createdAt                 DateTime  @default(now()) @db.Timestamp(6)
-  updatedAt                 DateTime  @updatedAt
+  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId               String?  @db.Uuid
+  contractorId             String?  @db.Uuid
+  stripeConnectedAccountId String   @db.VarChar(255) // acct_xxx
+  stripeFinancialAccountId String   @unique @db.VarChar(255) // fa_xxx
+  status                   String   @default("pending") @db.VarChar(50) // pending, active, closed
+  routingNumber            String?  @db.VarChar(20)
+  accountNumberLast4       String?  @db.VarChar(4)
+  bankName                 String?  @db.VarChar(100)
+  availableBalance         Decimal  @default(0) @db.Decimal(12, 2)
+  pendingBalance           Decimal  @default(0) @db.Decimal(12, 2)
+  activeFeatures           String[] @default([])
+  createdAt                DateTime @default(now()) @db.Timestamp(6)
+  updatedAt                DateTime @updatedAt
 
   transactions FinancialAccountTransaction[]
 
@@ -3263,18 +3306,18 @@ model FinancialAccount {
 
 // Financial Account Transaction - Treasury transaction history
 model FinancialAccountTransaction {
-  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  financialAccountId   String   @db.Uuid
-  stripeTransactionId  String?  @db.VarChar(255)
-  type                 String   @db.VarChar(50) // inbound_transfer, outbound_payment, received_credit, etc.
-  amount               Decimal  @db.Decimal(12, 2)
-  currency             String   @default("usd") @db.VarChar(3)
-  status               String   @db.VarChar(50) // pending, posted, void, returned
-  description          String?
-  counterpartyName     String?  @db.VarChar(255)
-  counterpartyType     String?  @db.VarChar(50) // bank_account, financial_account
-  metadata             Json?    @db.JsonB
-  createdAt            DateTime @default(now()) @db.Timestamp(6)
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  financialAccountId  String   @db.Uuid
+  stripeTransactionId String?  @db.VarChar(255)
+  type                String   @db.VarChar(50) // inbound_transfer, outbound_payment, received_credit, etc.
+  amount              Decimal  @db.Decimal(12, 2)
+  currency            String   @default("usd") @db.VarChar(3)
+  status              String   @db.VarChar(50) // pending, posted, void, returned
+  description         String?
+  counterpartyName    String?  @db.VarChar(255)
+  counterpartyType    String?  @db.VarChar(50) // bank_account, financial_account
+  metadata            Json?    @db.JsonB
+  createdAt           DateTime @default(now()) @db.Timestamp(6)
 
   financialAccount FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
 

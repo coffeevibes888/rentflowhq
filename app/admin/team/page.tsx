@@ -52,10 +52,8 @@ export default async function TeamPage() {
     );
   }
 
-  // Determine subscription tier
-  const tier = landlordResult.success && landlordResult.landlord
-    ? normalizeTier(landlordResult.landlord.subscriptionTier)
-    : 'starter';
+  // Determine subscription tier from the consistent subscription data source
+  const tier = normalizeTier(subscriptionData.tier);
 
   return (
     <main className="w-full min-h-[600px] pb-8">

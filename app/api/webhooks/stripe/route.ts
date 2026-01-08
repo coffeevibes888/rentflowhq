@@ -33,6 +33,84 @@ export async function POST(req: NextRequest) {
   // Handle successful charges
   if (event.type === 'charge.succeeded') {
     const charge = event.data.object as Stripe.Charge;
+    const amountPaid = charge.amount / 100;
+    const now = new Date();
+    const paymentMethodType = charge.payment_method_details?.type || 'unknown';
+
+    // Handle rent payments (new partial payment logic)
+    const rentPaymentId = charge.metadata?.rentPaymentId;
+    const paymentIntentId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id;
+
+    if (rentPaymentId) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          const rentPayment = await tx.rentPayment.findUnique({
+            where: { id: rentPaymentId },
+            include: { lease: { include: { unit: { include: { property: { include: { landlord: { include: { owner: true } } } } } } } }, tenant: true }
+          });
+
+          if (!rentPayment) {
+            throw new Error(`RentPayment with ID ${rentPaymentId} not found.`);
+          }
+
+          // 1. Create the transaction record
+          await tx.paymentTransaction.create({
+            data: {
+              rentPaymentId: rentPayment.id,
+              amount: amountPaid,
+              status: 'succeeded',
+              method: paymentMethodType,
+              referenceId: charge.id,
+            },
+          });
+
+          // 2. Update the RentPayment itself
+          const newAmountPaid = Number(rentPayment.amountPaid) + amountPaid;
+          const totalAmountDue = Number(rentPayment.amount);
+          
+          let newStatus = rentPayment.status;
+          if (newAmountPaid >= totalAmountDue) {
+            newStatus = 'paid';
+          } else if (newAmountPaid > 0) {
+            newStatus = 'partially_paid';
+          }
+
+          await tx.rentPayment.update({
+            where: { id: rentPaymentId },
+            data: {
+              amountPaid: newAmountPaid,
+              status: newStatus,
+              paidAt: newStatus === 'paid' ? now : null, // Only set paidAt when fully paid
+              paymentMethod: paymentMethodType,
+            },
+          });
+
+          // 3. Send notification
+          const landlord = rentPayment.lease.unit.property.landlord;
+          if (landlord?.owner?.id && landlord.id) {
+            await NotificationService.createNotification({
+              userId: landlord.owner.id,
+              type: 'payment',
+              title: 'Rent Payment Received',
+              message: `Partial payment of ${formatCurrency(amountPaid)} received from ${rentPayment.tenant.name}. Total paid: ${formatCurrency(newAmountPaid)} of ${formatCurrency(totalAmountDue)}.`,
+              actionUrl: `/admin/analytics`,
+              metadata: { paymentId: rentPayment.id, leaseId: rentPayment.leaseId },
+              landlordId: landlord.id,
+            });
+          }
+        });
+      } catch (error) {
+         console.error('Error processing partial rent payment:', error);
+         // Return 500 to signal Stripe to retry the webhook
+         return NextResponse.json({ message: 'Failed to process partial payment webhook' }, { status: 500 });
+      }
+    } else if (paymentIntentId) {
+      // Fallback for older logic or payments not using the new flow
+      await prisma.rentPayment.updateMany({
+        where: { stripePaymentIntentId: paymentIntentId },
+        data: { status: 'paid', paidAt: now, paymentMethod: paymentMethodType },
+      });
+    }
 
     // Handle e-commerce orders
     if (charge.metadata?.orderId) {
@@ -45,80 +123,6 @@ export async function POST(req: NextRequest) {
           pricePaid: (charge.amount / 100).toFixed(),
         },
       });
-    }
-
-    // Handle rent payments
-    const paymentIntentIdRaw = charge.payment_intent;
-    const paymentIntentId =
-      typeof paymentIntentIdRaw === 'string'
-        ? paymentIntentIdRaw
-        : paymentIntentIdRaw?.id;
-
-    if (paymentIntentId) {
-      const now = new Date();
-      const paymentMethodType = charge.payment_method_details?.type || 'unknown';
-
-      // Get rent payments linked to this payment intent
-      const rentPayments = await prisma.rentPayment.findMany({
-        where: {
-          stripePaymentIntentId: paymentIntentId,
-        },
-        include: {
-          lease: {
-            include: {
-              unit: {
-                include: {
-                  property: {
-                    include: {
-                      landlord: {
-                        include: {
-                          owner: {
-                            select: { id: true },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          tenant: {
-            select: { id: true, name: true },
-          },
-        },
-      });
-
-      // Update payment status to paid
-      await prisma.rentPayment.updateMany({
-        where: {
-          stripePaymentIntentId: paymentIntentId,
-        },
-        data: {
-          status: 'paid',
-          paidAt: now,
-          paymentMethod: paymentMethodType,
-        },
-      });
-
-      // Notify landlord about successful payment
-      // NOTE: No wallet crediting - payment went directly to their Connect account
-      for (const payment of rentPayments) {
-        const landlordId = payment.lease.unit.property.landlordId;
-        const landlord = payment.lease.unit.property.landlord;
-        
-        if (landlord?.owner?.id && landlordId) {
-          await NotificationService.createNotification({
-            userId: landlord.owner.id,
-            type: 'payment',
-            title: 'Rent Payment Received',
-            message: `Payment of $${Number(payment.amount).toFixed(2)} received from ${payment.tenant.name} for ${payment.lease.unit.property.name} - ${payment.lease.unit.name}. Funds sent directly to your bank.`,
-            actionUrl: `/admin/analytics`,
-            metadata: { paymentId: payment.id, leaseId: payment.leaseId },
-            landlordId,
-          });
-        }
-      }
     }
 
     return NextResponse.json({

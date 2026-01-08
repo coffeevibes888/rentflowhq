@@ -10,7 +10,7 @@ import { prisma } from '@/db/prisma';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
-import { Clock, DollarSign, FileText, MessageSquare, Wrench, Building2, Users, CreditCard, Calendar, Shield, TrendingUp, ArrowRight } from 'lucide-react';
+import { Clock, DollarSign, FileText, MessageSquare, Building2, Users, CreditCard, Calendar, Shield, TrendingUp, ArrowRight } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
 
 // Cache landlord lookup for 5 minutes to reduce DB queries
@@ -187,7 +187,7 @@ const Homepage = async () => {
                  Fully Automated!
                 </h4>
                 <p className='text-sm md:text-lg text-white font-bold max-w-xl leading-relaxed'>
-                  Find the time to live the life you always dreamed and let us handle the dirty work...From appications, collecting rents, leases, maintance tickets, internal communicatins, to yes even the eviction process we got your back...
+                  Find the time to live the life you always dreamed and let us handle the dirty work...From appications, collecting rents, leases, maintance tickets, internal communicatins, to even the eviction process -- we got your back.
                 </p>
           
                 
@@ -234,8 +234,8 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Total Units</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>1</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>1 vacant</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>475</div>
+                      <div className='text-[8px] md:text-[10px] text-slate-400'>58 vacant</div>
                     </div>
                   </div>
 
@@ -246,23 +246,23 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Rent This Month</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>$0.00</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>0% collected</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>$74,000</div>
+                      <div className='text-[8px] md:text-[10px] text-slate-400'>70% collected</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
                       <div className='flex items-center justify-between'>
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Maintenance</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>0</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>0 urgent</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>14</div>
+                      <div className='text-[8px] md:text-[10px] text-slate-400'>3 urgent</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
                       <div className='flex items-center justify-between'>
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Applications</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>1</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>24</div>
                       <div className='text-[8px] md:text-[10px] text-slate-400'>Review now</div>
                     </div>
                   </div>
@@ -274,7 +274,7 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Available Balance</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>$0.00</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>$46,000</div>
                       <div className='text-[8px] md:text-[10px] text-slate-400'>Ready to cash out</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
@@ -282,7 +282,7 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Messages</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>0</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>24</div>
                       <div className='text-[8px] md:text-[10px] text-slate-400'>Open inbox threads</div>
                     </div>
                   </div>
@@ -292,19 +292,19 @@ const Homepage = async () => {
                     <div className='grid grid-cols-4 gap-2 text-center'>
                       <div>
                         <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Occupied</div>
-                        <div className='text-base md:text-lg font-bold text-white'>0</div>
+                        <div className='text-base md:text-lg font-bold text-white'>367</div>
                       </div>
                       <div>
                         <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Tenants</div>
-                        <div className='text-base md:text-lg font-bold text-white'>1</div>
+                        <div className='text-base md:text-lg font-bold text-white'>443</div>
                       </div>
                       <div>
                         <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Rent (YTD)</div>
-                        <div className='text-base md:text-lg font-bold text-white'>$0.00</div>
+                        <div className='text-base md:text-lg font-bold text-white'>$256,000</div>
                       </div>
                       <div>
                         <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Properties</div>
-                        <div className='text-base md:text-lg font-bold text-white'>1</div>
+                        <div className='text-base md:text-lg font-bold text-white'>475</div>
                       </div>
                     </div>
                   </div>
@@ -314,103 +314,147 @@ const Homepage = async () => {
           </div>
         </section>
 
-        <PricingSection />
-
-        {/* Two Killer Features Section */}
+        {/* Key Features Section */}
         <section className='w-full py-10 md:py-16 px-3 md:px-4'>
-          <div className='max-w-5xl mx-auto'>
+          <div className='max-w-6xl mx-auto'>
             <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
-              
-              {/* FREE Lease Builder Card */}
-              <div className='group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]'>
-                <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-900' />
-                <div className='absolute inset-0 border border-emerald-500/30 rounded-2xl md:rounded-3xl' />
+      
+              {/* Tenant Lifecycle Flow Card - Full Width */}
+              <div className='md:col-span-2 group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.01]'>
+                <div className='absolute inset-0 bg-gradient-to-r from-indigo-700 to-blue-900' />
+                <div className='absolute inset-0 border border-cyan-500/30 rounded-2xl md:rounded-3xl' />
                 <div className='absolute top-4 right-4 md:top-6 md:right-6'>
-                  <span className='inline-flex items-center gap-1 bg-emerald-500/20 backdrop-blur-sm text-emerald-400 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-500/40'>
+                  <span className='inline-flex items-center gap-1 bg-cyan-500/20 backdrop-blur-sm text-cyan-400 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-cyan-500/40'>
                     <span className='relative flex h-2 w-2'>
-                      <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75'></span>
-                      <span className='relative inline-flex rounded-full h-2 w-2 bg-emerald-400'></span>
+                      <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75'></span>
+                      <span className='relative inline-flex rounded-full h-2 w-2 bg-cyan-400'></span>
                     </span>
-                    100% FREE
+                    AUTOMATED
                   </span>
                 </div>
                 <div className='relative p-6 md:p-8 space-y-4 md:space-y-6'>
-                  <div className='h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-emerald-500/20 backdrop-blur-sm flex items-center justify-center border border-emerald-500/30'>
-                    <svg className='h-7 w-7 md:h-8 md:w-8 text-emerald-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                  </div>
                   <div className='space-y-2'>
-                    <h3 className='text-2xl md:text-3xl font-bold text-white'>Free Lease Builder</h3>
-                    <p className='text-slate-300 text-sm md:text-base leading-relaxed'>
-                      Create professional, legally-sound leases in minutes. Unlimited leases. E-signatures included. No per-document fees. Ever.
+                    <h3 className='text-2xl md:text-3xl font-bold text-white'>Complete Tenant Lifecycle</h3>
+                    <p className='text-slate-300 text-sm md:text-base'>
+                      From first click to move-out — fully automated
                     </p>
                   </div>
-                  <div className='flex flex-wrap gap-2'>
-                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
-                      <svg className='h-3.5 w-3.5 text-emerald-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
-                      Unlimited Leases
-                    </span>
-                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
-                      <svg className='h-3.5 w-3.5 text-emerald-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
-                      E-Signatures
-                    </span>
-                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
-                      <svg className='h-3.5 w-3.5 text-emerald-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
-                      State-Compliant
-                    </span>
-                  </div>
-                  <div className='pt-2'>
-                    <p className='text-slate-400 text-xs md:text-sm'>
-                      Other platforms charge $15-30 per lease. You pay $0.
-                    </p>
-                  </div>
-                </div>
-              </div>
+                  
+                  {/* Flow Diagram - Figma Style with Dotted Lines */}
+                  <div className='relative py-2 md:py-3'>
+                    <div className='space-y-2 md:space-y-2'>
+                      {/* Row 1: Apply → Screen → Approve → Lease → E-Sign */}
+                      <div className='flex items-center justify-between gap-2 md:gap-1'>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 md:px-4 md:py-2 border-2 border-blue-400 text-center shadow-lg shadow-cyan-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-cyan-400 text-[10px] md:text-xs font-bold'>Add Property</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Listed On White Lable Domain</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-cyan-300/100 text-center shadow-lg shadow-cyan-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-cyan-400 text-[10px] md:text-xs font-bold'>Free Lease Builder</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Or Upload Your Own</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-emerald-300/100 text-center shadow-lg shadow-emerald-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-emerald-400 text-[10px] md:text-xs font-bold'>Tenant Apply's</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>E-mail Notififed</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-violet-300/100 text-center shadow-lg shadow-violet-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-violet-400 text-[10px] md:text-xs font-bold'>One Click Approval</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Or Schedual Viewing</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-violet-300/100 text-center shadow-lg shadow-violet-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-violet-400 text-[10px] md:text-xs font-bold'>Tenant Pays Rent</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Directly to your bank</div>
+                        </div>
+                      </div>
 
-              {/* White-Label Portal Card */}
-              <div className='group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]'>
-                <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-900 to-blue-900' />
-                <div className='absolute inset-0 border border-violet-500/30 rounded-2xl md:rounded-3xl' />
-                <div className='absolute top-4 right-4 md:top-6 md:right-6'>
-                  <span className='inline-flex items-center gap-1 bg-violet-500/20 backdrop-blur-sm text-violet-400 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-violet-500/40'>
-                    <span className='relative flex h-2 w-2'>
-                      <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75'></span>
-                      <span className='relative inline-flex rounded-full h-2 w-2 bg-violet-400'></span>
-                    </span>
-                    YOUR BRAND
-                  </span>
-                </div>
-                <div className='relative p-6 md:p-8 space-y-4 md:space-y-6'>
-                  <div className='h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-violet-500/20 backdrop-blur-sm flex items-center justify-center border border-violet-500/30'>
-                    <svg className='h-7 w-7 md:h-8 md:w-8 text-violet-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9' />
-                    </svg>
-                  </div>
-                  <div className='space-y-2'>
-                    <h3 className='text-2xl md:text-3xl font-bold text-white'>Your Own Tenant Portal</h3>
-                    <p className='text-slate-300 text-sm md:text-base leading-relaxed'>
-                      Get your branded website instantly. Tenants apply, sign leases, and pay rent — all under your company name.
-                    </p>
-                  </div>
-                  <div className='flex flex-wrap gap-2'>
-                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
-                      <svg className='h-3.5 w-3.5 text-violet-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
-                      yourname.propertyflowhq.com
-                    </span>
-                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
-                      <svg className='h-3.5 w-3.5 text-violet-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
-                      Unlimited Applications
-                    </span>
-                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
-                      <svg className='h-3.5 w-3.5 text-violet-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
-                      Your Logo & Colors
-                    </span>
-                  </div>
-                  <div className='pt-2'>
-                    <p className='text-slate-400 text-xs md:text-sm'>
-                      Look professional. No coding required. Live in 5 minutes.
-                    </p>
+                      {/* Connector: Row 1 to Row 2 (down arrow on right side) */}
+                      <div className='flex justify-end pr-[35px] md:pr-[50px]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-4 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                      </div>
+                      
+                      {/* Row 2: Move-In ← Late? ← Renew ← Maintain ← Rent (RIGHT TO LEFT, Rent under E-Sign) */}
+                      <div className='flex items-center justify-between gap-2 md:gap-3'>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-amber-300/100 text-center shadow-lg shadow-amber-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-amber-400 text-[10px] md:text-xs font-bold'>Internal Communitcations</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Notices Sent</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-amber-300/100 text-center shadow-lg shadow-amber-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-amber-400 text-[10px] md:text-xs font-bold'>Late Rent?</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Auto Late Fee's</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-violet-300/100 text-center shadow-lg shadow-violet-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-violet-400 text-[10px] md:text-xs font-bold'>Contractor Marketplace</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Find and Hire Contractors</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-emerald-300/100 text-center shadow-lg shadow-emerald-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-emerald-400 text-[10px] md:text-xs font-bold'>Maintence Tickets</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Urgency Sytem</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-emerald-300/100 text-center shadow-lg shadow-emerald-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-emerald-400 text-[10px] md:text-xs font-bold'>Tenant Moves In</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Key's Ready</div>
+                        </div>
+                      </div>
+
+                      {/* Connector: Row 2 to Row 3 (down arrow on left side) */}
+                      <div className='flex justify-start pl-[35px] md:pl-[50px]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-4 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                      </div>
+                      
+                      {/* Row 3: Eviction → Move-Out (LEFT TO RIGHT) */}
+                      <div className='flex items-center gap-2 md:gap-3'>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-red-300/100 text-center shadow-lg shadow-red-500/10 min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-red-400 text-[10px] md:text-xs font-bold'>Eviction</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Legal Docs</div>
+                        </div>
+                        <div className='w-16 md:w-24 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-slate-300/100 text-center shadow-lg min-w-[70px] md:min-w-[100px]'>
+                          <div className='text-slate-300 text-[10px] md:text-xs font-bold'>Move-Out</div>
+                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Inspection Check list</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -418,6 +462,9 @@ const Homepage = async () => {
             </div>
           </div>
         </section>
+
+        <PricingSection />
+
 
         {/* Pain Points → Solutions */}
         <section className='w-full py-10 md:py-20 px-3 md:px-4'>
@@ -548,7 +595,107 @@ const Homepage = async () => {
             </div>
           </div>
         </section>
+    {/* Key Features Section */}
+        <section className='w-full py-10 md:py-16 px-3 md:px-4'>
+          <div className='max-w-6xl mx-auto'>
+            <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
+              
+              {/* FREE Lease Builder Card */}
+              <div className='group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]'>
+                <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-900' />
+                <div className='absolute inset-0 border border-emerald-500/30 rounded-2xl md:rounded-3xl' />
+                <div className='absolute top-4 right-4 md:top-6 md:right-6'>
+                  <span className='inline-flex items-center gap-1 bg-emerald-500/20 backdrop-blur-sm text-emerald-400 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-500/40'>
+                    <span className='relative flex h-2 w-2'>
+                      <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75'></span>
+                      <span className='relative inline-flex rounded-full h-2 w-2 bg-emerald-400'></span>
+                    </span>
+                    100% FREE
+                  </span>
+                </div>
+                <div className='relative p-6 md:p-8 space-y-4 md:space-y-6'>
+                  <div className='h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-emerald-500/20 backdrop-blur-sm flex items-center justify-center border border-emerald-500/30'>
+                    <svg className='h-7 w-7 md:h-8 md:w-8 text-emerald-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                  </div>
+                  <div className='space-y-2'>
+                    <h3 className='text-2xl md:text-3xl font-bold text-white'>Free Lease Builder</h3>
+                    <p className='text-slate-300 text-sm md:text-base leading-relaxed'>
+                      Create professional, legally-sound leases in minutes. Unlimited leases. E-signatures included. No per-document fees. Ever.
+                    </p>
+                  </div>
+                  <div className='flex flex-wrap gap-2'>
+                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
+                      <svg className='h-3.5 w-3.5 text-emerald-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
+                      Unlimited Leases
+                    </span>
+                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
+                      <svg className='h-3.5 w-3.5 text-emerald-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
+                      E-Signatures
+                    </span>
+                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
+                      <svg className='h-3.5 w-3.5 text-emerald-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
+                      State-Compliant
+                    </span>
+                  </div>
+                  <div className='pt-2'>
+                    <p className='text-slate-400 text-xs md:text-sm'>
+                      Other platforms charge $15-30 per lease. You pay $0.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
+              {/* White-Label Portal Card */}
+              <div className='group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]'>
+                <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-900 to-blue-900' />
+                <div className='absolute inset-0 border border-violet-500/30 rounded-2xl md:rounded-3xl' />
+                <div className='absolute top-4 right-4 md:top-6 md:right-6'>
+                  <span className='inline-flex items-center gap-1 bg-violet-500/20 backdrop-blur-sm text-violet-400 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-violet-500/40'>
+                    <span className='relative flex h-2 w-2'>
+                      <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75'></span>
+                      <span className='relative inline-flex rounded-full h-2 w-2 bg-violet-400'></span>
+                    </span>
+                    YOUR BRAND
+                  </span>
+                </div>
+                <div className='relative p-6 md:p-8 space-y-4 md:space-y-6'>
+                  <div className='h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-violet-500/20 backdrop-blur-sm flex items-center justify-center border border-violet-500/30'>
+                    <svg className='h-7 w-7 md:h-8 md:w-8 text-violet-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9' />
+                    </svg>
+                  </div>
+                  <div className='space-y-2'>
+                    <h3 className='text-2xl md:text-3xl font-bold text-white'>Your Own Tenant Portal</h3>
+                    <p className='text-slate-300 text-sm md:text-base leading-relaxed'>
+                      Get your branded website instantly. Tenants apply, sign leases, and pay rent — all under your company name.
+                    </p>
+                  </div>
+                  <div className='flex flex-wrap gap-2'>
+                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
+                      <svg className='h-3.5 w-3.5 text-violet-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
+                      yourname.propertyflowhq.com
+                    </span>
+                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
+                      <svg className='h-3.5 w-3.5 text-violet-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
+                      Unlimited Applications
+                    </span>
+                    <span className='inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50'>
+                      <svg className='h-3.5 w-3.5 text-violet-400' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' /></svg>
+                      Your Logo & Colors
+                    </span>
+                  </div>
+                  <div className='pt-2'>
+                    <p className='text-slate-400 text-xs md:text-sm'>
+                      Look professional. No coding required. Live in 5 minutes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
         {/* Features Grid */}
         {/* <section className='w-full py-10 md:py-20 px-3 md:px-4'>
           <div className='max-w-6xl mx-auto space-y-8 md:space-y-12'>
@@ -625,7 +772,7 @@ const Homepage = async () => {
         </section> */}
       </main>
 
-      <NewsletterSignup />
+      {/* <NewsletterSignup /> */}
       {/* <CustomerReviews /> */}
       <HomeContactCard />
       <ExitIntentPopup />

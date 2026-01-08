@@ -25,7 +25,6 @@ const tiers = [
     features: [
       { name: 'Up to 24 units', included: true },
       { name: 'Online rent collection', included: true },
-      { name: 'Your own branded tenant portal', included: true },
       { name: 'Custom Subdomain (yourname.propertyflowhq.com)', included: true },
       { name: 'Maintenance Ticket System', included: true },
       { name: 'Digital leases with E-Sign', included: true },
@@ -44,13 +43,13 @@ const tiers = [
     name: 'Pro',
     price: 39.99,
     description: 'For growing landlords. The only tool that scales with you.',
-    unitLimit: 'Up to 75 units',
+    unitLimit: 'Up to 150 units',
     icon: Zap,
     popular: true,
     comingSoon: false,
     features: [
       { name: 'Everything in Starter', included: true },
-      { name: 'Up to 75 units', included: true },
+      { name: 'Up to 150 units', included: true },
       { name: 'QuickBooks & TurboTax integration', included: true },
       { name: 'Automatic rent reminders', included: true },
       { name: 'Auto late fee charges', included: true },

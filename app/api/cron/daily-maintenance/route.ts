@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { applyLateFees } from '@/lib/actions/cron.actions';
 
 // Combined daily maintenance cron job
 // Runs: cleanup expired documents, release pending balances, check verification expiration, process webhook retries
@@ -163,6 +164,15 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Cleanup API logs error:', error);
     errors.push(`Cleanup API logs: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // 6. Apply Automatic Late Fees
+  try {
+    const lateFeeResult = await applyLateFees();
+    results.applyLateFees = lateFeeResult;
+  } catch (error) {
+    console.error('Apply late fees error:', error);
+    errors.push(`Apply late fees: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
   return NextResponse.json({

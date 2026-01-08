@@ -225,35 +225,43 @@ export async function deleteShift(shiftId: string) {
 
 // Clock in
 export async function clockIn(data: z.infer<typeof clockInSchema>) {
+  console.log('--- Clock In Action Started ---');
   try {
     const session = await auth();
+    console.log('1. Session:', session ? `User ID: ${session.user?.id}` : 'No session');
     if (!session?.user?.id) {
       return { success: false, message: 'Not authenticated' };
     }
 
     const validatedData = clockInSchema.parse(data);
+    console.log('2. Validated Data:', validatedData);
 
     // Find team member for current user
     const teamMember = await prisma.teamMember.findFirst({
       where: { userId: session.user.id, status: 'active' },
       include: { landlord: { select: { subscriptionTier: true } } },
     });
+    console.log('3. Team Member:', teamMember ? `ID: ${teamMember.id}, Landlord ID: ${teamMember.landlordId}` : 'Not found');
 
     if (!teamMember) {
       return { success: false, message: 'You are not a team member' };
     }
 
+    console.log('4. Checking enterprise access...');
     await checkEnterpriseTierAccess(teamMember.landlordId);
+    console.log('5. Enterprise access GRANTED.');
 
     // Check if already clocked in
     const activeEntry = await prisma.timeEntry.findFirst({
       where: { teamMemberId: teamMember.id, clockOut: null },
     });
+    console.log('6. Active Entry Check:', activeEntry ? `Found active entry ID: ${activeEntry.id}` : 'No active entry');
 
     if (activeEntry) {
       return { success: false, message: 'You are already clocked in' };
     }
 
+    console.log('7. Creating new TimeEntry...');
     const entry = await prisma.timeEntry.create({
       data: {
         landlordId: teamMember.landlordId,
@@ -266,11 +274,15 @@ export async function clockIn(data: z.infer<typeof clockInSchema>) {
         notes: validatedData.notes || null,
       },
     });
+    console.log('8. New TimeEntry created:', entry.id);
 
     revalidatePath('/admin/team-operations');
     revalidatePath('/admin/team');
+    console.log('--- Clock In Action Succeeded ---');
     return { success: true, message: 'Clocked in successfully', timeEntryId: entry.id };
   } catch (error) {
+    console.error('--- Clock In Action FAILED ---');
+    console.error('Full Error:', error);
     return { success: false, message: formatError(error) };
   }
 }

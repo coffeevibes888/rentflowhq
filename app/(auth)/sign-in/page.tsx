@@ -46,6 +46,14 @@ const SignInPage = async (props: {
       return redirect('/admin/overview');
     } else if (role === 'super_admin') {
       return redirect('/super-admin');
+    } else if (role === 'contractor') {
+      return redirect('/contractor');
+    } else if (role === 'homeowner') {
+      return redirect('/homeowner/dashboard');
+    } else if (role === 'agent') {
+      return redirect('/agent');
+    } else if (role === 'employee') {
+      return redirect('/employee');
     } else {
       // All other roles (tenant, user, etc.) go to user dashboard
       return redirect('/user/dashboard');

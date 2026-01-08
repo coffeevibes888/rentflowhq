@@ -34,6 +34,7 @@ import { DepositDispositionModal } from './deposit-disposition-modal';
 import { EvictionHistoryPanel } from './eviction-history-panel';
 import { TenantDocumentsModal } from './tenant-documents-modal';
 import { useToast } from '@/hooks/use-toast';
+import { LeaseRecurringCharges } from './lease-recurring-charges';
 
 interface EnhancedTenantCardProps {
   lease: any;
@@ -47,13 +48,14 @@ interface EnhancedTenantCardProps {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     paid: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
+    partially_paid: 'bg-sky-500/20 text-sky-300 border-sky-400/30',
     pending: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
     overdue: 'bg-red-500/20 text-red-300 border-red-400/30',
     cancelled: 'bg-slate-500/20 text-slate-300 border-slate-400/30',
   };
   return (
     <Badge className={`${styles[status] || styles.pending} text-[10px] sm:text-xs`}>
-      {status}
+      {status.replace(/_/g, ' ')}
     </Badge>
   );
 }
@@ -398,6 +400,12 @@ export function EnhancedTenantCard({
                   Payments
                 </TabsTrigger>
                 <TabsTrigger
+                  value="recurring"
+                  className="text-xs sm:text-sm data-[state=active]:bg-slate-800 data-[state=active]:text-white"
+                >
+                  Recurring
+                </TabsTrigger>
+                <TabsTrigger
                   value="documents"
                   className="text-xs sm:text-sm data-[state=active]:bg-slate-800 data-[state=active]:text-white"
                 >
@@ -617,17 +625,39 @@ export function EnhancedTenantCard({
                   {payments.length > 0 ? (
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {payments.map((payment: any) => (
-                        <div
-                          key={payment.id}
-                          className="flex items-center justify-between text-xs sm:text-sm gap-2 py-2 border-b border-white/5 last:border-0"
-                        >
-                          <span className="text-slate-400">
-                            {new Date(payment.dueDate).toLocaleDateString()}
-                          </span>
-                          <span className="text-slate-300">
-                            {formatCurrency(Number(payment.amount))}
-                          </span>
-                          <StatusBadge status={payment.status} />
+                        <div key={payment.id} className="text-xs sm:text-sm py-2 border-b border-white/5 last:border-0">
+                          <div
+                            className="flex items-center justify-between gap-2"
+                          >
+                            <span className="text-slate-400">
+                              {new Date(payment.dueDate).toLocaleDateString()}
+                            </span>
+                            <div className="text-right">
+                                <span className="text-slate-300 font-medium">
+                                {formatCurrency(Number(payment.amount))}
+                                </span>
+                                {payment.status === 'partially_paid' && (
+                                    <p className="text-xs text-sky-400">
+                                        ({formatCurrency(Number(payment.amount) - Number(payment.amountPaid))} left)
+                                    </p>
+                                )}
+                            </div>
+                            <StatusBadge status={payment.status} />
+                          </div>
+                          {payment.transactions && payment.transactions.length > 0 && (
+                            <div className="pl-4 mt-2 space-y-1">
+                                {payment.transactions.map((tx: any) => (
+                                    <div key={tx.id} className="flex justify-between items-center text-xs">
+                                        <p className="text-slate-500">
+                                            - Transaction on {new Date(tx.processedAt).toLocaleDateString()}
+                                        </p>
+                                        <p className="text-slate-400">
+                                            {formatCurrency(Number(tx.amount))}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -637,6 +667,11 @@ export function EnhancedTenantCard({
                     </p>
                   )}
                 </div>
+              </TabsContent>
+
+              {/* Recurring Charges Tab */}
+              <TabsContent value="recurring" className="mt-0">
+                <LeaseRecurringCharges lease={lease} />
               </TabsContent>
 
               {/* Documents Tab */}

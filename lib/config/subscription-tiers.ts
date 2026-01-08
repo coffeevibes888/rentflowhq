@@ -3,7 +3,7 @@
  * 
  * PRICING MODEL:
  * - Starter: $19.99/month (up to 24 units)
- * - Pro: $39.99/month (up to 75 units)
+ * - Pro: $39.99/month (up to 150 units)
  * - Enterprise: $79.99/month (unlimited)
  * 
  * All tiers include 7-day free trial
@@ -48,7 +48,7 @@ export const SUBSCRIPTION_TIERS = {
     name: 'Pro',
     price: 39.99,
     priceId: process.env.STRIPE_PRICE_PRO || null,
-    unitLimit: 75,
+    unitLimit: 150,
     trialDays: 7,
     features: {
       automaticRentReminders: true,
@@ -75,7 +75,7 @@ export const SUBSCRIPTION_TIERS = {
       performanceReports: false,
       unlimitedTeamMembers: false,
     },
-    description: 'Everything you need for growing portfolios up to 75 units',
+    description: 'Everything you need for growing portfolios up to 150 units',
   },
   enterprise: {
     name: 'Enterprise',
@@ -136,13 +136,13 @@ export function normalizeTier(tier: string | null | undefined): SubscriptionTier
 
 export function getTierForUnitCount(unitCount: number): SubscriptionTier {
   if (unitCount <= 24) return 'starter';
-  if (unitCount <= 75) return 'pro';
+  if (unitCount <= 150) return 'pro';
   return 'enterprise';
 }
 
 export function getRequiredTierForUnitCount(unitCount: number): SubscriptionTier {
   if (unitCount <= 24) return 'starter';
-  if (unitCount <= 75) return 'pro';
+  if (unitCount <= 150) return 'pro';
   return 'enterprise';
 }
 
