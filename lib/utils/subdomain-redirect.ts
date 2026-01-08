@@ -28,12 +28,42 @@ async function getLandlordSlugFromPath(): Promise<string | null> {
   return null;
 }
 
+function normalizeUserRole(role: string | null | undefined): string {
+  const raw = (role ?? '').trim();
+  if (!raw) return 'user';
+
+  const cleaned = raw
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+    .replace(/[^a-z_]/g, '');
+
+  switch (cleaned) {
+    case 'superadmin':
+      return 'super_admin';
+    case 'propertymanager':
+    case 'pm':
+      return 'property_manager';
+    default:
+      return cleaned;
+  }
+}
+
 /**
  * Get redirect URL after login based on user role
  * Uses path-based routing instead of subdomain routing
  */
 export async function getSubdomainRedirectUrl(userRole: string, userId: string): Promise<string> {
   try {
+    const role = normalizeUserRole(userRole);
+
+    if (role === 'user' && userId) {
+      const landlordOwned = await prisma.landlord.findFirst({
+        where: { ownerUserId: userId },
+        select: { id: true },
+      });
+      if (landlordOwned) return '/admin/overview';
+    }
+
     const currentSlug = await getLandlordSlugFromPath();
 
     // If user is on a landlord portal path (e.g., /love-your-god/sign-in)
@@ -65,7 +95,7 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
         });
 
         if (userAssociation) {
-          switch (userRole) {
+          switch (role) {
             case 'landlord':
             case 'property_manager':
             case 'admin':
@@ -79,18 +109,18 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
         } else {
           // User doesn't belong to this landlord's portal
           // Redirect based on role to their appropriate dashboard
-          if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
+          if (role === 'landlord' || role === 'property_manager' || role === 'admin') {
             return '/admin/overview';
-          } else if (userRole === 'super_admin') {
+          } else if (role === 'super_admin') {
             return '/super-admin';
           }
           return '/user/dashboard';
         }
       } else {
         // Landlord slug doesn't exist, redirect based on role
-        if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
+        if (role === 'landlord' || role === 'property_manager' || role === 'admin') {
           return '/admin/overview';
-        } else if (userRole === 'super_admin') {
+        } else if (role === 'super_admin') {
           return '/super-admin';
         }
         return '/user/dashboard';
@@ -98,7 +128,7 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
     }
 
     // Not on a landlord portal path, redirect based on role
-    switch (userRole) {
+    switch (role) {
       case 'admin':
       case 'landlord':
       case 'property_manager':
@@ -121,9 +151,10 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
   } catch (error) {
     console.error('Error determining redirect:', error);
     // Fallback based on role even if there's an error
-    if (userRole === 'landlord' || userRole === 'property_manager' || userRole === 'admin') {
+    const role = normalizeUserRole(userRole);
+    if (role === 'landlord' || role === 'property_manager' || role === 'admin') {
       return '/admin/overview';
-    } else if (userRole === 'super_admin') {
+    } else if (role === 'super_admin') {
       return '/super-admin';
     }
     // Default to user dashboard for all other roles

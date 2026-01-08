@@ -14,6 +14,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { prisma } from '@/db/prisma';
+import { getSubdomainRedirectUrl } from '@/lib/utils/subdomain-redirect';
 
 export const metadata: Metadata = {
   title: 'Sign In',
@@ -36,28 +37,20 @@ const SignInPage = async (props: {
     }
     
     // Redirect to callback URL if valid, otherwise to role-based dashboard
-    if (callbackUrl && callbackUrl !== '/sign-in' && callbackUrl !== '/sign-up') {
+    if (
+      callbackUrl &&
+      callbackUrl !== '/sign-in' &&
+      callbackUrl !== '/sign-up' &&
+      callbackUrl !== '/user/dashboard'
+    ) {
       return redirect(callbackUrl);
     }
-    
-    // Role-based redirect - all users go to their dashboard, never to homepage
-    const role = session.user.role;
-    if (role === 'admin' || role === 'landlord' || role === 'property_manager') {
-      return redirect('/admin/overview');
-    } else if (role === 'super_admin') {
-      return redirect('/super-admin');
-    } else if (role === 'contractor') {
-      return redirect('/contractor');
-    } else if (role === 'homeowner') {
-      return redirect('/homeowner/dashboard');
-    } else if (role === 'agent') {
-      return redirect('/agent');
-    } else if (role === 'employee') {
-      return redirect('/employee');
-    } else {
-      // All other roles (tenant, user, etc.) go to user dashboard
-      return redirect('/user/dashboard');
-    }
+
+    const redirectUrl = await getSubdomainRedirectUrl(
+      session.user.role ?? 'user',
+      session.user.id
+    );
+    return redirect(redirectUrl);
   }
 
   const headersList = await headers();
