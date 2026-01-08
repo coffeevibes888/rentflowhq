@@ -6,6 +6,7 @@ import { getCategoryTree } from '@/lib/actions/product.actions';
 import { prisma } from '@/db/prisma';
 import { headers } from 'next/headers';
 import { auth } from '@/auth';
+import { ChevronDown } from 'lucide-react';
 
 async function getLandlordForRequest() {
   const headersList = await headers();
@@ -48,8 +49,9 @@ const Header = async () => {
         </div>
       </div>
 
-      <div className="wrapper hidden md:flex items-center justify-between h-16 overflow-visible">
-        <div className="flex items-center flex-shrink-0">
+      <div className="wrapper hidden md:flex items-center h-16 overflow-visible">
+        {/* Logo - fixed width */}
+        <div className="w-32 flex-shrink-0">
           <Link href='/' className="flex items-center">
             <div className="relative w-24 h-24">
               <Image
@@ -63,23 +65,49 @@ const Header = async () => {
           </Link>
         </div>
 
-        <div className="flex items-center gap-1 text-sm font-medium ml-auto mr-4">
+        {/* Centered Nav Links */}
+        <div className="flex-1 flex items-center justify-center gap-1 text-sm font-medium">
           <Link href='/' className="px-2.5 py-1.5 text-black hover:underline">Home</Link>
           <Link href='/listings' className="px-2.5 py-1.5 text-black hover:underline">Listings</Link>
           <Link href='/contractors' className="px-2.5 py-1.5 text-black hover:underline">Contractors</Link>
-          <Link href='/about' className="px-2.5 py-1.5 text-black hover:underline">About</Link>
-          <Link href='/contact' className="px-2.5 py-1.5 text-black hover:underline">Contact</Link>
-          <Link href='/affiliate-program' className="px-2.5 py-1.5 text-black hover:underline">Affiliates</Link>
+
+          {/* Resources Dropdown */}
+          <div className="relative group">
+            <button className="px-2.5 py-1.5 text-black hover:underline flex items-center gap-1">
+              Resources
+              <ChevronDown className="h-4 w-4" />
+            </button>
+            <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-white border rounded-md shadow-lg z-50 min-w-[200px]">
+              <div className="py-2">
+                <Link href='/faq' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">
+                  FAQs
+                </Link>
+                <Link href='/docs/api' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">
+                  API & Webhooks
+                </Link>
+                <Link href='/affiliate-program' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">
+                  Affiliate Program
+                </Link>
+                <div className="border-t my-1"></div>
+                <Link href='/about' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">
+                  About Us
+                </Link>
+                <Link href='/contact' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">
+                  Contact
+                </Link>
+              </div>
+            </div>
+          </div>
 
           <div className="relative group">
             {categories.length > 0 && (
-              <div className="absolute left-0 top-full mt-1 hidden group-hover:flex border rounded-md shadow-lg z-50 min-w-[520px]">
-                <div className="w-52 border-r  py-3">
+              <div className="absolute left-0 top-full mt-1 hidden group-hover:flex border rounded-md shadow-lg z-50 min-w-[520px] bg-white">
+                <div className="w-52 border-r py-3">
                   {categories.map((cat) => (
                     <Link
                       key={cat.category}
                       href={`/search?category=${encodeURIComponent(cat.category)}`}
-                      className="flex items-center justify-between px-4 py-1.5 text-sm "
+                      className="flex items-center justify-between px-4 py-1.5 text-sm"
                     >
                       <span>{cat.category}</span>
                       <span className="text-xs text-slate-400">{cat.count}</span>
@@ -90,13 +118,13 @@ const Header = async () => {
                   {categories.map((cat) => (
                     cat.subCategories.length > 0 && (
                       <div key={cat.category} className="space-y-1">
-                        <p className="text-xs font-semibold uppercase ">{cat.category}</p>
+                        <p className="text-xs font-semibold uppercase">{cat.category}</p>
                         <div className="flex flex-col space-y-0.5">
                           {cat.subCategories.map((sub) => (
                             <Link
                               key={`${cat.category}-${sub}`}
                               href={`/search?category=${encodeURIComponent(cat.category)}&subCategory=${encodeURIComponent(sub)}`}
-                              className="text-sm hover:underline ">
+                              className="text-sm hover:underline">
                               {sub}
                             </Link>
                           ))}
@@ -110,7 +138,10 @@ const Header = async () => {
           </div>
         </div>
 
-        <Menu />
+        {/* Menu - fixed width to balance logo */}
+        <div className="w-32 flex-shrink-0 flex justify-end">
+          <Menu />
+        </div>
       </div>
     </header> 
   );

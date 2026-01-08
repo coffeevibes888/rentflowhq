@@ -1,7 +1,6 @@
 import { APP_NAME } from '@/lib/constants';
-import CustomerReviews from '@/components/home/customer-reviews';
+// import CustomerReviews from '@/components/home/customer-reviews';
 import HomeContactCard from '@/components/home/home-contact-card';
-import FAQSection from '@/components/home/faq-section';
 import TrustBadges from '@/components/home/trust-badges';
 import NewsletterSignup from '@/components/home/newsletter-signup';
 import ExitIntentPopup from '@/components/home/exit-intent-popup';
@@ -181,12 +180,16 @@ const Homepage = async () => {
             <div className='grid gap-6 md:gap-8 lg:grid-cols-2 items-center'>
               <div className='space-y-4 md:space-y-6 animate-in fade-in slide-in-from-left duration-700'>
                 
-                <h1 className='text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
-                 Property Management — Fully Automated.
+                <h1 className='text-3xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
+                 Property Management...
                 </h1>
+                <h4 className='text-3xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
+                 Fully Automated!
+                </h4>
                 <p className='text-sm md:text-lg text-white font-bold max-w-xl leading-relaxed'>
-                  Take control of your time, and stop wasting it on chasing rents, countless hours on reports and doing everything by hand.
+                  Find the time to live the life you always dreamed and let us handle the dirty work...From appications, collecting rents, leases, maintance tickets, internal communicatins, to yes even the eviction process we got your back...
                 </p>
+          
                 
                 <div className='flex flex-wrap items-center gap-3 md:gap-4'>
                   <Link
@@ -547,7 +550,7 @@ const Homepage = async () => {
         </section>
 
         {/* Features Grid */}
-        <section className='w-full py-10 md:py-20 px-3 md:px-4'>
+        {/* <section className='w-full py-10 md:py-20 px-3 md:px-4'>
           <div className='max-w-6xl mx-auto space-y-8 md:space-y-12'>
             <div className='text-center space-y-2 md:space-y-3 animate-in fade-in duration-700'>
               <h2 className='text-2xl md:text-4xl font-bold text-white'>
@@ -589,7 +592,7 @@ const Homepage = async () => {
               })}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Final CTA */}
         {/* <section className='w-full py-16 md:py-20 px-4 bg-gradient-to-br from-violet-500/10 via-cyan-500/10 to-purple-500/10'>
@@ -622,12 +625,11 @@ const Homepage = async () => {
         </section> */}
       </main>
 
-      <TrustBadges />
-      <FAQSection />
       <NewsletterSignup />
-      <CustomerReviews />
+      {/* <CustomerReviews /> */}
       <HomeContactCard />
       <ExitIntentPopup />
+      <TrustBadges />
     </>
   );
 };

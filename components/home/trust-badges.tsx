@@ -81,17 +81,6 @@ export default function TrustBadges() {
               </div>
             </div>
           </div>
-
-          {/* Partner Logos */}
-          <div className='mt-8 pt-6 border-t border-white/10'>
-            <p className='text-center text-xs text-slate-400 mb-4'>Powered by industry leaders</p>
-            <div className='flex flex-wrap items-center justify-center gap-6 md:gap-10 opacity-70'>
-              <div className='text-white font-bold text-sm md:text-base'>Stripe</div>
-              <div className='text-white font-bold text-sm md:text-base'>DocuSign</div>
-              <div className='text-white font-bold text-sm md:text-base'>Vercel</div>
-              <div className='text-white font-bold text-sm md:text-base'>AWS</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>

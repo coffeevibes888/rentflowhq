@@ -42,11 +42,19 @@ export async function GET(request: NextRequest) {
       unreadCount,
     });
   } catch (error) {
-    // Log error without exposing sensitive details
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('Failed to fetch notifications:', error instanceof Error ? error.message : 'Unknown error');
+    // Log full error in development
+    console.error('Failed to fetch notifications:', error);
+    
+    // Check if it's a Prisma error (table doesn't exist)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage.includes('does not exist') || errorMessage.includes('P2021')) {
+      // Table doesn't exist - return empty notifications
+      return NextResponse.json({
+        notifications: [],
+        unreadCount: 0,
+      });
     }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

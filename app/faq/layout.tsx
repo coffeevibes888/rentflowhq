@@ -1,6 +1,6 @@
 import Header from '@/components/shared/header';
 
-export default function DocsLayout({
+export default function FAQLayout({
   children,
 }: {
   children: React.ReactNode;
