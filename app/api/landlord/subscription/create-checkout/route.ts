@@ -24,6 +24,13 @@ export async function POST(req: NextRequest) {
 
     const tierConfig = SUBSCRIPTION_TIERS[targetTier];
 
+    const tierToPriceEnvVar: Record<SubscriptionTier, string> = {
+      starter: 'STRIPE_PRICE_STARTER',
+      pro: 'STRIPE_PRICE_PRO',
+      enterprise: 'STRIPE_PRICE_ENTERPRISE',
+    };
+    const expectedPriceEnvVar = tierToPriceEnvVar[targetTier];
+
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
       return NextResponse.json(
@@ -43,7 +50,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: 'This tier is not available for purchase. Stripe price is not configured (missing STRIPE_PRICE_PRO).',
+          message: `This tier is not available for purchase. Stripe price is not configured (missing ${expectedPriceEnvVar}).`,
+          missingEnvVar: expectedPriceEnvVar,
         },
         { status: 400 }
       );
@@ -69,13 +77,21 @@ export async function POST(req: NextRequest) {
     } catch (error) {
       const stripeMessage =
         error && typeof error === 'object' && 'message' in error ? String((error as any).message) : 'Unknown Stripe error';
+      const stripeMode = stripeSecretKey.startsWith('sk_live_')
+        ? 'live'
+        : stripeSecretKey.startsWith('sk_test_')
+          ? 'test'
+          : 'unknown';
       return NextResponse.json(
         {
           success: false,
           message:
-            'This plan is not purchasable right now. Stripe could not find the configured price for this tier. Check STRIPE_PRICE_PRO / environment mode (test vs live).',
+            `This plan is not purchasable right now. Stripe could not find the configured price for this tier. Check ${expectedPriceEnvVar} / environment mode (test vs live).`,
           details: stripeMessage,
           configuredPriceId: tierConfig.priceId,
+          tier: targetTier,
+          expectedPriceEnvVar,
+          stripeMode,
         },
         { status: 500 }
       );

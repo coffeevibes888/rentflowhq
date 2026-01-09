@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Elements, useElements, useStripe } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -33,6 +35,8 @@ import { useToast } from '@/hooks/use-toast';
 import { addPropertyBankAccount, deletePropertyBankAccount } from '@/lib/actions/property-bank.actions';
 import { Building2, Plus, Trash2, Loader2, CheckCircle2, AlertCircle, CreditCard } from 'lucide-react';
 
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
 interface PropertyWithBankAccount {
   id: string;
   name: string;
@@ -50,11 +54,13 @@ interface PropertyBankManagerProps {
   onAccountRemoved: () => void;
 }
 
-export default function PropertyBankManager({
+function PropertyBankManagerInner({
   properties,
   onAccountAdded,
   onAccountRemoved,
 }: PropertyBankManagerProps) {
+  const stripe = useStripe();
+  const elements = useElements();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
   const [propertyToRemove, setPropertyToRemove] = useState<PropertyWithBankAccount | null>(null);
@@ -101,25 +107,45 @@ export default function PropertyBankManager({
       return;
     }
 
+    if (!stripe || !elements) {
+      setFormError('Stripe has not loaded yet. Please try again.');
+      return;
+    }
+
     setIsSubmitting(true);
     setFormError(null);
 
     try {
-      // In production, you would use Stripe.js to create a bank account token
-      // For now, we'll create a placeholder token and store the masked info
-      const last4 = accountNumber.slice(-4);
-      
-      // Create a mock Stripe payment method ID (in production, this comes from Stripe.js)
-      const mockStripePaymentMethodId = `ba_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const { token, error: stripeError } = await stripe.createToken('bank_account', {
+        country: 'US',
+        currency: 'usd',
+        routing_number: routingNumber,
+        account_number: accountNumber,
+        account_holder_name: accountHolderName.trim(),
+        account_holder_type: 'individual',
+      });
+
+      if (stripeError) {
+        setFormError(stripeError.message || 'Failed to validate bank account');
+        return;
+      }
+
+      if (!token) {
+        setFormError('Failed to create bank account token');
+        return;
+      }
+
+      const last4 = token.bank_account?.last4 || accountNumber.slice(-4);
+      const bankName = token.bank_account?.bank_name ?? undefined;
 
       const result = await addPropertyBankAccount({
         propertyId: selectedPropertyId,
-        stripePaymentMethodId: mockStripePaymentMethodId,
+        stripeBankAccountTokenId: token.id,
         accountHolderName: accountHolderName.trim(),
         last4,
-        bankName: undefined, // Would be populated from Stripe in production
+        bankName,
         accountType,
-        routingNumber: routingNumber.slice(-4), // Only store last 4 for security
+        routingNumber,
       });
 
       if (result.success) {
@@ -414,5 +440,13 @@ export default function PropertyBankManager({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+export default function PropertyBankManager(props: PropertyBankManagerProps) {
+  return (
+    <Elements stripe={stripePromise}>
+      <PropertyBankManagerInner {...props} />
+    </Elements>
   );
 }

@@ -234,8 +234,8 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Total Units</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>475</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>58 vacant</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>1</div>
+                      <div className='text-[8px] md:text-[10px] text-slate-400'>1 vacant</div>
                     </div>
                   </div>
 
@@ -246,23 +246,23 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Rent This Month</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>$74,000</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>70% collected</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>$0.00</div>
+                      <div className='text-[8px] md:text-[10px] text-slate-400'>0% collected</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
                       <div className='flex items-center justify-between'>
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Maintenance</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>14</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>3 urgent</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>0</div>
+                      <div className='text-[8px] md:text-[10px] text-slate-400'>0 urgent</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
                       <div className='flex items-center justify-between'>
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Applications</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>24</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>1</div>
                       <div className='text-[8px] md:text-[10px] text-slate-400'>Review now</div>
                     </div>
                   </div>
@@ -274,7 +274,7 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Available Balance</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>$46,000</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>$0.00</div>
                       <div className='text-[8px] md:text-[10px] text-slate-400'>Ready to cash out</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
@@ -282,7 +282,7 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Messages</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>24</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>0</div>
                       <div className='text-[8px] md:text-[10px] text-slate-400'>Open inbox threads</div>
                     </div>
                   </div>
@@ -292,19 +292,19 @@ const Homepage = async () => {
                     <div className='grid grid-cols-4 gap-2 text-center'>
                       <div>
                         <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Occupied</div>
-                        <div className='text-base md:text-lg font-bold text-white'>367</div>
+                        <div className='text-base md:text-lg font-bold text-white'>0</div>
                       </div>
                       <div>
                         <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Tenants</div>
-                        <div className='text-base md:text-lg font-bold text-white'>443</div>
+                        <div className='text-base md:text-lg font-bold text-white'>1</div>
                       </div>
                       <div>
                         <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Rent (YTD)</div>
-                        <div className='text-base md:text-lg font-bold text-white'>$256,000</div>
+                        <div className='text-base md:text-lg font-bold text-white'>$0.00</div>
                       </div>
                       <div>
                         <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Properties</div>
-                        <div className='text-base md:text-lg font-bold text-white'>475</div>
+                        <div className='text-base md:text-lg font-bold text-white'>1</div>
                       </div>
                     </div>
                   </div>
@@ -340,118 +340,258 @@ const Homepage = async () => {
                     </p>
                   </div>
                   
-                  {/* Flow Diagram - Figma Style with Dotted Lines */}
+                  {/* Flow Diagram - Mobile/Tablet: Vertical, Desktop: Horizontal Rows */}
                   <div className='relative py-2 md:py-3'>
-                    <div className='space-y-2 md:space-y-2'>
-                      {/* Row 1: Apply → Screen → Approve → Lease → E-Sign */}
-                      <div className='flex items-center justify-between gap-2 md:gap-1'>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 md:px-4 md:py-2 border-2 border-blue-400 text-center shadow-lg shadow-cyan-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-cyan-400 text-[10px] md:text-xs font-bold'>Add Property</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Listed On White Lable Domain</div>
+                    {/* Mobile/Tablet Layout - 2-column grid with flow arrows */}
+                    <div className='lg:hidden space-y-2'>
+                      {/* Row 1: Add Property → Free Lease Builder */}
+                      <div className='flex items-center gap-1 sm:gap-2'>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-blue-400 text-center shadow-lg shadow-cyan-500/10'>
+                          <div className='text-cyan-400 text-[10px] sm:text-xs font-bold'>Add Property</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Listed On White Lable Domain</div>
                         </div>
-                        <div className='flex-1 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        <div className='flex items-center'>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-cyan-300/100 text-center shadow-lg shadow-cyan-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-cyan-400 text-[10px] md:text-xs font-bold'>Free Lease Builder</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Or Upload Your Own</div>
-                        </div>
-                        <div className='flex-1 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                        </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-emerald-300/100 text-center shadow-lg shadow-emerald-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-emerald-400 text-[10px] md:text-xs font-bold'>Tenant Apply's</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>E-mail Notififed</div>
-                        </div>
-                        <div className='flex-1 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                        </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-violet-300/100 text-center shadow-lg shadow-violet-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-violet-400 text-[10px] md:text-xs font-bold'>One Click Approval</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Or Schedual Viewing</div>
-                        </div>
-                        <div className='flex-1 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                        </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-violet-300/100 text-center shadow-lg shadow-violet-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-violet-400 text-[10px] md:text-xs font-bold'>Tenant Pays Rent</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Directly to your bank</div>
-                        </div>
-                      </div>
-
-                      {/* Connector: Row 1 to Row 2 (down arrow on right side) */}
-                      <div className='flex justify-end pr-[35px] md:pr-[50px]'>
-                        <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-4 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-cyan-300 text-center shadow-lg shadow-cyan-500/10'>
+                          <div className='text-cyan-400 text-[10px] sm:text-xs font-bold'>Free Lease Builder</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Or Upload Your Own</div>
                         </div>
                       </div>
                       
-                      {/* Row 2: Move-In ← Late? ← Renew ← Maintain ← Rent (RIGHT TO LEFT, Rent under E-Sign) */}
-                      <div className='flex items-center justify-between gap-2 md:gap-3'>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-amber-300/100 text-center shadow-lg shadow-amber-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-amber-400 text-[10px] md:text-xs font-bold'>Internal Communitcations</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Notices Sent</div>
-                        </div>
-                        <div className='flex-1 flex items-center justify-center'>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                        </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-amber-300/100 text-center shadow-lg shadow-amber-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-amber-400 text-[10px] md:text-xs font-bold'>Late Rent?</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Auto Late Fee's</div>
-                        </div>
-                        <div className='flex-1 flex items-center justify-center'>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                        </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-violet-300/100 text-center shadow-lg shadow-violet-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-violet-400 text-[10px] md:text-xs font-bold'>Contractor Marketplace</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Find and Hire Contractors</div>
-                        </div>
-                        <div className='flex-1 flex items-center justify-center'>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                        </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-emerald-300/100 text-center shadow-lg shadow-emerald-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-emerald-400 text-[10px] md:text-xs font-bold'>Maintence Tickets</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Urgency Sytem</div>
-                        </div>
-                        <div className='flex-1 flex items-center justify-center'>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                        </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-emerald-300/100 text-center shadow-lg shadow-emerald-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-emerald-400 text-[10px] md:text-xs font-bold'>Tenant Moves In</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Key's Ready</div>
+                      {/* Down arrow from row 1 to row 2 */}
+                      <div className='flex justify-end pr-[20%]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
-                      {/* Connector: Row 2 to Row 3 (down arrow on left side) */}
-                      <div className='flex justify-start pl-[35px] md:pl-[50px]'>
-                        <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-4 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                      {/* Row 2: Tenant Apply's ← One Click Approval (right to left) */}
+                      <div className='flex items-center gap-1 sm:gap-2'>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
+                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Tenant Apply's</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>E-mail Notififed</div>
+                        </div>
+                        <div className='flex items-center'>
+                          <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
+                          <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>One Click Approval</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Or Schedual Viewing</div>
                         </div>
                       </div>
-                      
-                      {/* Row 3: Eviction → Move-Out (LEFT TO RIGHT) */}
-                      <div className='flex items-center gap-2 md:gap-3'>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-red-300/100 text-center shadow-lg shadow-red-500/10 min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-red-400 text-[10px] md:text-xs font-bold'>Eviction</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Legal Docs</div>
+
+                      {/* Down arrow from row 2 to row 3 */}
+                      <div className='flex justify-start pl-[20%]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
-                        <div className='w-16 md:w-24 flex items-center justify-center'>
+                      </div>
+
+                      {/* Row 3: Tenant Pays Rent → Tenant Moves In */}
+                      <div className='flex items-center gap-1 sm:gap-2'>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
+                          <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>Tenant Pays Rent</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Directly to your bank</div>
+                        </div>
+                        <div className='flex items-center'>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
+                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Tenant Moves In</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Key's Ready</div>
+                        </div>
+                      </div>
+
+                      {/* Down arrow from row 3 to row 4 */}
+                      <div className='flex justify-end pr-[20%]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                      </div>
+
+                      {/* Row 4: Maintence Tickets ← Contractor Marketplace (right to left) */}
+                      <div className='flex items-center gap-1 sm:gap-2'>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
+                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Maintence Tickets</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Urgency Sytem</div>
+                        </div>
+                        <div className='flex items-center'>
+                          <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
+                          <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>Contractor Marketplace</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Find and Hire Contractors</div>
+                        </div>
+                      </div>
+
+                      {/* Down arrow from row 4 to row 5 */}
+                      <div className='flex justify-start pl-[20%]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                      </div>
+
+                      {/* Row 5: Late Rent? → Internal Communications */}
+                      <div className='flex items-center gap-1 sm:gap-2'>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10'>
+                          <div className='text-amber-400 text-[10px] sm:text-xs font-bold'>Late Rent?</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Auto Late Fee's</div>
+                        </div>
+                        <div className='flex items-center'>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10'>
+                          <div className='text-amber-400 text-[10px] sm:text-xs font-bold'>Internal Communitcations</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Notices Sent</div>
+                        </div>
+                      </div>
+
+                      {/* Down arrow from row 5 to row 6 */}
+                      <div className='flex justify-start pl-[20%]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                      </div>
+
+                      {/* Row 6: Eviction → Move-Out */}
+                      <div className='flex items-center gap-1 sm:gap-2'>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-red-300 text-center shadow-lg shadow-red-500/10'>
+                          <div className='text-red-400 text-[10px] sm:text-xs font-bold'>Eviction</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Legal Docs</div>
+                        </div>
+                        <div className='flex items-center'>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-slate-300 text-center shadow-lg'>
+                          <div className='text-slate-300 text-[10px] sm:text-xs font-bold'>Move-Out</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Inspection Check list</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Desktop Layout - Horizontal rows with arrows */}
+                    <div className='hidden lg:block space-y-4'>
+                      {/* Row 1: Add Property → Free Lease → Tenant Apply's → One Click Approval → Tenant Pays Rent */}
+                      <div className='flex items-center justify-between gap-3'>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-blue-400 text-center shadow-lg shadow-cyan-500/10 min-w-[100px]'>
+                          <div className='text-cyan-400 text-xs font-bold'>Add Property</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Listed On White Lable Domain</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
                           <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 md:h-4 md:w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
-                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-3 border-2 border-slate-300/100 text-center shadow-lg min-w-[70px] md:min-w-[100px]'>
-                          <div className='text-slate-300 text-[10px] md:text-xs font-bold'>Move-Out</div>
-                          <div className='text-slate-400 text-[8px] md:text-[10px] mt-0.5'>Inspection Check list</div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-cyan-300 text-center shadow-lg shadow-cyan-500/10 min-w-[100px]'>
+                          <div className='text-cyan-400 text-xs font-bold'>Free Lease Builder</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Or Upload Your Own</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
+                          <div className='text-emerald-400 text-xs font-bold'>Tenant Apply's</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>E-mail Notififed</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10 min-w-[100px]'>
+                          <div className='text-violet-400 text-xs font-bold'>One Click Approval</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Or Schedual Viewing</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10 min-w-[100px]'>
+                          <div className='text-violet-400 text-xs font-bold'>Tenant Pays Rent</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Directly to your bank</div>
+                        </div>
+                      </div>
+
+                      {/* Connector: Row 1 to Row 2 */}
+                      <div className='flex justify-end pr-[50px]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-4 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                      </div>
+
+                      {/* Row 2: Internal Comms ← Late Rent ← Contractor ← Maintenance ← Tenant Moves In */}
+                      <div className='flex items-center justify-between gap-3'>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10 min-w-[100px]'>
+                          <div className='text-amber-400 text-xs font-bold'>Internal Communitcations</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Notices Sent</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10 min-w-[100px]'>
+                          <div className='text-amber-400 text-xs font-bold'>Late Rent?</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Auto Late Fee's</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10 min-w-[100px]'>
+                          <div className='text-violet-400 text-xs font-bold'>Contractor Marketplace</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Find and Hire Contractors</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
+                          <div className='text-emerald-400 text-xs font-bold'>Maintence Tickets</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Urgency Sytem</div>
+                        </div>
+                        <div className='flex-1 flex items-center justify-center'>
+                          <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
+                          <div className='text-emerald-400 text-xs font-bold'>Tenant Moves In</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Key's Ready</div>
+                        </div>
+                      </div>
+
+                      {/* Connector: Row 2 to Row 3 */}
+                      <div className='flex justify-start pl-[50px]'>
+                        <div className='flex flex-col items-center'>
+                          <div className='w-0.5 h-4 border-l-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                      </div>
+
+                      {/* Row 3: Eviction → Move-Out */}
+                      <div className='flex items-center gap-3'>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-red-300 text-center shadow-lg shadow-red-500/10 min-w-[100px]'>
+                          <div className='text-red-400 text-xs font-bold'>Eviction</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Legal Docs</div>
+                        </div>
+                        <div className='w-24 flex items-center justify-center'>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                        </div>
+                        <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-slate-300 text-center shadow-lg min-w-[100px]'>
+                          <div className='text-slate-300 text-xs font-bold'>Move-Out</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Inspection Check list</div>
                         </div>
                       </div>
                     </div>

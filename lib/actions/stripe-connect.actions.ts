@@ -3,6 +3,7 @@
 import { prisma } from '@/db/prisma';
 import { auth } from '@/auth';
 import { formatError } from '@/lib/utils';
+import { SERVER_URL } from '@/lib/constants';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { revalidatePath } from 'next/cache';
 import Stripe from 'stripe';
@@ -741,33 +742,256 @@ export async function createConnectAccount() {
  * @deprecated No longer needed - landlords don't need Connect accounts
  */
 export async function createConnectAccountSession() {
-  return { 
-    success: false, 
-    message: 'Connect onboarding is no longer required. Please add a bank account or debit card for payouts.' 
-  };
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+    const stripe = getStripe();
+
+    let connectAccountId = landlord.stripeConnectAccountId || undefined;
+
+    if (!connectAccountId) {
+      const account = await stripe.accounts.create({
+        type: 'express',
+        email: session.user.email || undefined,
+        capabilities: {
+          transfers: { requested: true },
+        },
+        business_profile: {
+          product_description: 'Property management software with rent collection and payouts',
+        },
+        metadata: {
+          landlordId: landlord.id,
+        },
+      });
+
+      connectAccountId = account.id;
+
+      await prisma.landlord.update({
+        where: { id: landlord.id },
+        data: {
+          stripeConnectAccountId: connectAccountId,
+          stripeOnboardingStatus: 'pending',
+        },
+      });
+    }
+
+    const accountSession = await stripe.accountSessions.create({
+      account: connectAccountId,
+      components: {
+        account_onboarding: {
+          enabled: true,
+          features: {
+            external_account_collection: true,
+          },
+        },
+      },
+    });
+
+    await prisma.landlord.update({
+      where: { id: landlord.id },
+      data: {
+        stripeOnboardingStatus: 'pending',
+      },
+    });
+
+    revalidatePath('/admin/payouts');
+
+    return {
+      success: true,
+      accountId: connectAccountId,
+      clientSecret: accountSession.client_secret,
+    };
+  } catch (error) {
+    console.error('Error creating Connect account session:', error);
+    return { success: false, message: formatError(error) };
+  }
 }
 
 /**
  * @deprecated No longer needed - landlords don't need Connect accounts
  */
 export async function getConnectAccountStatus() {
-  return { 
-    success: true, 
-    status: {
-      hasAccount: false,
-      isOnboarded: true, // Always true now - no onboarding needed
-      canReceivePayouts: true,
-      message: 'Add a bank account or debit card to receive payouts.',
-    },
-  };
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+
+    if (!landlord.stripeConnectAccountId) {
+      return {
+        success: true,
+        status: {
+          hasAccount: false,
+          isOnboarded: false,
+          canReceivePayouts: false,
+          payoutsEnabled: false,
+          chargesEnabled: false,
+          bankAccountLast4: null,
+        },
+      };
+    }
+
+    const stripe = getStripe();
+
+    try {
+      const account = await stripe.accounts.retrieve(landlord.stripeConnectAccountId, {
+        expand: ['external_accounts'],
+      });
+
+      const isOnboarded = account.details_submitted || false;
+      const payoutsEnabled = account.payouts_enabled || false;
+      const chargesEnabled = account.charges_enabled || false;
+      const canReceivePayouts = payoutsEnabled;
+
+      const externalAccounts = (account as any).external_accounts?.data as
+        | Array<{ object?: string; last4?: string; type?: string }>
+        | undefined;
+
+      const bankAccountLast4 =
+        externalAccounts?.find((a) => a.object === 'bank_account' || a.type === 'bank_account')?.last4 || null;
+
+      let onboardingStatus = 'pending';
+
+      if (isOnboarded && canReceivePayouts) {
+        onboardingStatus = 'active';
+      } else if (isOnboarded && !canReceivePayouts) {
+        onboardingStatus = 'pending_verification';
+      } else if ((account.requirements?.currently_due?.length ?? 0) > 0) {
+        onboardingStatus = 'action_required';
+      }
+
+      if (landlord.stripeOnboardingStatus !== onboardingStatus) {
+        await prisma.landlord.update({
+          where: { id: landlord.id },
+          data: { stripeOnboardingStatus: onboardingStatus },
+        });
+      }
+
+      return {
+        success: true,
+        status: {
+          hasAccount: true,
+          isOnboarded,
+          canReceivePayouts,
+          payoutsEnabled,
+          chargesEnabled,
+          bankAccountLast4,
+        },
+      };
+    } catch (stripeError: any) {
+      if (stripeError?.code === 'account_invalid') {
+        if (landlord.stripeOnboardingStatus !== 'invalid') {
+          await prisma.landlord.update({
+            where: { id: landlord.id },
+            data: { stripeOnboardingStatus: 'invalid' },
+          });
+        }
+
+        return {
+          success: true,
+          status: {
+            hasAccount: true,
+            isOnboarded: false,
+            canReceivePayouts: false,
+            payoutsEnabled: false,
+            chargesEnabled: false,
+            bankAccountLast4: null,
+          },
+        };
+      }
+      throw stripeError;
+    }
+  } catch (error) {
+    console.error('Error getting Connect account status:', error);
+    return { success: false, message: formatError(error) };
+  }
 }
 
 /**
  * @deprecated Use createPayout instead
  */
 export async function createOnboardingLink() {
-  return { 
-    success: false, 
-    message: 'Connect onboarding is no longer required. Please add a bank account or debit card for payouts.' 
-  };
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const landlord = landlordResult.landlord;
+    const stripe = getStripe();
+
+    let connectAccountId = landlord.stripeConnectAccountId || undefined;
+
+    if (!connectAccountId) {
+      const account = await stripe.accounts.create({
+        type: 'express',
+        email: session.user.email || undefined,
+        capabilities: {
+          transfers: { requested: true },
+        },
+        business_profile: {
+          product_description: 'Property management software with rent collection and payouts',
+        },
+        metadata: {
+          landlordId: landlord.id,
+        },
+      });
+
+      connectAccountId = account.id;
+
+      await prisma.landlord.update({
+        where: { id: landlord.id },
+        data: {
+          stripeConnectAccountId: connectAccountId,
+          stripeOnboardingStatus: 'pending',
+        },
+      });
+    }
+
+    const urlBase = SERVER_URL;
+    const returnUrl = `${urlBase}/admin/payouts`;
+    const refreshUrl = `${urlBase}/admin/payouts`;
+
+    const accountLink = await stripe.accountLinks.create({
+      account: connectAccountId,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
+      type: 'account_onboarding',
+    });
+
+    await prisma.landlord.update({
+      where: { id: landlord.id },
+      data: {
+        stripeOnboardingStatus: 'pending',
+      },
+    });
+
+    revalidatePath('/admin/payouts');
+
+    return { success: true, url: accountLink.url };
+  } catch (error) {
+    console.error('Error creating onboarding link:', error);
+    return { success: false, message: formatError(error) };
+  }
 }

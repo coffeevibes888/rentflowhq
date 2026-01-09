@@ -23,6 +23,11 @@ import {
   Info,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import {
+  consolidateMoveInPayments,
+  getStatusLabel,
+  type GroupedPayment,
+} from '@/lib/utils/payment-grouping';
 
 interface PaymentSummary {
   totalReceived: number;
@@ -39,6 +44,8 @@ interface RecentPayment {
   unitName: string;
   paidAt: string;
   status: string;
+  metadata?: Record<string, unknown> | null;
+  dueDate?: string;
 }
 
 /**
@@ -257,34 +264,68 @@ export function WalletDashboard() {
             </p>
           ) : (
             <div className="space-y-3">
-              {recentPayments.map((payment) => (
-                <div
-                  key={payment.id}
-                  className="flex items-center justify-between p-4 rounded-lg border"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{payment.tenantName}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {payment.status === 'paid' ? (
-                          <><CheckCircle2 className="h-3 w-3 mr-1 text-green-600" /> Paid</>
-                        ) : (
-                          payment.status
+              {(() => {
+                // Consolidate move-in payments for display
+                const groupedPayments = consolidateMoveInPayments(
+                  recentPayments.map((p) => ({
+                    id: p.id,
+                    amount: p.amount,
+                    status: p.status,
+                    dueDate: p.dueDate,
+                    paidAt: p.paidAt,
+                    metadata: p.metadata,
+                    tenantName: p.tenantName,
+                    propertyName: p.propertyName,
+                    unitName: p.unitName,
+                  }))
+                );
+                
+                return groupedPayments.map((grouped: GroupedPayment) => (
+                  <div
+                    key={grouped.id}
+                    className="flex items-center justify-between p-4 rounded-lg border"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{grouped.tenantName}</span>
+                        {grouped.type === 'move_in' && (
+                          <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-700 border-cyan-200">
+                            Move-in
+                          </Badge>
                         )}
-                      </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {grouped.status === 'paid' ? (
+                            <><CheckCircle2 className="h-3 w-3 mr-1 text-green-600" /> Paid</>
+                          ) : grouped.status === 'processing' ? (
+                            <><Loader2 className="h-3 w-3 mr-1 animate-spin text-blue-600" /> {getStatusLabel(grouped.status)}</>
+                          ) : (
+                            getStatusLabel(grouped.status)
+                          )}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {grouped.propertyName} - {grouped.unitName}
+                      </p>
+                      {grouped.paidAt && (
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(grouped.paidAt).toLocaleDateString()}
+                        </p>
+                      )}
+                      {/* Show breakdown for move-in payments */}
+                      {grouped.type === 'move_in' && grouped.breakdown && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {grouped.breakdown.firstMonth && <span>1st: {formatCurrency(grouped.breakdown.firstMonth)}</span>}
+                          {grouped.breakdown.lastMonth && <span> • Last: {formatCurrency(grouped.breakdown.lastMonth)}</span>}
+                          {grouped.breakdown.securityDeposit && <span> • Dep: {formatCurrency(grouped.breakdown.securityDeposit)}</span>}
+                        </p>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {payment.propertyName} - {payment.unitName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(payment.paidAt).toLocaleDateString()}
-                    </p>
+                    <span className="text-lg font-semibold text-green-600">
+                      +{formatCurrency(grouped.amount)}
+                    </span>
                   </div>
-                  <span className="text-lg font-semibold text-green-600">
-                    +{formatCurrency(payment.amount)}
-                  </span>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           )}
         </CardContent>

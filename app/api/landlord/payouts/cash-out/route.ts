@@ -41,16 +41,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const body = await req.json().catch(() => ({} as any));
+    const payoutType: Stripe.PayoutCreateParams.Method =
+      body.type === 'instant' ? 'instant' : 'standard';
+
+    const propertyId = typeof body.propertyId === 'string' && body.propertyId.length > 0 ? body.propertyId : undefined;
+    const requestedAmount = typeof body.amount === 'number' ? body.amount : undefined;
+
+    // If propertyId provided, verify it belongs to this landlord
+    if (propertyId) {
+      const property = await prisma.property.findFirst({
+        where: {
+          id: propertyId,
+          landlordId: landlord.id,
+        },
+        select: { id: true },
+      });
+
+      if (!property) {
+        return NextResponse.json(
+          { success: false, message: 'Property not found or access denied.' },
+          { status: 404 }
+        );
+      }
+    }
+
     const unpaidRent = await prisma.rentPayment.findMany({
       where: {
         status: 'paid',
         payoutId: null,
         lease: {
           unit: {
-            property: { landlordId: landlord.id },
+            property: propertyId ? { landlordId: landlord.id, id: propertyId } : { landlordId: landlord.id },
           },
         },
       },
+      orderBy: { paidAt: 'asc' },
     });
 
     if (unpaidRent.length === 0) {
@@ -72,18 +98,48 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json().catch(() => ({}));
-    const payoutType: Stripe.PayoutCreateParams.Method =
-      body.type === 'instant' ? 'instant' : 'standard';
-    
+    const grossAmount = requestedAmount !== undefined ? requestedAmount : totalAmount;
+
+    if (!Number.isFinite(grossAmount) || grossAmount <= 0) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid cashout amount.' },
+        { status: 400 }
+      );
+    }
+
+    if (grossAmount > totalAmount) {
+      return NextResponse.json(
+        { success: false, message: 'Amount exceeds available balance for this selection.' },
+        { status: 400 }
+      );
+    }
+
+    // Select which rent payments will be included in this payout (oldest-first)
+    const selectedRentPaymentIds: string[] = [];
+    let selectedGross = 0;
+    for (const p of unpaidRent) {
+      if (selectedGross >= grossAmount) break;
+      const amt = Number(p.amount);
+      if (Number.isNaN(amt) || amt <= 0) continue;
+      selectedRentPaymentIds.push(p.id);
+      selectedGross += amt;
+    }
+
+    if (selectedGross + 0.0001 < grossAmount) {
+      return NextResponse.json(
+        { success: false, message: 'Unable to allocate rent payments for this cashout amount.' },
+        { status: 400 }
+      );
+    }
+
     let stripeFee = 0;
     if (payoutType === 'instant') {
-      stripeFee = Math.min(totalAmount * 0.015, 10);
+      stripeFee = Math.min(grossAmount * 0.015, 10);
     }
-    
+
     const platformFee = PLATFORM_CASHOUT_FEE;
     const totalFees = stripeFee + platformFee;
-    const netAmount = totalAmount - totalFees;
+    const netAmount = grossAmount - totalFees;
 
     if (!netAmount || netAmount <= 0) {
       return NextResponse.json(
@@ -106,6 +162,38 @@ export async function POST(req: NextRequest) {
         },
         { status: 409 }
       );
+    }
+
+    let destination: string | undefined;
+
+    // If cashing out for a specific property, use that property's linked external bank account.
+    if (propertyId) {
+      const propertyBank = await prisma.propertyBankAccount.findUnique({
+        where: { propertyId },
+        select: { stripePaymentMethodId: true },
+      });
+
+      if (!propertyBank?.stripePaymentMethodId) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'No bank account linked for this property. Please add one or select Default Account.',
+          },
+          { status: 400 }
+        );
+      }
+
+      if (payoutType === 'instant') {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Instant payouts are not available for property-specific destinations. Please use Standard ACH.',
+          },
+          { status: 400 }
+        );
+      }
+
+      destination = propertyBank.stripePaymentMethodId;
     }
 
     let externalAccounts = await stripe.accounts.listExternalAccounts(stripeAccountId, {
@@ -146,6 +234,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // If using the default account, set destination to the first external account.
+    // If propertyId is set, destination is already set to the property-linked external account.
+    if (!destination) {
+      destination = externalAccounts.data[0]?.id;
+    }
+
     const payoutRecord = await prisma.$transaction(async (tx) => {
       const payout = await tx.payout.create({
         data: {
@@ -159,13 +253,14 @@ export async function POST(req: NextRequest) {
             stripeFee,
             platformFee,
             totalFees,
-            grossAmount: totalAmount,
+            grossAmount,
+            destinationPropertyId: propertyId || null,
           },
         },
       });
 
       await tx.rentPayment.updateMany({
-        where: { id: { in: unpaidRent.map((p) => p.id) } },
+        where: { id: { in: selectedRentPaymentIds } },
         data: { payoutId: payout.id },
       });
 
@@ -179,7 +274,7 @@ export async function POST(req: NextRequest) {
             landlordId: landlord.id,
             payoutId: payout.id,
             stripeFee,
-            grossAmount: totalAmount,
+            grossAmount,
           },
         },
       });
@@ -207,9 +302,11 @@ export async function POST(req: NextRequest) {
         amount: Math.round(netAmount * 100),
         currency: 'usd',
         method: actualPayoutMethod,
+        destination,
         metadata: {
           landlordId: landlord.id,
           payoutId: payoutRecord.id,
+          destinationPropertyId: propertyId || '',
         },
       },
       {
@@ -226,16 +323,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       payoutId: payoutRecord.id,
       method: actualPayoutMethod,
+      message: `Payout of $${netAmount.toFixed(2)} initiated.`,
       fees: {
         platform: platformFee,
         stripe: stripeFee,
         total: totalFees,
       },
       netAmount,
+      destinationPropertyId: propertyId || null,
     });
   } catch (error) {
     console.error('Landlord cash-out error:', error);

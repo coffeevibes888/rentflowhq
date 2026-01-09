@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
-import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-tiers';
+import { SUBSCRIPTION_TIERS, SubscriptionTier, normalizeTier } from '@/lib/config/subscription-tiers';
 
 // Manually sync subscription from Stripe (useful when webhooks aren't working)
 export async function POST(req: NextRequest) {
@@ -94,16 +94,29 @@ export async function POST(req: NextRequest) {
     const priceId = subscription.items.data[0]?.price?.id;
 
     // Determine tier from price ID
-    let tier: SubscriptionTier = 'free';
-    if (priceId === process.env.STRIPE_PRICE_PRO) {
-      tier = 'pro';
+    type SyncTier = SubscriptionTier | 'free';
+    let tier: SyncTier = 'free';
+
+    const priceToTier: Array<[SubscriptionTier, string | null | undefined]> = [
+      ['starter', process.env.STRIPE_PRICE_STARTER],
+      ['pro', process.env.STRIPE_PRICE_PRO],
+      ['enterprise', process.env.STRIPE_PRICE_ENTERPRISE],
+    ];
+
+    const matchedTier = priceToTier.find(([, configuredPriceId]) =>
+      Boolean(priceId && configuredPriceId && configuredPriceId === priceId)
+    )?.[0];
+
+    if (matchedTier) {
+      tier = matchedTier;
     } else {
       // Check metadata for tier, default to pro for any paid subscription
-      const metaTier = subscription.metadata?.tier as SubscriptionTier;
-      tier = metaTier && ['free', 'pro', 'enterprise'].includes(metaTier) ? metaTier : 'pro';
+      const metaTierRaw = subscription.metadata?.tier;
+      const normalizedMetaTier = typeof metaTierRaw === 'string' ? normalizeTier(metaTierRaw) : null;
+      tier = normalizedMetaTier || (priceId ? 'pro' : 'free');
     }
 
-    const tierConfig = SUBSCRIPTION_TIERS[tier];
+    const tierConfig = SUBSCRIPTION_TIERS[tier === 'free' ? 'starter' : tier];
 
     // Update landlord subscription
     await prisma.landlordSubscription.upsert({

@@ -72,7 +72,7 @@ const getCachedTenantData = unstable_cache(
 
     return { activeLease, pendingRentPayments, openTickets };
   },
-  ['tenant-dashboard'],
+  ['tenant-dashboard', 'by-user'],
   { revalidate: 30 }
 );
 

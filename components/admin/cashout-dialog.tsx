@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { createPayout } from '@/lib/actions/stripe-connect.actions';
 import { Loader2, CheckCircle2, Building2, Wallet } from 'lucide-react';
 
 interface PropertyWithBankAccount {
@@ -141,17 +140,29 @@ export default function CashoutDialog({
       const numAmount = parseAmount(amount);
       const propertyId = selectedPropertyId === 'default' ? undefined : selectedPropertyId;
 
-      const result = await createPayout({ amount: numAmount, propertyId });
+      const res = await fetch('/api/landlord/payouts/cash-out', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: numAmount,
+          propertyId,
+          type: 'standard',
+        }),
+      });
 
-      if (result.success) {
+      const data = await res.json().catch(() => null) as
+        | { success?: boolean; message?: string; netAmount?: number }
+        | null;
+
+      if (res.ok && data?.success) {
         toast({
           title: 'Payout initiated!',
-          description: result.message,
+          description: data.message || 'Payout initiated.',
         });
         onOpenChange(false);
         onSuccess();
       } else {
-        setError(result.message || 'Failed to process payout');
+        setError(data?.message || 'Failed to process payout');
       }
     } catch (err) {
       setError('An unexpected error occurred');

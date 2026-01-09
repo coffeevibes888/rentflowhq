@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle2, Clock, ArrowRight, Home, ReceiptText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import PaymentSuccessClient from './success-client';
 
 export const metadata: Metadata = {
   title: 'Payment Successful',
@@ -10,12 +11,14 @@ export const metadata: Metadata = {
 export default function PaymentSuccessPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: { status?: string; payment_intent?: string };
 }) {
   const isProcessing = searchParams.status === 'processing';
+  const paymentIntentId = searchParams.payment_intent || null;
 
   return (
     <div className='min-h-screen flex items-center justify-center px-4'>
+      <PaymentSuccessClient paymentIntentId={paymentIntentId} />
       <div className='max-w-md w-full text-center space-y-8'>
         {/* Success Icon */}
         <div className='relative'>

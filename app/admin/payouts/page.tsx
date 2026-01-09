@@ -3,6 +3,7 @@ import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { getConnectAccountStatus } from '@/lib/actions/stripe-connect.actions';
 import { prisma } from '@/db/prisma';
 import PayoutsClient from './payouts-client';
+import { formatEstimatedArrival } from '@/lib/config/stripe-constants';
 
 const AdminPayoutsPage = async () => {
   await requireAdmin();
@@ -22,83 +23,101 @@ const AdminPayoutsPage = async () => {
   const landlord = landlordResult.landlord;
 
   // Get Connect account status
-  const connectStatus = await getConnectAccountStatus();
+  const connectStatusResult = await getConnectAccountStatus();
+  const connectStatus = connectStatusResult.status || null;
 
-  // Get wallet balance
-  let walletBalance = 0;
-  let pendingBalance = 0;
-
-  const wallet = await prisma.landlordWallet.findUnique({
-    where: { landlordId: landlord.id },
-  });
-
-  if (wallet) {
-    walletBalance = Number(wallet.availableBalance || 0);
-    pendingBalance = Number(wallet.pendingBalance || 0);
-  }
-
-  // Get uncredited rent payments
-  const unpaidRent = await prisma.rentPayment.aggregate({
-    _sum: { amount: true },
+  // Get recent rent payments for this landlord
+  const recentPayments = await prisma.rentPayment.findMany({
     where: {
-      status: 'paid',
-      payoutId: null,
+      status: { in: ['paid', 'processing', 'pending'] },
       lease: {
         unit: {
           property: { landlordId: landlord.id },
         },
       },
     },
+    include: {
+      tenant: {
+        select: { name: true },
+      },
+      lease: {
+        include: {
+          unit: {
+            include: {
+              property: {
+                select: { name: true },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { paidAt: 'desc' },
+    take: 20,
   });
 
-  // Get recent payouts with metadata for destination info
-  const payouts = await prisma.payout.findMany({
-    where: { landlordId: landlord.id },
-    orderBy: { initiatedAt: 'desc' },
-    take: 10,
+  // Calculate totals
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const allPaidPayments = await prisma.rentPayment.findMany({
+    where: {
+      status: 'paid',
+      lease: {
+        unit: {
+          property: { landlordId: landlord.id },
+        },
+      },
+    },
+    select: { amount: true, paidAt: true },
   });
 
-  // Get properties with bank accounts for the cashout dropdown
-  const properties = await prisma.property.findMany({
-    where: { landlordId: landlord.id },
-    include: { bankAccount: true },
-    orderBy: { name: 'asc' },
+  const totalReceived = allPaidPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+  
+  const thisMonthAmount = allPaidPayments
+    .filter((p) => p.paidAt && p.paidAt >= startOfMonth)
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+
+  // Pending/processing payments (in transit to bank)
+  const pendingPayments = await prisma.rentPayment.findMany({
+    where: {
+      status: { in: ['processing', 'pending'] },
+      lease: {
+        unit: {
+          property: { landlordId: landlord.id },
+        },
+      },
+    },
+    select: { amount: true },
   });
 
-  const pendingRent = Number(unpaidRent._sum.amount || 0);
-  const availableAmount = walletBalance + pendingRent;
+  const pendingAmount = pendingPayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   return (
     <PayoutsClient
-      availableBalance={availableAmount}
-      pendingBalance={pendingBalance}
-      connectStatus={connectStatus.status}
-      payouts={payouts.map((p) => {
+      connectStatus={connectStatus}
+      recentPayments={recentPayments.map((p) => {
+        // Determine payment method from metadata or default
         const metadata = p.metadata as Record<string, unknown> | null;
+        const paymentMethod = (metadata?.paymentMethod as string) || 'card';
+        
         return {
           id: p.id,
           amount: Number(p.amount),
           status: p.status,
-          initiatedAt: p.initiatedAt.toISOString(),
           paidAt: p.paidAt?.toISOString() || null,
-          stripeTransferId: p.stripeTransferId,
-          destinationPropertyId: (metadata?.destinationPropertyId as string) || null,
-          destinationPropertyName: (metadata?.destinationPropertyName as string) || null,
-          destinationLast4: (metadata?.destinationBankLast4 as string) || null,
+          paymentMethod,
+          tenantName: p.tenant?.name || 'Unknown Tenant',
+          propertyName: p.lease?.unit?.property?.name || 'Unknown Property',
+          unitNumber: p.lease?.unit?.name || '',
+          estimatedArrival: p.status === 'processing' ? formatEstimatedArrival(paymentMethod) : null,
+          metadata: p.metadata as Record<string, unknown> | null,
+          dueDate: p.dueDate?.toISOString() || null,
         };
       })}
-      properties={properties.map((prop) => ({
-        id: prop.id,
-        name: prop.name,
-        hasBankAccount: !!prop.bankAccount,
-        bankAccount: prop.bankAccount
-          ? {
-              last4: prop.bankAccount.last4,
-              bankName: prop.bankAccount.bankName,
-              isVerified: prop.bankAccount.isVerified,
-            }
-          : null,
-      }))}
+      totalReceived={totalReceived}
+      pendingAmount={pendingAmount}
+      thisMonthAmount={thisMonthAmount}
     />
   );
 };

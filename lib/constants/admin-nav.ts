@@ -1,4 +1,4 @@
-import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings } from 'lucide-react';
+import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings, UserPlus } from 'lucide-react';
 
 export interface AdminNavLink {
   title: string;
@@ -15,6 +15,12 @@ export const adminNavLinks: AdminNavLink[] = [
     description: 'Manage buildings and units',
     href: '/admin/products',
     icon: Building2,
+  },
+  {
+    title: 'Tenants',
+    description: 'Manage tenants and leases',
+    href: '/admin/tenants',
+    icon: UserPlus,
   },
   {
     title: 'Applications',

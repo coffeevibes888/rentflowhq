@@ -35,6 +35,12 @@ import { EvictionHistoryPanel } from './eviction-history-panel';
 import { TenantDocumentsModal } from './tenant-documents-modal';
 import { useToast } from '@/hooks/use-toast';
 import { LeaseRecurringCharges } from './lease-recurring-charges';
+import {
+  consolidateMoveInPayments,
+  getPaymentTypeLabel,
+  getStatusLabel,
+  type GroupedPayment,
+} from '@/lib/utils/payment-grouping';
 
 interface EnhancedTenantCardProps {
   lease: any;
@@ -50,12 +56,13 @@ function StatusBadge({ status }: { status: string }) {
     paid: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
     partially_paid: 'bg-sky-500/20 text-sky-300 border-sky-400/30',
     pending: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
+    processing: 'bg-blue-500/20 text-blue-300 border-blue-400/30',
     overdue: 'bg-red-500/20 text-red-300 border-red-400/30',
     cancelled: 'bg-slate-500/20 text-slate-300 border-slate-400/30',
   };
   return (
     <Badge className={`${styles[status] || styles.pending} text-[10px] sm:text-xs`}>
-      {status.replace(/_/g, ' ')}
+      {getStatusLabel(status)}
     </Badge>
   );
 }
@@ -465,9 +472,20 @@ export function EnhancedTenantCard({
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    <span className="text-slate-300">
-                      {tenant?.phoneNumber || 'No phone'}
-                    </span>
+                    {(() => {
+                      // Prefer application phone, fallback to user phone
+                      const phone = tenant?.applicationPhone || tenant?.phoneNumber;
+                      return phone ? (
+                        <a 
+                          href={`tel:${phone}`}
+                          className="text-slate-300 hover:text-cyan-400 transition-colors underline-offset-2 hover:underline"
+                        >
+                          {phone}
+                        </a>
+                      ) : (
+                        <span className="text-slate-500">No phone</span>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -478,9 +496,8 @@ export function EnhancedTenantCard({
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
                     <span className="text-slate-300">
-                      Ends:{' '}
                       {lease.endDate
-                        ? new Date(lease.endDate).toLocaleDateString()
+                        ? `Move-out: ${new Date(lease.endDate).toLocaleDateString()}`
                         : 'Month-to-month'}
                     </span>
                   </div>
@@ -622,50 +639,59 @@ export function EnhancedTenantCard({
                   <h4 className="text-sm font-medium text-white mb-3">
                     Payment History
                   </h4>
-                  {payments.length > 0 ? (
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {payments.map((payment: any) => (
-                        <div key={payment.id} className="text-xs sm:text-sm py-2 border-b border-white/5 last:border-0">
-                          <div
-                            className="flex items-center justify-between gap-2"
-                          >
-                            <span className="text-slate-400">
-                              {new Date(payment.dueDate).toLocaleDateString()}
-                            </span>
-                            <div className="text-right">
-                                <span className="text-slate-300 font-medium">
-                                {formatCurrency(Number(payment.amount))}
+                  {(() => {
+                    // Consolidate move-in payments for display
+                    const groupedPayments = consolidateMoveInPayments(
+                      payments.map((p: any) => ({
+                        id: p.id,
+                        amount: p.amount,
+                        status: p.status,
+                        dueDate: p.dueDate,
+                        paidAt: p.paidAt,
+                        metadata: p.metadata,
+                        tenantName: tenant?.name,
+                        propertyName: lease.unit?.property?.name,
+                        unitName: lease.unitName,
+                      }))
+                    );
+                    
+                    return groupedPayments.length > 0 ? (
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {groupedPayments.map((grouped: GroupedPayment) => (
+                          <div key={grouped.id} className="text-xs sm:text-sm py-2 border-b border-white/5 last:border-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex flex-col">
+                                <span className="text-slate-400">
+                                  {grouped.dueDate ? new Date(grouped.dueDate).toLocaleDateString() : '—'}
                                 </span>
-                                {payment.status === 'partially_paid' && (
-                                    <p className="text-xs text-sky-400">
-                                        ({formatCurrency(Number(payment.amount) - Number(payment.amountPaid))} left)
-                                    </p>
+                                {grouped.type === 'move_in' && (
+                                  <span className="text-[10px] text-cyan-400">Move-in Payment</span>
                                 )}
+                              </div>
+                              <div className="text-right">
+                                <span className="text-slate-300 font-medium">
+                                  {formatCurrency(grouped.amount)}
+                                </span>
+                                {/* Show breakdown for move-in payments */}
+                                {grouped.type === 'move_in' && grouped.breakdown && (
+                                  <div className="text-[10px] text-slate-500 mt-0.5">
+                                    {grouped.breakdown.firstMonth && <span>1st: {formatCurrency(grouped.breakdown.firstMonth)}</span>}
+                                    {grouped.breakdown.lastMonth && <span> • Last: {formatCurrency(grouped.breakdown.lastMonth)}</span>}
+                                    {grouped.breakdown.securityDeposit && <span> • Dep: {formatCurrency(grouped.breakdown.securityDeposit)}</span>}
+                                  </div>
+                                )}
+                              </div>
+                              <StatusBadge status={grouped.status} />
                             </div>
-                            <StatusBadge status={payment.status} />
                           </div>
-                          {payment.transactions && payment.transactions.length > 0 && (
-                            <div className="pl-4 mt-2 space-y-1">
-                                {payment.transactions.map((tx: any) => (
-                                    <div key={tx.id} className="flex justify-between items-center text-xs">
-                                        <p className="text-slate-500">
-                                            - Transaction on {new Date(tx.processedAt).toLocaleDateString()}
-                                        </p>
-                                        <p className="text-slate-400">
-                                            {formatCurrency(Number(tx.amount))}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-500 text-center py-4">
-                      No payment history
-                    </p>
-                  )}
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-500 text-center py-4">
+                        No payment history
+                      </p>
+                    );
+                  })()}
                 </div>
               </TabsContent>
 

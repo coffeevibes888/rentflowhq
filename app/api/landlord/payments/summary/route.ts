@@ -122,6 +122,8 @@ export async function GET() {
         unitName: p.lease.unit.name,
         paidAt: p.paidAt?.toISOString(),
         status: p.status,
+        metadata: p.metadata as Record<string, unknown> | null,
+        dueDate: p.dueDate?.toISOString(),
       })),
     });
   } catch (error) {

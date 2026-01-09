@@ -3,7 +3,9 @@ import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Plus } from 'lucide-react';
 
 export default async function AdminLeasesPage() {
   await requireAdmin();
@@ -50,14 +52,22 @@ export default async function AdminLeasesPage() {
 
   return (
     <main className='w-full space-y-4'>
-      <div>
-        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50 mb-1'>Leases</h1>
-        <p className='text-xs text-slate-300/80'>View active and past leases and sign pending documents.</p>
-        {leasesAwaitingSignature.length > 0 && (
-          <Badge className='mt-1.5 bg-orange-500/20 text-orange-300 border-orange-400/30 text-[10px]'>
-            {leasesAwaitingSignature.length} awaiting your signature
-          </Badge>
-        )}
+      <div className='flex items-start justify-between gap-4'>
+        <div>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50 mb-1'>Leases</h1>
+          <p className='text-xs text-slate-300/80'>View active and past leases and sign pending documents.</p>
+          {leasesAwaitingSignature.length > 0 && (
+            <Badge className='mt-1.5 bg-orange-500/20 text-orange-300 border-orange-400/30 text-[10px]'>
+              {leasesAwaitingSignature.length} awaiting your signature
+            </Badge>
+          )}
+        </div>
+        <Link href='/admin/tenants/add'>
+          <Button className='bg-violet-600 hover:bg-violet-500'>
+            <Plus className='h-4 w-4 mr-2' />
+            Add Tenant
+          </Button>
+        </Link>
       </div>
 
       {leasesAwaitingSignature.length > 0 && (

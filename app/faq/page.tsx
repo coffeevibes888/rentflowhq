@@ -31,11 +31,11 @@ const faqs = [
       },
       {
         q: 'Are there any transaction fees?',
-        a: 'No platform fees on rent payments - your subscription covers everything. For contractor marketplace transactions, there is a $1 fee from each party ($2 total per transaction).',
+        a: 'No platform fees on any transactions - your subscription covers everything. Tenants pay rent with no added fees, and payments go directly to your bank account.',
       },
       {
         q: 'What payment methods do tenants have?',
-        a: 'Tenants can pay rent via ACH bank transfer (0.8% fee capped at $5), credit/debit card (2.9% + $0.30), or Link for faster checkout.',
+        a: 'Tenants can pay rent via ACH bank transfer or credit/debit card. No fees are charged to tenants - your subscription covers payment processing.',
       },
     ],
   },
@@ -44,7 +44,7 @@ const faqs = [
     questions: [
       {
         q: 'How do I receive rent payments?',
-        a: 'Rent payments go directly to your connected Stripe account. You\'ll need to complete Stripe onboarding to receive payments, which typically takes a few minutes.',
+        a: 'Rent payments go directly to your bank account via Stripe. Complete a quick onboarding process (about 5 minutes), and payments will automatically deposit to your bank - typically within 2 business days for card payments or 5 days for ACH.',
       },
       {
         q: 'Can I manage multiple properties?',
@@ -61,7 +61,7 @@ const faqs = [
     questions: [
       {
         q: 'How do I pay rent?',
-        a: 'Log into your tenant dashboard and click "Pay Rent". You can pay via bank account (ACH) for the lowest fees, or use a credit/debit card.',
+        a: 'Log into your tenant dashboard and click "Pay Rent". You can pay via bank account (ACH) or credit/debit card - no fees either way.',
       },
       {
         q: 'Can I set up autopay?',
@@ -86,7 +86,7 @@ const faqs = [
       },
       {
         q: 'What fees do contractors pay?',
-        a: 'There\'s a $1 platform fee deducted from each payment you receive. This helps us maintain the marketplace and provide support.',
+        a: 'No platform fees for contractors. Payments go directly to your connected bank account when jobs are completed.',
       },
     ],
   },

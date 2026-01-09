@@ -80,11 +80,56 @@ export async function POST(req: NextRequest) {
     }, { status: 400 });
   }
 
+  // If local status isn't active, verify against Stripe (local status may be stale)
   if (landlord.stripeOnboardingStatus !== 'active') {
-    return NextResponse.json({ 
-      message: 'Your landlord\'s payment account is pending verification. Please try again later or contact them.',
-      code: 'LANDLORD_PENDING_VERIFICATION'
-    }, { status: 400 });
+    try {
+      const stripeForStatus = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+      const account = await stripeForStatus.accounts.retrieve(landlord.stripeConnectAccountId);
+
+      const isOnboarded = account.details_submitted || false;
+      const canReceivePayouts = account.payouts_enabled || false;
+
+      let status = 'pending';
+      if (isOnboarded && canReceivePayouts) {
+        status = 'active';
+      } else if (isOnboarded && !canReceivePayouts) {
+        status = 'pending_verification';
+      } else if (account.requirements?.currently_due?.length) {
+        status = 'action_required';
+      }
+
+      if (landlord.stripeOnboardingStatus !== status) {
+        await prisma.landlord.update({
+          where: { id: landlord.id },
+          data: { stripeOnboardingStatus: status },
+        });
+      }
+
+      if (status !== 'active') {
+        return NextResponse.json(
+          {
+            message:
+              status === 'action_required'
+                ? "Your landlord's payment account needs additional information. Please contact them."
+                : "Your landlord's payment account is pending verification. Please try again later or contact them.",
+            code:
+              status === 'action_required'
+                ? 'LANDLORD_ACTION_REQUIRED'
+                : 'LANDLORD_PENDING_VERIFICATION',
+          },
+          { status: 400 }
+        );
+      }
+    } catch (error) {
+      console.error('Stripe Connect status verification failed:', error);
+      return NextResponse.json(
+        {
+          message: "Your landlord's payment account needs attention. Please contact them.",
+          code: 'LANDLORD_STRIPE_STATUS_ERROR',
+        },
+        { status: 400 }
+      );
+    }
   }
 
   const totalAmount = rentPayments.reduce((sum, p) => {

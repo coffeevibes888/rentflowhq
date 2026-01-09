@@ -1839,7 +1839,7 @@ model DocumentAccessLog {
 model PropertyBankAccount {
   id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   propertyId            String   @unique @db.Uuid
-  stripePaymentMethodId String   @unique
+  stripePaymentMethodId String
   accountHolderName     String
   last4                 String
   bankName              String?
@@ -1852,6 +1852,7 @@ model PropertyBankAccount {
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@index([propertyId])
+  @@index([stripePaymentMethodId])
 }
 
 // Tenant invoices for custom charges (repairs, violations, etc.)

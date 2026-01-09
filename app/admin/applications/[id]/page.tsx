@@ -32,7 +32,7 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const application = await prisma.rentalApplication.findUnique({
     where: { id },
     include: {
-      unit: { select: { name: true, type: true, property: { select: { name: true } } } },
+      unit: { select: { name: true, type: true, rentAmount: true, property: { select: { name: true } } } },
       applicant: { select: { id: true, name: true, email: true } },
       verification: true,
     },
@@ -49,6 +49,12 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
   const unitName = application.unit?.name;
   const propertyName = application.unit?.property?.name;
   const unitLabel = propertyName && unitName ? `${propertyName} • ${unitName}` : propertyName || unitName || 'Unit';
+
+  const moneyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  });
 
   type ApplicationDocumentRow = {
     id: string;
@@ -103,6 +109,32 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
     return data;
   };
   const parsedNotes = parseNotes(application.notes);
+
+  // Parse salary from notes (stored as "Salary (monthly): $5,000" or "Salary (monthly): 5000")
+  const parseSalaryFromNotes = (notes: Record<string, string>): number | null => {
+    const monthlySalary = notes['Salary (monthly)'];
+    if (monthlySalary) {
+      const cleaned = monthlySalary.replace(/[$,]/g, '');
+      const parsed = parseFloat(cleaned);
+      if (!isNaN(parsed)) return parsed;
+    }
+    return null;
+  };
+  const notesMonthlyIncome = parseSalaryFromNotes(parsedNotes);
+
+  // Calculate income - prefer application data, then verification, then notes, then pay stub average
+  const monthlyIncome = application.monthlyIncome != null 
+    ? Number(application.monthlyIncome) 
+    : application.verification?.monthlyIncome != null 
+      ? Number(application.verification.monthlyIncome)
+      : notesMonthlyIncome != null
+        ? notesMonthlyIncome
+        : avgGrossPay;
+  const yearlyIncome = monthlyIncome ? monthlyIncome * 12 : null;
+  const rentAmount = application.unit?.rentAmount != null ? Number(application.unit.rentAmount) : null;
+  const incomeToRentMultiple = monthlyIncome && rentAmount ? monthlyIncome / rentAmount : null;
+  const qualifiesMultiple = 3;
+  const qualifies = incomeToRentMultiple != null ? incomeToRentMultiple >= qualifiesMultiple : null;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -175,6 +207,11 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                 </span>
               </div>
               <p className='text-violet-200 text-sm'>{unitLabel}</p>
+              {qualifies != null && (
+                <p className={`text-xs mt-1 ${qualifies ? 'text-emerald-300' : 'text-red-300'}`}>
+                  {qualifies ? '✓ Meets income requirements (3x rent)' : '✗ Does not meet income requirements'}
+                </p>
+              )}
             </div>
           </div>
 
@@ -187,7 +224,9 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
             {application.phone && (
               <div>
                 <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Phone</p>
-                <p className='text-white text-sm font-medium'>{application.phone}</p>
+                <a href={`tel:${application.phone}`} className='text-white text-sm font-medium hover:text-cyan-300 transition-colors'>
+                  {application.phone}
+                </a>
               </div>
             )}
             {decryptedSsn && (
@@ -202,6 +241,52 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
                 <p className='text-white text-sm font-medium'>{new Date(application.moveInDate).toLocaleDateString()}</p>
               </div>
             )}
+          </div>
+
+          {/* Income & Qualification Section */}
+          <div className='mt-4 pt-4 border-t border-violet-500/20'>
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+              <div>
+                <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Monthly Income</p>
+                <p className='text-white text-lg font-bold'>
+                  {monthlyIncome != null ? moneyFormatter.format(monthlyIncome) : '—'}
+                </p>
+              </div>
+              <div>
+                <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Yearly Income</p>
+                <p className='text-white text-lg font-bold'>
+                  {yearlyIncome != null ? moneyFormatter.format(yearlyIncome) : '—'}
+                </p>
+              </div>
+              <div>
+                <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Monthly Rent</p>
+                <p className='text-white text-lg font-bold'>
+                  {rentAmount != null ? moneyFormatter.format(rentAmount) : '—'}
+                </p>
+              </div>
+              <div>
+                <p className='text-violet-300 text-xs uppercase tracking-wide mb-1'>Income to Rent Ratio</p>
+                <div className='flex items-center gap-2'>
+                  <p className={`text-lg font-bold ${
+                    incomeToRentMultiple == null ? 'text-white' :
+                    incomeToRentMultiple >= 3 ? 'text-emerald-400' :
+                    incomeToRentMultiple >= 2 ? 'text-amber-400' :
+                    'text-red-400'
+                  }`}>
+                    {incomeToRentMultiple != null ? `${incomeToRentMultiple.toFixed(1)}x` : '—'}
+                  </p>
+                  {incomeToRentMultiple != null && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      incomeToRentMultiple >= 3 ? 'bg-emerald-500/20 text-emerald-300' :
+                      incomeToRentMultiple >= 2 ? 'bg-amber-500/20 text-amber-300' :
+                      'bg-red-500/20 text-red-300'
+                    }`}>
+                      {incomeToRentMultiple >= 3 ? 'Qualifies' : incomeToRentMultiple >= 2 ? 'Borderline' : 'Below 2x'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -506,15 +591,17 @@ export default async function AdminApplicationDetailPage({ params }: AdminApplic
               <button type='submit' className='px-6 py-2.5 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-colors'>
                 Save & Notify Applicant
               </button>
-              <form action={async () => {
-                'use server';
-                await prisma.rentalApplication.delete({ where: { id: application.id } });
-                redirect('/admin/applications');
-              }}>
-                <button type='submit' className='px-4 py-2.5 rounded-full bg-red-500/20 text-red-400 font-medium hover:bg-red-500/30 transition-colors'>
-                  Delete Application
-                </button>
-              </form>
+              <button
+                type='submit'
+                formAction={async () => {
+                  'use server';
+                  await prisma.rentalApplication.delete({ where: { id: application.id } });
+                  redirect('/admin/applications');
+                }}
+                className='px-4 py-2.5 rounded-full bg-red-500/20 text-red-400 font-medium hover:bg-red-500/30 transition-colors'
+              >
+                Delete Application
+              </button>
             </div>
           </form>
         </div>

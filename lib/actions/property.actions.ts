@@ -86,14 +86,6 @@ export async function deletePropertyById(id: string) {
       },
     });
 
-    // Hide from product listings
-    if (property.slug) {
-      await prisma.product.updateMany({
-        where: { slug: property.slug },
-        data: { isPublished: false },
-      });
-    }
-
     revalidatePath('/admin/products');
 
     return { success: true, message: 'Property archived successfully. Historical payment records have been preserved.' };

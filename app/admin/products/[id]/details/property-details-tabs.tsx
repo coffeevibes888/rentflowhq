@@ -349,6 +349,12 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               <Plus className="w-4 h-4 sm:mr-1.5" />
               <span className="hidden sm:inline">Expense</span>
             </Button>
+            <Button asChild className="bg-violet-600 hover:bg-violet-500 text-white text-xs h-8 px-2.5 sm:h-9 sm:px-3">
+              <Link href={`/admin/tenants/add?propertyId=${property.id}`}>
+                <Users className="w-4 h-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Add Tenant</span>
+              </Link>
+            </Button>
             <Button asChild variant="outline" className="border-white/10 text-white text-xs h-8 px-2.5 sm:h-9 sm:px-3">
               <Link href={`/admin/products/${property.id}`}>
                 Edit

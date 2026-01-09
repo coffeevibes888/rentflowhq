@@ -222,7 +222,7 @@ export function SubscriptionDashboard({
 
         {/* Manage Subscription Buttons */}
         <div className="mt-6 pt-6 border-t border-white/10 flex flex-wrap gap-3">
-          <Button
+          {/* <Button
             onClick={handleSyncSubscription}
             disabled={isLoading}
             variant="outline"
@@ -230,7 +230,7 @@ export function SubscriptionDashboard({
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Sync from Stripe
-          </Button>
+          </Button> */}
           {currentTier !== 'starter' && (
             <>
               <Button
@@ -393,7 +393,7 @@ export function SubscriptionDashboard({
                   <Button
                     onClick={() => handleUpgrade(tier)}
                     disabled={isLoading && selectedTier === tier}
-                    className="w-full bg-violet-600 hover:bg-violet-500 text-white"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white"
                   >
                     <Zap className="h-4 w-4 mr-2" />
                     {isLoading && selectedTier === tier ? 'Loading...' : 'Upgrade'}

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
 import {
@@ -21,23 +22,34 @@ const DeleteDialog = ({
   id: string;
   action: (id: string) => Promise<{ success: boolean; message: string }>;
 }) => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
   const handleDeleteClick = () => {
     startTransition(async () => {
-      const res = await action(id);
+      try {
+        const res = await action(id);
 
-      if (!res.success) {
-        toast({
-          variant: 'destructive',
-          description: res.message,
-        });
-      } else {
+        if (!res.success) {
+          toast({
+            variant: 'destructive',
+            description: res.message,
+          });
+          return;
+        }
+
         setOpen(false);
         toast({
           description: res.message,
+        });
+        router.refresh();
+      } catch (err: any) {
+        toast({
+          variant: 'destructive',
+          description:
+            typeof err?.message === 'string' ? err.message : 'Failed to delete',
         });
       }
     });

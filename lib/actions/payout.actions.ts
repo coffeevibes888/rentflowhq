@@ -1,6 +1,9 @@
 /**
  * Payout Management Actions
- * Server actions for landlords to add, manage, and use payout methods
+ * 
+ * NOTE: With the direct payment model, most payout actions are deprecated.
+ * Stripe automatically handles payouts from Connect accounts to landlord banks.
+ * These actions are kept for backward compatibility.
  */
 
 'use server';
@@ -17,12 +20,7 @@ import {
   checkInstantPayoutEligibility,
 } from '@/lib/services/stripe-payout-service';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
-import {
-  validatePayoutMethodEligibility,
-  getLandlordPayoutMethodInfo,
-  PLATFORM_FEES,
-} from '@/lib/config/stripe-constants';
-import { SubscriptionTier, hasNoCashoutFees } from '@/lib/config/subscription-tiers';
+import { PLATFORM_FEES, STRIPE_LIMITS } from '@/lib/config/stripe-constants';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-02-24.acacia',
@@ -213,15 +211,9 @@ export async function requestPayout(data: z.infer<typeof requestPayoutSchema>) {
       }
     }
 
-    // Validate eligibility
-    const eligibility = validatePayoutMethodEligibility(
-      payoutMethod.type,
-      validatedData.amountInDollars,
-      validatedData.isInstant
-    );
-
-    if (!eligibility.valid) {
-      return { success: false, message: eligibility.reason };
+    // Basic validation
+    if (validatedData.amountInDollars < STRIPE_LIMITS.ACH_MIN) {
+      return { success: false, message: `Minimum payout is $${STRIPE_LIMITS.ACH_MIN}` };
     }
 
     // For instant payouts, check daily/monthly limits

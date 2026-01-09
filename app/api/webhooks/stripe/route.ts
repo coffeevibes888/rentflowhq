@@ -4,6 +4,9 @@ import { updateOrderToPaid } from '@/lib/actions/order-actions';
 import { prisma } from '@/db/prisma';
 import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-tiers';
 import { NotificationService } from '@/lib/services/notification-service';
+import { formatCurrency } from '@/lib/utils';
+import { formatEstimatedArrival } from '@/lib/config/stripe-constants';
+import { sendLandlordPaymentReceivedEmail } from '@/lib/actions/email.actions';
 
 /**
  * Stripe Webhook Handler
@@ -28,6 +31,148 @@ export async function POST(req: NextRequest) {
     event = Stripe.webhooks.constructEvent(payload, signature, webhookSecret);
   } catch {
     return NextResponse.json({ message: 'Invalid Stripe webhook signature' }, { status: 400 });
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const now = new Date();
+    const paymentMethodType = paymentIntent.payment_method_types?.[0] || 'unknown';
+
+    if (paymentIntent.metadata?.type === 'rent_payment') {
+      const idsRaw = paymentIntent.metadata?.rentPaymentIds;
+      const rentPaymentIds = idsRaw
+        ? String(idsRaw)
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+
+      try {
+        await prisma.$transaction(async (tx) => {
+          const rentPayments = await tx.rentPayment.findMany({
+            where: rentPaymentIds.length
+              ? { id: { in: rentPaymentIds } }
+              : { stripePaymentIntentId: paymentIntent.id },
+            include: {
+              tenant: true,
+              lease: {
+                include: {
+                  unit: {
+                    include: {
+                      property: {
+                        include: {
+                          landlord: { include: { owner: true } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          if (!rentPayments.length) {
+            throw new Error('No RentPayment records found for payment_intent.succeeded');
+          }
+
+          // Update payments first
+          await tx.rentPayment.updateMany({
+            where: { id: { in: rentPayments.map((rp) => rp.id) } },
+            data: {
+              status: 'paid',
+              paidAt: now,
+              paymentMethod: paymentMethodType,
+              amountPaid: undefined,
+            },
+          });
+
+          // Keep amountPaid accurate per row
+          await Promise.all(
+            rentPayments.map((rp) =>
+              tx.rentPayment.update({
+                where: { id: rp.id },
+                data: { amountPaid: rp.amount },
+              })
+            )
+          );
+
+          // Best-effort transaction ledger write (avoid duplicates where possible)
+          try {
+            await tx.paymentTransaction.createMany({
+              data: rentPayments.map((rp) => ({
+                rentPaymentId: rp.id,
+                amount: rp.amount,
+                status: 'succeeded',
+                method: paymentMethodType,
+                referenceId: paymentIntent.id,
+              })),
+              skipDuplicates: true,
+            });
+          } catch {
+            // createMany/skipDuplicates relies on a unique constraint; fall back to best-effort creates
+            for (const rp of rentPayments) {
+              try {
+                await tx.paymentTransaction.create({
+                  data: {
+                    rentPaymentId: rp.id,
+                    amount: rp.amount,
+                    status: 'succeeded',
+                    method: paymentMethodType,
+                    referenceId: paymentIntent.id,
+                  },
+                });
+              } catch {
+                // noop
+              }
+            }
+          }
+
+          const landlord = rentPayments[0]?.lease?.unit?.property?.landlord;
+          const tenantName = rentPayments[0]?.tenant?.name || 'Tenant';
+          const totalPaid = rentPayments.reduce((sum, rp) => sum + Number(rp.amount), 0);
+          const idsForNotification = rentPayments.map((rp) => rp.id);
+
+          if (landlord?.owner?.id && landlord.id) {
+            await NotificationService.createNotification({
+              userId: landlord.owner.id,
+              type: 'payment',
+              title: 'Rent Payment Received',
+              message: `${tenantName} paid ${formatCurrency(totalPaid)}.`,
+              actionUrl: `/admin/revenue`,
+              metadata: { rentPaymentIds: idsForNotification, leaseId: rentPayments[0]?.leaseId },
+              landlordId: landlord.id,
+            });
+
+            // Send email notification to landlord
+            const firstPayment = rentPayments[0];
+            const propertyName = firstPayment?.lease?.unit?.property?.name || 'Property';
+            const unitNumber = firstPayment?.lease?.unit?.unitNumber || '';
+            const estimatedArrival = formatEstimatedArrival(paymentMethodType);
+            const paymentMethodDisplay = paymentMethodType === 'us_bank_account' ? 'Bank Transfer (ACH)' : 'Card';
+
+            if (landlord.owner?.email) {
+              await sendLandlordPaymentReceivedEmail({
+                landlordEmail: landlord.owner.email,
+                landlordName: landlord.name,
+                tenantName,
+                propertyName,
+                unitNumber,
+                amount: formatCurrency(totalPaid),
+                paymentMethod: paymentMethodDisplay,
+                paidAt: now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                estimatedArrival,
+                logoUrl: landlord.logoUrl,
+              });
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error processing rent payment payment_intent.succeeded:', error);
+        return NextResponse.json({ message: 'Failed to process rent payment webhook' }, { status: 500 });
+      }
+    }
+
+    return NextResponse.json({ message: 'Webhook processed: payment_intent.succeeded' });
   }
 
   // Handle successful charges

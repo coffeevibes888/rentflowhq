@@ -22,6 +22,7 @@ declare module 'next-auth' {
    */
   interface Session {
     user: {
+      id: string;
       role: string;
       phoneVerified: Date | null;
       phoneNumber: string | null;

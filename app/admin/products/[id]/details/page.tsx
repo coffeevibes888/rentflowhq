@@ -47,6 +47,7 @@ export default async function PropertyDetailsPage(props: {
                     take: 1,
                     select: {
                       id: true,
+                      phone: true,
                       verification: {
                         select: {
                           identityStatus: true,
@@ -64,6 +65,23 @@ export default async function PropertyDetailsPage(props: {
               rentPayments: {
                 orderBy: { dueDate: 'desc' },
                 take: 12,
+                select: {
+                  id: true,
+                  dueDate: true,
+                  paidAt: true,
+                  amount: true,
+                  status: true,
+                  metadata: true,
+                },
+              },
+              recurringCharges: {
+                select: {
+                  id: true,
+                  description: true,
+                  amount: true,
+                  dayOfMonthToPost: true,
+                  status: true,
+                },
               },
             },
           },
@@ -165,6 +183,7 @@ export default async function PropertyDetailsPage(props: {
           image: lease.tenant.image,
           createdAt: lease.tenant.createdAt.toISOString(),
           applicationId: lease.tenant.rentalApplications?.[0]?.id || null,
+          applicationPhone: lease.tenant.rentalApplications?.[0]?.phone || null,
           verification: lease.tenant.rentalApplications?.[0]?.verification ? {
             identityStatus: lease.tenant.rentalApplications[0].verification.identityStatus,
             employmentStatus: lease.tenant.rentalApplications[0].verification.employmentStatus,
@@ -180,6 +199,14 @@ export default async function PropertyDetailsPage(props: {
           paidAt: payment.paidAt?.toISOString() || null,
           amount: Number(payment.amount),
           status: payment.status,
+          metadata: payment.metadata as Record<string, unknown> | null,
+        })),
+        recurringCharges: lease.recurringCharges.map(charge => ({
+          id: charge.id,
+          description: charge.description,
+          amount: Number(charge.amount),
+          dayOfMonthToPost: charge.dayOfMonthToPost,
+          status: charge.status,
         })),
         unitName: unit.name,
         unitType: unit.type,

@@ -326,11 +326,11 @@ export const tenantInvoiceSchema = z.object({
 // Schema for property bank account
 export const propertyBankAccountSchema = z.object({
   propertyId: z.string().min(1, 'Property is required'),
-  stripePaymentMethodId: z.string().min(1, 'Stripe payment method ID is required'),
+  stripeBankAccountTokenId: z.string().min(1, 'Bank account token is required'),
   accountHolderName: z.string().min(2, 'Account holder name must be at least 2 characters'),
-  last4: z.string().length(4, 'Last 4 digits must be exactly 4 characters'),
   bankName: z.string().optional(),
   accountType: z.enum(['checking', 'savings']).optional(),
+  last4: z.string().length(4, 'Last 4 digits must be exactly 4 characters'),
   routingNumber: z.string().optional(),
 });
 
@@ -577,3 +577,41 @@ export const payrollSettingsSchema = z.object({
   dailyOvertimeThreshold: z.coerce.number().min(0).max(24, 'Daily hours cannot exceed 24').optional(),
   overtimeMultiplier: z.coerce.number().min(1).max(3, 'Overtime multiplier must be 1-3'),
 });
+
+// ============= TENANT MANAGEMENT SCHEMAS =============
+
+// Schema for manually adding tenant data
+export const addTenantSchema = z.object({
+  // Tenant personal info
+  firstName: z.string().min(1, 'First name is required').max(50),
+  lastName: z.string().min(1, 'Last name is required').max(50),
+  email: z.string().email('Valid email is required'),
+  phone: z.string().optional(),
+  
+  // Property/Unit selection
+  propertyId: z.string().uuid('Property is required'),
+  unitId: z.string().uuid('Unit is required'),
+  
+  // Lease details
+  rentAmount: z.coerce.number().positive('Rent amount must be positive'),
+  securityDeposit: z.coerce.number().min(0, 'Security deposit cannot be negative').optional(),
+  leaseStartDate: z.string().min(1, 'Lease start date is required'),
+  leaseEndDate: z.string().optional(),
+  billingDayOfMonth: z.coerce.number().min(1).max(28).default(1),
+  
+  // Additional tenant info
+  moveInDate: z.string().optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+  numberOfOccupants: z.coerce.number().min(1).default(1),
+  hasPets: z.boolean().default(false),
+  petDetails: z.string().optional(),
+  vehicleInfo: z.string().optional(),
+  notes: z.string().optional(),
+  
+  // Options
+  sendInviteEmail: z.boolean().default(true),
+  createLeaseImmediately: z.boolean().default(true),
+});
+
+export type AddTenantInput = z.infer<typeof addTenantSchema>;
