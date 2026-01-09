@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { HousePlus, Briefcase, Wrench, Settings, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SignOutButtonGeneric } from '@/components/shared/sign-out-button-generic';
+import { HomeownerAffiliateLink } from '@/components/homeowner/homeowner-affiliate-link';
 
 export default async function HomeownerLayout({
   children,
@@ -53,6 +54,7 @@ export default async function HomeownerLayout({
                   </Link>
                 );
               })}
+              <HomeownerAffiliateLink />
             </div>
 
             <div className="flex items-center gap-3">
@@ -77,6 +79,7 @@ export default async function HomeownerLayout({
               </Link>
             );
           })}
+          <HomeownerAffiliateLink />
         </div>
       </nav>
 

@@ -77,7 +77,7 @@ export const contractorNavLinks: ContractorNavLink[] = [
   {
     title: 'My Profile',
     description: 'Public profile & branding',
-    href: '/contractor/profile',
+    href: '/contractor/profile/branding',
     icon: Palette,
   },
 ];

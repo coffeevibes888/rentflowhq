@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Calendar, Clock, MessageSquare, 
   FileText, DollarSign, Umbrella, Settings
 } from 'lucide-react';
+import { AffiliateNavLink } from '@/components/affiliate/affiliate-nav-link';
 
 const navItems = [
   {
@@ -79,7 +80,8 @@ export function EmployeeSidebar() {
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-white/10 space-y-2">
+        <AffiliateNavLink variant="sidebar" />
         <Link
           href="/employee/settings"
           className={cn(

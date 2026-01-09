@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -23,7 +24,8 @@ import {
   Target,
   Lightbulb,
   Building2,
-  Shield
+  Shield,
+  Info
 } from 'lucide-react';
 import Link from 'next/link';
 import AffiliateSignUpModal from './affiliate-signup-modal';
@@ -31,6 +33,17 @@ import AffiliateSignUpModal from './affiliate-signup-modal';
 export default function AffiliateProgramClient() {
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const searchParams = useSearchParams();
+  
+  // Check for signup required message
+  const signupRequired = searchParams.get('signup') === 'required';
+
+  // Auto-open signup modal if redirected with signup=required
+  useEffect(() => {
+    if (signupRequired) {
+      setShowSignUpModal(true);
+    }
+  }, [signupRequired]);
 
   const commissionTiers = [
     { plan: 'Starter Plan', price: '$19.99/mo', commission: '$5', color: 'bg-slate-500' },
@@ -74,6 +87,18 @@ export default function AffiliateProgramClient() {
 
   return (
     <div className="min-h-screen">
+      {/* Signup Required Banner */}
+      {signupRequired && (
+        <div className="bg-amber-500/20 border-b border-amber-500/30 px-4 py-3">
+          <div className="max-w-6xl mx-auto flex items-center gap-3 text-amber-200">
+            <Info className="h-5 w-5 flex-shrink-0" />
+            <p className="text-sm">
+              You're signed in but not yet registered as an affiliate. Sign up below to access your affiliate dashboard and start earning!
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-transparent to-blue-600/20" />

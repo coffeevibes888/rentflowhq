@@ -7,6 +7,7 @@ import React from 'react';
 import { adminNavLinks } from '@/lib/constants/admin-nav';
 import { useEffect, useState } from 'react';
 import { Crown } from 'lucide-react';
+import { AffiliateNavLink } from '@/components/affiliate/affiliate-nav-link';
 
 const MainNav = ({
   className,
@@ -90,6 +91,11 @@ const MainNav = ({
           </Link>
         );
       })}
+      
+      {/* Affiliate Dashboard Link - only shows if user is an affiliate */}
+      <div className="mt-auto pt-4 border-t border-black/10">
+        <AffiliateNavLink variant="sidebar" />
+      </div>
     </nav>
   );
 };

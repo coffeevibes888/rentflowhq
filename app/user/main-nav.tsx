@@ -14,6 +14,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { AffiliateNavLink } from '@/components/affiliate/affiliate-nav-link';
 
 const MainNav = ({
   className,
@@ -112,6 +113,11 @@ const MainNav = ({
           </Link>
         );
       })}
+      
+      {/* Affiliate Dashboard Link - only shows if user is an affiliate */}
+      <div className="mt-4 pt-4 border-t border-white/20">
+        <AffiliateNavLink variant="sidebar" />
+      </div>
     </nav>
   );
 };

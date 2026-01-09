@@ -77,8 +77,8 @@ const Header = async () => {
               Resources
               <ChevronDown className="h-4 w-4" />
             </button>
-            <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-white border rounded-md shadow-lg z-50 min-w-[200px]">
-              <div className="py-2">
+            <div className="absolute left-0 top-full pt-1 hidden group-hover:block z-50 min-w-[200px]">
+              <div className="py-2 bg-white border rounded-md shadow-lg">
                 <Link href='/faq' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">
                   FAQs
                 </Link>

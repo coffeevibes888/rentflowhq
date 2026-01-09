@@ -23,6 +23,9 @@ export const authConfig = {
         /^\/order\//,
         /^\/admin\/.*/,  // All admin routes require auth
         /^\/super-admin/,
+        /^\/contractor\/.*/,  // All contractor routes require auth
+        /^\/homeowner\/.*/,  // All homeowner routes require auth
+        /^\/agent\/.*/,  // All agent routes require auth
       ];
 
       // Public paths that look like they could match protected patterns but shouldn't

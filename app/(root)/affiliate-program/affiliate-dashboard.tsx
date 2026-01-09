@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -14,7 +15,8 @@ import {
   CreditCard,
   ExternalLink,
   RefreshCw,
-  Settings
+  Settings,
+  ArrowLeft
 } from 'lucide-react';
 import {
   Select,
@@ -47,7 +49,56 @@ interface Referral {
   pendingUntil: string;
 }
 
+// Helper to get dashboard URL based on role
+function getDashboardUrl(role: string | undefined): string {
+  switch (role?.toLowerCase()) {
+    case 'landlord':
+    case 'admin':
+    case 'property_manager':
+      return '/admin/overview';
+    case 'contractor':
+      return '/contractor/dashboard';
+    case 'homeowner':
+      return '/homeowner/dashboard';
+    case 'agent':
+      return '/agent/dashboard';
+    case 'employee':
+      return '/employee';
+    case 'tenant':
+    default:
+      return '/user/dashboard';
+  }
+}
+
+// Helper to get role display name
+function getRoleDisplayName(role: string | undefined): string {
+  switch (role?.toLowerCase()) {
+    case 'landlord':
+      return 'Landlord';
+    case 'admin':
+      return 'Admin';
+    case 'property_manager':
+      return 'Property Manager';
+    case 'contractor':
+      return 'Contractor';
+    case 'homeowner':
+      return 'Homeowner';
+    case 'agent':
+      return 'Agent';
+    case 'employee':
+      return 'Employee';
+    case 'tenant':
+      return 'Tenant';
+    default:
+      return 'Main';
+  }
+}
+
 export default function AffiliateDashboard() {
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
+  const mainDashboardUrl = getDashboardUrl(userRole);
+  const roleDisplayName = getRoleDisplayName(userRole);
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,6 +197,17 @@ export default function AffiliateDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
+      {/* Back to Main Dashboard Link */}
+      {userRole && (
+        <Link 
+          href={mainDashboardUrl}
+          className="inline-flex items-center text-slate-400 hover:text-white mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to {roleDisplayName} Dashboard
+        </Link>
+      )}
+      
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white">Affiliate Dashboard</h1>

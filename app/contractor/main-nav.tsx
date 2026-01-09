@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { contractorNavLinks } from '@/lib/constants/contractor-nav';
+import { AffiliateNavLink } from '@/components/affiliate/affiliate-nav-link';
 
 const ContractorMainNav = ({
   className,
@@ -54,6 +55,11 @@ const ContractorMainNav = ({
           </Link>
         );
       })}
+      
+      {/* Affiliate Dashboard Link - only shows if user is an affiliate */}
+      <div className="mt-auto pt-4 border-t border-black/10">
+        <AffiliateNavLink variant="sidebar" />
+      </div>
     </nav>
   );
 };

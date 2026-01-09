@@ -76,6 +76,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 
+    // Special handling for affiliate dashboard callback
+    const isAffiliateCallback = callbackUrl?.includes('/affiliate-program/dashboard');
+    
+    if (isAffiliateCallback) {
+      // Check if user is an affiliate
+      const affiliate = await prisma.affiliate.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+
+      if (!affiliate) {
+        // Not an affiliate - redirect to affiliate signup page
+        return NextResponse.json({ 
+          success: true, 
+          redirectUrl: '/affiliate-program?signup=required',
+        });
+      }
+
+      // User is an affiliate - check if they have another role
+      const hasOtherRole = user.role && !['user'].includes(user.role.toLowerCase());
+      
+      if (hasOtherRole) {
+        // Has another role (landlord, tenant, etc.) - redirect to their main dashboard
+        // The affiliate link will be shown in their navigation (cached via localStorage)
+        const redirectUrl = await getSubdomainRedirectUrl(user.role, user.id);
+        return NextResponse.json({ 
+          success: true, 
+          redirectUrl,
+        });
+      }
+
+      // Pure affiliate (no other role) - go directly to affiliate dashboard
+      return NextResponse.json({ 
+        success: true, 
+        redirectUrl: '/affiliate-program/dashboard',
+      });
+    }
+
     // Determine redirect URL - ignore default callback URLs, use role-based routing
     const isDefaultCallback = !callbackUrl || 
       callbackUrl.trim() === '/' || 

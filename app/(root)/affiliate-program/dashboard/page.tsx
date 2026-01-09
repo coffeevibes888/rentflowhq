@@ -13,7 +13,7 @@ export default async function AffiliateDashboardPage() {
   const session = await auth();
   
   if (!session?.user?.email) {
-    redirect('/affiliate-program?login=required');
+    redirect('/sign-in?callbackUrl=/affiliate-program/dashboard');
   }
 
   // Check if user is an affiliate
@@ -22,6 +22,7 @@ export default async function AffiliateDashboardPage() {
   });
 
   if (!affiliate) {
+    // User is signed in but not an affiliate - redirect to signup
     redirect('/affiliate-program?signup=required');
   }
 

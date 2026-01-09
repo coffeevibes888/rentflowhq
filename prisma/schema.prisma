@@ -115,6 +115,10 @@ model User {
   // Homeowner
   homeownerProfile Homeowner?
 
+  // Contractor Marketplace
+  contractorMarketplaceProfile ContractorProfile?
+  contractorReviewsGiven       ContractorReview[] @relation("ContractorReviewsGiven")
+
   // Dispute Center
   disputesFiled    Dispute[]         @relation("DisputeFiledBy")
   disputesAssigned Dispute[]         @relation("DisputeAssignedTo")
@@ -999,13 +1003,13 @@ model RentPayment {
 }
 
 model PaymentTransaction {
-  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  rentPaymentId String @db.Uuid
-  amount      Decimal  @db.Decimal(12, 2)
-  status      String // "succeeded", "failed", "pending"
-  method      String? // "card", "ach", "cash"
-  referenceId String? // e.g., Stripe charge ID
-  processedAt DateTime @default(now())
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rentPaymentId String   @db.Uuid
+  amount        Decimal  @db.Decimal(12, 2)
+  status        String // "succeeded", "failed", "pending"
+  method        String? // "card", "ach", "cash"
+  referenceId   String? // e.g., Stripe charge ID
+  processedAt   DateTime @default(now())
 
   rentPayment RentPayment @relation(fields: [rentPaymentId], references: [id], onDelete: Cascade)
 
@@ -3324,6 +3328,160 @@ model FinancialAccountTransaction {
 
   @@index([financialAccountId])
   @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============= CONTRACTOR MARKETPLACE =============
+
+// ContractorProfile - Public marketplace profile for contractors
+model ContractorProfile {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @unique @db.Uuid
+  slug   String @unique // contractor-name-123 for URL
+
+  // Basic Info
+  businessName String
+  displayName  String
+  tagline      String? // Short description like "Licensed Plumber - 15 Years Experience"
+  bio          String?
+  profilePhoto String?
+  coverPhoto   String?
+
+  // Contact & Location
+  email         String
+  phone         String?
+  website       String?
+  serviceAreas  String[] @default([]) // zip codes or city names
+  serviceRadius Int? // miles from base location
+  baseCity      String?
+  baseState     String?
+
+  // Professional Info
+  specialties       String[]  @default([]) // plumbing, electrical, HVAC, etc.
+  yearsExperience   Int?
+  licenseNumber     String?
+  licenseState      String?
+  insuranceVerified Boolean   @default(false)
+  insuranceExpiry   DateTime? @db.Timestamp(6)
+  backgroundChecked Boolean   @default(false)
+
+  // Portfolio
+  portfolioImages String[] @default([])
+  portfolioVideos String[] @default([])
+
+  // Availability
+  isAvailable       Boolean @default(true)
+  availabilityNotes String?
+
+  // Marketplace Settings
+  isPublic         Boolean  @default(true) // visible in marketplace
+  acceptingNewWork Boolean  @default(true)
+  minimumJobSize   Decimal? @db.Decimal(12, 2)
+  hourlyRate       Decimal? @db.Decimal(10, 2)
+
+  // Computed/Cached Stats (updated by ranking job)
+  rankScore        Float @default(0) // 0-100 composite score
+  avgRating        Float @default(0) // 1-5 stars
+  totalReviews     Int   @default(0)
+  completedJobs    Int   @default(0)
+  responseRate     Float @default(0) // % of messages responded to
+  onTimeRate       Float @default(0) // % completed on schedule
+  repeatClientRate Float @default(0) // % of clients who hire again
+
+  // Verification
+  identityVerified Boolean @default(false)
+  taxId            String? // EIN or SSN last 4 (encrypted)
+  verifiedPhone    String?
+
+  // Subdomain & Branding (mirrors landlord subdomain)
+  subdomain    String?  @unique // contractor's custom subdomain
+  logoUrl      String?
+  themeColor   String?  @default("violet") // violet, emerald, blue, rose, amber
+  heroImages   String[] @default([])
+
+  // About Page Content
+  aboutBio     String?
+  aboutPhoto   String?
+  aboutGallery String[] @default([])
+
+  // "Why Choose Me" Feature Cards (6 customizable cards)
+  featureCard1Title       String?
+  featureCard1Description String?
+  featureCard1Icon        String?  @default("zap") // icon name
+  featureCard2Title       String?
+  featureCard2Description String?
+  featureCard2Icon        String?  @default("dollar-sign")
+  featureCard3Title       String?
+  featureCard3Description String?
+  featureCard3Icon        String?  @default("shield")
+  featureCard4Title       String?
+  featureCard4Description String?
+  featureCard4Icon        String?  @default("clock")
+  featureCard5Title       String?
+  featureCard5Description String?
+  featureCard5Icon        String?  @default("smartphone")
+  featureCard6Title       String?
+  featureCard6Description String?
+  featureCard6Icon        String?  @default("briefcase")
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews ContractorReview[]
+
+  @@index([slug])
+  @@index([rankScore])
+  @@index([avgRating])
+  @@index([isPublic, acceptingNewWork])
+  @@index([baseCity, baseState])
+}
+
+// ContractorReview - Reviews from landlords/homeowners (fraud-protected)
+model ContractorReview {
+  id                  String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorProfileId String @db.Uuid
+  reviewerId          String @db.Uuid
+  workOrderId         String @db.Uuid // REQUIRED - must have completed job
+
+  // Ratings (1-5 stars)
+  overallRating       Int
+  qualityRating       Int?
+  communicationRating Int?
+  timelinessRating    Int?
+  valueRating         Int?
+
+  // Review Content
+  title   String?
+  content String
+
+  // Job context for verification
+  jobType  String? // plumbing, electrical, etc.
+  jobValue Decimal? @db.Decimal(12, 2) // For weighted scoring
+
+  // Verification
+  isVerified         Boolean @default(false) // linked to completed & paid work order
+  verificationMethod String? // "work_order_completion", "payment_confirmed"
+
+  // Moderation
+  status     String  @default("published") // pending, published, flagged, removed
+  flagReason String?
+
+  // Response
+  contractorResponse String?
+  respondedAt        DateTime? @db.Timestamp(6)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  contractorProfile ContractorProfile @relation(fields: [contractorProfileId], references: [id], onDelete: Cascade)
+  reviewer          User              @relation("ContractorReviewsGiven", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([contractorProfileId, workOrderId]) // One review per job
+  @@unique([reviewerId, workOrderId]) // Reviewer can only review once per job
+  @@index([contractorProfileId])
+  @@index([reviewerId])
   @@index([status])
   @@index([createdAt])
 }
