@@ -9,7 +9,7 @@ import { randomUUID } from 'crypto';
 import { Resend } from 'resend';
 import { APP_NAME } from '@/lib/constants';
 
-export type TeamMemberRole = 'owner' | 'admin' | 'manager' | 'member' | 'employee';
+export type TeamMemberRole = 'owner' | 'admin' | 'manager' | 'leasing_agent' | 'showing_agent' | 'member' | 'employee';
 export type TeamPermission = 
   | 'view_properties' 
   | 'manage_tenants' 
@@ -17,12 +17,17 @@ export type TeamPermission =
   | 'manage_finances'
   | 'manage_team'
   | 'manage_schedule'
-  | 'approve_timesheets';
+  | 'approve_timesheets'
+  | 'view_financials'
+  | 'schedule_showings'
+  | 'process_applications';
 
 const DEFAULT_PERMISSIONS: Record<TeamMemberRole, TeamPermission[]> = {
-  owner: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_team', 'manage_schedule', 'approve_timesheets'],
-  admin: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_schedule', 'approve_timesheets'],
-  manager: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_schedule', 'approve_timesheets'],
+  owner: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_team', 'manage_schedule', 'approve_timesheets', 'view_financials', 'schedule_showings', 'process_applications'],
+  admin: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_schedule', 'approve_timesheets', 'view_financials', 'schedule_showings', 'process_applications'],
+  manager: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_schedule', 'approve_timesheets', 'view_financials', 'schedule_showings', 'process_applications'],
+  leasing_agent: ['view_properties', 'manage_tenants', 'process_applications', 'schedule_showings'],
+  showing_agent: ['view_properties', 'schedule_showings'],
   member: ['view_properties', 'manage_maintenance'],
   employee: ['view_properties'],
 };
@@ -205,7 +210,10 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'me
     });
     
     const isEnterprise = landlord?.subscriptionTier === 'enterprise';
-    const maxMembers = isEnterprise ? Infinity : 5;
+    const isPro = landlord?.subscriptionTier === 'pro' || landlord?.subscriptionTier === 'professional';
+    
+    // Pro: 5 team members + owner (6 total), Enterprise: unlimited
+    const maxMembers = isEnterprise ? Infinity : 6;
 
     try {
       const activeCount =
@@ -217,7 +225,7 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'me
           success: false, 
           message: isEnterprise 
             ? 'Unable to add more team members at this time.' 
-            : 'Team limit reached. You can have up to 5 active team members. Upgrade to Enterprise for unlimited team members.' 
+            : `Team limit reached. Pro plan allows up to 5 team members plus the owner (${maxMembers} total). Upgrade to Enterprise for unlimited team members.` 
         };
       }
     } catch {
@@ -422,14 +430,16 @@ export async function acceptTeamInvite(inviteToken: string) {
     });
     
     const isEnterprise = landlord?.subscriptionTier === 'enterprise';
+    const isPro = landlord?.subscriptionTier === 'pro' || landlord?.subscriptionTier === 'professional';
     
     if (!isEnterprise) {
       const activeCount =
         (await teamMemberModel()?.count?.({
           where: { landlordId: member.landlordId, status: 'active' },
         })) || 0;
-      if (activeCount >= 5) {
-        return { success: false, message: 'This team is already at the 5-member limit. The team owner needs to upgrade to Enterprise for unlimited members.' };
+      const maxMembers = 6; // Pro: 5 members + owner
+      if (activeCount >= maxMembers) {
+        return { success: false, message: `This team is already at the ${maxMembers}-member limit (5 team members + owner). The team owner needs to upgrade to Enterprise for unlimited members.` };
       }
     }
 
@@ -465,9 +475,27 @@ export async function acceptTeamInvite(inviteToken: string) {
 
 export async function updateTeamMemberRole(memberId: string, role: TeamMemberRole) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success || !landlordResult.landlord) {
       return { success: false, message: landlordResult.message };
+    }
+
+    // Check if current user is the owner or has manage_team permission
+    const currentUserMember = await teamMemberModel()?.findFirst?.({
+      where: {
+        userId: session.user.id,
+        landlordId: landlordResult.landlord.id,
+        status: 'active',
+      },
+    });
+
+    if (!currentUserMember || (currentUserMember.role !== 'owner' && !currentUserMember.permissions.includes('manage_team'))) {
+      return { success: false, message: 'Only the account owner can manage team roles' };
     }
 
     let member;
@@ -503,9 +531,27 @@ export async function updateTeamMemberRole(memberId: string, role: TeamMemberRol
 
 export async function removeTeamMember(memberId: string) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success || !landlordResult.landlord) {
       return { success: false, message: landlordResult.message };
+    }
+
+    // Check if current user is the owner or has manage_team permission
+    const currentUserMember = await teamMemberModel()?.findFirst?.({
+      where: {
+        userId: session.user.id,
+        landlordId: landlordResult.landlord.id,
+        status: 'active',
+      },
+    });
+
+    if (!currentUserMember || (currentUserMember.role !== 'owner' && !currentUserMember.permissions.includes('manage_team'))) {
+      return { success: false, message: 'Only the account owner can remove team members' };
     }
 
     let member;
@@ -561,5 +607,124 @@ export async function clearPendingInvites() {
     }
   } catch (error) {
     return { success: false, message: formatError(error) };
+  }
+}
+
+export async function updateTeamMemberPermissions(memberId: string, permissions: TeamPermission[]) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    // Check if current user is the owner or has manage_team permission
+    const currentUserMember = await teamMemberModel()?.findFirst?.({
+      where: {
+        userId: session.user.id,
+        landlordId: landlordResult.landlord.id,
+        status: 'active',
+      },
+    });
+
+    if (!currentUserMember || (currentUserMember.role !== 'owner' && !currentUserMember.permissions.includes('manage_team'))) {
+      return { success: false, message: 'Only the account owner can manage team permissions' };
+    }
+
+    let member;
+    try {
+      member = await teamMemberModel()?.findFirst?.({
+        where: { id: memberId, landlordId: landlordResult.landlord.id },
+      });
+    } catch {
+      return { success: false, message: 'Team management requires database migration' };
+    }
+
+    if (!member) {
+      return { success: false, message: 'Team member not found' };
+    }
+
+    if (member.role === 'owner') {
+      return { success: false, message: 'Cannot change owner permissions' };
+    }
+
+    // Validate permissions
+    const validPermissions: TeamPermission[] = [
+      'view_properties',
+      'manage_tenants',
+      'manage_maintenance',
+      'manage_finances',
+      'manage_team',
+      'manage_schedule',
+      'approve_timesheets',
+      'view_financials',
+      'schedule_showings',
+      'process_applications',
+    ];
+
+    const filteredPermissions = permissions.filter(p => validPermissions.includes(p));
+
+    await teamMemberModel()?.update?.({
+      where: { id: memberId },
+      data: { permissions: filteredPermissions },
+    });
+
+    return { success: true, message: 'Permissions updated successfully', permissions: filteredPermissions };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function checkTeamMemberPermission(userId: string, landlordId: string, permission: TeamPermission): Promise<boolean> {
+  try {
+    const member = await teamMemberModel()?.findFirst?.({
+      where: {
+        userId,
+        landlordId,
+        status: 'active',
+      },
+    });
+
+    if (!member) return false;
+    if (member.role === 'owner') return true; // Owner has all permissions
+    
+    return member.permissions.includes(permission);
+  } catch {
+    return false;
+  }
+}
+
+export async function getCurrentUserTeamRole(landlordId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, role: null, isOwner: false, canManageTeam: false };
+    }
+
+    const member = await teamMemberModel()?.findFirst?.({
+      where: {
+        userId: session.user.id,
+        landlordId,
+        status: 'active',
+      },
+    });
+
+    if (!member) {
+      return { success: false, role: null, isOwner: false, canManageTeam: false };
+    }
+
+    return {
+      success: true,
+      role: member.role,
+      isOwner: member.role === 'owner',
+      canManageTeam: member.role === 'owner' || member.permissions.includes('manage_team'),
+      permissions: member.permissions,
+    };
+  } catch (error) {
+    return { success: false, role: null, isOwner: false, canManageTeam: false };
   }
 }

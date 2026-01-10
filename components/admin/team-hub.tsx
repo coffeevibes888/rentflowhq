@@ -66,6 +66,8 @@ interface TeamHubProps {
   landlordId: string;
   teamMembers: TeamMemberData[];
   subscriptionTier: 'starter' | 'pro' | 'enterprise';
+  currentUserRole?: string;
+  canManageTeam?: boolean;
   features?: {
     teamManagement?: boolean;
     teamCommunications?: boolean;
@@ -78,10 +80,17 @@ export function TeamHub({
   landlordId, 
   teamMembers, 
   subscriptionTier,
+  currentUserRole = 'member',
+  canManageTeam = false,
 }: TeamHubProps) {
   const [activeTab, setActiveTab] = useState('chat');
   const isEnterprise = subscriptionTier === 'enterprise';
   const activeMembers = teamMembers.filter(m => m.status === 'active');
+  const isOwner = currentUserRole === 'owner';
+
+  const handleRolesClick = () => {
+    setActiveTab('members');
+  };
 
   return (
     <div className="flex flex-col bg-slate-900/40 rounded-2xl border border-white/10">
@@ -185,6 +194,8 @@ export function TeamHub({
                 landlordId={landlordId}
                 isFullPage={true}
                 teamMembers={teamMembers}
+                canManageTeam={canManageTeam}
+                onRolesClick={handleRolesClick}
               />
             </div>
           </TabsContent>
@@ -194,6 +205,8 @@ export function TeamHub({
               <TeamMembersTab 
                 members={teamMembers} 
                 isEnterprise={isEnterprise}
+                canManageTeam={canManageTeam}
+                currentUserRole={currentUserRole}
               />
             </div>
           </TabsContent>

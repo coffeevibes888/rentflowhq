@@ -55,6 +55,12 @@ export default async function TeamPage() {
   // Determine subscription tier from the consistent subscription data source
   const tier = normalizeTier(subscriptionData.tier);
 
+  // Get current user's team role
+  const { getCurrentUserTeamRole } = await import('@/lib/actions/team.actions');
+  const userRoleData = landlordResult.success && landlordResult.landlord 
+    ? await getCurrentUserTeamRole(landlordResult.landlord.id)
+    : { success: false, role: null, canManageTeam: false };
+
   return (
     <main className="w-full min-h-[600px] pb-8">
       <TeamHub
@@ -67,6 +73,8 @@ export default async function TeamPage() {
         landlordId={landlordResult.success && landlordResult.landlord ? landlordResult.landlord.id : ''}
         teamMembers={teamData.success && teamData.members ? teamData.members : []}
         subscriptionTier={tier as 'starter' | 'pro' | 'enterprise'}
+        currentUserRole={userRoleData.role || 'member'}
+        canManageTeam={userRoleData.canManageTeam || false}
         features={{
           teamManagement: subscriptionData.features?.teamManagement,
           teamCommunications: subscriptionData.features?.teamCommunications,

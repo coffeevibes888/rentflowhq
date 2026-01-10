@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Send, Hash, Users, Plus, Settings, ChevronDown, 
   MessageSquare, Search, X, MoreVertical, Bell, BellOff,
-  Smile, Paperclip, AtSign, UserPlus, Mail
+  Smile, Paperclip, AtSign, UserPlus, Mail, Heart, ThumbsUp,
+  Image as ImageIcon, File, Download, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import dynamic from 'next/dynamic';
+
+// Dynamically import emoji picker to avoid SSR issues
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 
 interface TeamMember {
   id: string;
@@ -71,7 +76,14 @@ interface Message {
   content: string;
   createdAt: string;
   isEdited?: boolean;
-  reactions?: { emoji: string; users: string[] }[];
+  reactions?: { emoji: string; users: string[]; count: number }[];
+  attachments?: {
+    id: string;
+    name: string;
+    url: string;
+    type: 'image' | 'file';
+    size?: number;
+  }[];
 }
 
 interface TeamChatProps {
@@ -85,6 +97,8 @@ interface TeamChatProps {
   onClose?: () => void;
   isFullPage?: boolean;
   teamMembers?: TeamMemberData[];
+  canManageTeam?: boolean;
+  onRolesClick?: () => void;
 }
 
 const STATUS_COLORS = {
@@ -93,7 +107,15 @@ const STATUS_COLORS = {
   offline: 'bg-slate-500',
 };
 
-export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false, teamMembers: initialTeamMembers = [] }: TeamChatProps) {
+export function TeamChat({ 
+  currentUser, 
+  landlordId, 
+  onClose, 
+  isFullPage = false, 
+  teamMembers: initialTeamMembers = [],
+  canManageTeam = false,
+  onRolesClick,
+}: TeamChatProps) {
   const [channels, setChannels] = useState<Channel[]>([
     { id: 'general', name: 'general', type: 'public', description: 'Company-wide announcements' },
     { id: 'maintenance', name: 'maintenance', type: 'public', description: 'Maintenance requests & updates' },
@@ -118,9 +140,15 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [teamMembersData, setTeamMembersData] = useState<TeamMemberData[]>(initialTeamMembers);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [showFilePreview, setShowFilePreview] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   // Load team members
   useEffect(() => {
@@ -188,11 +216,16 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !activeChannel) return;
+    if ((!input.trim() && uploadedFiles.length === 0) || !activeChannel) return;
 
     const content = input.trim();
     setInput('');
     setIsLoading(true);
+
+    // Upload files first if any
+    const attachments = await handleFileUpload();
+    setUploadedFiles([]);
+    setShowFilePreview(false);
 
     const tempMessage: Message = {
       id: `temp-${Date.now()}`,
@@ -200,8 +233,9 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
       senderId: currentUser.id,
       senderName: currentUser.name,
       senderImage: currentUser.image,
-      content,
+      content: content || (attachments.length > 0 ? '📎 Attachment' : ''),
       createdAt: new Date().toISOString(),
+      attachments: attachments.length > 0 ? attachments : undefined,
     };
     setMessages(prev => [...prev, tempMessage]);
 
@@ -209,7 +243,7 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
       const res = await fetch(`/api/landlord/team/channels/${activeChannel.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, attachments }),
       });
       const data = await res.json();
       
@@ -252,13 +286,143 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
           setInviteSuccess(false);
         }, 1500);
       } else {
-        setInviteError(data.message || 'Failed to send invitation. Please try again.');
+        setInviteError(data.message || 'Failed to send invitation');
       }
-    } catch (error) {
-      console.error('Invite error:', error);
-      setInviteError('Network error. Please check your connection and try again.');
+    } catch {
+      setInviteError('Network error. Please try again.');
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  // File upload handlers
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setUploadedFiles(prev => [...prev, ...files]);
+      setShowFilePreview(true);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFileUpload = async () => {
+    if (uploadedFiles.length === 0) return [];
+    
+    setIsUploading(true);
+    const uploadedUrls: { id: string; name: string; url: string; type: 'image' | 'file'; size: number }[] = [];
+    
+    try {
+      for (const file of uploadedFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('landlordId', landlordId);
+        
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const data = await res.json();
+        if (data.success && data.url) {
+          uploadedUrls.push({
+            id: `file-${Date.now()}-${Math.random()}`,
+            name: file.name,
+            url: data.url,
+            type: file.type.startsWith('image/') ? 'image' : 'file',
+            size: file.size,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
+    
+    return uploadedUrls;
+  };
+
+  // Emoji picker handlers
+  const handleEmojiSelect = (emojiData: any) => {
+    setInput(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+    inputRef.current?.focus();
+  };
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
+  // Message reaction handlers
+  const handleAddReaction = async (messageId: string, emoji: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message) return;
+
+    const existingReaction = message.reactions?.find(r => r.emoji === emoji);
+    const userAlreadyReacted = existingReaction?.users.includes(currentUser.id);
+
+    // Optimistic update
+    setMessages(prev => prev.map(m => {
+      if (m.id !== messageId) return m;
+
+      const reactions = m.reactions || [];
+      if (userAlreadyReacted) {
+        // Remove reaction
+        return {
+          ...m,
+          reactions: reactions.map(r => 
+            r.emoji === emoji
+              ? { ...r, users: r.users.filter(u => u !== currentUser.id), count: r.count - 1 }
+              : r
+          ).filter(r => r.count > 0),
+        };
+      } else {
+        // Add reaction
+        const reactionIndex = reactions.findIndex(r => r.emoji === emoji);
+        if (reactionIndex >= 0) {
+          return {
+            ...m,
+            reactions: reactions.map((r, i) =>
+              i === reactionIndex
+                ? { ...r, users: [...r.users, currentUser.id], count: r.count + 1 }
+                : r
+            ),
+          };
+        } else {
+          return {
+            ...m,
+            reactions: [...reactions, { emoji, users: [currentUser.id], count: 1 }],
+          };
+        }
+      }
+    }));
+
+    // Send to server
+    try {
+      await fetch(`/api/landlord/team/messages/${messageId}/reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji, action: userAlreadyReacted ? 'remove' : 'add' }),
+      });
+    } catch (error) {
+      console.error('Reaction error:', error);
+      // Revert on error (you could implement this)
     }
   };
 
@@ -508,6 +672,18 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
           </div>
           
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {canManageTeam && onRolesClick && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-slate-300 hover:text-white px-2 sm:px-3 h-8"
+                onClick={onRolesClick}
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline ml-1">Roles & Permissions</span>
+              </Button>
+            )}
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white px-1.5 sm:px-3 h-8">
@@ -516,10 +692,12 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-slate-800 border-white/10">
-                <DropdownMenuItem onClick={() => setShowInviteDialog(true)} className="text-slate-200">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Invite Team Member
-                </DropdownMenuItem>
+                {canManageTeam && (
+                  <DropdownMenuItem onClick={() => setShowInviteDialog(true)} className="text-slate-200">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Invite Team Member
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             
@@ -620,17 +798,99 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
                               <span className="text-xs text-slate-500">{formatTime(msg.createdAt)}</span>
                             </div>
                           )}
-                          <p className="text-slate-200 text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                          {msg.content && (
+                            <p className="text-slate-200 text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                          )}
+                          
+                          {/* Attachments */}
+                          {msg.attachments && msg.attachments.length > 0 && (
+                            <div className="mt-2 space-y-2">
+                              {msg.attachments.map((attachment) => (
+                                <div key={attachment.id}>
+                                  {attachment.type === 'image' ? (
+                                    <div className="relative group/img max-w-sm">
+                                      <img 
+                                        src={attachment.url} 
+                                        alt={attachment.name}
+                                        className="rounded-lg border border-white/10 max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                        onClick={() => window.open(attachment.url, '_blank')}
+                                      />
+                                      <a
+                                        href={attachment.url}
+                                        download={attachment.name}
+                                        className="absolute top-2 right-2 p-1.5 bg-slate-900/80 hover:bg-slate-900 rounded-lg opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                      >
+                                        <Download className="h-4 w-4 text-white" />
+                                      </a>
+                                    </div>
+                                  ) : (
+                                    <a
+                                      href={attachment.url}
+                                      download={attachment.name}
+                                      className="flex items-center gap-3 p-3 bg-slate-800/60 hover:bg-slate-800 rounded-lg border border-white/10 transition-colors max-w-sm"
+                                    >
+                                      <div className="p-2 bg-violet-500/20 rounded-lg">
+                                        <File className="h-5 w-5 text-violet-400" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm text-white truncate">{attachment.name}</p>
+                                        {attachment.size && (
+                                          <p className="text-xs text-slate-400">
+                                            {(attachment.size / 1024).toFixed(1)} KB
+                                          </p>
+                                        )}
+                                      </div>
+                                      <Download className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                                    </a>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {/* Reactions */}
+                          {msg.reactions && msg.reactions.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {msg.reactions.map((reaction) => (
+                                <button
+                                  key={reaction.emoji}
+                                  onClick={() => handleAddReaction(msg.id, reaction.emoji)}
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors ${
+                                    reaction.users.includes(currentUser.id)
+                                      ? 'bg-violet-500/20 border border-violet-500/30 text-violet-300'
+                                      : 'bg-slate-800/60 border border-white/10 text-slate-300 hover:bg-slate-800'
+                                  }`}
+                                >
+                                  <span>{reaction.emoji}</span>
+                                  <span className="font-medium">{reaction.count}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         
                         {/* Message Actions (show on hover) */}
-                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
-                          <button className="p-1 hover:bg-white/10 rounded text-slate-400">
-                            <Smile className="h-4 w-4" />
-                          </button>
-                          <button className="p-1 hover:bg-white/10 rounded text-slate-400">
-                            <MessageSquare className="h-4 w-4" />
-                          </button>
+                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity flex-shrink-0">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-1 hover:bg-white/10 rounded text-slate-400">
+                                <Smile className="h-4 w-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-slate-800 border-white/10">
+                              <div className="grid grid-cols-5 gap-1 p-2">
+                                {['👍', '❤️', '😂', '😮', '😢', '🎉', '🔥', '👏', '✅', '👀'].map(emoji => (
+                                  <button
+                                    key={emoji}
+                                    onClick={() => handleAddReaction(msg.id, emoji)}
+                                    className="p-2 hover:bg-white/10 rounded text-xl"
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     );
@@ -642,11 +902,67 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
 
             {/* Message Input */}
             <div className="p-2 sm:p-4 border-t border-white/10 flex-shrink-0">
+              {/* File Preview */}
+              {uploadedFiles.length > 0 && (
+                <div className="mb-2 p-3 bg-slate-800/60 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-white">Attachments ({uploadedFiles.length})</span>
+                    <button
+                      onClick={() => {
+                        setUploadedFiles([]);
+                        setShowFilePreview(false);
+                      }}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 bg-slate-900/60 rounded-lg">
+                        <div className="p-2 bg-violet-500/20 rounded">
+                          {file.type.startsWith('image/') ? (
+                            <ImageIcon className="h-4 w-4 text-violet-400" />
+                          ) : (
+                            <File className="h-4 w-4 text-violet-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white truncate">{file.name}</p>
+                          <p className="text-xs text-slate-400">{(file.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveFile(index)}
+                          className="p-1 hover:bg-white/10 rounded text-slate-400"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <form onSubmit={handleSendMessage}>
-                <div className="flex items-end gap-1 sm:gap-2 bg-slate-800 rounded-xl p-1.5 sm:p-2">
-                  <button type="button" className="hidden sm:block p-2 hover:bg-white/10 rounded-lg text-slate-400">
+                <div className="flex items-end gap-1 sm:gap-2 bg-slate-800 rounded-xl p-1.5 sm:p-2 relative">
+                  {/* File Upload Button */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                    title="Upload files"
+                  >
                     <Plus className="h-5 w-5" />
                   </button>
+                  
                   <Input
                     ref={inputRef}
                     value={input}
@@ -654,21 +970,53 @@ export function TeamChat({ currentUser, landlordId, onClose, isFullPage = false,
                     placeholder={`Message #${activeChannel?.name || 'channel'}`}
                     className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-white placeholder:text-slate-500 text-sm"
                     disabled={!activeChannel}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e as any);
+                      }
+                    }}
                   />
+                  
                   <div className="flex items-center gap-0.5 sm:gap-1">
                     <button type="button" className="hidden sm:block p-2 hover:bg-white/10 rounded-lg text-slate-400">
                       <AtSign className="h-5 w-5" />
                     </button>
-                    <button type="button" className="hidden sm:block p-2 hover:bg-white/10 rounded-lg text-slate-400">
-                      <Smile className="h-5 w-5" />
-                    </button>
+                    
+                    {/* Emoji Picker Button */}
+                    <div className="relative" ref={emojiPickerRef}>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                        title="Add emoji"
+                      >
+                        <Smile className="h-5 w-5" />
+                      </button>
+                      
+                      {showEmojiPicker && (
+                        <div className="absolute bottom-full right-0 mb-2 z-50">
+                          <EmojiPicker
+                            onEmojiClick={handleEmojiSelect}
+                            theme="dark"
+                            width={320}
+                            height={400}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    
                     <Button
                       type="submit"
-                      disabled={!input.trim() || isLoading || !activeChannel}
+                      disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || !activeChannel || isUploading}
                       size="sm"
                       className="bg-violet-600 hover:bg-violet-500 text-white h-8 w-8 sm:h-auto sm:w-auto p-1.5 sm:px-3"
                     >
-                      <Send className="h-4 w-4" />
+                      {isUploading ? (
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>

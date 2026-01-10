@@ -36,7 +36,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 interface TeamMember {
   id: string;
   userId: string;
-  role: 'owner' | 'admin' | 'member' | 'manager' | 'employee';
+  role: 'owner' | 'admin' | 'member' | 'manager' | 'leasing_agent' | 'showing_agent' | 'employee';
   status: 'pending' | 'active' | 'inactive';
   invitedEmail?: string;
   permissions: string[];
@@ -53,17 +53,39 @@ interface TeamMember {
 interface TeamMembersTabProps {
   members: TeamMember[];
   isEnterprise?: boolean;
+  canManageTeam?: boolean;
+  currentUserRole?: string;
 }
 
 const ROLE_CONFIG = {
   owner: { icon: Crown, color: 'text-amber-400', bg: 'bg-amber-500/20', label: 'Owner' },
   admin: { icon: ShieldCheck, color: 'text-violet-400', bg: 'bg-violet-500/20', label: 'Admin' },
   manager: { icon: Briefcase, color: 'text-blue-400', bg: 'bg-blue-500/20', label: 'Manager' },
+  leasing_agent: { icon: Building2, color: 'text-cyan-400', bg: 'bg-cyan-500/20', label: 'Leasing Agent' },
+  showing_agent: { icon: Users, color: 'text-teal-400', bg: 'bg-teal-500/20', label: 'Showing Agent' },
   member: { icon: Shield, color: 'text-slate-400', bg: 'bg-slate-500/20', label: 'Member' },
   employee: { icon: Building2, color: 'text-emerald-400', bg: 'bg-emerald-500/20', label: 'Employee' },
 };
 
-export function TeamMembersTab({ members: initialMembers, isEnterprise = false }: TeamMembersTabProps) {
+const PERMISSION_LABELS: Record<string, string> = {
+  view_properties: 'View Properties',
+  manage_tenants: 'Manage Tenants',
+  manage_maintenance: 'Manage Maintenance',
+  manage_finances: 'Manage Finances',
+  manage_team: 'Manage Team',
+  manage_schedule: 'Manage Schedule',
+  approve_timesheets: 'Approve Timesheets',
+  view_financials: 'View Financials',
+  schedule_showings: 'Schedule Showings',
+  process_applications: 'Process Applications',
+};
+
+export function TeamMembersTab({ 
+  members: initialMembers, 
+  isEnterprise = false,
+  canManageTeam = false,
+  currentUserRole = 'member',
+}: TeamMembersTabProps) {
   const [members, setMembers] = useState<TeamMember[]>(initialMembers);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -72,6 +94,8 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showPermissionsDialog, setShowPermissionsDialog] = useState<TeamMember | null>(null);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) return;
@@ -168,6 +192,43 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
     }
   };
 
+  const handleUpdatePermissions = async () => {
+    if (!showPermissionsDialog) return;
+    
+    try {
+      const res = await fetch(`/api/landlord/team/${showPermissionsDialog.id}/permissions`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ permissions: selectedPermissions }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setMembers(members.map(m => 
+          m.id === showPermissionsDialog.id ? { ...m, permissions: selectedPermissions } : m
+        ));
+        setShowPermissionsDialog(null);
+      } else {
+        alert(data.message || 'Failed to update permissions');
+      }
+    } catch {
+      alert('Failed to update permissions');
+    }
+  };
+
+  const openPermissionsDialog = (member: TeamMember) => {
+    setShowPermissionsDialog(member);
+    setSelectedPermissions(member.permissions || []);
+  };
+
+  const togglePermission = (permission: string) => {
+    setSelectedPermissions(prev => 
+      prev.includes(permission) 
+        ? prev.filter(p => p !== permission)
+        : [...prev, permission]
+    );
+  };
+
   const activeMembers = members.filter(m => m.status === 'active');
   const pendingMembers = members.filter(m => m.status === 'pending');
   
@@ -181,8 +242,8 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
   });
 
   const availableRoles = isEnterprise 
-    ? ['admin', 'manager', 'member', 'employee']
-    : ['admin', 'member'];
+    ? ['admin', 'manager', 'leasing_agent', 'showing_agent', 'member', 'employee']
+    : ['admin', 'manager', 'leasing_agent', 'showing_agent', 'member'];
 
   return (
     <div className="space-y-6">
@@ -239,8 +300,8 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
                 <Crown className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{isEnterprise ? '∞' : '5'}</p>
-                <p className="text-xs text-slate-400">{isEnterprise ? 'Unlimited' : 'Max Seats'}</p>
+                <p className="text-2xl font-bold text-white">{isEnterprise ? '∞' : '6'}</p>
+                <p className="text-xs text-slate-400">{isEnterprise ? 'Unlimited' : 'Max (5+Owner)'}</p>
               </div>
             </div>
           </CardContent>
@@ -258,13 +319,15 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
             className="pl-9 bg-slate-900/60 border-white/10 text-white"
           />
         </div>
-        <Button 
-          onClick={() => setShowInviteDialog(true)}
-          className="bg-violet-600 hover:bg-violet-500 text-white"
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Invite Member
-        </Button>
+        {canManageTeam && (
+          <Button 
+            onClick={() => setShowInviteDialog(true)}
+            className="bg-violet-600 hover:bg-violet-500 text-white"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Invite Member
+          </Button>
+        )}
       </div>
 
       {/* Active Members */}
@@ -321,7 +384,7 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
                         {config.label}
                       </Badge>
                       
-                      {member.role !== 'owner' && (
+                      {member.role !== 'owner' && canManageTeam && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
@@ -340,6 +403,14 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
                                 {member.role === role && <span className="ml-auto text-violet-400">✓</span>}
                               </DropdownMenuItem>
                             ))}
+                            <DropdownMenuSeparator className="bg-white/10" />
+                            <DropdownMenuItem 
+                              onClick={() => openPermissionsDialog(member)}
+                              className="text-slate-200 focus:bg-white/10"
+                            >
+                              <Shield className="h-4 w-4 mr-2" />
+                              Custom Permissions
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-white/10" />
                             <DropdownMenuItem 
                               onClick={() => handleRemoveMember(member.id)}
@@ -361,7 +432,7 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
       </Card>
 
       {/* Pending Invitations */}
-      {pendingMembers.length > 0 && (
+      {pendingMembers.length > 0 && canManageTeam && (
         <Card className="border-amber-500/20 bg-amber-500/5">
           <CardHeader className="border-b border-amber-500/20">
             <div className="flex items-center justify-between">
@@ -491,6 +562,8 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
                 <div className="text-xs text-slate-500 space-y-1 mt-2">
                   <p><strong>Admin:</strong> Full access to all features</p>
                   <p><strong>Manager:</strong> Can manage team, assign tasks, approve timesheets</p>
+                  <p><strong>Leasing Agent:</strong> Process applications, manage tenants</p>
+                  <p><strong>Showing Agent:</strong> Schedule and conduct property showings</p>
                   <p><strong>Member:</strong> View & manage assigned tasks</p>
                   <p><strong>Employee:</strong> Clock in/out, view schedule, request time off</p>
                 </div>
@@ -508,6 +581,68 @@ export function TeamMembersTab({ members: initialMembers, isEnterprise = false }
               className="bg-violet-600 hover:bg-violet-500"
             >
               {isLoading ? 'Sending...' : inviteSuccess ? '✓ Sent!' : 'Send Invitation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Permissions Dialog */}
+      <Dialog open={!!showPermissionsDialog} onOpenChange={(open) => {
+        if (!open) setShowPermissionsDialog(null);
+      }}>
+        <DialogContent className="bg-slate-900 border-white/10 max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white">Custom Permissions</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Customize access permissions for {showPermissionsDialog?.user?.name || showPermissionsDialog?.invitedEmail}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-slate-300 mb-3">Select Permissions</p>
+              <div className="grid grid-cols-1 gap-2">
+                {Object.entries(PERMISSION_LABELS).map(([key, label]) => (
+                  <label 
+                    key={key}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/60 border border-white/10 hover:bg-slate-800 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedPermissions.includes(key)}
+                      onChange={() => togglePermission(key)}
+                      className="h-4 w-4 rounded border-white/20 bg-slate-700 text-violet-600 focus:ring-violet-500 focus:ring-offset-slate-900"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-white">{label}</p>
+                      {key === 'manage_finances' && (
+                        <p className="text-xs text-slate-400">Access to financial data and reports</p>
+                      )}
+                      {key === 'view_financials' && (
+                        <p className="text-xs text-slate-400">View-only access to financial information</p>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+            
+            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+              <p className="text-xs text-blue-400">
+                <strong>Tip:</strong> You can restrict access to finances by unchecking &quot;Manage Finances&quot; and &quot;View Financials&quot;
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowPermissionsDialog(null)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpdatePermissions}
+              className="bg-violet-600 hover:bg-violet-500"
+            >
+              Save Permissions
             </Button>
           </DialogFooter>
         </DialogContent>

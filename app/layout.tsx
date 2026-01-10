@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import PageViewTracker from '@/components/analytics/page-view-tracker';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { ThemeProvider } from 'next-themes';
-// import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
+import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
 import PrivacyConsentBanner from '@/components/privacy/privacy-consent-banner';
 import { Suspense } from 'react';
 import AffiliateTracker from '@/components/affiliate-tracker';
@@ -115,8 +115,8 @@ export default function RootLayout({
             </div>
             {children}
             <Toaster />
-            {/* Chat widgets temporarily disabled - uncomment when ready to go live */}
-            {/* <TeamChatWidgetWrapper /> */}
+            {/* Team Chat Widget - Available for Pro+ team members and tenants */}
+            <TeamChatWidgetWrapper />
             <PrivacyConsentBanner />
             {/* <LiveChatWidget /> */}
           </ThemeProvider>
