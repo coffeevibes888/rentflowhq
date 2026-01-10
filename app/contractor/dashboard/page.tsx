@@ -85,13 +85,22 @@ export default async function ContractorDashboardPage() {
     take: 5,
   });
 
-  // Get count of open jobs in marketplace
-  const openJobsCount = await prisma.workOrder.count({
-    where: {
-      isOpenBid: true,
-      status: 'open',
-    },
-  });
+  // Get count of open jobs in marketplace (both landlord and homeowner jobs)
+  const [landlordOpenJobs, homeownerOpenJobs] = await Promise.all([
+    prisma.workOrder.count({
+      where: {
+        isOpenBid: true,
+        status: 'open',
+      },
+    }),
+    prisma.homeownerWorkOrder.count({
+      where: {
+        isOpenBid: true,
+        status: 'open',
+      },
+    }),
+  ]);
+  const openJobsCount = landlordOpenJobs + homeownerOpenJobs;
 
   const stats = [
     {
@@ -131,7 +140,7 @@ export default async function ContractorDashboardPage() {
           <p className="text-white/70 mt-1">Here&apos;s an overview of your work</p>
         </div>
         <div className="flex gap-3">
-          <Link href="/contractors?view=jobs">
+          <Link href="/marketplace/jobs">
             <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/20">
               <Briefcase className="h-4 w-4 mr-2" />
               Browse Jobs
@@ -171,7 +180,7 @@ export default async function ContractorDashboardPage() {
 
       {/* Open Jobs Banner */}
       {openJobsCount > 0 && (
-        <Link href="/contractors?view=jobs">
+        <Link href="/marketplace/jobs">
           <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer">
             <CardContent className="p-4 lg:p-6 flex items-center justify-between">
               <div className="flex items-center gap-3 lg:gap-4">
@@ -248,7 +257,7 @@ export default async function ContractorDashboardPage() {
               <Gavel className="h-5 w-5 text-cyan-300" />
               My Pending Bids
             </CardTitle>
-            <Link href="/contractors?view=jobs" className="text-sm text-cyan-300 hover:text-cyan-200">
+            <Link href="/marketplace/jobs" className="text-sm text-cyan-300 hover:text-cyan-200">
               Find more →
             </Link>
           </CardHeader>
@@ -260,7 +269,7 @@ export default async function ContractorDashboardPage() {
                 <p className="text-sm text-white/50 mt-1">
                   Browse open jobs and submit bids
                 </p>
-                <Link href="/contractors?view=jobs">
+                <Link href="/marketplace/jobs">
                   <Badge className="mt-4 bg-white/20 text-white hover:bg-white/30 cursor-pointer">
                     Browse Open Jobs
                   </Badge>
@@ -304,7 +313,7 @@ export default async function ContractorDashboardPage() {
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <Link href="/contractors?view=jobs">
+          <Link href="/marketplace/jobs">
             <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
               <CardContent className="p-4 lg:p-6 text-center">
                 <Briefcase className="h-8 w-8 lg:h-10 lg:w-10 mx-auto text-white mb-2" />

@@ -143,6 +143,9 @@ export async function getOrCreateContractorProfile() {
           displayName: user?.name || 'Contractor',
           email: user?.email || '',
           profilePhoto: user?.image,
+          isPublic: true,
+          acceptingNewWork: true,
+          isAvailable: true,
         },
       });
     }
@@ -190,6 +193,9 @@ export async function updateContractorProfile(formData: FormData) {
       hourlyRate: formData.get('hourlyRate') ? parseFloat(formData.get('hourlyRate') as string) : undefined,
       minimumJobSize: formData.get('minimumJobSize') ? parseFloat(formData.get('minimumJobSize') as string) : undefined,
       availabilityNotes: formData.get('availabilityNotes') as string || undefined,
+      // Visibility settings - checkbox sends 'true' when checked, null when unchecked
+      isPublic: formData.has('isPublic') ? formData.get('isPublic') === 'true' : undefined,
+      acceptingNewWork: formData.has('acceptingNewWork') ? formData.get('acceptingNewWork') === 'true' : undefined,
       // Subdomain
       subdomain: formData.get('subdomain') as string || undefined,
       // Feature cards

@@ -121,6 +121,20 @@ export function ContractorMarketplaceClient({
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white">
         <div className="container mx-auto px-4 py-12 md:py-16">
+          <div className="flex justify-center gap-4 mb-6">
+            <Link href="/marketplace">
+              <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0">
+                <User className="h-4 w-4 mr-2" />
+                Find Contractors
+              </Button>
+            </Link>
+            <Link href="/marketplace/jobs">
+              <Button variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-white/30 border">
+                <Briefcase className="h-4 w-4 mr-2" />
+                Browse Jobs
+              </Button>
+            </Link>
+          </div>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4">
             Find Trusted Contractors
           </h1>

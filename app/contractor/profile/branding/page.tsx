@@ -204,6 +204,73 @@ export default async function ContractorBrandingPage({
           )}
         </section>
 
+        {/* Marketplace Visibility Status */}
+        <section className="rounded-xl bg-slate-800/50 border border-white/10 p-6 space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+              <Eye className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-white">Marketplace Visibility</h2>
+              <p className="text-sm text-slate-300">Control whether your profile appears in the contractor marketplace.</p>
+            </div>
+          </div>
+
+          <div className={`rounded-lg p-4 ${profile.isPublic && profile.acceptingNewWork ? 'bg-emerald-500/20 border border-emerald-400/30' : 'bg-amber-500/20 border border-amber-400/30'}`}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`h-3 w-3 rounded-full ${profile.isPublic && profile.acceptingNewWork ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+              <span className={`font-semibold ${profile.isPublic && profile.acceptingNewWork ? 'text-emerald-200' : 'text-amber-200'}`}>
+                {profile.isPublic && profile.acceptingNewWork ? 'Visible in Marketplace' : 'Hidden from Marketplace'}
+              </span>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className={profile.isPublic ? 'text-emerald-300' : 'text-red-300'}>
+                  {profile.isPublic ? '✓' : '✗'}
+                </span>
+                <span className="text-slate-300">Public Profile: {profile.isPublic ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={profile.acceptingNewWork ? 'text-emerald-300' : 'text-red-300'}>
+                  {profile.acceptingNewWork ? '✓' : '✗'}
+                </span>
+                <span className="text-slate-300">Accepting New Work: {profile.acceptingNewWork ? 'Yes' : 'No'}</span>
+              </div>
+            </div>
+            {(!profile.isPublic || !profile.acceptingNewWork) && (
+              <p className="text-amber-200/80 text-sm mt-3">
+                Both &quot;Public Profile&quot; and &quot;Accepting New Work&quot; must be enabled for your profile to appear in the marketplace.
+              </p>
+            )}
+          </div>
+
+          <form action={handleProfileUpdate} className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="isPublic"
+                value="true"
+                defaultChecked={profile.isPublic}
+                className="h-5 w-5 rounded border-white/20 bg-slate-900/50 text-violet-500 focus:ring-violet-500"
+              />
+              <span className="text-white">Public Profile</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="acceptingNewWork"
+                value="true"
+                defaultChecked={profile.acceptingNewWork}
+                className="h-5 w-5 rounded border-white/20 bg-slate-900/50 text-violet-500 focus:ring-violet-500"
+              />
+              <span className="text-white">Accepting New Work</span>
+            </label>
+            <Button type="submit" className="bg-violet-500 hover:bg-violet-400">
+              Update Visibility
+            </Button>
+          </form>
+        </section>
+
         {/* Profile Photo Section */}
         <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
@@ -663,14 +730,17 @@ export default async function ContractorBrandingPage({
               <Link2 className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Custom Subdomain</h2>
-              <p className="text-sm text-slate-200">Get your own branded page at propertyflowhq.com/c/your-name</p>
+              <h2 className="text-lg font-semibold text-white">Custom Branded Page (Optional)</h2>
+              <p className="text-sm text-slate-200">
+                Create a custom branded landing page separate from your marketplace profile. 
+                Great for sharing on business cards or marketing materials.
+              </p>
             </div>
           </div>
 
           <form action={handleProfileUpdate} className="space-y-4">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Subdomain</label>
+              <label className="block text-sm font-medium text-white">Custom URL</label>
               <div className="flex items-center gap-2">
                 <span className="text-white/70 text-sm">propertyflowhq.com/c/</span>
                 <Input
@@ -684,13 +754,13 @@ export default async function ContractorBrandingPage({
               <p className="text-xs text-white/60">Lowercase letters, numbers, and hyphens only</p>
             </div>
             <Button type="submit" className="bg-emerald-500 hover:bg-emerald-400">
-              Save Subdomain
+              Save Custom URL
             </Button>
           </form>
 
           {profile.subdomain && (
             <div className="pt-4 border-t border-white/20">
-              <p className="text-sm text-white mb-2">Your custom page is live at:</p>
+              <p className="text-sm text-white mb-2">Your custom branded page is live at:</p>
               <a 
                 href={`${baseUrl}/c/${profile.subdomain}`}
                 target="_blank"
