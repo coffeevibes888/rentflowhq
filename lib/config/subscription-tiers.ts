@@ -10,7 +10,7 @@
  * No transaction fees - subscription only revenue model
  */
 
-import { stripeConfig } from './stripe-config';
+import { stripeConfig } from '../stripe-config';
 
 export const SUBSCRIPTION_TIERS = {
   starter: {
