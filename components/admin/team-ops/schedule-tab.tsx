@@ -215,7 +215,7 @@ export default function ScheduleTab() {
                     <SelectValue placeholder="All properties" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All properties</SelectItem>
+                    <SelectItem value="all">All properties</SelectItem>
                     {properties.map(p => (
                       <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                     ))}

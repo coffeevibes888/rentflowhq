@@ -116,18 +116,33 @@ export function TeamChat({
   canManageTeam = false,
   onRolesClick,
 }: TeamChatProps) {
-  const [channels, setChannels] = useState<Channel[]>([
-    { id: 'general', name: 'general', type: 'public', description: 'Company-wide announcements' },
-    { id: 'maintenance', name: 'maintenance', type: 'public', description: 'Maintenance requests & updates' },
-    { id: 'tenants', name: 'tenants', type: 'public', description: 'Tenant discussions' },
-  ]);
-  const [activeChannel, setActiveChannel] = useState<Channel | null>(channels[0]);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
+
+  // Load channels on mount
+  useEffect(() => {
+    const loadChannels = async () => {
+      try {
+        const res = await fetch('/api/landlord/team/channels');
+        const data = await res.json();
+        if (data.success && data.channels) {
+          setChannels(data.channels);
+          if (data.channels.length > 0 && !activeChannel) {
+            setActiveChannel(data.channels[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load channels:', error);
+      }
+    };
+    loadChannels();
+  }, []);
   const [newChannelType, setNewChannelType] = useState<'public' | 'private'>('public');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMembers, setShowMembers] = useState(!isFullPage);

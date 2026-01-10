@@ -1,109 +1,133 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
-import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
-import { checkFeatureAccess } from '@/lib/actions/subscription.actions';
 
-// Get all channels for the team
-export async function GET(req: NextRequest) {
+// GET - Fetch channels for the landlord
+export async function GET() {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return NextResponse.json({ success: false, message: landlordResult.message }, { status: 400 });
-    }
+    // Get landlord
+    const landlord = await prisma.landlord.findFirst({
+      where: {
+        ownerUserId: session.user.id,
+      },
+    });
 
-    // Check feature access
-    const featureCheck = await checkFeatureAccess(landlordResult.landlord.id, 'teamCommunications');
-    if (!featureCheck.allowed) {
-      return NextResponse.json({ 
-        success: false, 
-        message: featureCheck.reason,
-        featureLocked: true,
-      }, { status: 403 });
-    }
+    if (!landlord) {
+      // Check if user is a team member
+      const teamMember = await (prisma as any).teamMember?.findFirst?.({
+        where: {
+          userId: session.user.id,
+          status: 'active',
+        },
+      });
 
-    // Get channels - using dynamic access since model may not exist yet
-    let channels: any[] = [];
-    try {
-      channels = await (prisma as any).teamChannel?.findMany?.({
-        where: { landlordId: landlordResult.landlord.id },
+      if (!teamMember) {
+        return NextResponse.json({ success: false, message: 'Not a team member' }, { status: 403 });
+      }
+
+      // Get channels for team member's landlord
+      const channels = await prisma.teamChannel.findMany({
+        where: { landlordId: teamMember.landlordId },
         orderBy: { createdAt: 'asc' },
-      }) || [];
-    } catch {
-      // Model doesn't exist, return default channels
-      channels = [
-        { id: 'general', name: 'general', type: 'public', description: 'Company-wide announcements' },
-        { id: 'maintenance', name: 'maintenance', type: 'public', description: 'Maintenance requests & updates' },
-        { id: 'tenants', name: 'tenants', type: 'public', description: 'Tenant discussions' },
+      });
+
+      return NextResponse.json({ success: true, channels });
+    }
+
+    // Get or create default channels for landlord
+    let channels = await prisma.teamChannel.findMany({
+      where: { landlordId: landlord.id },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // If no channels exist, create default ones
+    if (channels.length === 0) {
+      const defaultChannels = [
+        { name: 'general', description: 'General team discussions', type: 'public' },
+        { name: 'random', description: 'Random conversations', type: 'public' },
+        { name: 'announcements', description: 'Important announcements', type: 'public' },
       ];
+
+      for (const channelData of defaultChannels) {
+        await prisma.teamChannel.create({
+          data: {
+            landlordId: landlord.id,
+            name: channelData.name,
+            description: channelData.description,
+            type: channelData.type,
+            createdById: session.user.id,
+          },
+        });
+      }
+
+      // Fetch the newly created channels
+      channels = await prisma.teamChannel.findMany({
+        where: { landlordId: landlord.id },
+        orderBy: { createdAt: 'asc' },
+      });
     }
 
     return NextResponse.json({ success: true, channels });
   } catch (error) {
-    console.error('Get channels error:', error);
-    return NextResponse.json({ success: false, message: 'Failed to get channels' }, { status: 500 });
+    console.error('Failed to fetch channels:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch channels' },
+      { status: 500 }
+    );
   }
 }
 
-// Create a new channel
-export async function POST(req: NextRequest) {
+// POST - Create a new channel
+export async function POST(request: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return NextResponse.json({ success: false, message: landlordResult.message }, { status: 400 });
+    const body = await request.json();
+    const { name, description, type = 'public' } = body;
+
+    if (!name?.trim()) {
+      return NextResponse.json(
+        { success: false, message: 'Channel name required' },
+        { status: 400 }
+      );
     }
 
-    // Check feature access
-    const featureCheck = await checkFeatureAccess(landlordResult.landlord.id, 'teamCommunications');
-    if (!featureCheck.allowed) {
-      return NextResponse.json({ 
-        success: false, 
-        message: featureCheck.reason,
-        featureLocked: true,
-      }, { status: 403 });
+    // Get landlord
+    const landlord = await prisma.landlord.findFirst({
+      where: {
+        ownerUserId: session.user.id,
+      },
+    });
+
+    if (!landlord) {
+      return NextResponse.json({ success: false, message: 'Not authorized' }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { name, type = 'public', description } = body;
-
-    if (!name) {
-      return NextResponse.json({ success: false, message: 'Channel name is required' }, { status: 400 });
-    }
-
-    let channel;
-    try {
-      channel = await (prisma as any).teamChannel?.create?.({
-        data: {
-          landlordId: landlordResult.landlord.id,
-          name: name.toLowerCase().replace(/\s+/g, '-'),
-          type,
-          description,
-          createdById: session.user.id,
-        },
-      });
-    } catch {
-      // Model doesn't exist, return mock channel
-      channel = {
-        id: `channel-${Date.now()}`,
-        name: name.toLowerCase().replace(/\s+/g, '-'),
+    // Create channel
+    const channel = await prisma.teamChannel.create({
+      data: {
+        landlordId: landlord.id,
+        name: name.trim(),
+        description: description?.trim() || null,
         type,
-        description,
-      };
-    }
+        createdById: session.user.id,
+      },
+    });
 
     return NextResponse.json({ success: true, channel });
   } catch (error) {
-    console.error('Create channel error:', error);
-    return NextResponse.json({ success: false, message: 'Failed to create channel' }, { status: 500 });
+    console.error('Failed to create channel:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to create channel' },
+      { status: 500 }
+    );
   }
 }
