@@ -231,7 +231,26 @@ export function TeamChat({
         const data = await res.json();
         if (data.success && data.messages) {
           console.log('Loaded messages:', data.messages.length);
-          setMessages(data.messages);
+          // Only update if we have real messages from server
+          // Keep any temp messages that haven't been confirmed yet
+          setMessages(prevMessages => {
+            const tempMessages = prevMessages.filter(m => m.id.startsWith('temp-'));
+            const serverMessages = data.messages || [];
+            
+            // Remove temp messages that are older than 10 seconds (likely failed)
+            const recentTempMessages = tempMessages.filter(m => {
+              const tempId = m.id.replace('temp-', '');
+              const timestamp = parseInt(tempId);
+              return Date.now() - timestamp < 10000;
+            });
+            
+            // Combine server messages with recent temp messages
+            // Server messages take precedence
+            const serverMessageIds = new Set(serverMessages.map((m: Message) => m.id));
+            const uniqueTempMessages = recentTempMessages.filter(m => !serverMessageIds.has(m.id));
+            
+            return [...serverMessages, ...uniqueTempMessages];
+          });
         } else {
           console.error('Failed to load messages:', data.message);
         }
@@ -281,8 +300,9 @@ export function TeamChat({
     setUploadedFiles([]);
     setShowFilePreview(false);
 
+    const tempId = `temp-${Date.now()}`;
     const tempMessage: Message = {
-      id: `temp-${Date.now()}`,
+      id: tempId,
       channelId: activeChannel.id,
       senderId: currentUser.id,
       senderName: currentUser.name,
@@ -291,6 +311,8 @@ export function TeamChat({
       createdAt: new Date().toISOString(),
       attachments: attachments.length > 0 ? attachments : undefined,
     };
+    
+    // Add temp message for immediate feedback
     setMessages(prev => [...prev, tempMessage]);
 
     try {
@@ -304,11 +326,19 @@ export function TeamChat({
       console.log('Message sent response:', data);
       
       if (data.success && data.message) {
+        // Replace temp message with real message from server
         setMessages(prev => prev.map(m => 
-          m.id === tempMessage.id ? data.message : m
+          m.id === tempId ? { ...data.message, channelId: activeChannel.id, senderName: currentUser.name, senderImage: currentUser.image } : m
         ));
+      } else {
+        // Remove temp message on failure
+        console.error('Failed to send message:', data.message);
+        setMessages(prev => prev.filter(m => m.id !== tempId));
       }
-    } catch {
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Remove temp message on error
+      setMessages(prev => prev.filter(m => m.id !== tempId));
     } finally {
       setIsLoading(false);
     }

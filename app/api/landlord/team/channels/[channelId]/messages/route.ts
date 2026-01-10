@@ -82,8 +82,11 @@ export async function GET(
       success: true,
       messages: messages.map(m => ({
         id: m.id,
+        channelId: m.channelId,
         content: m.content,
         senderId: m.senderId,
+        senderName: senderMap.get(m.senderId)?.name || 'Unknown',
+        senderImage: senderMap.get(m.senderId)?.image,
         sender: senderMap.get(m.senderId) || { id: m.senderId, name: 'Unknown', email: '', image: null },
         createdAt: m.createdAt.toISOString(),
         reactions: [],
@@ -178,8 +181,11 @@ export async function POST(
       success: true,
       message: {
         id: message.id,
+        channelId: message.channelId,
         content: message.content,
         senderId: message.senderId,
+        senderName: sender?.name || 'Unknown',
+        senderImage: sender?.image,
         sender: sender || { id: session.user.id, name: 'Unknown', email: '', image: null },
         createdAt: message.createdAt.toISOString(),
         reactions: [],
