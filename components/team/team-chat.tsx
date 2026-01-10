@@ -209,9 +209,19 @@ export function TeamChat({
     loadMessages();
   }, [activeChannel]);
 
-  // Scroll to bottom on new messages
+  // Scroll to bottom on new messages (only if user is near bottom)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const messagesContainer = messagesEndRef.current?.parentElement;
+    if (!messagesContainer) return;
+    
+    // Check if user is near the bottom (within 100px)
+    const isNearBottom = 
+      messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+    
+    // Only auto-scroll if user is already near the bottom
+    if (isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {

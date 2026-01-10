@@ -232,6 +232,10 @@ export function TeamMembersTab({
   const activeMembers = members.filter(m => m.status === 'active');
   const pendingMembers = members.filter(m => m.status === 'pending');
   
+  // Calculate team limits based on tier
+  const maxMembers = isEnterprise ? Infinity : 6; // Pro: 5 members + 1 owner = 6 total
+  const isAtLimit = !isEnterprise && activeMembers.length >= maxMembers;
+  
   const filteredActive = activeMembers.filter(m => {
     const q = searchQuery.toLowerCase();
     return (
@@ -300,8 +304,10 @@ export function TeamMembersTab({
                 <Crown className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{isEnterprise ? '∞' : '6'}</p>
-                <p className="text-xs text-slate-400">{isEnterprise ? 'Unlimited' : 'Max (5+Owner)'}</p>
+                <p className="text-2xl font-bold text-white">
+                  {isEnterprise ? '∞' : `${activeMembers.length}/${maxMembers}`}
+                </p>
+                <p className="text-xs text-slate-400">{isEnterprise ? 'Unlimited' : 'Team Limit'}</p>
               </div>
             </div>
           </CardContent>
@@ -320,15 +326,35 @@ export function TeamMembersTab({
           />
         </div>
         {canManageTeam && (
-          <Button 
-            onClick={() => setShowInviteDialog(true)}
-            className="bg-violet-600 hover:bg-violet-500 text-white"
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Invite Member
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              onClick={() => setShowInviteDialog(true)}
+              disabled={isAtLimit}
+              className="bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              title={isAtLimit ? 'Team limit reached. Upgrade to Enterprise for unlimited members.' : 'Invite a new team member'}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Invite Member
+            </Button>
+          </div>
         )}
       </div>
+
+      {/* Team Limit Warning for Pro */}
+      {!isEnterprise && isAtLimit && (
+        <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+          <div className="flex items-start gap-3">
+            <Crown className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-400">Team Limit Reached</p>
+              <p className="text-sm text-amber-300/80 mt-1">
+                You've reached the Pro plan limit of 6 team members (5 members + owner). 
+                Upgrade to Enterprise for unlimited team members and advanced team operations features.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Active Members */}
       <Card className="border-white/10 bg-slate-900/60">
@@ -498,6 +524,11 @@ export function TeamMembersTab({
             <DialogTitle className="text-white">Invite Team Member</DialogTitle>
             <DialogDescription className="text-slate-400">
               Send an invitation to join your property management team.
+              {!isEnterprise && (
+                <span className="block mt-2 text-amber-400 text-sm">
+                  Pro plan: {activeMembers.length}/{maxMembers} team members used
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           

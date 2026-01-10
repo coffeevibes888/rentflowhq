@@ -26,10 +26,11 @@ const TimesheetsTab = dynamic(() => import('./team-ops/timesheets-tab'), {
   loading: () => <TabLoadingState />,
   ssr: false 
 });
-const PayrollTab = dynamic(() => import('./team-ops/payroll-tab'), { 
-  loading: () => <TabLoadingState />,
-  ssr: false 
-});
+// Payroll commented out until third-party payroll API integration
+// const PayrollTab = dynamic(() => import('./team-ops/payroll-tab'), { 
+//   loading: () => <TabLoadingState />,
+//   ssr: false 
+// });
 
 function TabLoadingState() {
   return (
@@ -85,6 +86,7 @@ export function TeamHub({
 }: TeamHubProps) {
   const [activeTab, setActiveTab] = useState('chat');
   const isEnterprise = subscriptionTier === 'enterprise';
+  const isPro = subscriptionTier === 'pro' || subscriptionTier === 'enterprise';
   const activeMembers = teamMembers.filter(m => m.status === 'active');
   const isOwner = currentUserRole === 'owner';
 
@@ -100,7 +102,12 @@ export function TeamHub({
           <div>
             <h1 className="text-2xl font-semibold text-white">Team Hub</h1>
             <p className="text-sm text-slate-400 mt-1">
-              Manage your team, communicate, and {isEnterprise ? 'run operations' : 'collaborate'}
+              {isEnterprise 
+                ? 'Manage unlimited team members, communicate, and run operations'
+                : isPro
+                ? 'Manage up to 6 team members (5 + owner), communicate, and track operations'
+                : 'Manage your team, communicate, and collaborate'
+              }
             </p>
           </div>
           {isEnterprise && (
@@ -136,8 +143,8 @@ export function TeamHub({
               </Badge>
             </TabsTrigger>
 
-            {/* Enterprise-only tabs */}
-            {isEnterprise && (
+            {/* Pro+ tabs */}
+            {isPro && (
               <>
                 <div className="w-px h-6 bg-white/10 mx-1 self-center" />
                 
@@ -165,13 +172,14 @@ export function TeamHub({
                   <span className="hidden sm:inline">Timesheets</span>
                 </TabsTrigger>
                 
-                <TabsTrigger
+                {/* Payroll - Commented out until third-party payroll API integration */}
+                {/* <TabsTrigger
                   value="payroll"
                   className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300"
                 >
                   <DollarSign className="h-4 w-4" />
                   <span className="hidden sm:inline">Payroll</span>
-                </TabsTrigger>
+                </TabsTrigger> */}
                 
                 <TabsTrigger
                   value="hiring"
@@ -211,7 +219,7 @@ export function TeamHub({
             </div>
           </TabsContent>
 
-          {isEnterprise && (
+          {isPro && (
             <>
               <TabsContent value="schedule" className="mt-0">
                 <div className="p-6">
@@ -231,11 +239,12 @@ export function TeamHub({
                 </div>
               </TabsContent>
 
-              <TabsContent value="payroll" className="mt-0">
+              {/* Payroll - Commented out until third-party payroll API integration */}
+              {/* <TabsContent value="payroll" className="mt-0">
                 <div className="p-6">
                   <PayrollTab />
                 </div>
-              </TabsContent>
+              </TabsContent> */}
 
               <TabsContent value="hiring" className="mt-0">
                 <div className="p-6">

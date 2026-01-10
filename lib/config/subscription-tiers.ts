@@ -104,7 +104,7 @@ export const SUBSCRIPTION_TIERS = {
       // Enterprise-only Team Operations features
       shiftScheduling: true,
       timeTracking: true,
-      teamPayroll: true,
+      teamPayroll: false, // Coming soon - third-party payroll integration
       performanceReports: true,
       unlimitedTeamMembers: true,
     },

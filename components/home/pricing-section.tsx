@@ -78,7 +78,7 @@ const tiers = [
       { name: 'Shift scheduling & calendar', included: true },
       { name: 'Time tracking with GPS', included: true },
       { name: 'Timesheet approval workflow', included: true },
-      { name: 'Team payroll from wallet', included: true },
+      { name: 'Team payroll (coming soon)', included: false },
       { name: 'Performance reports', included: true },
       { name: 'Custom branding & white-label', included: true },
       { name: 'Custom domain support', included: true },
