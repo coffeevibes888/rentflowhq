@@ -372,7 +372,7 @@ const Homepage = async () => {
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
                           <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Tenant Apply's</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>E-mail Notififed</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>E-mail Notified</div>
                         </div>
                         <div className='flex items-center'>
                           <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
@@ -380,7 +380,7 @@ const Homepage = async () => {
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
                           <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>One Click Approval</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Or Schedual Viewing</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Or Schedule Viewing</div>
                         </div>
                       </div>
 
@@ -404,7 +404,7 @@ const Homepage = async () => {
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
                           <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Tenant Moves In</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Key's Ready</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Keys Ready</div>
                         </div>
                       </div>
 
@@ -416,11 +416,11 @@ const Homepage = async () => {
                         </div>
                       </div>
 
-                      {/* Row 4: Maintence Tickets ← Contractor Marketplace (right to left) */}
+                      {/* Row 4: Maintenance Tickets ← Contractor Marketplace (right to left) */}
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
-                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Maintence Tickets</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Urgency Sytem</div>
+                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Maintenance Tickets</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Urgency System</div>
                         </div>
                         <div className='flex items-center'>
                           <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
@@ -451,7 +451,7 @@ const Homepage = async () => {
                           <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10'>
-                          <div className='text-amber-400 text-[10px] sm:text-xs font-bold'>Internal Communitcations</div>
+                          <div className='text-amber-400 text-[10px] sm:text-xs font-bold'>Internal Communications</div>
                           <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Notices Sent</div>
                         </div>
                       </div>
@@ -503,7 +503,7 @@ const Homepage = async () => {
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
                           <div className='text-emerald-400 text-xs font-bold'>Tenant Apply's</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>E-mail Notififed</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>E-mail Notified</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
                           <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
@@ -511,7 +511,7 @@ const Homepage = async () => {
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10 min-w-[100px]'>
                           <div className='text-violet-400 text-xs font-bold'>One Click Approval</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Or Schedual Viewing</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Or Schedule Viewing</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
                           <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
@@ -534,7 +534,7 @@ const Homepage = async () => {
                       {/* Row 2: Internal Comms ← Late Rent ← Contractor ← Maintenance ← Tenant Moves In */}
                       <div className='flex items-center justify-between gap-3'>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10 min-w-[100px]'>
-                          <div className='text-amber-400 text-xs font-bold'>Internal Communitcations</div>
+                          <div className='text-amber-400 text-xs font-bold'>Internal Communications</div>
                           <div className='text-slate-400 text-[10px] mt-0.5'>Notices Sent</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
@@ -558,8 +558,8 @@ const Homepage = async () => {
                           <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
-                          <div className='text-emerald-400 text-xs font-bold'>Maintence Tickets</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Urgency Sytem</div>
+                          <div className='text-emerald-400 text-xs font-bold'>Maintenance Tickets</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Urgency System</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
                           <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
@@ -567,7 +567,7 @@ const Homepage = async () => {
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
                           <div className='text-emerald-400 text-xs font-bold'>Tenant Moves In</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Key's Ready</div>
+                          <div className='text-slate-400 text-[10px] mt-0.5'>Keys Ready</div>
                         </div>
                       </div>
 
