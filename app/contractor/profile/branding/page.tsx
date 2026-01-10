@@ -93,7 +93,7 @@ export default async function ContractorBrandingPage({
 
     const profile = profileResult.profile;
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://www.propertyflowhq.com';
-  const publicProfileUrl = `${baseUrl}/marketplace/contractor/${profile.slug}`;
+  const publicProfileUrl = `${baseUrl}/${profile.slug}`;
 
   const handleProfileUpdate = async (formData: FormData) => {
     'use server';
@@ -178,7 +178,7 @@ export default async function ContractorBrandingPage({
             </div>
             <div className="flex gap-2">
               <Link
-                href={`/marketplace/contractor/${profile.slug}`}
+                href={`/${profile.slug}`}
                 target="_blank"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-violet-600 hover:bg-violet-50 transition-colors"
               >

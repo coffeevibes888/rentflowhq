@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
+import { ContractorQuoteButton } from '@/components/contractor/quote-button';
 
 interface ContractorSubdomainHeaderProps {
   contractor: {
@@ -18,9 +19,11 @@ interface ContractorSubdomainHeaderProps {
     themeColor?: string | null;
     slug: string;
   };
+  /** When true, uses root path /[subdomain] instead of /c/[subdomain] */
+  useRootPath?: boolean;
 }
 
-export default function ContractorSubdomainHeader({ contractor }: ContractorSubdomainHeaderProps) {
+export default function ContractorSubdomainHeader({ contractor, useRootPath = false }: ContractorSubdomainHeaderProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   
@@ -40,7 +43,9 @@ export default function ContractorSubdomainHeader({ contractor }: ContractorSubd
   })();
 
   const brandName = contractor.businessName;
-  const basePath = `/c/${contractor.subdomain}`;
+  // Use root path for unified subdomain routing, or /c/ path for legacy
+  const subdomainPath = contractor.subdomain || contractor.slug;
+  const basePath = useRootPath ? `/${subdomainPath}` : `/c/${contractor.subdomain}`;
 
   return (
     <header className="w-full bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-white sticky top-0 z-50">
@@ -120,12 +125,13 @@ export default function ContractorSubdomainHeader({ contractor }: ContractorSubd
                 <span>{contractor.email}</span>
               </a>
             )}
-            <Link
-              href={`/marketplace/contractor/${contractor.slug}`}
-              className="px-4 py-2 rounded-lg bg-violet-500 text-white text-sm font-medium hover:bg-violet-600 transition-colors"
-            >
-              Get a Quote
-            </Link>
+            <div className="hidden sm:block">
+              <ContractorQuoteButton
+                contractorSlug={contractor.slug}
+                contractorName={brandName}
+                variant="header"
+              />
+            </div>
             <button
               className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-white/10 text-white hover:border-violet-400/60 transition-colors"
               onClick={() => setOpen((v) => !v)}

@@ -26,63 +26,103 @@ export default async function ContractorsPage({
     const params = await searchParams;
     const { q, specialty, sort, view } = params;
 
-    // Build query for contractors
-    const where: any = {
-      userId: { not: null },
-    };
-
-    if (specialty) {
-      where.specialties = { has: specialty };
+    // Fetch from ContractorProfile (public marketplace profiles)
+    const profileWhere: any = { isPublic: true };
+    if (specialty) profileWhere.specialties = { has: specialty };
+    if (q) {
+      profileWhere.OR = [
+        { businessName: { contains: q, mode: 'insensitive' } },
+        { displayName: { contains: q, mode: 'insensitive' } },
+        { specialties: { hasSome: [q] } },
+      ];
     }
 
+    const contractorProfiles = await prisma.contractorProfile.findMany({
+      where: profileWhere,
+      include: {
+        user: { select: { id: true, name: true, image: true } },
+      },
+      take: 50,
+    });
+
+    // Also fetch from Contractor table (landlord-added contractors with user accounts)
+    const contractorWhere: any = { userId: { not: null } };
+    if (specialty) contractorWhere.specialties = { has: specialty };
     if (q) {
-      where.OR = [
+      contractorWhere.OR = [
         { name: { contains: q, mode: 'insensitive' } },
         { specialties: { hasSome: [q] } },
       ];
     }
 
-    // Fetch contractors with stats
     const contractors = await prisma.contractor.findMany({
-      where,
+      where: contractorWhere,
       include: {
-        user: {
-          select: { id: true, name: true, image: true },
-        },
-        _count: {
-          select: { workOrders: true },
-        },
-        workOrders: {
-          where: { status: 'completed' },
-          select: { id: true },
-        },
+        user: { select: { id: true, name: true, image: true } },
+        workOrders: { where: { status: 'completed' }, select: { id: true } },
       },
       take: 50,
     });
 
-    // Calculate stats for each contractor - serialize for client
-    const contractorsWithStats = contractors.map(c => ({
+    // Map ContractorProfile records
+    const profileResults = contractorProfiles.map(c => ({
       id: c.id,
-      name: c.name,
+      name: c.displayName || c.businessName,
       email: c.email,
       specialties: c.specialties,
-      isPaymentReady: c.isPaymentReady,
-      completedJobs: c.workOrders.length,
-      rating: 4.5 + Math.random() * 0.5,
-      responseTime: '< 1 hour',
+      isPaymentReady: c.identityVerified && c.insuranceVerified,
+      completedJobs: c.completedJobs,
+      rating: c.avgRating || 4.5,
+      responseTime: c.responseRate > 90 ? '< 1 hour' : c.responseRate > 70 ? '< 4 hours' : '< 24 hours',
       user: c.user ? {
         id: c.user.id,
         name: c.user.name,
-        image: c.user.image,
+        image: c.profilePhoto || c.user.image,
       } : null,
+      tagline: c.tagline,
+      baseCity: c.baseCity,
+      baseState: c.baseState,
+      hourlyRate: c.hourlyRate ? parseFloat(c.hourlyRate.toString()) : null,
+      yearsExperience: c.yearsExperience,
+      slug: c.slug,
+      source: 'profile' as const,
     }));
 
-    // Sort
-    const sorted = [...contractorsWithStats].sort((a, b) => {
-      if (sort === 'jobs') return b.completedJobs - a.completedJobs;
-      if (sort === 'rating') return b.rating - a.rating;
-      return 0;
-    });
+    // Map Contractor records (exclude if they already have a ContractorProfile)
+    const profileUserIds = new Set(contractorProfiles.map(p => p.userId));
+    const contractorResults = contractors
+      .filter(c => c.userId && !profileUserIds.has(c.userId))
+      .map(c => ({
+        id: c.id,
+        name: c.name,
+        email: c.email,
+        specialties: c.specialties,
+        isPaymentReady: c.isPaymentReady,
+        completedJobs: c.workOrders.length,
+        rating: 4.5 + Math.random() * 0.5,
+        responseTime: '< 1 hour',
+        user: c.user ? {
+          id: c.user.id,
+          name: c.user.name,
+          image: c.user.image,
+        } : null,
+        tagline: null as string | null,
+        baseCity: null as string | null,
+        baseState: null as string | null,
+        hourlyRate: null as number | null,
+        yearsExperience: null as number | null,
+        slug: null as string | null,
+        source: 'contractor' as const,
+      }));
+
+    // Combine and sort
+    let allContractors = [...profileResults, ...contractorResults];
+    
+    if (sort === 'rating') {
+      allContractors.sort((a, b) => b.rating - a.rating);
+    } else if (sort === 'jobs') {
+      allContractors.sort((a, b) => b.completedJobs - a.completedJobs);
+    }
 
     // Fetch open jobs count for the badge
     const openJobsCount = await prisma.workOrder.count({
@@ -95,7 +135,7 @@ export default async function ContractorsPage({
     return (
       <ContractorMarketplace
         initialView={view === 'jobs' ? 'jobs' : 'contractors'}
-        contractors={sorted}
+        contractors={allContractors}
         openJobsCount={openJobsCount}
         searchParams={params}
       />

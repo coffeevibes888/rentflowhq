@@ -18,9 +18,11 @@ import { Label } from '@/components/ui/label';
 interface ContractorQuoteButtonProps {
   contractorSlug: string;
   contractorName: string;
+  /** Variant style: 'default' for full-width, 'header' for compact header button */
+  variant?: 'default' | 'header';
 }
 
-export function ContractorQuoteButton({ contractorSlug, contractorName }: ContractorQuoteButtonProps) {
+export function ContractorQuoteButton({ contractorSlug, contractorName, variant = 'default' }: ContractorQuoteButtonProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -54,10 +56,17 @@ export function ContractorQuoteButton({ contractorSlug, contractorName }: Contra
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-violet-600 hover:bg-violet-700 text-lg py-6">
-          <MessageSquare className="h-5 w-5 mr-2" />
-          Get a Quote
-        </Button>
+        {variant === 'header' ? (
+          <Button className="px-4 py-2 rounded-lg bg-violet-500 text-white text-sm font-medium hover:bg-violet-600 transition-colors">
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Get a Quote
+          </Button>
+        ) : (
+          <Button className="w-full bg-violet-600 hover:bg-violet-700 text-lg py-6">
+            <MessageSquare className="h-5 w-5 mr-2" />
+            Get a Quote
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>

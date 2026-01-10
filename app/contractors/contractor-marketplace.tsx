@@ -38,6 +38,13 @@ interface Contractor {
   rating: number;
   responseTime: string;
   user: { id: string; name: string | null; image: string | null } | null;
+  tagline?: string | null;
+  baseCity?: string | null;
+  baseState?: string | null;
+  hourlyRate?: number | null;
+  yearsExperience?: number | null;
+  slug?: string | null;
+  source?: 'profile' | 'contractor';
 }
 
 interface JobMedia {
@@ -271,13 +278,43 @@ export default function ContractorMarketplace({
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {contractors.map((contractor) => (
-                  <Link key={contractor.id} href={`/contractors/${contractor.id}`}>
-                    <Card className="h-full bg-white/90 backdrop-blur-sm border-white/20 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group">
-                      <div className="h-20 bg-gradient-to-r from-blue-500 to-cyan-500 relative">
-                        <div className="absolute -bottom-10 left-4">
-                          <div className="h-20 w-20 rounded-full bg-white p-1 shadow-lg">
+                  <Link key={contractor.id} href={`/${contractor.slug || contractor.id}`}>
+                    <Card className="h-full bg-white backdrop-blur-sm border-white/20 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group">
+                      {/* Image Section - aspect-[4/3] to match listing cards */}
+                      <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500 to-cyan-500">
+                        {contractor.user?.image ? (
+                          <img
+                            src={contractor.user.image}
+                            alt={contractor.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <div className="text-white text-6xl font-bold opacity-20">
+                              {contractor.name.charAt(0)}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Hourly Rate Badge */}
+                        {contractor.hourlyRate && (
+                          <div className="absolute top-3 left-3 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-sm text-white text-sm font-bold">
+                            ${contractor.hourlyRate}/hr
+                          </div>
+                        )}
+                        
+                        {/* Verified Badge */}
+                        {contractor.isPaymentReady && (
+                          <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-emerald-500 text-white text-xs font-medium flex items-center gap-1">
+                            <Shield className="h-3 w-3" /> Verified
+                          </div>
+                        )}
+                        
+                        {/* Profile Picture Overlay - positioned at bottom like listing cards */}
+                        <div className="absolute -bottom-10 left-3">
+                          <div className="h-20 w-20 rounded-full bg-white p-1 shadow-xl">
                             {contractor.user?.image ? (
                               <img
                                 src={contractor.user.image}
@@ -292,44 +329,55 @@ export default function ContractorMarketplace({
                           </div>
                         </div>
                       </div>
-                      <CardContent className="pt-12 pb-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                              {contractor.name}
-                            </h3>
-                            <div className="flex items-center gap-1 text-sm text-slate-500">
-                              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                              <span className="font-medium text-slate-700">{contractor.rating.toFixed(1)}</span>
-                              <span>({contractor.completedJobs} jobs)</span>
-                            </div>
+                      
+                      {/* Content Section - p-4 to match listing cards */}
+                      <CardContent className="pt-12 pb-4 px-4">
+                        {/* Name and Rating */}
+                        <div className="mb-3">
+                          <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
+                            {contractor.name}
+                          </h3>
+                          <div className="flex items-center gap-1 mb-1">
+                            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                            <span className="font-semibold text-slate-900">{contractor.rating.toFixed(1)}</span>
+                            <span className="text-slate-500 text-sm">({contractor.completedJobs} jobs)</span>
                           </div>
-                          {contractor.isPaymentReady && (
-                            <span className="px-2 py-1 rounded bg-emerald-100 text-emerald-700 text-xs font-medium flex items-center gap-1">
-                              <Shield className="h-3 w-3" /> Verified
-                            </span>
+                          {contractor.tagline && (
+                            <p className="text-sm text-slate-500 line-clamp-1">{contractor.tagline}</p>
                           )}
                         </div>
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {contractor.specialties.slice(0, 3).map((spec) => (
-                            <span key={spec} className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs">
+                        
+                        {/* Location */}
+                        {contractor.baseCity && contractor.baseState && (
+                          <div className="flex items-center gap-1 text-sm text-slate-500 mb-3 line-clamp-1">
+                            <MapPin className="h-4 w-4 flex-shrink-0" />
+                            {contractor.baseCity}, {contractor.baseState}
+                          </div>
+                        )}
+                        
+                        {/* Specialties */}
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {contractor.specialties.slice(0, 2).map((spec) => (
+                            <span key={spec} className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
                               {spec}
                             </span>
                           ))}
-                          {contractor.specialties.length > 3 && (
-                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">
-                              +{contractor.specialties.length - 3} more
+                          {contractor.specialties.length > 2 && (
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                              +{contractor.specialties.length - 2}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-500 pt-3 border-t border-slate-200">
+                        
+                        {/* Footer Stats */}
+                        <div className="flex items-center gap-3 text-sm text-slate-600">
                           <span className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
                             {contractor.responseTime}
                           </span>
                           <span className="flex items-center gap-1">
                             <Wrench className="h-4 w-4" />
-                            {contractor.completedJobs} completed
+                            {contractor.completedJobs}
                           </span>
                         </div>
                       </CardContent>
