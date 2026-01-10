@@ -69,7 +69,7 @@ const Header = async () => {
         <div className="flex-1 flex items-center justify-center gap-1 text-sm font-medium">
           <Link href='/' className="px-2.5 py-1.5 text-black hover:underline">Home</Link>
           <Link href='/listings' className="px-2.5 py-1.5 text-black hover:underline">Listings</Link>
-          <Link href='/contractors' className="px-2.5 py-1.5 text-black hover:underline">Contractors</Link>
+          {/* <Link href='/contractors' className="px-2.5 py-1.5 text-black hover:underline">Contractors</Link> */}
 
           {/* Resources Dropdown */}
           <div className="relative group">
