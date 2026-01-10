@@ -10,11 +10,13 @@
  * No transaction fees - subscription only revenue model
  */
 
+import { stripeConfig } from './stripe-config';
+
 export const SUBSCRIPTION_TIERS = {
   starter: {
     name: 'Starter',
     price: 19.99,
-    priceId: process.env.STRIPE_PRICE_STARTER || null,
+    priceId: stripeConfig.prices.starter,
     unitLimit: 24,
     trialDays: 7,
     features: {
@@ -47,7 +49,7 @@ export const SUBSCRIPTION_TIERS = {
   pro: {
     name: 'Pro',
     price: 39.99,
-    priceId: process.env.STRIPE_PRICE_PRO || null,
+    priceId: stripeConfig.prices.pro,
     unitLimit: 150,
     trialDays: 7,
     features: {
@@ -80,7 +82,7 @@ export const SUBSCRIPTION_TIERS = {
   enterprise: {
     name: 'Enterprise',
     price: 79.99,
-    priceId: process.env.STRIPE_PRICE_ENTERPRISE || null,
+    priceId: stripeConfig.prices.enterprise,
     unitLimit: Infinity,
     trialDays: 7,
     features: {

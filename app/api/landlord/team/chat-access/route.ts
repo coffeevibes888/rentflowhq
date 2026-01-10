@@ -17,32 +17,50 @@ export async function GET() {
     let landlordId = '';
     let subscriptionTier = 'starter';
 
+    // Check if user owns a landlord account (is the owner)
+    const ownedLandlord = await prisma.landlord.findFirst({
+      where: {
+        ownerUserId: userId,
+      },
+      include: {
+        subscription: true,
+      },
+    });
+
+    if (ownedLandlord) {
+      isTeamMember = true; // Owner is always a team member
+      landlordId = ownedLandlord.id;
+      subscriptionTier = normalizeTier(ownedLandlord.subscription?.tier || ownedLandlord.subscriptionTier);
+    }
+
     // Check if user is a team member
-    try {
-      const teamMemberModel = (prisma as any).teamMember;
-      const teamMember = await teamMemberModel?.findFirst?.({
-        where: {
-          userId,
-          status: 'active',
-        },
-        include: {
-          landlord: {
-            select: {
-              id: true,
-              subscriptionTier: true,
+    if (!isTeamMember) {
+      try {
+        const teamMemberModel = (prisma as any).teamMember;
+        const teamMember = await teamMemberModel?.findFirst?.({
+          where: {
+            userId,
+            status: 'active',
+          },
+          include: {
+            landlord: {
+              select: {
+                id: true,
+                subscriptionTier: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (teamMember) {
-        isTeamMember = true;
-        landlordId = teamMember.landlordId;
-        subscriptionTier = normalizeTier(teamMember.landlord?.subscriptionTier);
+        if (teamMember) {
+          isTeamMember = true;
+          landlordId = teamMember.landlordId;
+          subscriptionTier = normalizeTier(teamMember.landlord?.subscriptionTier);
+        }
+      } catch (error) {
+        // TeamMember model might not exist yet
+        console.log('TeamMember check skipped:', error);
       }
-    } catch (error) {
-      // TeamMember model might not exist yet
-      console.log('TeamMember check skipped:', error);
     }
 
     // If not a team member, check if user is a tenant

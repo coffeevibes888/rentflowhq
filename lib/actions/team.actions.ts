@@ -705,6 +705,23 @@ export async function getCurrentUserTeamRole(landlordId: string) {
       return { success: false, role: null, isOwner: false, canManageTeam: false };
     }
 
+    // First check if user is the landlord owner
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: landlordId },
+      select: { ownerId: true },
+    });
+
+    if (landlord?.ownerId === session.user.id) {
+      return {
+        success: true,
+        role: 'owner',
+        isOwner: true,
+        canManageTeam: true,
+        permissions: ['*'], // Owner has all permissions
+      };
+    }
+
+    // Check if user is a team member
     const member = await teamMemberModel()?.findFirst?.({
       where: {
         userId: session.user.id,
