@@ -21,6 +21,7 @@ export async function GET(
     });
 
     if (!channel) {
+      console.error('Channel not found:', channelId);
       return NextResponse.json({ success: false, message: 'Channel not found' }, { status: 404 });
     }
 
@@ -30,20 +31,29 @@ export async function GET(
     });
 
     if (!landlord) {
+      console.error('Landlord not found:', channel.landlordId);
       return NextResponse.json({ success: false, message: 'Landlord not found' }, { status: 404 });
     }
 
     // Check if user is landlord owner or team member
     const isOwner = landlord.ownerUserId === session.user.id;
-    const teamMember = await (prisma as any).teamMember?.findFirst?.({
-      where: {
-        userId: session.user.id,
-        landlordId: channel.landlordId,
-        status: 'active',
-      },
-    });
+    
+    let isTeamMember = false;
+    try {
+      const teamMember = await (prisma as any).teamMember?.findFirst?.({
+        where: {
+          userId: session.user.id,
+          landlordId: channel.landlordId,
+          status: 'active',
+        },
+      });
+      isTeamMember = !!teamMember;
+    } catch (error) {
+      console.log('TeamMember check skipped:', error);
+    }
 
-    if (!isOwner && !teamMember) {
+    if (!isOwner && !isTeamMember) {
+      console.error('Access denied for user:', session.user.id, 'to channel:', channelId);
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
@@ -81,9 +91,9 @@ export async function GET(
       })),
     });
   } catch (error) {
-    console.error('Failed to fetch messages:', error);
+    console.error('Failed to fetch messages - Full error:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch messages' },
+      { success: false, message: 'Failed to fetch messages', error: String(error) },
       { status: 500 }
     );
   }

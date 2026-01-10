@@ -129,16 +129,40 @@ export function TeamChat({
   useEffect(() => {
     const loadChannels = async () => {
       try {
+        console.log('Loading channels...');
         const res = await fetch('/api/landlord/team/channels');
         const data = await res.json();
-        if (data.success && data.channels) {
+        console.log('Channels response:', data);
+        if (data.success && data.channels && data.channels.length > 0) {
+          console.log('Setting channels:', data.channels);
           setChannels(data.channels);
-          if (data.channels.length > 0 && !activeChannel) {
+          if (!activeChannel) {
+            console.log('Setting active channel to:', data.channels[0]);
             setActiveChannel(data.channels[0]);
           }
+        } else {
+          console.error('No channels available:', data.message);
+          // Create a fallback channel for demo
+          const fallbackChannel = {
+            id: 'fallback-general',
+            name: 'general',
+            type: 'public',
+            description: 'General discussions',
+          };
+          setChannels([fallbackChannel]);
+          setActiveChannel(fallbackChannel);
         }
       } catch (error) {
         console.error('Failed to load channels:', error);
+        // Create a fallback channel for demo
+        const fallbackChannel = {
+          id: 'fallback-general',
+          name: 'general',
+          type: 'public',
+          description: 'General discussions',
+        };
+        setChannels([fallbackChannel]);
+        setActiveChannel(fallbackChannel);
       }
     };
     loadChannels();
@@ -202,10 +226,14 @@ export function TeamChat({
     
     const loadMessages = async () => {
       try {
+        console.log('Polling messages for channel:', activeChannel.id);
         const res = await fetch(`/api/landlord/team/channels/${activeChannel.id}/messages`);
         const data = await res.json();
         if (data.success && data.messages) {
+          console.log('Loaded messages:', data.messages.length);
           setMessages(data.messages);
+        } else {
+          console.error('Failed to load messages:', data.message);
         }
       } catch (error) {
         console.error('Failed to load messages:', error);
@@ -215,10 +243,13 @@ export function TeamChat({
     // Load immediately
     loadMessages();
     
-    // Poll for new messages every 3 seconds
-    const pollInterval = setInterval(loadMessages, 3000);
+    // Poll for new messages every 2 seconds
+    const pollInterval = setInterval(loadMessages, 2000);
     
-    return () => clearInterval(pollInterval);
+    return () => {
+      console.log('Cleaning up polling for channel:', activeChannel.id);
+      clearInterval(pollInterval);
+    };
   }, [activeChannel]);
 
   // Scroll to bottom on new messages (only if user is near bottom)
@@ -241,6 +272,7 @@ export function TeamChat({
     if ((!input.trim() && uploadedFiles.length === 0) || !activeChannel) return;
 
     const content = input.trim();
+    console.log('Sending message:', content, 'to channel:', activeChannel.id);
     setInput('');
     setIsLoading(true);
 
@@ -268,6 +300,8 @@ export function TeamChat({
         body: JSON.stringify({ content, attachments }),
       });
       const data = await res.json();
+      
+      console.log('Message sent response:', data);
       
       if (data.success && data.message) {
         setMessages(prev => prev.map(m => 
