@@ -181,7 +181,7 @@ export function TeamChat({
     loadMembers();
   }, [currentUser]);
 
-  // Load messages for active channel
+  // Load messages for active channel with polling
   useEffect(() => {
     if (!activeChannel) return;
     
@@ -192,21 +192,18 @@ export function TeamChat({
         if (data.success && data.messages) {
           setMessages(data.messages);
         }
-      } catch {
-        // Demo messages for now
-        setMessages([
-          {
-            id: '1',
-            channelId: activeChannel.id,
-            senderId: 'system',
-            senderName: 'System',
-            content: `Welcome to #${activeChannel.name}! This is the beginning of the channel.`,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+      } catch (error) {
+        console.error('Failed to load messages:', error);
       }
     };
+    
+    // Load immediately
     loadMessages();
+    
+    // Poll for new messages every 3 seconds
+    const pollInterval = setInterval(loadMessages, 3000);
+    
+    return () => clearInterval(pollInterval);
   }, [activeChannel]);
 
   // Scroll to bottom on new messages (only if user is near bottom)
@@ -566,11 +563,17 @@ export function TeamChat({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-slate-800 border-white/10">
-              <DropdownMenuItem className="text-slate-200">
+              <DropdownMenuItem 
+                className="text-slate-200 cursor-pointer"
+                onClick={() => window.location.href = '/admin/team'}
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Workspace Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-slate-200">
+              <DropdownMenuItem 
+                className="text-slate-200 cursor-pointer"
+                onClick={onRolesClick}
+              >
                 <Users className="h-4 w-4 mr-2" />
                 Invite People
               </DropdownMenuItem>

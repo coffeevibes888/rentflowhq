@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
-import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
-import { checkFeatureAccess } from '@/lib/actions/subscription.actions';
 
-// Get messages for a channel
+// GET - Fetch messages for a channel
 export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ channelId: string }> }
+  request: NextRequest,
+  { params }: { params: { channelId: string } }
 ) {
   try {
     const session = await auth();
@@ -15,52 +13,86 @@ export async function GET(
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { channelId } = await params;
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return NextResponse.json({ success: false, message: landlordResult.message }, { status: 400 });
+    const { channelId } = params;
+
+    // Verify user has access to this channel
+    const channel = await prisma.teamChannel.findUnique({
+      where: { id: channelId },
+    });
+
+    if (!channel) {
+      return NextResponse.json({ success: false, message: 'Channel not found' }, { status: 404 });
     }
 
-    // Check feature access
-    const featureCheck = await checkFeatureAccess(landlordResult.landlord.id, 'teamCommunications');
-    if (!featureCheck.allowed) {
-      return NextResponse.json({ 
-        success: false, 
-        message: featureCheck.reason,
-        featureLocked: true,
-      }, { status: 403 });
+    // Get the landlord
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: channel.landlordId },
+    });
+
+    if (!landlord) {
+      return NextResponse.json({ success: false, message: 'Landlord not found' }, { status: 404 });
     }
 
-    let messages: any[] = [];
-    try {
-      messages = await (prisma as any).teamMessage?.findMany?.({
-        where: { channelId },
-        orderBy: { createdAt: 'asc' },
-        take: 100,
-      }) || [];
-    } catch {
-      // Model doesn't exist, return welcome message
-      messages = [{
-        id: 'welcome',
-        channelId,
-        senderId: 'system',
-        senderName: 'System',
-        content: `Welcome to this channel! Start collaborating with your team.`,
-        createdAt: new Date().toISOString(),
-      }];
+    // Check if user is landlord owner or team member
+    const isOwner = landlord.ownerUserId === session.user.id;
+    const teamMember = await (prisma as any).teamMember?.findFirst?.({
+      where: {
+        userId: session.user.id,
+        landlordId: channel.landlordId,
+        status: 'active',
+      },
+    });
+
+    if (!isOwner && !teamMember) {
+      return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    return NextResponse.json({ success: true, messages });
+    // Fetch messages
+    const messages = await prisma.teamMessage.findMany({
+      where: { channelId },
+      orderBy: { createdAt: 'asc' },
+      take: 100, // Limit to last 100 messages
+    });
+
+    // Fetch senders for all messages
+    const senderIds = [...new Set(messages.map(m => m.senderId))];
+    const senders = await prisma.user.findMany({
+      where: { id: { in: senderIds } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+      },
+    });
+
+    const senderMap = new Map(senders.map(s => [s.id, s]));
+
+    return NextResponse.json({
+      success: true,
+      messages: messages.map(m => ({
+        id: m.id,
+        content: m.content,
+        senderId: m.senderId,
+        sender: senderMap.get(m.senderId) || { id: m.senderId, name: 'Unknown', email: '', image: null },
+        createdAt: m.createdAt.toISOString(),
+        reactions: [],
+        attachments: m.attachments || [],
+      })),
+    });
   } catch (error) {
-    console.error('Get messages error:', error);
-    return NextResponse.json({ success: false, message: 'Failed to get messages' }, { status: 500 });
+    console.error('Failed to fetch messages:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch messages' },
+      { status: 500 }
+    );
   }
 }
 
-// Send a message to a channel
+// POST - Send a message
 export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ channelId: string }> }
+  request: NextRequest,
+  { params }: { params: { channelId: string } }
 ) {
   try {
     const session = await auth();
@@ -68,67 +100,87 @@ export async function POST(
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { channelId } = await params;
-    const landlordResult = await getOrCreateCurrentLandlord();
-    if (!landlordResult.success) {
-      return NextResponse.json({ success: false, message: landlordResult.message }, { status: 400 });
+    const { channelId } = params;
+    const body = await request.json();
+    const { content, attachments } = body;
+
+    if (!content?.trim() && (!attachments || attachments.length === 0)) {
+      return NextResponse.json(
+        { success: false, message: 'Message content or attachments required' },
+        { status: 400 }
+      );
     }
 
-    // Check feature access
-    const featureCheck = await checkFeatureAccess(landlordResult.landlord.id, 'teamCommunications');
-    if (!featureCheck.allowed) {
-      return NextResponse.json({ 
-        success: false, 
-        message: featureCheck.reason,
-        featureLocked: true,
-      }, { status: 403 });
-    }
-
-    const body = await req.json();
-    const { content } = body;
-
-    if (!content?.trim()) {
-      return NextResponse.json({ success: false, message: 'Message content is required' }, { status: 400 });
-    }
-
-    // Get user info
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { id: true, name: true, image: true },
+    // Verify user has access to this channel
+    const channel = await prisma.teamChannel.findUnique({
+      where: { id: channelId },
     });
 
-    let message;
-    try {
-      message = await (prisma as any).teamMessage?.create?.({
-        data: {
-          channelId,
-          senderId: session.user.id,
-          content: content.trim(),
-        },
-      });
-      
-      // Add sender info
-      message = {
-        ...message,
-        senderName: user?.name || 'Team Member',
-        senderImage: user?.image,
-      };
-    } catch {
-      // Model doesn't exist, return mock message
-      message = {
-        id: `msg-${Date.now()}`,
-        channelId,
-        senderId: session.user.id,
-        senderName: user?.name || 'Team Member',
-        senderImage: user?.image,
-        content: content.trim(),
-        createdAt: new Date().toISOString(),
-      };
+    if (!channel) {
+      return NextResponse.json({ success: false, message: 'Channel not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, message });
+    // Get the landlord
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: channel.landlordId },
+    });
+
+    if (!landlord) {
+      return NextResponse.json({ success: false, message: 'Landlord not found' }, { status: 404 });
+    }
+
+    // Check if user is landlord owner or team member
+    const isOwner = landlord.ownerUserId === session.user.id;
+    const teamMember = await (prisma as any).teamMember?.findFirst?.({
+      where: {
+        userId: session.user.id,
+        landlordId: channel.landlordId,
+        status: 'active',
+      },
+    });
+
+    if (!isOwner && !teamMember) {
+      return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
+    }
+
+    // Create message
+    const message = await prisma.teamMessage.create({
+      data: {
+        channelId,
+        senderId: session.user.id,
+        content: content?.trim() || '',
+        attachments: attachments || [],
+      },
+    });
+
+    // Fetch sender info
+    const sender = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: {
+        id: message.id,
+        content: message.content,
+        senderId: message.senderId,
+        sender: sender || { id: session.user.id, name: 'Unknown', email: '', image: null },
+        createdAt: message.createdAt.toISOString(),
+        reactions: [],
+        attachments: message.attachments || [],
+      },
+    });
   } catch (error) {
-    console.error('Send message error:', error);
-    return NextResponse.json({ success: false, message: 'Failed to send message' }, { status: 500 });
+    console.error('Failed to send message:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to send message' },
+      { status: 500 }
+    );
   }
 }

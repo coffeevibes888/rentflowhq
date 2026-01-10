@@ -181,13 +181,14 @@ export function TeamHub({
                   <span className="hidden sm:inline">Payroll</span>
                 </TabsTrigger> */}
                 
-                <TabsTrigger
+                {/* Hiring - Commented out until public careers page is ready */}
+                {/* <TabsTrigger
                   value="hiring"
                   className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-500 data-[state=active]:text-white rounded-lg text-slate-300"
                 >
                   <Briefcase className="h-4 w-4" />
                   <span className="hidden sm:inline">Hiring</span>
-                </TabsTrigger>
+                </TabsTrigger> */}
               </>
             )}
           </TabsList>
@@ -246,11 +247,12 @@ export function TeamHub({
                 </div>
               </TabsContent> */}
 
-              <TabsContent value="hiring" className="mt-0">
+              {/* Hiring - Commented out until public careers page is ready */}
+              {/* <TabsContent value="hiring" className="mt-0">
                 <div className="p-6">
                   <HiringTab landlordId={landlordId} />
                 </div>
-              </TabsContent>
+              </TabsContent> */}
             </>
           )}
         </div>

@@ -3,8 +3,8 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 
 export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ messageId: string }> }
+  request: NextRequest,
+  { params }: { params: { messageId: string } }
 ) {
   try {
     const session = await auth();
@@ -12,24 +12,90 @@ export async function POST(
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { messageId } = await params;
-    const body = await req.json();
-    const { emoji, action } = body;
+    const { messageId } = params;
+    const body = await request.json();
+    const { emoji } = body;
 
-    if (!emoji || !['add', 'remove'].includes(action)) {
-      return NextResponse.json({ success: false, message: 'Invalid request' }, { status: 400 });
+    if (!emoji) {
+      return NextResponse.json(
+        { success: false, message: 'Emoji required' },
+        { status: 400 }
+      );
     }
 
-    // For now, return success (you'll need to implement database storage)
-    // This is a placeholder that works with the optimistic UI updates
-    return NextResponse.json({
-      success: true,
-      message: 'Reaction updated',
+    // Check if message exists and user has access
+    const message = await prisma.teamMessage.findUnique({
+      where: { id: messageId },
+      include: {
+        channel: true,
+      },
     });
+
+    if (!message) {
+      return NextResponse.json({ success: false, message: 'Message not found' }, { status: 404 });
+    }
+
+    // Get the landlord
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: message.channel.landlordId },
+    });
+
+    if (!landlord) {
+      return NextResponse.json({ success: false, message: 'Landlord not found' }, { status: 404 });
+    }
+
+    // Check if user is landlord owner or team member
+    const isOwner = landlord.ownerUserId === session.user.id;
+    const teamMember = await (prisma as any).teamMember?.findFirst?.({
+      where: {
+        userId: session.user.id,
+        landlordId: message.channel.landlordId,
+        status: 'active',
+      },
+    });
+
+    if (!isOwner && !teamMember) {
+      return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
+    }
+
+    // Check if reaction already exists
+    const existingReaction = await prisma.messageReaction.findFirst({
+      where: {
+        messageId,
+        userId: session.user.id,
+        emoji,
+      },
+    });
+
+    if (existingReaction) {
+      // Remove reaction (toggle off)
+      await prisma.messageReaction.delete({
+        where: { id: existingReaction.id },
+      });
+
+      return NextResponse.json({
+        success: true,
+        action: 'removed',
+      });
+    } else {
+      // Add reaction
+      await prisma.messageReaction.create({
+        data: {
+          messageId,
+          userId: session.user.id,
+          emoji,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        action: 'added',
+      });
+    }
   } catch (error) {
-    console.error('Reaction error:', error);
+    console.error('Failed to toggle reaction:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to update reaction' },
+      { success: false, message: 'Failed to toggle reaction' },
       { status: 500 }
     );
   }

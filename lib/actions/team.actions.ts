@@ -708,10 +708,10 @@ export async function getCurrentUserTeamRole(landlordId: string) {
     // First check if user is the landlord owner
     const landlord = await prisma.landlord.findUnique({
       where: { id: landlordId },
-      select: { ownerId: true },
+      select: { ownerUserId: true },
     });
 
-    if (landlord?.ownerId === session.user.id) {
+    if (landlord?.ownerUserId === session.user.id) {
       return {
         success: true,
         role: 'owner',
