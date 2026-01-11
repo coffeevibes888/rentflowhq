@@ -95,7 +95,7 @@ export function TeamHub({
   };
 
   return (
-    <div className="flex flex-col bg-slate-900/40 rounded-2xl border border-white/10 h-full">
+    <div className="flex flex-col bg-slate-900/40 rounded-2xl border border-white/10 min-h-[600px] max-h-[80vh]">
       {/* Header */}
       <div className="flex-shrink-0 px-6 py-5 border-b border-white/10">
         <div className="flex items-center justify-between">
@@ -194,10 +194,10 @@ export function TeamHub({
           </TabsList>
         </div>
 
-        {/* Tab Content - Full height, natural page scroll */}
-        <div className="flex-1">
+        {/* Tab Content - Controlled height with proper scrolling */}
+        <div className="flex-1 min-h-0 overflow-hidden">
           <TabsContent value="chat" className="h-full mt-0 flex flex-col">
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 max-h-[60vh]">
               <TeamChat
                 currentUser={currentUser}
                 landlordId={landlordId}
@@ -209,7 +209,7 @@ export function TeamHub({
             </div>
           </TabsContent>
 
-          <TabsContent value="members" className="mt-0">
+          <TabsContent value="members" className="mt-0 overflow-y-auto max-h-[60vh]">
             <div className="p-6">
               <TeamMembersTab 
                 members={teamMembers} 
@@ -222,19 +222,19 @@ export function TeamHub({
 
           {isPro && (
             <>
-              <TabsContent value="schedule" className="mt-0">
+              <TabsContent value="schedule" className="mt-0 overflow-y-auto max-h-[60vh]">
                 <div className="p-6">
                   <ScheduleTab />
                 </div>
               </TabsContent>
 
-              <TabsContent value="time" className="mt-0">
+              <TabsContent value="time" className="mt-0 overflow-y-auto max-h-[60vh]">
                 <div className="p-6">
                   <TimeTrackingTab />
                 </div>
               </TabsContent>
 
-              <TabsContent value="timesheets" className="mt-0">
+              <TabsContent value="timesheets" className="mt-0 overflow-y-auto max-h-[60vh]">
                 <div className="p-6">
                   <TimesheetsTab />
                 </div>

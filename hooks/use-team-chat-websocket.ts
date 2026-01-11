@@ -166,8 +166,10 @@ export function useTeamChatWebSocket({
   const sendMessage = useCallback((message: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(message));
+      return true;
     } else {
-      console.warn('WebSocket not connected, cannot send message');
+      console.warn('WebSocket not connected, message not sent');
+      return false;
     }
   }, []);
 
@@ -176,26 +178,35 @@ export function useTeamChatWebSocket({
     
     // Leave current channel if any
     if (currentChannelId) {
-      sendMessage({
+      const success = sendMessage({
         type: 'leave_channel',
         channelId: currentChannelId
       });
+      if (!success) {
+        console.log('Could not leave channel via WebSocket (disconnected)');
+      }
     }
 
     // Join new channel
     setCurrentChannelId(channelId);
-    sendMessage({
+    const success = sendMessage({
       type: 'join_channel',
       channelId
     });
+    if (!success) {
+      console.log('Could not join channel via WebSocket (disconnected)');
+    }
   }, [currentChannelId, sendMessage]);
 
   const leaveChannel = useCallback(() => {
     if (currentChannelId) {
-      sendMessage({
+      const success = sendMessage({
         type: 'leave_channel',
         channelId: currentChannelId
       });
+      if (!success) {
+        console.log('Could not leave channel via WebSocket (disconnected)');
+      }
       setCurrentChannelId(null);
     }
   }, [currentChannelId, sendMessage]);

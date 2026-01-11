@@ -252,25 +252,39 @@ export function TeamChat({
     }
   });
 
+  // Handle WebSocket connection changes separately
+  useEffect(() => {
+    if (!activeChannel?.id) return;
+    
+    // Join WebSocket channel when connection status changes
+    if (isConnected) {
+      joinChannel(activeChannel.id);
+    }
+  }, [isConnected, activeChannel?.id, joinChannel]);
+
   // Load messages for active channel (initial load + polling fallback when WebSocket is down)
   useEffect(() => {
-    if (!activeChannel) return;
+    if (!activeChannel?.id) return;
+    
+    let isMounted = true;
     
     const loadMessages = async () => {
       try {
         console.log('Loading messages for channel:', activeChannel.id);
         const res = await fetch(`/api/landlord/team/channels/${activeChannel.id}/messages`);
         const data = await res.json();
-        if (data.success && data.messages) {
+        if (data.success && data.messages && isMounted) {
           console.log('Loaded messages:', data.messages.length);
           setMessages(data.messages || []);
-        } else {
+        } else if (isMounted) {
           console.error('Failed to load messages:', data.message);
           setMessages([]);
         }
       } catch (error) {
-        console.error('Failed to load messages:', error);
-        setMessages([]);
+        if (isMounted) {
+          console.error('Failed to load messages:', error);
+          setMessages([]);
+        }
       }
     };
     
@@ -282,15 +296,16 @@ export function TeamChat({
     
     // Set up polling as fallback when WebSocket is disconnected (less frequent)
     let pollInterval: NodeJS.Timeout;
+    let pollTimeout: NodeJS.Timeout;
     
     const startPolling = () => {
-      if (!isConnected) {
+      if (!isConnected && isMounted) {
         console.log('Starting message polling (WebSocket disconnected)');
         pollInterval = setInterval(() => {
-          if (!isConnected) {
+          if (!isConnected && isMounted) {
             loadMessages();
           }
-        }, 10000); // Poll every 10 seconds when disconnected (reduced from 5 seconds)
+        }, 15000); // Poll every 15 seconds when disconnected (increased from 10 seconds)
       }
     };
     
@@ -298,33 +313,25 @@ export function TeamChat({
       if (pollInterval) {
         console.log('Stopping message polling (WebSocket connected)');
         clearInterval(pollInterval);
+        pollInterval = undefined;
       }
     };
     
     // Start polling if already disconnected (with delay to avoid immediate polling)
-    const pollTimeout = setTimeout(() => {
-      if (!isConnected) {
+    pollTimeout = setTimeout(() => {
+      if (!isConnected && isMounted) {
         startPolling();
       }
-    }, 2000); // Wait 2 seconds before starting polling
-    
-    // Monitor connection status changes (less frequent checks)
-    const connectionCheckInterval = setInterval(() => {
-      if (!isConnected && !pollInterval) {
-        startPolling();
-      } else if (isConnected && pollInterval) {
-        stopPolling();
-      }
-    }, 3000); // Check every 3 seconds instead of 1 second
+    }, 5000); // Wait 5 seconds before starting polling (increased from 2 seconds)
     
     return () => {
       // Cleanup
+      isMounted = false;
       leaveChannel();
       stopPolling();
-      clearTimeout(pollTimeout);
-      clearInterval(connectionCheckInterval);
+      if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [activeChannel, joinChannel, leaveChannel, isConnected]);
+  }, [activeChannel?.id]); // Only depend on activeChannel.id, not the whole object or other changing values
 
   // Scroll to bottom on new messages (only if user is near bottom)
   useEffect(() => {
@@ -656,11 +663,11 @@ export function TeamChat({
 
   const containerClass = isFullPage
     ? 'relative flex h-full w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl overflow-hidden min-h-0'
-    : 'relative flex flex-col sm:flex-row h-full bg-slate-900 rounded-xl overflow-hidden border border-white/10 shadow-2xl';
+    : 'relative flex flex-col sm:flex-row h-full bg-slate-900 rounded-xl overflow-hidden border border-white/10 shadow-2xl min-h-[500px] sm:min-h-[600px]';
 
   const sidebarClass = isFullPage
     ? `${isMobileMenuOpen ? 'flex' : 'hidden'} absolute inset-y-0 left-0 z-20 w-72 bg-slate-950/90 backdrop-blur-xl border-r border-white/10 flex-col`
-    : `${isMobileMenuOpen ? 'flex' : 'hidden'} sm:flex flex-col w-full sm:w-48 md:w-56 bg-slate-950 border-b sm:border-b-0 sm:border-r border-white/10 max-h-48 sm:max-h-none overflow-y-auto`;
+    : `${isMobileMenuOpen ? 'flex' : 'hidden'} sm:flex flex-col w-full sm:w-48 md:w-56 bg-slate-950 border-b sm:border-b-0 sm:border-r border-white/10 max-h-[200px] sm:max-h-none overflow-y-auto`;
 
   const membersSidebarClass = isFullPage
     ? 'hidden xl:block w-56 border-l border-white/10 bg-slate-900/50 overflow-y-auto'
@@ -806,7 +813,7 @@ export function TeamChat({
       </aside>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* Channel Header */}
         <header className="h-12 sm:h-14 px-2 sm:px-4 flex items-center justify-between border-b border-white/10 bg-slate-900/50 flex-shrink-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -907,10 +914,10 @@ export function TeamChat({
           </div>
         </header>
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden min-h-0">
           {/* Messages */}
-          <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="flex-1 flex flex-col min-w-0 min-h-0">
+            <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-2 sm:py-4">
               {!activeChannel && (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center">
@@ -1076,7 +1083,7 @@ export function TeamChat({
             </div>
 
             {/* Message Input */}
-            <div className="p-2 sm:p-4 border-t border-white/10 flex-shrink-0">
+            <div className="p-2 sm:p-4 border-t border-white/10 flex-shrink-0 bg-slate-900/50">
               {/* File Preview */}
               {uploadedFiles.length > 0 && (
                 <div className="mb-2 p-3 bg-slate-800/60 rounded-lg border border-white/10">
@@ -1119,7 +1126,7 @@ export function TeamChat({
               )}
               
               <form onSubmit={handleSendMessage}>
-                <div className="flex items-end gap-1 sm:gap-2 bg-slate-800 rounded-xl p-1.5 sm:p-2 relative">
+                <div className="flex items-end gap-1 sm:gap-2 bg-slate-800 rounded-xl p-2 sm:p-2 relative min-h-[44px]">
                   {/* File Upload Button */}
                   <input
                     ref={fileInputRef}
@@ -1143,7 +1150,7 @@ export function TeamChat({
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={`Message #${activeChannel?.name || 'channel'}`}
-                    className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-white placeholder:text-slate-500 text-sm"
+                    className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-white placeholder:text-slate-500 text-sm min-h-[36px] py-2"
                     disabled={!activeChannel}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
@@ -1185,7 +1192,7 @@ export function TeamChat({
                       type="submit"
                       disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading || !activeChannel || isUploading}
                       size="sm"
-                      className="bg-violet-600 hover:bg-violet-500 text-white h-8 w-8 sm:h-auto sm:w-auto p-1.5 sm:px-3"
+                      className="bg-violet-600 hover:bg-violet-500 text-white h-9 w-9 sm:h-auto sm:w-auto p-2 sm:px-3 flex-shrink-0"
                     >
                       {isUploading ? (
                         <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />

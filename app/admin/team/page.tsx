@@ -62,7 +62,7 @@ export default async function TeamPage() {
     : { success: false, role: null, canManageTeam: false };
 
   return (
-    <main className="w-full min-h-[600px] pb-8">
+    <main className="w-full pb-8">
       <TeamHub
         currentUser={{
           id: session?.user?.id || '',
