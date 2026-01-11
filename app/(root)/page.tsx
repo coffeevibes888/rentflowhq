@@ -1,9 +1,5 @@
-import React from 'react';
-import { APP_NAME } from '@/lib/constants';
-// import CustomerReviews from '@/components/home/customer-reviews';
 import HomeContactCard from '@/components/home/home-contact-card';
 import TrustBadges from '@/components/home/trust-badges';
-import NewsletterSignup from '@/components/home/newsletter-signup';
 import ExitIntentPopup from '@/components/home/exit-intent-popup';
 import PricingSection from '@/components/home/pricing-section';
 import { headers } from 'next/headers';
@@ -11,7 +7,7 @@ import { prisma } from '@/db/prisma';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
-import { Clock, DollarSign, FileText, MessageSquare, Building2, Users, CreditCard, Calendar, Shield, TrendingUp, ArrowRight } from 'lucide-react';
+import { Clock, DollarSign, FileText, MessageSquare, Users, ArrowRight } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
 
 // Cache landlord lookup for 5 minutes to reduce DB queries
@@ -176,10 +172,9 @@ const Homepage = async () => {
       <main className='flex-1 w-full'>
         {/* Hero Section - Conversion Focused */}
         <section className='w-full pt-8 pb-12 md:pt-20 md:pb-24 px-4 md:px-4 relative overflow-hidden'>
-          <div className='absolute inset-0  animate-pulse' />
           <div className='max-w-7xl mx-auto relative z-10'>
             <div className='grid gap-6 md:gap-8 lg:grid-cols-2 items-center'>
-              <div className='space-y-4 md:space-y-6 animate-in fade-in slide-in-from-left duration-700 text-center lg:text-left'>
+              <div className='space-y-4 md:space-y-6 text-center lg:text-left'>
                 
                 <h1 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
                  Property Management...
@@ -195,10 +190,10 @@ const Homepage = async () => {
                 <div className='flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4'>
                   <Link
                     href='/sign-up'
-                    className='group inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg hover:bg-violet-400 transition-all duration-300 hover:scale-105 hover:shadow-violet-500/50'
+                    className='group inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg hover:bg-violet-400 transition-colors duration-200'
                   >
                     Start Free Today
-                    <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
+                    <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
                   </Link>
                 </div>
               </div>
@@ -341,7 +336,7 @@ const Homepage = async () => {
                   </div>
                   
                   {/* Flow Diagram - Mobile/Tablet: Vertical, Desktop: Horizontal Rows */}
-                  <div className='relative py-2 md:py-3'>
+                  <div className='relative py-4 md:py-3'>
                     {/* Mobile/Tablet Layout - 2-column grid with flow arrows */}
                     <div className='lg:hidden space-y-2'>
                       {/* Row 1: Add Property → Free Lease Builder */}
@@ -368,23 +363,23 @@ const Homepage = async () => {
                         </div>
                       </div>
 
-                      {/* Row 2: Tenant Apply's ← One Click Approval (right to left) */}
+                      {/* Row 2: One Click Approval ← Tenant Apply's (right to left) */}
                       <div className='flex items-center gap-1 sm:gap-2'>
-                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
-                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Tenant Apply's</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>E-mail Notified</div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
+                          <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>One Click Approval</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Or Schedule Viewing</div>
                         </div>
                         <div className='flex items-center'>
                           <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                           <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
                         </div>
-                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
-                          <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>One Click Approval</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Or Schedule Viewing</div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
+                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Tenant Apply's</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>E-mail Notified</div>
                         </div>
                       </div>
 
-                      {/* Down arrow from row 2 to row 3 */}
+                      {/* Down arrow from row 2 to row 3 - on LEFT side */}
                       <div className='flex justify-start pl-[20%]'>
                         <div className='flex flex-col items-center'>
                           <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
@@ -392,7 +387,7 @@ const Homepage = async () => {
                         </div>
                       </div>
 
-                      {/* Row 3: Tenant Pays Rent → Tenant Moves In */}
+                      {/* Row 3: Tenant Pays Rent → Tenant Moves In (left to right) */}
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
                           <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>Tenant Pays Rent</div>
@@ -408,7 +403,7 @@ const Homepage = async () => {
                         </div>
                       </div>
 
-                      {/* Down arrow from row 3 to row 4 */}
+                      {/* Down arrow from row 3 to row 4 - on RIGHT side */}
                       <div className='flex justify-end pr-[20%]'>
                         <div className='flex flex-col items-center'>
                           <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
@@ -416,23 +411,23 @@ const Homepage = async () => {
                         </div>
                       </div>
 
-                      {/* Row 4: Maintenance Tickets ← Contractor Marketplace (right to left) */}
+                      {/* Row 4: Contractor Marketplace ← Maintenance Tickets (right to left) */}
                       <div className='flex items-center gap-1 sm:gap-2'>
-                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
-                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Maintenance Tickets</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Urgency System</div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
+                          <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>Contractor Marketplace</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Find and Hire Contractors</div>
                         </div>
                         <div className='flex items-center'>
                           <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                           <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
                         </div>
-                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
-                          <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>Contractor Marketplace</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Find and Hire Contractors</div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
+                          <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Maintenance Tickets</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Urgency System</div>
                         </div>
                       </div>
 
-                      {/* Down arrow from row 4 to row 5 */}
+                      {/* Down arrow from row 4 to row 5 - on LEFT side */}
                       <div className='flex justify-start pl-[20%]'>
                         <div className='flex flex-col items-center'>
                           <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
@@ -440,7 +435,7 @@ const Homepage = async () => {
                         </div>
                       </div>
 
-                      {/* Row 5: Late Rent? → Internal Communications */}
+                      {/* Row 5: Late Rent? → Internal Communications (left to right) */}
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10'>
                           <div className='text-amber-400 text-[10px] sm:text-xs font-bold'>Late Rent?</div>
@@ -456,27 +451,27 @@ const Homepage = async () => {
                         </div>
                       </div>
 
-                      {/* Down arrow from row 5 to row 6 */}
-                      <div className='flex justify-start pl-[20%]'>
+                      {/* Down arrow from row 5 to row 6 - on RIGHT side */}
+                      <div className='flex justify-end pr-[20%]'>
                         <div className='flex flex-col items-center'>
                           <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
                           <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
-                      {/* Row 6: Eviction → Move-Out */}
+                      {/* Row 6: Move-Out ← Eviction (right to left) */}
                       <div className='flex items-center gap-1 sm:gap-2'>
-                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-red-300 text-center shadow-lg shadow-red-500/10'>
-                          <div className='text-red-400 text-[10px] sm:text-xs font-bold'>Eviction</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Legal Docs</div>
-                        </div>
-                        <div className='flex items-center'>
-                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                        </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-slate-300 text-center shadow-lg'>
                           <div className='text-slate-300 text-[10px] sm:text-xs font-bold'>Move-Out</div>
                           <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Inspection Check list</div>
+                        </div>
+                        <div className='flex items-center'>
+                          <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                        </div>
+                        <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-red-300 text-center shadow-lg shadow-red-500/10'>
+                          <div className='text-red-400 text-[10px] sm:text-xs font-bold'>Eviction</div>
+                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Legal Docs</div>
                         </div>
                       </div>
                     </div>
@@ -607,11 +602,11 @@ const Homepage = async () => {
 
 
         {/* Pain Points → Solutions */}
-        <section className='w-full py-4 md:py-10 px-1 md:px-4'>
+        <section className='w-full md:py-10 px-3 md:px-4'>
           <div className='max-w-6xl mx-auto space-y-8 md:space-y-12'>
             <div className='text-center space-y-2 md:space-y-3 animate-in fade-in duration-700'>
               <h2 className='text-2xl md:text-4xl font-bold text-white'>
-                FINALLY A SOULTION THAT YOU CAN TRUST
+                FINALLY A SOLUTION THAT YOU CAN TRUST
               </h2>
               <p className='text-sm md:text-lg text-black font-semibold max-w-2xl mx-auto'>
                 You didn't become a landlord to spend hours on admin work. Here's how we solve your biggest headaches.
@@ -620,14 +615,14 @@ const Homepage = async () => {
 
             <div className='grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3'>
               {/* Pain Point 1 */}
-              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-4 md:p-6 space-y-3 md:space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
+              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 md:p-8 space-y-4 md:space-y-5 transition-all duration-300 shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-3 md:gap-4'>
                   <div className='rounded-lg md:rounded-xl bg-red-500/20 p-2 md:p-3 border border-red-500/30'>
                     <Clock className='h-5 w-5 md:h-6 md:w-6 text-red-400' />
                   </div>
                   <div className='flex-1'>
-                    <h3 className='text-base md:text-lg font-bold text-white mb-1 md:mb-2'>Late Rent Every Month</h3>
-                    <p className='text-sm md:text-sm text-black font-semibold mb-2 md:mb-3'>
+                    <h3 className='text-base md:text-lg font-bold text-white mb-2 md:mb-3'>Late Rent Every Month</h3>
+                    <p className='text-sm md:text-sm text-black font-semibold mb-3 md:mb-4'>
                       Chasing tenants for payments, sending reminders, tracking who paid what...
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-sm md:text-sm font-semibold'>
@@ -639,14 +634,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 2 */}
-              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-4 md:p-6 space-y-3 md:space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
+              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 md:p-8 space-y-4 md:space-y-5 transition-all duration-300 shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-3 md:gap-4'>
                   <div className='rounded-lg md:rounded-xl bg-amber-500/20 p-2 md:p-3 border border-amber-500/30'>
                     <MessageSquare className='h-5 w-5 md:h-6 md:w-6 text-amber-400' />
                   </div>
                   <div className='flex-1'>
-                    <h3 className='text-base md:text-lg font-bold text-white mb-1 md:mb-2'>Maintenance Request Chaos</h3>
-                    <p className='text-xs md:text-sm text-black mb-2 md:mb-3'>
+                    <h3 className='text-base md:text-lg font-bold text-white mb-2 md:mb-3'>Maintenance Request Chaos</h3>
+                    <p className='text-xs md:text-sm text-black mb-3 md:mb-4'>
                       Texts, calls, emails scattered everywhere. No way to track what's urgent.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-xs md:text-sm font-semibold'>
@@ -658,14 +653,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 3 */}
-              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-4 md:p-6 space-y-3 md:space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
+              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 md:p-8 space-y-4 md:space-y-5 transition-all duration-300 shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-3 md:gap-4'>
                   <div className='rounded-lg md:rounded-xl bg-blue-500/20 p-2 md:p-3 border border-blue-500/30'>
                     <FileText className='h-5 w-5 md:h-6 md:w-6 text-blue-400' />
                   </div>
                   <div className='flex-1'>
-                    <h3 className='text-base md:text-lg font-bold text-white mb-1 md:mb-2'>Spreadsheet Nightmare</h3>
-                    <p className='text-xs md:text-sm text-black mb-2 md:mb-3'>
+                    <h3 className='text-base md:text-lg font-bold text-white mb-2 md:mb-3'>Spreadsheet Nightmare</h3>
+                    <p className='text-xs md:text-sm text-black mb-3 md:mb-4'>
                       Properties, tenants, leases, payments—all in different files that never sync.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-xs md:text-sm font-semibold'>
@@ -677,14 +672,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 4 */}
-              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-4 md:p-6 space-y-3 md:space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
+              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 md:p-8 space-y-4 md:space-y-5 transition-all duration-300 shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-3 md:gap-4'>
                   <div className='rounded-lg md:rounded-xl bg-purple-500/20 p-2 md:p-3 border border-purple-500/30'>
                     <Users className='h-5 w-5 md:h-6 md:w-6 text-purple-400' />
                   </div>
                   <div className='flex-1'>
-                    <h3 className='text-base md:text-lg font-bold text-white mb-1 md:mb-2'>Application Management Chaos</h3>
-                    <p className='text-xs md:text-sm text-black mb-2 md:mb-3'>
+                    <h3 className='text-base md:text-lg font-bold text-white mb-2 md:mb-3'>Application Management Chaos</h3>
+                    <p className='text-xs md:text-sm text-black mb-3 md:mb-4'>
                       Paper applications, lost emails, no way to track who applied when or compare applicants side-by-side.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-xs md:text-sm font-semibold'>
@@ -696,14 +691,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 5 */}
-              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-4 md:p-6 space-y-3 md:space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
+              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 md:p-8 space-y-4 md:space-y-5 transition-all duration-300 shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-3 md:gap-4'>
                   <div className='rounded-lg md:rounded-xl bg-cyan-500/20 p-2 md:p-3 border border-cyan-500/30'>
                     <FileText className='h-5 w-5 md:h-6 md:w-6 text-cyan-400' />
                   </div>
                   <div className='flex-1'>
-                    <h3 className='text-base md:text-lg font-bold text-white mb-1 md:mb-2'>Lease Management Mess</h3>
-                    <p className='text-xs md:text-sm text-black mb-2 md:mb-3'>
+                    <h3 className='text-base md:text-lg font-bold text-white mb-2 md:mb-3'>Lease Management Mess</h3>
+                    <p className='text-xs md:text-sm text-black mb-3 md:mb-4'>
                       Printing, signing, scanning, storing leases. Renewals slip through the cracks.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-xs md:text-sm font-semibold'>
@@ -715,14 +710,14 @@ const Homepage = async () => {
               </div>
 
               {/* Pain Point 6 */}
-              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-4 md:p-6 space-y-3 md:space-y-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom shadow-2xl drop-shadow-2xl'>
+              <div className='group rounded-xl md:rounded-2xl border border-red-500/20 bg-gradient-to-r from-indigo-700 to-sky-600 p-6 md:p-8 space-y-4 md:space-y-5 transition-all duration-300 shadow-2xl drop-shadow-2xl'>
                 <div className='flex items-start gap-3 md:gap-4'>
                   <div className='rounded-lg md:rounded-xl bg-pink-500/20 p-2 md:p-3 border border-pink-500/30'>
                     <DollarSign className='h-5 w-5 md:h-6 md:w-6 text-pink-400' />
                   </div>
                   <div className='flex-1'>
-                    <h3 className='text-base md:text-lg font-bold text-white mb-1 md:mb-2'>Expensive Software</h3>
-                    <p className='text-xs md:text-sm text-black mb-2 md:mb-3'>
+                    <h3 className='text-base md:text-lg font-bold text-white mb-2 md:mb-3'>Expensive Software</h3>
+                    <p className='text-xs md:text-sm text-black mb-3 md:mb-4'>
                       Most property management tools cost $50-200/month. Too much for small portfolios.
                     </p>
                     <div className='flex items-center gap-2 text-emerald-300 text-xs md:text-sm font-semibold'>
@@ -736,12 +731,12 @@ const Homepage = async () => {
           </div>
         </section>
     {/* Key Features Section */}
-        <section className='w-full py-4 md:py-16 px-1 md:px-4'>
+        <section className='w-full py-6 md:py-12 px-3 md:px-4'>
           <div className='max-w-6xl mx-auto'>
             <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
               
               {/* FREE Lease Builder Card */}
-              <div className='group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]'>
+              <div className='group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02] py-4'>
                 <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-900' />
                 <div className='absolute inset-0 border border-emerald-500/30 rounded-2xl md:rounded-3xl' />
                 <div className='absolute top-4 right-4 md:top-6 md:right-6'>
@@ -753,7 +748,7 @@ const Homepage = async () => {
                     100% FREE
                   </span>
                 </div>
-                <div className='relative p-6 md:p-8 space-y-4 md:space-y-6'>
+                <div className='relative p-8 md:p-10 space-y-5 md:space-y-7'>
                   <div className='h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-emerald-500/20 backdrop-blur-sm flex items-center justify-center border border-emerald-500/30'>
                     <svg className='h-7 w-7 md:h-8 md:w-8 text-emerald-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
@@ -800,7 +795,7 @@ const Homepage = async () => {
                     YOUR BRAND
                   </span>
                 </div>
-                <div className='relative p-6 md:p-8 space-y-4 md:space-y-6'>
+                <div className='relative p-8 md:p-10 space-y-5 md:space-y-7'>
                   <div className='h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-violet-500/20 backdrop-blur-sm flex items-center justify-center border border-violet-500/30'>
                     <svg className='h-7 w-7 md:h-8 md:w-8 text-violet-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9' />

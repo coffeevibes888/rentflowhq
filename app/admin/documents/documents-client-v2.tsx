@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -224,8 +224,8 @@ export default function DocumentsClientV2({
   const [documentHtml, setDocumentHtml] = useState<string | null>(null);
   const [loadingDocumentPreview, setLoadingDocumentPreview] = useState(false);
 
-  // Define browser tabs
-  const browserTabs: BrowserTab[] = [
+  // Memoize browser tabs to prevent recalculation on every render
+  const browserTabs: BrowserTab[] = useMemo(() => [
     {
       id: 'legal',
       label: 'Legal Documents',
@@ -268,7 +268,7 @@ export default function DocumentsClientV2({
       icon: ScanLine,
       count: scannedDocuments.length,
     },
-  ];
+  ], [legalDocuments, activeLeases, scannedDocuments, leaseTemplates]);
 
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '';
@@ -436,7 +436,7 @@ export default function DocumentsClientV2({
     }
   };
 
-  const handleDelete = async (id: string, type: 'legal' | 'scanned') => {
+  const handleDelete = useCallback(async (id: string, type: 'legal' | 'scanned') => {
     if (!confirm('Are you sure you want to delete this document?')) return;
 
     try {
@@ -455,7 +455,7 @@ export default function DocumentsClientV2({
       console.error('Delete failed:', error);
       toast({ title: 'Delete failed', variant: 'destructive' });
     }
-  };
+  }, [toast]);
 
   const handleSetDefault = async (docId: string, propertyId: string) => {
     try {
@@ -485,8 +485,8 @@ export default function DocumentsClientV2({
     setUploadDialogOpen(true);
   };
 
-  // Filter documents based on active tab and search
-  const getFilteredLegalDocs = () => {
+  // Memoize filtered documents to prevent recalculation on every render
+  const filteredLegalDocs = useMemo(() => {
     return legalDocuments.filter((doc) => {
       const matchesSearch =
         doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -500,9 +500,9 @@ export default function DocumentsClientV2({
       }
       return matchesSearch;
     });
-  };
+  }, [legalDocuments, searchQuery, activeTab]);
 
-  const getFilteredScannedDocs = () => {
+  const filteredScannedDocs = useMemo(() => {
     return scannedDocuments.filter((doc) => {
       const matchesSearch = doc.originalFileName.toLowerCase().includes(searchQuery.toLowerCase());
       
@@ -514,7 +514,7 @@ export default function DocumentsClientV2({
       }
       return matchesSearch;
     });
-  };
+  }, [scannedDocuments, searchQuery, activeTab, filterType]);
 
 
   // Render tab content
@@ -538,7 +538,7 @@ export default function DocumentsClientV2({
               </Button>
             </div>
             <DocumentGrid
-              documents={getFilteredLegalDocs()}
+              documents={filteredLegalDocs}
               type="legal"
               onDelete={(id) => handleDelete(id, 'legal')}
               onAssign={(doc) => {
@@ -571,7 +571,7 @@ export default function DocumentsClientV2({
               </Button>
             </div>
             <DocumentGrid
-              documents={getFilteredLegalDocs()}
+              documents={filteredLegalDocs}
               type="legal"
               onDelete={(id) => handleDelete(id, 'legal')}
               onAssign={(doc) => {
@@ -615,7 +615,7 @@ export default function DocumentsClientV2({
               </Button>
             </div>
             <ScannedDocumentGrid
-              documents={getFilteredScannedDocs()}
+              documents={filteredScannedDocs}
               onDelete={(id) => handleDelete(id, 'scanned')}
               formatFileSize={formatFileSize}
               properties={properties}
@@ -707,7 +707,7 @@ export default function DocumentsClientV2({
               </div>
             </div>
             <ScannedDocumentGrid
-              documents={getFilteredScannedDocs()}
+              documents={filteredScannedDocs}
               onDelete={(id) => handleDelete(id, 'scanned')}
               formatFileSize={formatFileSize}
               properties={properties}
