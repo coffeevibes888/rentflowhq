@@ -249,20 +249,25 @@ export function TeamChat({
     },
     onConnectionChange: (connected) => {
       console.log('WebSocket connection changed:', connected);
+      if (!connected) {
+        console.warn('WebSocket disconnected - messages will still work via REST API');
+      } else {
+        console.log('WebSocket connected - real-time messaging enabled');
+      }
     }
   });
 
-  // Load messages for active channel (initial load only, no polling)
+  // Load messages for active channel (initial load + polling fallback when WebSocket is down)
   useEffect(() => {
     if (!activeChannel) return;
     
     const loadMessages = async () => {
       try {
-        console.log('Loading initial messages for channel:', activeChannel.id);
+        console.log('Loading messages for channel:', activeChannel.id);
         const res = await fetch(`/api/landlord/team/channels/${activeChannel.id}/messages`);
         const data = await res.json();
         if (data.success && data.messages) {
-          console.log('Loaded initial messages:', data.messages.length);
+          console.log('Loaded messages:', data.messages.length);
           setMessages(data.messages || []);
         } else {
           console.error('Failed to load messages:', data.message);
@@ -280,11 +285,48 @@ export function TeamChat({
     // Join WebSocket channel
     joinChannel(activeChannel.id);
     
-    return () => {
-      // Leave WebSocket channel when switching channels
-      leaveChannel();
+    // Set up polling as fallback when WebSocket is disconnected
+    let pollInterval: NodeJS.Timeout;
+    
+    const startPolling = () => {
+      if (!isConnected) {
+        console.log('Starting message polling (WebSocket disconnected)');
+        pollInterval = setInterval(() => {
+          if (!isConnected) {
+            loadMessages();
+          }
+        }, 5000); // Poll every 5 seconds when disconnected
+      }
     };
-  }, [activeChannel, joinChannel, leaveChannel]);
+    
+    const stopPolling = () => {
+      if (pollInterval) {
+        console.log('Stopping message polling (WebSocket connected)');
+        clearInterval(pollInterval);
+      }
+    };
+    
+    // Start polling if already disconnected
+    if (!isConnected) {
+      startPolling();
+    }
+    
+    // Monitor connection status changes
+    const connectionCheckInterval = setInterval(() => {
+      if (!isConnected && !pollInterval) {
+        startPolling();
+      } else if (isConnected && pollInterval) {
+        stopPolling();
+      }
+    }, 1000);
+    
+    return () => {
+      // Cleanup
+      leaveChannel();
+      stopPolling();
+      clearInterval(connectionCheckInterval);
+    };
+  }, [activeChannel, joinChannel, leaveChannel, isConnected]);
 
   // Scroll to bottom on new messages (only if user is near bottom)
   useEffect(() => {
@@ -343,21 +385,32 @@ export function TeamChat({
       if (data.success && data.message) {
         // Replace temp message with real message from server
         setMessages(prev => prev.map(m => 
-          m.id === tempId ? { ...data.message, channelId: activeChannel.id, senderName: currentUser.name, senderImage: currentUser.image } : m
+          m.id === tempId ? { 
+            ...data.message, 
+            channelId: activeChannel.id, 
+            senderName: currentUser.name, 
+            senderImage: currentUser.image 
+          } : m
         ));
         
-        // Broadcast to WebSocket (this will notify other clients)
-        // The server already broadcasts, but we can also broadcast from client as backup
-        broadcastNewMessage(data.message);
+        // Only broadcast to WebSocket if connected, otherwise rely on server broadcast
+        if (isConnected) {
+          broadcastNewMessage(data.message);
+        } else {
+          console.log('WebSocket not connected, relying on server broadcast');
+        }
       } else {
-        // Remove temp message on failure
+        // Remove temp message on failure and show error
         console.error('Failed to send message:', data.message);
         setMessages(prev => prev.filter(m => m.id !== tempId));
+        // You could add a toast notification here
+        alert('Failed to send message: ' + (data.message || 'Unknown error'));
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove temp message on error
+      // Remove temp message on error and show error
       setMessages(prev => prev.filter(m => m.id !== tempId));
+      alert('Network error. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }

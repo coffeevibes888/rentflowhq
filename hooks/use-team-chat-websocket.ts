@@ -62,7 +62,8 @@ export function useTeamChatWebSocket({
     try {
       // Create WebSocket connection with user token
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/api/websocket/team-chat?token=${session.user.id}`;
+      const host = window.location.host;
+      const wsUrl = `${protocol}//${host}/api/websocket/team-chat?token=${encodeURIComponent(session.user.id)}`;
       
       console.log('Connecting to WebSocket:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);

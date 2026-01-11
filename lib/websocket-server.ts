@@ -38,32 +38,40 @@ class TeamChatWebSocketServer {
   }
 
   private handleConnection(ws: AuthenticatedWebSocket, request: IncomingMessage) {
-    console.log('New WebSocket connection');
+    console.log('New WebSocket connection attempt');
 
     try {
       const url = parse(request.url || '', true);
       const token = url.query.token as string;
       
       if (!token) {
+        console.log('WebSocket connection rejected: No token provided');
         ws.close(1008, 'Authentication required');
         return;
       }
 
       // Simplified auth - in production, verify the token properly
+      // For now, we'll accept any non-empty token as the user ID
       ws.userId = token;
       console.log(`User ${ws.userId} connected via WebSocket`);
 
       ws.on('message', (data) => this.handleMessage(ws, data));
-      ws.on('close', () => this.handleDisconnection(ws));
+      ws.on('close', (code, reason) => {
+        console.log(`WebSocket closed for user ${ws.userId}: ${code} ${reason}`);
+        this.handleDisconnection(ws);
+      });
       ws.on('error', (error) => {
-        console.error('WebSocket error:', error);
+        console.error(`WebSocket error for user ${ws.userId}:`, error);
       });
 
       // Send connection confirmation
       ws.send(JSON.stringify({
         type: 'connection_confirmed',
-        userId: ws.userId
+        userId: ws.userId,
+        timestamp: new Date().toISOString()
       }));
+
+      console.log(`WebSocket connection established for user ${ws.userId}`);
 
     } catch (error) {
       console.error('WebSocket connection error:', error);

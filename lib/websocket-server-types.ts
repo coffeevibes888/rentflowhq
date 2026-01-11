@@ -15,5 +15,5 @@ export function getWebSocketServer(): WebSocketServer | null {
     return null;
   }
   
-  return global.__wsServer || null;
+  return (global as any).__wsServer || null;
 }
