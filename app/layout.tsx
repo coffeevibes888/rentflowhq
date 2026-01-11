@@ -116,7 +116,7 @@ export default function RootLayout({
             {children}
             <Toaster />
             {/* Team Chat Widget - Available for Pro+ team members and tenants */}
-            <TeamChatWidgetWrapper />
+            {/* <TeamChatWidgetWrapper /> */}
             <PrivacyConsentBanner />
             {/* <LiveChatWidget /> */}
           </ThemeProvider>

@@ -175,24 +175,24 @@ const Homepage = async () => {
     <>
       <main className='flex-1 w-full'>
         {/* Hero Section - Conversion Focused */}
-        <section className='w-full pt-6 pb-10 md:pt-20 md:pb-24 px-1 md:px-4 relative overflow-hidden'>
+        <section className='w-full pt-8 pb-12 md:pt-20 md:pb-24 px-4 md:px-4 relative overflow-hidden'>
           <div className='absolute inset-0  animate-pulse' />
           <div className='max-w-7xl mx-auto relative z-10'>
             <div className='grid gap-6 md:gap-8 lg:grid-cols-2 items-center'>
-              <div className='space-y-4 md:space-y-6 animate-in fade-in slide-in-from-left duration-700'>
+              <div className='space-y-4 md:space-y-6 animate-in fade-in slide-in-from-left duration-700 text-center lg:text-left'>
                 
-                <h1 className='text-3xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
+                <h1 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
                  Property Management...
                 </h1>
-                <h4 className='text-3xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
+                <h4 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
                  Fully Automated!
                 </h4>
-                <p className='text-base md:text-lg text-white font-bold max-w-xl leading-relaxed'>
+                <p className='text-base md:text-lg text-white font-bold max-w-xl leading-relaxed mx-auto lg:mx-0'>
                   Find the time to live the life you always dreamed and let us handle the dirty work...From appications, collecting rents, leases, maintance tickets, internal communicatins, to even the eviction process -- we got your back.
                 </p>
           
                 
-                <div className='flex flex-wrap items-center gap-3 md:gap-4'>
+                <div className='flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4'>
                   <Link
                     href='/sign-up'
                     className='group inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg hover:bg-violet-400 transition-all duration-300 hover:scale-105 hover:shadow-violet-500/50'
@@ -315,7 +315,7 @@ const Homepage = async () => {
         </section>
 
         {/* Key Features Section */}
-        <section className='w-full py-4 md:py-16 px-1 md:px-4'>
+        <section className='w-full py-4 md:py-16 px-4 md:px-4'>
           <div className='max-w-6xl mx-auto'>
             <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
       
