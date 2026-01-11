@@ -161,7 +161,7 @@ export function TeamChatWidget({
 
         {/* Chat Window */}
         {isOpen && !isMinimized && (
-          <div className="fixed inset-4 sm:inset-auto sm:relative sm:w-[380px] md:w-[600px] lg:w-[800px] h-[calc(100vh-32px)] sm:h-[500px] md:h-[600px] lg:h-[700px] sm:max-h-[calc(100vh-100px)] rounded-lg shadow-2xl overflow-hidden order-3 mb-2 z-50 bg-slate-950 border border-white/10">
+          <div className="fixed top-[env(safe-area-inset-top,16px)] left-4 right-4 bottom-4 sm:inset-auto sm:relative sm:w-[380px] md:w-[600px] lg:w-[800px] h-[calc(100vh-env(safe-area-inset-top,16px)-16px)] sm:h-[500px] md:h-[600px] lg:h-[700px] sm:max-h-[calc(100vh-100px)] rounded-lg shadow-2xl overflow-hidden order-3 mb-2 z-50 bg-slate-950 border border-white/10">
             {/* Chat Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-violet-600 to-purple-600 border-b border-white/10">
               <div className="flex items-center gap-3">
