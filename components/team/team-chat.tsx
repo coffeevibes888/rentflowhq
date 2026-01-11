@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import dynamic from 'next/dynamic';
+import { Theme } from 'emoji-picker-react';
 
 // Dynamically import emoji picker to avoid SSR issues
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
@@ -118,6 +119,7 @@ export function TeamChat({
 }: TeamChatProps) {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
+  const [channelLoadError, setChannelLoadError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [input, setInput] = useState('');
@@ -125,48 +127,35 @@ export function TeamChat({
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
 
+  const loadChannels = useCallback(async () => {
+    try {
+      console.log('Loading channels...');
+      const res = await fetch('/api/landlord/team/channels');
+      const data = await res.json();
+      console.log('Channels response:', data);
+      if (data.success && data.channels && data.channels.length > 0) {
+        console.log('Setting channels:', data.channels);
+        setChannels(data.channels);
+        setActiveChannel(prev => prev ?? data.channels[0]);
+        setChannelLoadError(null);
+      } else {
+        console.error('No channels available:', data.message);
+        setChannels([]);
+        setActiveChannel(null);
+        setChannelLoadError(data.message || 'Failed to load chat channels');
+      }
+    } catch (error) {
+      console.error('Failed to load channels:', error);
+      setChannels([]);
+      setActiveChannel(null);
+      setChannelLoadError('Failed to load chat channels');
+    }
+  }, []);
+
   // Load channels on mount
   useEffect(() => {
-    const loadChannels = async () => {
-      try {
-        console.log('Loading channels...');
-        const res = await fetch('/api/landlord/team/channels');
-        const data = await res.json();
-        console.log('Channels response:', data);
-        if (data.success && data.channels && data.channels.length > 0) {
-          console.log('Setting channels:', data.channels);
-          setChannels(data.channels);
-          if (!activeChannel) {
-            console.log('Setting active channel to:', data.channels[0]);
-            setActiveChannel(data.channels[0]);
-          }
-        } else {
-          console.error('No channels available:', data.message);
-          // Create a fallback channel for demo
-          const fallbackChannel = {
-            id: 'fallback-general',
-            name: 'general',
-            type: 'public',
-            description: 'General discussions',
-          };
-          setChannels([fallbackChannel]);
-          setActiveChannel(fallbackChannel);
-        }
-      } catch (error) {
-        console.error('Failed to load channels:', error);
-        // Create a fallback channel for demo
-        const fallbackChannel = {
-          id: 'fallback-general',
-          name: 'general',
-          type: 'public',
-          description: 'General discussions',
-        };
-        setChannels([fallbackChannel]);
-        setActiveChannel(fallbackChannel);
-      }
-    };
     loadChannels();
-  }, []);
+  }, [loadChannels]);
   const [newChannelType, setNewChannelType] = useState<'public' | 'private'>('public');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMembers, setShowMembers] = useState(!isFullPage);
@@ -685,6 +674,19 @@ export function TeamChat({
                 <Plus className="h-4 w-4 text-slate-400" />
               </button>
             </div>
+
+            {channelLoadError && (
+              <div className="mx-2 mb-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-2">
+                <div className="text-xs text-amber-200">{channelLoadError}</div>
+                <button
+                  type="button"
+                  onClick={loadChannels}
+                  className="mt-1 text-xs text-amber-200 underline"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
             
             {channels.filter(c => c.type !== 'direct').map(channel => (
               <button
@@ -846,6 +848,24 @@ export function TeamChat({
           {/* Messages */}
           <div className="flex-1 flex flex-col min-w-0">
             <div className="flex-1 overflow-y-auto px-4 py-4">
+              {!activeChannel && (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-sm text-slate-300">Select a channel to start chatting</div>
+                    {channelLoadError && (
+                      <div className="mt-2 text-xs text-slate-400">{channelLoadError}</div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={loadChannels}
+                      className="mt-3 text-xs text-violet-300 underline"
+                    >
+                      Retry loading channels
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {groupMessagesByDate(messages).map(group => (
                 <div key={group.date}>
                   {/* Date Divider */}
@@ -1090,7 +1110,7 @@ export function TeamChat({
                         <div className="absolute bottom-full right-0 mb-2 z-50">
                           <EmojiPicker
                             onEmojiClick={handleEmojiSelect}
-                            theme="dark"
+                            theme={Theme.DARK}
                             width={320}
                             height={400}
                           />

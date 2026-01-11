@@ -19,22 +19,52 @@ export async function GET() {
 
     if (!landlord) {
       // Check if user is a team member
-      const teamMember = await (prisma as any).teamMember?.findFirst?.({
-        where: {
-          userId: session.user.id,
-          status: 'active',
-        },
-      });
+      let teamMember: any = null;
+      try {
+        teamMember = await (prisma as any).teamMember?.findFirst?.({
+          where: {
+            userId: session.user.id,
+            status: 'active',
+          },
+        });
+      } catch (error) {
+        console.error('TeamMember check failed:', error);
+      }
 
       if (!teamMember) {
         return NextResponse.json({ success: false, message: 'Not a team member' }, { status: 403 });
       }
 
       // Get channels for team member's landlord
-      const channels = await prisma.teamChannel.findMany({
+      let channels = await prisma.teamChannel.findMany({
         where: { landlordId: teamMember.landlordId },
         orderBy: { createdAt: 'asc' },
       });
+
+      if (channels.length === 0) {
+        const defaultChannels = [
+          { name: 'general', description: 'General team discussions', type: 'public' },
+          { name: 'random', description: 'Random conversations', type: 'public' },
+          { name: 'announcements', description: 'Important announcements', type: 'public' },
+        ];
+
+        for (const channelData of defaultChannels) {
+          await prisma.teamChannel.create({
+            data: {
+              landlordId: teamMember.landlordId,
+              name: channelData.name,
+              description: channelData.description,
+              type: channelData.type,
+              createdById: session.user.id,
+            },
+          });
+        }
+
+        channels = await prisma.teamChannel.findMany({
+          where: { landlordId: teamMember.landlordId },
+          orderBy: { createdAt: 'asc' },
+        });
+      }
 
       return NextResponse.json({ success: true, channels });
     }

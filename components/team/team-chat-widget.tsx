@@ -81,7 +81,7 @@ export function TeamChatWidget({
         const res = await fetch('/api/landlord/team/messages/unread');
         const data = await res.json();
         if (data.success) {
-          setUnreadCount(data.count || 0);
+          setUnreadCount(data.unreadCount || 0);
         }
       } catch {
         // Ignore errors

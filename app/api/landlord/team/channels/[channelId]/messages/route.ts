@@ -144,15 +144,21 @@ export async function POST(
 
     // Check if user is landlord owner or team member
     const isOwner = landlord.ownerUserId === session.user.id;
-    const teamMember = await (prisma as any).teamMember?.findFirst?.({
-      where: {
-        userId: session.user.id,
-        landlordId: channel.landlordId,
-        status: 'active',
-      },
-    });
+    let isTeamMember = false;
+    try {
+      const teamMember = await (prisma as any).teamMember?.findFirst?.({
+        where: {
+          userId: session.user.id,
+          landlordId: channel.landlordId,
+          status: 'active',
+        },
+      });
+      isTeamMember = !!teamMember;
+    } catch (error) {
+      console.log('TeamMember check skipped:', error);
+    }
 
-    if (!isOwner && !teamMember) {
+    if (!isOwner && !isTeamMember) {
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
@@ -195,7 +201,7 @@ export async function POST(
   } catch (error) {
     console.error('Failed to send message:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to send message' },
+      { success: false, message: 'Failed to send message', error: String(error) },
       { status: 500 }
     );
   }
