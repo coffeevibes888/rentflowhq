@@ -315,7 +315,7 @@ const Homepage = async () => {
         </section>
 
         {/* Key Features Section */}
-        <section className='w-full py-10 md:py-16 px-1 md:px-4'>
+        <section className='w-full py-4 md:py-16 px-1 md:px-4'>
           <div className='max-w-6xl mx-auto'>
             <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
       
@@ -607,7 +607,7 @@ const Homepage = async () => {
 
 
         {/* Pain Points → Solutions */}
-        <section className='w-full py-10 md:py-20 px-1 md:px-4'>
+        <section className='w-full py-4 md:py-10 px-1 md:px-4'>
           <div className='max-w-6xl mx-auto space-y-8 md:space-y-12'>
             <div className='text-center space-y-2 md:space-y-3 animate-in fade-in duration-700'>
               <h2 className='text-2xl md:text-4xl font-bold text-white'>
@@ -736,7 +736,7 @@ const Homepage = async () => {
           </div>
         </section>
     {/* Key Features Section */}
-        <section className='w-full py-10 md:py-16 px-1 md:px-4'>
+        <section className='w-full py-4 md:py-16 px-1 md:px-4'>
           <div className='max-w-6xl mx-auto'>
             <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
               

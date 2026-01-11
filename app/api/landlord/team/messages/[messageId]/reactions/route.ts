@@ -13,7 +13,6 @@ export async function POST(
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { messageId } = params;
     const body = await request.json();
     const { emoji } = body;
 
