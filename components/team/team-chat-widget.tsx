@@ -72,7 +72,8 @@ export function TeamChatWidget({
     }
   }, [hasChatAccess]);
 
-  // Poll for unread messages
+  // Poll for unread messages - replaced with WebSocket
+  // This can be removed or simplified since WebSocket will handle real-time updates
   useEffect(() => {
     if (!hasChatAccess || isOpen) return;
 
@@ -88,8 +89,11 @@ export function TeamChatWidget({
       }
     };
 
+    // Check once on mount, then rely on WebSocket for updates
     checkUnread();
-    const interval = setInterval(checkUnread, 30000); // Check every 30 seconds
+    
+    // Reduced polling frequency as backup (every 5 minutes instead of 30 seconds)
+    const interval = setInterval(checkUnread, 300000);
 
     return () => clearInterval(interval);
   }, [hasChatAccess, isOpen]);

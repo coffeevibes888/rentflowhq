@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { useTeamChatWebSocket } from '@/hooks/use-team-chat-websocket';
+import { WebSocketStatus } from './websocket-status';
 import {
   Dialog,
   DialogContent,
@@ -209,56 +211,80 @@ export function TeamChat({
     loadMembers();
   }, [currentUser]);
 
-  // Load messages for active channel with polling
+  // WebSocket integration
+  const {
+    isConnected,
+    joinChannel,
+    leaveChannel,
+    broadcastNewMessage,
+    broadcastReaction,
+    sendTyping
+  } = useTeamChatWebSocket({
+    onNewMessage: (message) => {
+      console.log('Received new message via WebSocket:', message);
+      setMessages(prevMessages => {
+        // Remove any temp message with same content
+        const withoutTemp = prevMessages.filter(m => 
+          !m.id.startsWith('temp-') || m.content !== message.content
+        );
+        // Add the new message if it's not already there
+        const exists = withoutTemp.some(m => m.id === message.id);
+        if (!exists) {
+          return [...withoutTemp, message];
+        }
+        return withoutTemp;
+      });
+    },
+    onMessageReaction: (messageId, reaction, userId) => {
+      console.log('Received reaction via WebSocket:', messageId, reaction, userId);
+      // Handle reaction updates here if needed
+    },
+    onUserTyping: (userId) => {
+      console.log('User typing:', userId);
+      // Handle typing indicators here if needed
+    },
+    onUserStopTyping: (userId) => {
+      console.log('User stopped typing:', userId);
+      // Handle typing indicators here if needed
+    },
+    onConnectionChange: (connected) => {
+      console.log('WebSocket connection changed:', connected);
+    }
+  });
+
+  // Load messages for active channel (initial load only, no polling)
   useEffect(() => {
     if (!activeChannel) return;
     
     const loadMessages = async () => {
       try {
-        console.log('Polling messages for channel:', activeChannel.id);
+        console.log('Loading initial messages for channel:', activeChannel.id);
         const res = await fetch(`/api/landlord/team/channels/${activeChannel.id}/messages`);
         const data = await res.json();
         if (data.success && data.messages) {
-          console.log('Loaded messages:', data.messages.length);
-          // Only update if we have real messages from server
-          // Keep any temp messages that haven't been confirmed yet
-          setMessages(prevMessages => {
-            const tempMessages = prevMessages.filter(m => m.id.startsWith('temp-'));
-            const serverMessages = data.messages || [];
-            
-            // Remove temp messages that are older than 10 seconds (likely failed)
-            const recentTempMessages = tempMessages.filter(m => {
-              const tempId = m.id.replace('temp-', '');
-              const timestamp = parseInt(tempId);
-              return Date.now() - timestamp < 10000;
-            });
-            
-            // Combine server messages with recent temp messages
-            // Server messages take precedence
-            const serverMessageIds = new Set(serverMessages.map((m: Message) => m.id));
-            const uniqueTempMessages = recentTempMessages.filter(m => !serverMessageIds.has(m.id));
-            
-            return [...serverMessages, ...uniqueTempMessages];
-          });
+          console.log('Loaded initial messages:', data.messages.length);
+          setMessages(data.messages || []);
         } else {
           console.error('Failed to load messages:', data.message);
+          setMessages([]);
         }
       } catch (error) {
         console.error('Failed to load messages:', error);
+        setMessages([]);
       }
     };
     
-    // Load immediately
+    // Load initial messages
     loadMessages();
     
-    // Poll for new messages every 2 seconds
-    const pollInterval = setInterval(loadMessages, 2000);
+    // Join WebSocket channel
+    joinChannel(activeChannel.id);
     
     return () => {
-      console.log('Cleaning up polling for channel:', activeChannel.id);
-      clearInterval(pollInterval);
+      // Leave WebSocket channel when switching channels
+      leaveChannel();
     };
-  }, [activeChannel]);
+  }, [activeChannel, joinChannel, leaveChannel]);
 
   // Scroll to bottom on new messages (only if user is near bottom)
   useEffect(() => {
@@ -319,6 +345,10 @@ export function TeamChat({
         setMessages(prev => prev.map(m => 
           m.id === tempId ? { ...data.message, channelId: activeChannel.id, senderName: currentUser.name, senderImage: currentUser.image } : m
         ));
+        
+        // Broadcast to WebSocket (this will notify other clients)
+        // The server already broadcasts, but we can also broadcast from client as backup
+        broadcastNewMessage(data.message);
       } else {
         // Remove temp message on failure
         console.error('Failed to send message:', data.message);
@@ -766,6 +796,8 @@ export function TeamChat({
           </div>
           
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <WebSocketStatus isConnected={isConnected} className="hidden sm:flex" />
+            
             {canManageTeam && onRolesClick && (
               <Button 
                 variant="ghost" 

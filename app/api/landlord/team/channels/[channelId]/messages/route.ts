@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { getWebSocketServer } from '@/lib/websocket-server-types';
 
 // GET - Fetch messages for a channel
 export async function GET(
@@ -183,20 +184,28 @@ export async function POST(
       },
     });
 
+    const messageResponse = {
+      id: message.id,
+      channelId: message.channelId,
+      content: message.content,
+      senderId: message.senderId,
+      senderName: sender?.name || 'Unknown',
+      senderImage: sender?.image,
+      sender: sender || { id: session.user.id, name: 'Unknown', email: '', image: null },
+      createdAt: message.createdAt.toISOString(),
+      reactions: [],
+      attachments: message.attachments || [],
+    };
+
+    // Broadcast to WebSocket clients
+    const wsServer = getWebSocketServer();
+    if (wsServer) {
+      wsServer.broadcastNewMessage(channelId, messageResponse);
+    }
+
     return NextResponse.json({
       success: true,
-      message: {
-        id: message.id,
-        channelId: message.channelId,
-        content: message.content,
-        senderId: message.senderId,
-        senderName: sender?.name || 'Unknown',
-        senderImage: sender?.image,
-        sender: sender || { id: session.user.id, name: 'Unknown', email: '', image: null },
-        createdAt: message.createdAt.toISOString(),
-        reactions: [],
-        attachments: message.attachments || [],
-      },
+      message: messageResponse,
     });
   } catch (error) {
     console.error('Failed to send message:', error);
