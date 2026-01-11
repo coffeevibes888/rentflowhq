@@ -17,7 +17,6 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useTeamChatWebSocket } from '@/hooks/use-team-chat-websocket';
-import { WebSocketStatus } from './websocket-status';
 import {
   Dialog,
   DialogContent,
@@ -223,16 +222,12 @@ export function TeamChat({
     onNewMessage: (message) => {
       console.log('Received new message via WebSocket:', message);
       setMessages(prevMessages => {
-        // Remove any temp message with same content
-        const withoutTemp = prevMessages.filter(m => 
-          !m.id.startsWith('temp-') || m.content !== message.content
-        );
-        // Add the new message if it's not already there
-        const exists = withoutTemp.some(m => m.id === message.id);
+        // Check if message already exists (avoid duplicates)
+        const exists = prevMessages.some(m => m.id === message.id);
         if (!exists) {
-          return [...withoutTemp, message];
+          return [...prevMessages, message];
         }
-        return withoutTemp;
+        return prevMessages;
       });
     },
     onMessageReaction: (messageId, reaction, userId) => {
@@ -285,7 +280,7 @@ export function TeamChat({
     // Join WebSocket channel
     joinChannel(activeChannel.id);
     
-    // Set up polling as fallback when WebSocket is disconnected
+    // Set up polling as fallback when WebSocket is disconnected (less frequent)
     let pollInterval: NodeJS.Timeout;
     
     const startPolling = () => {
@@ -295,7 +290,7 @@ export function TeamChat({
           if (!isConnected) {
             loadMessages();
           }
-        }, 5000); // Poll every 5 seconds when disconnected
+        }, 10000); // Poll every 10 seconds when disconnected (reduced from 5 seconds)
       }
     };
     
@@ -306,24 +301,27 @@ export function TeamChat({
       }
     };
     
-    // Start polling if already disconnected
-    if (!isConnected) {
-      startPolling();
-    }
+    // Start polling if already disconnected (with delay to avoid immediate polling)
+    const pollTimeout = setTimeout(() => {
+      if (!isConnected) {
+        startPolling();
+      }
+    }, 2000); // Wait 2 seconds before starting polling
     
-    // Monitor connection status changes
+    // Monitor connection status changes (less frequent checks)
     const connectionCheckInterval = setInterval(() => {
       if (!isConnected && !pollInterval) {
         startPolling();
       } else if (isConnected && pollInterval) {
         stopPolling();
       }
-    }, 1000);
+    }, 3000); // Check every 3 seconds instead of 1 second
     
     return () => {
       // Cleanup
       leaveChannel();
       stopPolling();
+      clearTimeout(pollTimeout);
       clearInterval(connectionCheckInterval);
     };
   }, [activeChannel, joinChannel, leaveChannel, isConnected]);
@@ -357,21 +355,6 @@ export function TeamChat({
     setUploadedFiles([]);
     setShowFilePreview(false);
 
-    const tempId = `temp-${Date.now()}`;
-    const tempMessage: Message = {
-      id: tempId,
-      channelId: activeChannel.id,
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      senderImage: currentUser.image,
-      content: content || (attachments.length > 0 ? '📎 Attachment' : ''),
-      createdAt: new Date().toISOString(),
-      attachments: attachments.length > 0 ? attachments : undefined,
-    };
-    
-    // Add temp message for immediate feedback
-    setMessages(prev => [...prev, tempMessage]);
-
     try {
       const res = await fetch(`/api/landlord/team/channels/${activeChannel.id}/messages`, {
         method: 'POST',
@@ -383,33 +366,29 @@ export function TeamChat({
       console.log('Message sent response:', data);
       
       if (data.success && data.message) {
-        // Replace temp message with real message from server
-        setMessages(prev => prev.map(m => 
-          m.id === tempId ? { 
-            ...data.message, 
-            channelId: activeChannel.id, 
-            senderName: currentUser.name, 
-            senderImage: currentUser.image 
-          } : m
-        ));
+        // Add the message directly to the list (no temporary message needed)
+        const newMessage = { 
+          ...data.message, 
+          channelId: activeChannel.id, 
+          senderName: currentUser.name, 
+          senderImage: currentUser.image 
+        };
+        
+        setMessages(prev => [...prev, newMessage]);
         
         // Only broadcast to WebSocket if connected, otherwise rely on server broadcast
         if (isConnected) {
-          broadcastNewMessage(data.message);
+          broadcastNewMessage(newMessage);
         } else {
           console.log('WebSocket not connected, relying on server broadcast');
         }
       } else {
-        // Remove temp message on failure and show error
+        // Show error message
         console.error('Failed to send message:', data.message);
-        setMessages(prev => prev.filter(m => m.id !== tempId));
-        // You could add a toast notification here
         alert('Failed to send message: ' + (data.message || 'Unknown error'));
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove temp message on error and show error
-      setMessages(prev => prev.filter(m => m.id !== tempId));
       alert('Network error. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
@@ -676,7 +655,7 @@ export function TeamChat({
   };
 
   const containerClass = isFullPage
-    ? 'relative flex h-full w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl overflow-hidden'
+    ? 'relative flex h-full w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl overflow-hidden min-h-0'
     : 'relative flex flex-col sm:flex-row h-full bg-slate-900 rounded-xl overflow-hidden border border-white/10 shadow-2xl';
 
   const sidebarClass = isFullPage
@@ -849,7 +828,6 @@ export function TeamChat({
           </div>
           
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            <WebSocketStatus isConnected={isConnected} className="hidden sm:flex" />
             
             {canManageTeam && onRolesClick && (
               <Button 

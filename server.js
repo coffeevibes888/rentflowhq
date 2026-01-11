@@ -21,14 +21,14 @@ app.prepare().then(async () => {
     }
   });
 
-  // Initialize WebSocket server - dynamic import for TypeScript compatibility
+  // Initialize WebSocket server - use require with ts-node for TypeScript compatibility
   try {
-    const { initializeWebSocketServer } = await import('./lib/websocket-server.ts');
+    // Register ts-node for TypeScript compilation
+    require('ts-node/register');
+    const { initializeWebSocketServer } = require('./lib/websocket-server.ts');
     initializeWebSocketServer(server);
-    console.log('WebSocket server initialized successfully');
   } catch (error) {
     console.error('Failed to initialize WebSocket server:', error);
-    console.error('Error details:', error.message);
   }
 
   server

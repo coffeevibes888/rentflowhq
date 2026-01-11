@@ -95,7 +95,7 @@ export function TeamHub({
   };
 
   return (
-    <div className="flex flex-col bg-slate-900/40 rounded-2xl border border-white/10">
+    <div className="flex flex-col bg-slate-900/40 rounded-2xl border border-white/10 h-full">
       {/* Header */}
       <div className="flex-shrink-0 px-6 py-5 border-b border-white/10">
         <div className="flex items-center justify-between">
@@ -196,8 +196,8 @@ export function TeamHub({
 
         {/* Tab Content - Full height, natural page scroll */}
         <div className="flex-1">
-          <TabsContent value="chat" className="h-full mt-0">
-            <div className="h-full">
+          <TabsContent value="chat" className="h-full mt-0 flex flex-col">
+            <div className="flex-1 min-h-0">
               <TeamChat
                 currentUser={currentUser}
                 landlordId={landlordId}

@@ -59,6 +59,12 @@ export function useTeamChatWebSocket({
       return;
     }
 
+    // Prevent multiple simultaneous connection attempts
+    if (wsRef.current?.readyState === WebSocket.CONNECTING) {
+      console.log('WebSocket already connecting, skipping...');
+      return;
+    }
+
     try {
       // Create WebSocket connection with user token
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -120,7 +126,7 @@ export function useTeamChatWebSocket({
         setIsConnected(false);
         onConnectionChange?.(false);
 
-        // Attempt to reconnect if not a normal closure
+        // Attempt to reconnect if not a normal closure and not too many attempts
         if (event.code !== 1000 && reconnectAttemptsRef.current < maxReconnectAttempts) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
           console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1})`);
@@ -129,6 +135,8 @@ export function useTeamChatWebSocket({
             reconnectAttemptsRef.current++;
             connect();
           }, delay);
+        } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+          console.log('Max reconnection attempts reached, giving up');
         }
       };
 
@@ -216,10 +224,18 @@ export function useTeamChatWebSocket({
     }
   }, [currentChannelId, sendMessage]);
 
-  // Connect when session is available
+  // Connect when session is available (with debounce to prevent rapid connections)
   useEffect(() => {
     if (session?.user?.id) {
-      connect();
+      // Debounce connection attempts
+      const connectTimeout = setTimeout(() => {
+        connect();
+      }, 500); // Wait 500ms before connecting
+
+      return () => {
+        clearTimeout(connectTimeout);
+        disconnect();
+      };
     }
 
     return () => {

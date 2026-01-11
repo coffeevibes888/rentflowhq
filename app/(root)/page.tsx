@@ -1,3 +1,4 @@
+import React from 'react';
 import { APP_NAME } from '@/lib/constants';
 // import CustomerReviews from '@/components/home/customer-reviews';
 import HomeContactCard from '@/components/home/home-contact-card';
@@ -91,7 +92,7 @@ const Homepage = async () => {
 
     return (
       <main className='flex-1 w-full'>
-        <section className='w-full pt-10 pb-14 px-4'>
+        <section className='w-full pt-7 pb-7 px-2'>
           <div className='max-w-6xl mx-auto space-y-4 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl p-6 md:p-8 text-slate-50 shadow-[0_20px_70px_rgba(15,23,42,0.9)]'>
             <div className='space-y-1'>
               <p className='text-xs font-medium text-violet-200/80 uppercase tracking-wide'>Listings</p>
@@ -174,7 +175,7 @@ const Homepage = async () => {
     <>
       <main className='flex-1 w-full'>
         {/* Hero Section - Conversion Focused */}
-        <section className='w-full pt-6 pb-10 md:pt-20 md:pb-24 px-3 md:px-4 relative overflow-hidden'>
+        <section className='w-full pt-6 pb-10 md:pt-20 md:pb-24 px-1 md:px-4 relative overflow-hidden'>
           <div className='absolute inset-0  animate-pulse' />
           <div className='max-w-7xl mx-auto relative z-10'>
             <div className='grid gap-6 md:gap-8 lg:grid-cols-2 items-center'>
@@ -186,7 +187,7 @@ const Homepage = async () => {
                 <h4 className='text-3xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
                  Fully Automated!
                 </h4>
-                <p className='text-sm md:text-lg text-white font-bold max-w-xl leading-relaxed'>
+                <p className='text-base md:text-lg text-white font-bold max-w-xl leading-relaxed'>
                   Find the time to live the life you always dreamed and let us handle the dirty work...From appications, collecting rents, leases, maintance tickets, internal communicatins, to even the eviction process -- we got your back.
                 </p>
           
@@ -208,7 +209,6 @@ const Homepage = async () => {
                   {/* Header */}
                   <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-base md:text-xl font-bold text-white'>Your Dashboard</h3>
-                    <span className='text-[10px] md:text-xs text-white bg-slate-700/80 px-3 py-1 rounded-full'>Live</span>
                   </div>
                   
                   {/* Top Action Cards - Green & Purple */}
@@ -234,8 +234,8 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Total Units</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>1</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>1 vacant</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>149</div>
+                      <div className='text-[8px] md:text-[10px] text-slate-400'>14 vacant</div>
                     </div>
                   </div>
 
@@ -246,24 +246,24 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Rent This Month</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>$0.00</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>0% collected</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>$36,000</div>
+                      <div className='text-[8px] md:text-[10px] text-slate-400'>75% collected</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
                       <div className='flex items-center justify-between'>
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Maintenance</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>0</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>0 urgent</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>3</div>
+                      <div className='text-[8px] md:text-[10px] text-red-800'>1 urgent</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
                       <div className='flex items-center justify-between'>
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Applications</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>1</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>Review now</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>5</div>
+                      <div className='text-[8px] md:text-[10px] text-orange-400'>Review now</div>
                     </div>
                   </div>
 
@@ -274,7 +274,7 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Available Balance</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>$0.00</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>$24,000</div>
                       <div className='text-[8px] md:text-[10px] text-slate-400'>Ready to cash out</div>
                     </div>
                     <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
@@ -282,7 +282,7 @@ const Homepage = async () => {
                         <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Messages</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>0</div>
+                      <div className='text-xl md:text-2xl font-bold text-white'>7</div>
                       <div className='text-[8px] md:text-[10px] text-slate-400'>Open inbox threads</div>
                     </div>
                   </div>
@@ -315,7 +315,7 @@ const Homepage = async () => {
         </section>
 
         {/* Key Features Section */}
-        <section className='w-full py-10 md:py-16 px-3 md:px-4'>
+        <section className='w-full py-10 md:py-16 px-1 md:px-4'>
           <div className='max-w-6xl mx-auto'>
             <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
       
@@ -607,7 +607,7 @@ const Homepage = async () => {
 
 
         {/* Pain Points → Solutions */}
-        <section className='w-full py-10 md:py-20 px-3 md:px-4'>
+        <section className='w-full py-10 md:py-20 px-1 md:px-4'>
           <div className='max-w-6xl mx-auto space-y-8 md:space-y-12'>
             <div className='text-center space-y-2 md:space-y-3 animate-in fade-in duration-700'>
               <h2 className='text-2xl md:text-4xl font-bold text-white'>
@@ -627,10 +627,10 @@ const Homepage = async () => {
                   </div>
                   <div className='flex-1'>
                     <h3 className='text-base md:text-lg font-bold text-white mb-1 md:mb-2'>Late Rent Every Month</h3>
-                    <p className='text-xs md:text-sm text-black font-semibold mb-2 md:mb-3'>
+                    <p className='text-sm md:text-sm text-black font-semibold mb-2 md:mb-3'>
                       Chasing tenants for payments, sending reminders, tracking who paid what...
                     </p>
-                    <div className='flex items-center gap-2 text-emerald-300 text-xs md:text-sm font-semibold'>
+                    <div className='flex items-center gap-2 text-emerald-300 text-sm md:text-sm font-semibold'>
                       <ArrowRight className='h-3 w-3 md:h-4 md:w-4' />
                       <span>Solution: Automated online payments with Stripe</span>
                     </div>
@@ -736,7 +736,7 @@ const Homepage = async () => {
           </div>
         </section>
     {/* Key Features Section */}
-        <section className='w-full py-10 md:py-16 px-3 md:px-4'>
+        <section className='w-full py-10 md:py-16 px-1 md:px-4'>
           <div className='max-w-6xl mx-auto'>
             <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
               

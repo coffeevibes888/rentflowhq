@@ -6,15 +6,19 @@ import { getWebSocketServer } from '@/lib/websocket-server-types';
 // GET - Fetch messages for a channel
 export async function GET(
   request: NextRequest,
-  { params }: { params: { channelId: string } }
+  { params }: { params: Promise<{ channelId: string }> }
 ) {
   try {
+    console.log('GET /api/landlord/team/channels/[channelId]/messages - Start');
+    
     const session = await auth();
     if (!session?.user?.id) {
+      console.log('Unauthorized - no session');
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { channelId } = params;
+    const { channelId } = await params;
+    console.log('Fetching messages for channel:', channelId);
 
     // Verify user has access to this channel
     const channel = await prisma.teamChannel.findUnique({
@@ -26,6 +30,8 @@ export async function GET(
       return NextResponse.json({ success: false, message: 'Channel not found' }, { status: 404 });
     }
 
+    console.log('Channel found:', channel.name);
+
     // Get the landlord
     const landlord = await prisma.landlord.findUnique({
       where: { id: channel.landlordId },
@@ -36,12 +42,15 @@ export async function GET(
       return NextResponse.json({ success: false, message: 'Landlord not found' }, { status: 404 });
     }
 
+    console.log('Landlord found:', landlord.name);
+
     // Check if user is landlord owner or team member
     const isOwner = landlord.ownerUserId === session.user.id;
+    console.log('Is owner:', isOwner);
     
     let isTeamMember = false;
     try {
-      const teamMember = await (prisma as any).teamMember?.findFirst?.({
+      const teamMember = await prisma.teamMember.findFirst({
         where: {
           userId: session.user.id,
           landlordId: channel.landlordId,
@@ -49,8 +58,9 @@ export async function GET(
         },
       });
       isTeamMember = !!teamMember;
+      console.log('Is team member:', isTeamMember);
     } catch (error) {
-      console.log('TeamMember check skipped:', error);
+      console.log('TeamMember check error:', error);
     }
 
     if (!isOwner && !isTeamMember) {
@@ -59,11 +69,14 @@ export async function GET(
     }
 
     // Fetch messages
+    console.log('Fetching messages...');
     const messages = await prisma.teamMessage.findMany({
       where: { channelId },
       orderBy: { createdAt: 'asc' },
       take: 100, // Limit to last 100 messages
     });
+
+    console.log('Found messages:', messages.length);
 
     // Fetch senders for all messages
     const senderIds = [...new Set(messages.map(m => m.senderId))];
@@ -79,7 +92,7 @@ export async function GET(
 
     const senderMap = new Map(senders.map(s => [s.id, s]));
 
-    return NextResponse.json({
+    const response = {
       success: true,
       messages: messages.map(m => ({
         id: m.id,
@@ -93,9 +106,13 @@ export async function GET(
         reactions: [],
         attachments: m.attachments || [],
       })),
-    });
+    };
+
+    console.log('Returning response with', response.messages.length, 'messages');
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to fetch messages - Full error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
       { success: false, message: 'Failed to fetch messages', error: String(error) },
       { status: 500 }
@@ -106,19 +123,26 @@ export async function GET(
 // POST - Send a message
 export async function POST(
   request: NextRequest,
-  { params }: { params: { channelId: string } }
+  { params }: { params: Promise<{ channelId: string }> }
 ) {
   try {
+    console.log('POST /api/landlord/team/channels/[channelId]/messages - Start');
+    
     const session = await auth();
     if (!session?.user?.id) {
+      console.log('Unauthorized - no session');
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { channelId } = params;
+    const { channelId } = await params;
+    console.log('Sending message to channel:', channelId);
+    
     const body = await request.json();
     const { content, attachments } = body;
+    console.log('Message content:', content);
 
     if (!content?.trim() && (!attachments || attachments.length === 0)) {
+      console.log('No content or attachments provided');
       return NextResponse.json(
         { success: false, message: 'Message content or attachments required' },
         { status: 400 }
@@ -131,8 +155,11 @@ export async function POST(
     });
 
     if (!channel) {
+      console.error('Channel not found:', channelId);
       return NextResponse.json({ success: false, message: 'Channel not found' }, { status: 404 });
     }
+
+    console.log('Channel found:', channel.name);
 
     // Get the landlord
     const landlord = await prisma.landlord.findUnique({
@@ -140,14 +167,19 @@ export async function POST(
     });
 
     if (!landlord) {
+      console.error('Landlord not found:', channel.landlordId);
       return NextResponse.json({ success: false, message: 'Landlord not found' }, { status: 404 });
     }
 
+    console.log('Landlord found:', landlord.name);
+
     // Check if user is landlord owner or team member
     const isOwner = landlord.ownerUserId === session.user.id;
+    console.log('Is owner:', isOwner);
+    
     let isTeamMember = false;
     try {
-      const teamMember = await (prisma as any).teamMember?.findFirst?.({
+      const teamMember = await prisma.teamMember.findFirst({
         where: {
           userId: session.user.id,
           landlordId: channel.landlordId,
@@ -155,15 +187,18 @@ export async function POST(
         },
       });
       isTeamMember = !!teamMember;
+      console.log('Is team member:', isTeamMember);
     } catch (error) {
-      console.log('TeamMember check skipped:', error);
+      console.log('TeamMember check error:', error);
     }
 
     if (!isOwner && !isTeamMember) {
+      console.error('Access denied for user:', session.user.id, 'to channel:', channelId);
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
     // Create message
+    console.log('Creating message...');
     const message = await prisma.teamMessage.create({
       data: {
         channelId,
@@ -172,6 +207,8 @@ export async function POST(
         attachments: attachments || [],
       },
     });
+
+    console.log('Message created:', message.id);
 
     // Fetch sender info
     const sender = await prisma.user.findUnique({
@@ -197,18 +234,28 @@ export async function POST(
       attachments: message.attachments || [],
     };
 
-    // Broadcast to WebSocket clients
-    const wsServer = getWebSocketServer();
-    if (wsServer) {
-      wsServer.broadcastNewMessage(channelId, messageResponse);
+    // Try to broadcast to WebSocket clients (but don't fail if WebSocket is down)
+    try {
+      const wsServer = getWebSocketServer();
+      if (wsServer) {
+        console.log('Broadcasting to WebSocket clients');
+        wsServer.broadcastNewMessage(channelId, messageResponse);
+      } else {
+        console.log('WebSocket server not available');
+      }
+    } catch (wsError) {
+      console.log('WebSocket broadcast failed:', wsError);
+      // Don't fail the request if WebSocket fails
     }
 
+    console.log('Returning message response');
     return NextResponse.json({
       success: true,
       message: messageResponse,
     });
   } catch (error) {
-    console.error('Failed to send message:', error);
+    console.error('Failed to send message - Full error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
       { success: false, message: 'Failed to send message', error: String(error) },
       { status: 500 }
