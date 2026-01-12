@@ -387,13 +387,13 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
     setSelectedProperties: (v: string[]) => void;
     label: string;
   }) => (
-    <Collapsible>
+    <Collapsible open={!applyToAll} defaultOpen={!applyToAll}>
       <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-xs text-slate-400 hover:text-slate-300">
         <span className="flex items-center gap-1.5">
           <Building2 className="w-3 h-3" />
           {applyToAll ? 'Applies to all properties' : `${selectedProperties.length} properties selected`}
         </span>
-        <ChevronDown className="w-3 h-3" />
+        <ChevronDown className={`w-3 h-3 transition-transform ${!applyToAll ? 'rotate-180' : ''}`} />
       </CollapsibleTrigger>
       <CollapsibleContent className="pt-2 space-y-2">
         <div className="flex items-center gap-2">
@@ -408,7 +408,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
           <label htmlFor={`${label}-all`} className="text-xs text-slate-300">Apply to all properties</label>
         </div>
         {!applyToAll && properties.length > 0 && (
-          <div className="pl-4 space-y-1.5 max-h-32 overflow-y-auto">
+          <div className="pl-4 space-y-1.5 max-h-32 overflow-y-auto border-l-2 border-violet-500/30 ml-1">
             {properties.map((p) => (
               <div key={p.id} className="flex items-center gap-2">
                 <Checkbox
@@ -588,9 +588,11 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                   <span className="text-slate-500 text-sm">$</span>
                   <Input
                     type="number"
-                    value={petDeposit.amount}
-                    onChange={(e) => setPetDeposit({ ...petDeposit, amount: Number(e.target.value) })}
+                    value={petDeposit.amount || ''}
+                    onChange={(e) => setPetDeposit({ ...petDeposit, amount: e.target.value === '' ? 0 : Number(e.target.value) })}
                     className="h-8 w-28 text-sm"
+                    min={0}
+                    placeholder="0"
                   />
                 </div>
                 <PropertySelector
@@ -622,9 +624,11 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                   <span className="text-slate-500 text-sm">$</span>
                   <Input
                     type="number"
-                    value={petRent.amount}
-                    onChange={(e) => setPetRent({ ...petRent, amount: Number(e.target.value) })}
+                    value={petRent.amount || ''}
+                    onChange={(e) => setPetRent({ ...petRent, amount: e.target.value === '' ? 0 : Number(e.target.value) })}
                     className="h-8 w-28 text-sm"
+                    min={0}
+                    placeholder="0"
                   />
                   <span className="text-slate-500 text-xs">/month</span>
                 </div>
@@ -666,9 +670,11 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                   <span className="text-slate-500 text-sm">$</span>
                   <Input
                     type="number"
-                    value={cleaningFee.amount}
-                    onChange={(e) => setCleaningFee({ ...cleaningFee, amount: Number(e.target.value) })}
+                    value={cleaningFee.amount || ''}
+                    onChange={(e) => setCleaningFee({ ...cleaningFee, amount: e.target.value === '' ? 0 : Number(e.target.value) })}
                     className="h-8 w-28 text-sm"
+                    min={0}
+                    placeholder="0"
                   />
                 </div>
                 <PropertySelector
@@ -700,9 +706,11 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                   <span className="text-slate-500 text-sm">$</span>
                   <Input
                     type="number"
-                    value={applicationFee.amount}
-                    onChange={(e) => setApplicationFee({ ...applicationFee, amount: Number(e.target.value) })}
+                    value={applicationFee.amount || ''}
+                    onChange={(e) => setApplicationFee({ ...applicationFee, amount: e.target.value === '' ? 0 : Number(e.target.value) })}
                     className="h-8 w-28 text-sm"
+                    min={0}
+                    placeholder="0"
                   />
                 </div>
                 <PropertySelector
@@ -953,11 +961,12 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                     </p>
                     <Input
                       type="number"
-                      value={lateFeeSettings.feeAmount}
-                      onChange={(e) => setLateFeeSettings({ ...lateFeeSettings, feeAmount: Number(e.target.value) })}
+                      value={lateFeeSettings.feeAmount || ''}
+                      onChange={(e) => setLateFeeSettings({ ...lateFeeSettings, feeAmount: e.target.value === '' ? 0 : Number(e.target.value) })}
                       className="h-9 text-sm bg-slate-800 border-white/10"
                       min={0}
                       step={lateFeeSettings.feeType === 'percentage' ? 0.5 : 1}
+                      placeholder="0"
                     />
                   </div>
 

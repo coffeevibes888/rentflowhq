@@ -527,7 +527,10 @@ export async function updateTeamMemberRole(memberId: string, role: TeamMemberRol
       return { success: false, message: landlordResult.message };
     }
 
-    // Check if current user has permission to manage team
+    // Check if current user is the landlord owner (account creator)
+    const isLandlordOwner = landlordResult.landlord.ownerUserId === session.user.id;
+
+    // Check if current user has permission to manage team via team membership
     const currentUserMember = await teamMemberModel()?.findFirst?.({
       where: {
         userId: session.user.id,
@@ -536,12 +539,13 @@ export async function updateTeamMemberRole(memberId: string, role: TeamMemberRol
       },
     });
 
-    // Only owner, admin, or property_manager can manage team roles
-    const canManageRoles = currentUserMember?.role === 'owner' || 
+    // Only landlord owner, team owner, admin, or property_manager can manage team roles
+    const canManageRoles = isLandlordOwner ||
+                          currentUserMember?.role === 'owner' || 
                           currentUserMember?.role === 'admin' ||
                           (currentUserMember?.role === 'property_manager' && currentUserMember?.permissions?.includes('manage_team'));
 
-    if (!currentUserMember || !canManageRoles) {
+    if (!canManageRoles) {
       return { success: false, message: 'You do not have permission to manage team roles' };
     }
 
@@ -628,6 +632,9 @@ export async function removeTeamMember(memberId: string) {
       return { success: false, message: landlordResult.message };
     }
 
+    // Check if current user is the landlord owner (account creator)
+    const isLandlordOwner = landlordResult.landlord.ownerUserId === session.user.id;
+
     // Check if current user is the owner or has manage_team permission
     const currentUserMember = await teamMemberModel()?.findFirst?.({
       where: {
@@ -637,7 +644,11 @@ export async function removeTeamMember(memberId: string) {
       },
     });
 
-    if (!currentUserMember || (currentUserMember.role !== 'owner' && !currentUserMember.permissions.includes('manage_team'))) {
+    const canRemoveMembers = isLandlordOwner ||
+                             currentUserMember?.role === 'owner' ||
+                             currentUserMember?.permissions?.includes('manage_team');
+
+    if (!canRemoveMembers) {
       return { success: false, message: 'Only the account owner can remove team members' };
     }
 
@@ -709,6 +720,9 @@ export async function updateTeamMemberPermissions(memberId: string, permissions:
       return { success: false, message: landlordResult.message };
     }
 
+    // Check if current user is the landlord owner (account creator)
+    const isLandlordOwner = landlordResult.landlord.ownerUserId === session.user.id;
+
     // Check if current user has permission to manage team
     const currentUserMember = await teamMemberModel()?.findFirst?.({
       where: {
@@ -718,12 +732,13 @@ export async function updateTeamMemberPermissions(memberId: string, permissions:
       },
     });
 
-    // Only owner, admin, or property_manager with manage_team permission can customize permissions
-    const canManagePermissions = currentUserMember?.role === 'owner' || 
+    // Only landlord owner, team owner, admin, or property_manager with manage_team permission can customize permissions
+    const canManagePermissions = isLandlordOwner ||
+                                 currentUserMember?.role === 'owner' || 
                                  currentUserMember?.role === 'admin' ||
                                  (currentUserMember?.role === 'property_manager' && currentUserMember?.permissions?.includes('manage_team'));
 
-    if (!currentUserMember || !canManagePermissions) {
+    if (!canManagePermissions) {
       return { success: false, message: 'You do not have permission to manage team permissions' };
     }
 
@@ -789,6 +804,9 @@ export async function resetTeamMemberPermissions(memberId: string) {
       return { success: false, message: landlordResult.message };
     }
 
+    // Check if current user is the landlord owner (account creator)
+    const isLandlordOwner = landlordResult.landlord.ownerUserId === session.user.id;
+
     // Check if current user has permission to manage team
     const currentUserMember = await teamMemberModel()?.findFirst?.({
       where: {
@@ -798,11 +816,12 @@ export async function resetTeamMemberPermissions(memberId: string) {
       },
     });
 
-    const canManagePermissions = currentUserMember?.role === 'owner' || 
+    const canManagePermissions = isLandlordOwner ||
+                                 currentUserMember?.role === 'owner' || 
                                  currentUserMember?.role === 'admin' ||
                                  (currentUserMember?.role === 'property_manager' && currentUserMember?.permissions?.includes('manage_team'));
 
-    if (!currentUserMember || !canManagePermissions) {
+    if (!canManagePermissions) {
       return { success: false, message: 'You do not have permission to manage team permissions' };
     }
 
