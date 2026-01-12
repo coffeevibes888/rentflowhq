@@ -24,6 +24,11 @@ const SignUpForm = () => {
   const fromProperty = searchParams.get('fromProperty') === 'true';
   const propertySlug = searchParams.get('propertySlug') || '';
   
+  // Check if user is coming from pricing page (skip onboarding flow)
+  const plan = searchParams.get('plan') || '';
+  const role = searchParams.get('role') || '';
+  const skipOnboarding = searchParams.get('skipOnboarding') === 'true';
+  
   // Referral tracking
   const referralCode = searchParams.get('ref') || '';
 
@@ -57,16 +62,45 @@ const SignUpForm = () => {
         </div>
       )}
       
-      <OAuthButtons callbackUrl={fromProperty ? `/application?property=${propertySlug}` : callbackUrl} />
+      {/* Show context message if coming from pricing page */}
+      {skipOnboarding && plan && (
+        <div className='rounded-lg bg-violet-50 border border-violet-200 p-4 mb-4'>
+          <p className='text-sm text-violet-800'>
+            <strong>Great choice!</strong> Create your account to start your 7-day free trial.
+          </p>
+        </div>
+      )}
+      
+      <OAuthButtons callbackUrl={
+        fromProperty 
+          ? `/application?property=${propertySlug}` 
+          : skipOnboarding && plan 
+            ? `/onboarding/landlord/subscription?plan=${plan}&skipOnboarding=true`
+            : callbackUrl
+      } />
       
       <form action={action}>
-        <input type='hidden' name='callbackUrl' value={fromProperty ? `/application?property=${propertySlug}` : callbackUrl} />
+        <input type='hidden' name='callbackUrl' value={
+          fromProperty 
+            ? `/application?property=${propertySlug}` 
+            : skipOnboarding && plan 
+              ? `/onboarding/landlord/subscription?plan=${plan}&skipOnboarding=true`
+              : callbackUrl
+        } />
         {/* Pass property application params to the server action */}
         {fromProperty && (
           <>
             <input type='hidden' name='fromProperty' value='true' />
             <input type='hidden' name='propertySlug' value={propertySlug} />
             <input type='hidden' name='role' value='tenant' />
+          </>
+        )}
+        {/* Pass pricing page params to skip onboarding */}
+        {skipOnboarding && plan && (
+          <>
+            <input type='hidden' name='plan' value={plan} />
+            <input type='hidden' name='role' value={role || 'landlord'} />
+            <input type='hidden' name='skipOnboarding' value='true' />
           </>
         )}
         {/* Pass referral code to the server action */}

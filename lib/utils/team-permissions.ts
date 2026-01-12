@@ -1,30 +1,38 @@
 /**
  * Team Permission Utilities
- * Helper functions for checking team member permissions
+ * 
+ * Helper functions for checking team member permissions.
+ * These utilities wrap the server actions for convenient use in components and API routes.
  */
 
-import { checkTeamMemberPermission } from '@/lib/actions/team.actions';
+import { 
+  checkTeamMemberPermission,
+  checkTeamMemberHasAnyPermission,
+  checkTeamMemberHasAllPermissions,
+  getCurrentUserTeamRole,
+  getTeamRoleDefinitions,
+  getDefaultPermissionsForRole,
+  getRolesForTier,
+  normalizeRole,
+} from '@/lib/actions/team.actions';
 
-export type TeamPermission = 
-  | 'view_properties' 
-  | 'manage_tenants' 
-  | 'manage_maintenance' 
-  | 'manage_finances'
-  | 'manage_team'
-  | 'manage_schedule'
-  | 'approve_timesheets'
-  | 'view_financials'
-  | 'schedule_showings'
-  | 'process_applications';
+import {
+  PERMISSION_DEFINITIONS,
+  ROLE_DEFINITIONS,
+  type TeamPermission,
+  type TeamMemberRole,
+} from '@/lib/types/team.types';
 
-export type TeamMemberRole = 
-  | 'owner' 
-  | 'admin' 
-  | 'manager' 
-  | 'leasing_agent' 
-  | 'showing_agent' 
-  | 'member' 
-  | 'employee';
+// Re-export types and constants for convenience
+export type { TeamPermission, TeamMemberRole };
+export { 
+  PERMISSION_DEFINITIONS, 
+  ROLE_DEFINITIONS,
+  getDefaultPermissionsForRole,
+  getRolesForTier,
+  normalizeRole,
+  getTeamRoleDefinitions,
+};
 
 /**
  * Check if a user has a specific permission
@@ -45,12 +53,7 @@ export async function hasAnyPermission(
   landlordId: string,
   permissions: TeamPermission[]
 ): Promise<boolean> {
-  for (const permission of permissions) {
-    if (await checkTeamMemberPermission(userId, landlordId, permission)) {
-      return true;
-    }
-  }
-  return false;
+  return await checkTeamMemberHasAnyPermission(userId, landlordId, permissions);
 }
 
 /**
@@ -61,78 +64,94 @@ export async function hasAllPermissions(
   landlordId: string,
   permissions: TeamPermission[]
 ): Promise<boolean> {
-  for (const permission of permissions) {
-    if (!(await checkTeamMemberPermission(userId, landlordId, permission))) {
-      return false;
+  return await checkTeamMemberHasAllPermissions(userId, landlordId, permissions);
+}
+
+/**
+ * Get the current user's team role and permissions for a landlord
+ */
+export async function getUserTeamAccess(landlordId: string) {
+  return await getCurrentUserTeamRole(landlordId);
+}
+
+/**
+ * Permission categories for UI grouping
+ */
+export const PERMISSION_CATEGORIES = {
+  properties: {
+    label: 'Properties',
+    description: 'Property listing and management',
+  },
+  tenants: {
+    label: 'Tenants',
+    description: 'Tenant management and applications',
+  },
+  maintenance: {
+    label: 'Maintenance',
+    description: 'Work orders and repairs',
+  },
+  finances: {
+    label: 'Finances',
+    description: 'Financial data and payments',
+  },
+  team: {
+    label: 'Team',
+    description: 'Team management and scheduling',
+  },
+  reports: {
+    label: 'Reports',
+    description: 'Analytics and reporting',
+  },
+} as const;
+
+/**
+ * Get permissions grouped by category
+ */
+export function getPermissionsByCategory() {
+  const grouped: Record<string, Array<{ id: TeamPermission; label: string; description: string }>> = {};
+  
+  for (const [key, value] of Object.entries(PERMISSION_DEFINITIONS)) {
+    const category = value.category;
+    if (!grouped[category]) {
+      grouped[category] = [];
     }
+    grouped[category].push({
+      id: key as TeamPermission,
+      label: value.label,
+      description: value.description,
+    });
   }
-  return true;
+  
+  return grouped;
 }
 
 /**
- * Get role display name
+ * Check if a permission is included in a role's defaults
  */
-export function getRoleDisplayName(role: TeamMemberRole): string {
-  const roleNames: Record<TeamMemberRole, string> = {
-    owner: 'Owner',
-    admin: 'Admin',
-    manager: 'Manager',
-    leasing_agent: 'Leasing Agent',
-    showing_agent: 'Showing Agent',
-    member: 'Member',
-    employee: 'Employee',
-  };
-  return roleNames[role] || role;
+export function isDefaultPermissionForRole(role: TeamMemberRole, permission: TeamPermission): boolean {
+  const defaults = getDefaultPermissionsForRole(role);
+  return defaults.includes(permission);
 }
 
 /**
- * Get permission display name
+ * Get a human-readable label for a role
  */
-export function getPermissionDisplayName(permission: TeamPermission): string {
-  const permissionNames: Record<TeamPermission, string> = {
-    view_properties: 'View Properties',
-    manage_tenants: 'Manage Tenants',
-    manage_maintenance: 'Manage Maintenance',
-    manage_finances: 'Manage Finances',
-    manage_team: 'Manage Team',
-    manage_schedule: 'Manage Schedule',
-    approve_timesheets: 'Approve Timesheets',
-    view_financials: 'View Financials',
-    schedule_showings: 'Schedule Showings',
-    process_applications: 'Process Applications',
-  };
-  return permissionNames[permission] || permission;
+export function getRoleLabel(role: TeamMemberRole): string {
+  return ROLE_DEFINITIONS[role]?.label || role;
 }
 
 /**
- * Get permission description
+ * Get a human-readable label for a permission
  */
-export function getPermissionDescription(permission: TeamPermission): string {
-  const descriptions: Record<TeamPermission, string> = {
-    view_properties: 'View property details and information',
-    manage_tenants: 'Add, edit, and manage tenant information',
-    manage_maintenance: 'Create and manage maintenance requests',
-    manage_finances: 'Full access to financial data, reports, and transactions',
-    manage_team: 'Invite and manage team members',
-    manage_schedule: 'Create and manage team schedules',
-    approve_timesheets: 'Review and approve employee timesheets',
-    view_financials: 'View-only access to financial information',
-    schedule_showings: 'Schedule and manage property showings',
-    process_applications: 'Review and process rental applications',
-  };
-  return descriptions[permission] || '';
+export function getPermissionLabel(permission: TeamPermission): string {
+  return PERMISSION_DEFINITIONS[permission]?.label || permission;
 }
 
 /**
- * Check if a role can access finances
+ * Check if a role is available for a given subscription tier
  */
-export function canAccessFinances(permissions: string[]): boolean {
-  return permissions.includes('manage_finances') || permissions.includes('view_financials');
-}
-
-/**
- * Check if a role is administrative
- */
-export function isAdministrativeRole(role: TeamMemberRole): boolean {
-  return ['owner', 'admin', 'manager'].includes(role);
+export async function isRoleAvailableForTier(role: TeamMemberRole, tier: 'starter' | 'pro' | 'enterprise'): Promise<boolean> {
+  if (role === 'owner') return tier !== 'starter';
+  const availableRoles = await getRolesForTier(tier);
+  return availableRoles.includes(role);
 }

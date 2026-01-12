@@ -408,3 +408,137 @@ export async function updateDocumentNotes(documentId: string, notes: string) {
     return { success: false, message: 'Failed to update notes' };
   }
 }
+
+// Receipt expense categories
+export const EXPENSE_CATEGORIES = [
+  { value: 'maintenance', label: 'Maintenance & Repairs' },
+  { value: 'utilities', label: 'Utilities' },
+  { value: 'insurance', label: 'Insurance' },
+  { value: 'taxes', label: 'Property Taxes' },
+  { value: 'supplies', label: 'Supplies' },
+  { value: 'landscaping', label: 'Landscaping' },
+  { value: 'cleaning', label: 'Cleaning' },
+  { value: 'legal', label: 'Legal & Professional' },
+  { value: 'advertising', label: 'Advertising' },
+  { value: 'management', label: 'Property Management' },
+  { value: 'other', label: 'Other' },
+];
+
+interface ReceiptExpenseData {
+  propertyId: string;
+  amount: number;
+  category: string;
+  description?: string;
+  vendor?: string;
+  date: string; // ISO date string
+}
+
+export async function createExpenseFromReceipt(
+  documentId: string,
+  expenseData: ReceiptExpenseData
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || session.user.role !== 'admin') {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: 'Unable to determine landlord' };
+    }
+
+    // Verify property belongs to landlord
+    const property = await prisma.property.findFirst({
+      where: {
+        id: expenseData.propertyId,
+        landlordId: landlordResult.landlord.id,
+      },
+    });
+
+    if (!property) {
+      return { success: false, message: 'Property not found' };
+    }
+
+    // Create the expense record
+    const expense = await prisma.expense.create({
+      data: {
+        landlordId: landlordResult.landlord.id,
+        propertyId: expenseData.propertyId,
+        amount: expenseData.amount,
+        category: expenseData.category,
+        description: expenseData.description || `Receipt: ${expenseData.vendor || 'Unknown vendor'}`,
+        incurredAt: new Date(expenseData.date),
+        isRecurring: false,
+      },
+    });
+
+    // Update the scanned document with property and expense link
+    await prisma.scannedDocument.update({
+      where: { id: documentId },
+      data: {
+        propertyId: expenseData.propertyId,
+        documentType: 'receipt',
+        classificationStatus: 'classified',
+        classifiedAt: new Date(),
+        conversionStatus: 'completed',
+        convertedToExpenseId: expense.id,
+        extractedData: {
+          amount: expenseData.amount,
+          category: expenseData.category,
+          vendor: expenseData.vendor,
+          date: expenseData.date,
+          expenseId: expense.id,
+        },
+      },
+    });
+
+    revalidatePath('/admin/documents');
+    revalidatePath('/admin/finances');
+    return { success: true, expense };
+  } catch (error) {
+    console.error('Create expense from receipt error:', error);
+    return { success: false, message: 'Failed to create expense from receipt' };
+  }
+}
+
+export async function uploadReceiptWithProperty(params: {
+  fileUrl: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  propertyId: string;
+}) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || session.user.role !== 'admin') {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: 'Unable to determine landlord' };
+    }
+
+    const document = await prisma.scannedDocument.create({
+      data: {
+        landlordId: landlordResult.landlord.id,
+        uploadedBy: session.user.id,
+        propertyId: params.propertyId,
+        originalFileName: params.fileName,
+        fileUrl: params.fileUrl,
+        fileType: params.fileType,
+        fileSize: params.fileSize,
+        documentType: 'receipt',
+        classificationStatus: 'pending',
+        conversionStatus: 'pending',
+      },
+    });
+
+    revalidatePath('/admin/documents');
+    return { success: true, document };
+  } catch (error) {
+    console.error('Upload receipt error:', error);
+    return { success: false, message: 'Failed to upload receipt' };
+  }
+}

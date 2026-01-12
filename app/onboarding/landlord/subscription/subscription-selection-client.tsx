@@ -98,6 +98,10 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
   const searchParams = useSearchParams();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get plan from URL params (from pricing page flow)
+  const preselectedPlan = searchParams.get('plan');
+  const skipOnboarding = searchParams.get('skipOnboarding') === 'true';
 
   // Check if user canceled checkout
   useEffect(() => {
@@ -105,6 +109,17 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
       setError('Checkout was canceled. Please select a plan to continue.');
     }
   }, [searchParams]);
+  
+  // Auto-select plan if coming from pricing page
+  useEffect(() => {
+    if (preselectedPlan && !searchParams.get('canceled')) {
+      // Small delay to show the page briefly before redirecting
+      const timer = setTimeout(() => {
+        handleSelectPlan(preselectedPlan);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [preselectedPlan]);
 
   const handleSelectPlan = async (tierId: string) => {
     setLoadingTier(tierId);
@@ -114,7 +129,10 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
       const response = await fetch('/api/landlord/subscription/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier: tierId }),
+        body: JSON.stringify({ 
+          tier: tierId,
+          skipOnboarding: skipOnboarding,
+        }),
       });
 
       const data = await response.json();
@@ -146,10 +164,14 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
             Welcome, {userName.split(' ')[0]}!
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Choose your plan
+            {preselectedPlan && !searchParams.get('canceled') 
+              ? 'Starting your free trial...' 
+              : 'Choose your plan'}
           </h1>
           <p className="text-lg text-slate-400 max-w-xl mx-auto">
-            All plans include a 7-day free trial. No credit card charged until trial ends.
+            {preselectedPlan && !searchParams.get('canceled')
+              ? 'Redirecting you to secure checkout...'
+              : 'All plans include a 7-day free trial. No credit card charged until trial ends.'}
           </p>
         </motion.div>
 

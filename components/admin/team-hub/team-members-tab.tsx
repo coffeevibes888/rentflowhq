@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Users, UserPlus, Mail, Shield, ShieldCheck, Crown, 
   MoreVertical, Trash2, Clock, Search,
-  Building2, Briefcase
+  Building2, Briefcase, Wrench, Calculator, RotateCcw
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,11 +32,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 
 interface TeamMember {
   id: string;
   userId: string;
-  role: 'owner' | 'admin' | 'member' | 'manager' | 'leasing_agent' | 'showing_agent' | 'employee';
+  role: 'owner' | 'admin' | 'property_manager' | 'leasing_agent' | 'showing_agent' | 'maintenance_tech' | 'accountant' | 'employee';
   status: 'pending' | 'active' | 'inactive';
   invitedEmail?: string;
   permissions: string[];
@@ -60,42 +61,69 @@ interface TeamMembersTabProps {
 const ROLE_CONFIG = {
   owner: { icon: Crown, color: 'text-amber-400', bg: 'bg-amber-500/20', label: 'Owner' },
   admin: { icon: ShieldCheck, color: 'text-violet-400', bg: 'bg-violet-500/20', label: 'Admin' },
-  manager: { icon: Briefcase, color: 'text-blue-400', bg: 'bg-blue-500/20', label: 'Manager' },
+  property_manager: { icon: Briefcase, color: 'text-blue-400', bg: 'bg-blue-500/20', label: 'Property Manager' },
   leasing_agent: { icon: Building2, color: 'text-cyan-400', bg: 'bg-cyan-500/20', label: 'Leasing Agent' },
   showing_agent: { icon: Users, color: 'text-teal-400', bg: 'bg-teal-500/20', label: 'Showing Agent' },
-  member: { icon: Shield, color: 'text-slate-400', bg: 'bg-slate-500/20', label: 'Member' },
-  employee: { icon: Building2, color: 'text-emerald-400', bg: 'bg-emerald-500/20', label: 'Employee' },
+  maintenance_tech: { icon: Wrench, color: 'text-orange-400', bg: 'bg-orange-500/20', label: 'Maintenance Tech' },
+  accountant: { icon: Calculator, color: 'text-emerald-400', bg: 'bg-emerald-500/20', label: 'Accountant' },
+  employee: { icon: Clock, color: 'text-slate-400', bg: 'bg-slate-500/20', label: 'Employee' },
+  // Legacy role mappings
+  manager: { icon: Briefcase, color: 'text-blue-400', bg: 'bg-blue-500/20', label: 'Property Manager' },
+  member: { icon: Wrench, color: 'text-orange-400', bg: 'bg-orange-500/20', label: 'Maintenance Tech' },
 };
 
-const PERMISSION_LABELS: Record<string, string> = {
-  view_properties: 'View Properties',
-  manage_tenants: 'Manage Tenants',
-  manage_maintenance: 'Manage Maintenance',
-  manage_finances: 'Manage Finances',
-  manage_team: 'Manage Team',
-  manage_schedule: 'Manage Schedule',
-  approve_timesheets: 'Approve Timesheets',
-  view_financials: 'View Financials',
-  schedule_showings: 'Schedule Showings',
-  process_applications: 'Process Applications',
+const PERMISSION_CONFIG: Record<string, { label: string; description: string; category: string }> = {
+  view_properties: { label: 'View Properties', description: 'View property listings and details', category: 'properties' },
+  manage_properties: { label: 'Manage Properties', description: 'Add, edit, and delete properties', category: 'properties' },
+  manage_tenants: { label: 'Manage Tenants', description: 'Add, edit tenant information', category: 'tenants' },
+  process_applications: { label: 'Process Applications', description: 'Review and approve/deny applications', category: 'tenants' },
+  schedule_showings: { label: 'Schedule Showings', description: 'Schedule property showings', category: 'tenants' },
+  manage_maintenance: { label: 'Manage Maintenance', description: 'Create and manage work orders', category: 'maintenance' },
+  view_financials: { label: 'View Financials', description: 'View financial reports (read-only)', category: 'finances' },
+  manage_finances: { label: 'Manage Finances', description: 'Process payments and refunds', category: 'finances' },
+  manage_team: { label: 'Manage Team', description: 'Invite and manage team members', category: 'team' },
+  manage_schedule: { label: 'Manage Schedule', description: 'Create team schedules and shifts', category: 'team' },
+  approve_timesheets: { label: 'Approve Timesheets', description: 'Review and approve timesheets', category: 'team' },
+  view_reports: { label: 'View Reports', description: 'Access analytics dashboards', category: 'reports' },
+};
+
+const PERMISSION_CATEGORIES = [
+  { id: 'properties', label: 'Properties', icon: Building2 },
+  { id: 'tenants', label: 'Tenants', icon: Users },
+  { id: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { id: 'finances', label: 'Finances', icon: Calculator },
+  { id: 'team', label: 'Team', icon: Briefcase },
+  { id: 'reports', label: 'Reports', icon: ShieldCheck },
+];
+
+const DEFAULT_PERMISSIONS: Record<string, string[]> = {
+  owner: Object.keys(PERMISSION_CONFIG),
+  admin: Object.keys(PERMISSION_CONFIG),
+  property_manager: ['view_properties', 'manage_properties', 'manage_tenants', 'process_applications', 'schedule_showings', 'manage_maintenance', 'view_financials', 'manage_schedule', 'approve_timesheets', 'view_reports'],
+  leasing_agent: ['view_properties', 'manage_tenants', 'process_applications', 'schedule_showings'],
+  showing_agent: ['view_properties', 'schedule_showings'],
+  maintenance_tech: ['view_properties', 'manage_maintenance'],
+  accountant: ['view_properties', 'view_financials', 'manage_finances', 'view_reports'],
+  employee: ['view_properties'],
 };
 
 export function TeamMembersTab({ 
   members: initialMembers, 
   isEnterprise = false,
   canManageTeam = false,
-  currentUserRole = 'member',
+  currentUserRole = 'employee',
 }: TeamMembersTabProps) {
   const [members, setMembers] = useState<TeamMember[]>(initialMembers);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<string>('member');
+  const [inviteRole, setInviteRole] = useState<string>('employee');
   const [isLoading, setIsLoading] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showPermissionsDialog, setShowPermissionsDialog] = useState<TeamMember | null>(null);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [isSavingPermissions, setIsSavingPermissions] = useState(false);
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) return;
@@ -119,7 +147,7 @@ export function TeamMembersTab({
         setTimeout(() => {
           setShowInviteDialog(false);
           setInviteEmail('');
-          setInviteRole('member');
+          setInviteRole('employee');
           setInviteSuccess(false);
         }, 1500);
       } else {
@@ -176,13 +204,15 @@ export function TeamMembersTab({
       const res = await fetch(`/api/landlord/team/${memberId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
+        body: JSON.stringify({ role: newRole, keepCustomPermissions: false }),
       });
       const data = await res.json();
       
       if (data.success) {
         setMembers(members.map(m => 
-          m.id === memberId ? { ...m, role: newRole as TeamMember['role'] } : m
+          m.id === memberId 
+            ? { ...m, role: data.newRole || newRole as TeamMember['role'], permissions: data.newPermissions || DEFAULT_PERMISSIONS[newRole] || [] } 
+            : m
         ));
       } else {
         alert(data.message || 'Failed to update role');
@@ -195,6 +225,7 @@ export function TeamMembersTab({
   const handleUpdatePermissions = async () => {
     if (!showPermissionsDialog) return;
     
+    setIsSavingPermissions(true);
     try {
       const res = await fetch(`/api/landlord/team/${showPermissionsDialog.id}/permissions`, {
         method: 'PATCH',
@@ -205,7 +236,7 @@ export function TeamMembersTab({
       
       if (data.success) {
         setMembers(members.map(m => 
-          m.id === showPermissionsDialog.id ? { ...m, permissions: selectedPermissions } : m
+          m.id === showPermissionsDialog.id ? { ...m, permissions: data.permissions || selectedPermissions } : m
         ));
         setShowPermissionsDialog(null);
       } else {
@@ -213,6 +244,33 @@ export function TeamMembersTab({
       }
     } catch {
       alert('Failed to update permissions');
+    } finally {
+      setIsSavingPermissions(false);
+    }
+  };
+
+  const handleResetPermissions = async () => {
+    if (!showPermissionsDialog) return;
+    
+    setIsSavingPermissions(true);
+    try {
+      const res = await fetch(`/api/landlord/team/${showPermissionsDialog.id}/permissions/reset`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setSelectedPermissions(data.permissions || []);
+        setMembers(members.map(m => 
+          m.id === showPermissionsDialog.id ? { ...m, permissions: data.permissions || [] } : m
+        ));
+      } else {
+        alert(data.message || 'Failed to reset permissions');
+      }
+    } catch {
+      alert('Failed to reset permissions');
+    } finally {
+      setIsSavingPermissions(false);
     }
   };
 
@@ -222,6 +280,10 @@ export function TeamMembersTab({
   };
 
   const togglePermission = (permission: string) => {
+    // Don't allow removing view_properties (minimum access)
+    if (permission === 'view_properties' && selectedPermissions.includes(permission)) {
+      return;
+    }
     setSelectedPermissions(prev => 
       prev.includes(permission) 
         ? prev.filter(p => p !== permission)
@@ -245,9 +307,21 @@ export function TeamMembersTab({
     );
   });
 
+  // Pro plan roles
+  const proRoles = ['admin', 'property_manager', 'leasing_agent', 'showing_agent'];
+  // Enterprise-only roles
+  const enterpriseRoles = ['maintenance_tech', 'accountant', 'employee'];
+  
   const availableRoles = isEnterprise 
-    ? ['admin', 'manager', 'leasing_agent', 'showing_agent', 'member', 'employee']
-    : ['admin', 'manager', 'leasing_agent', 'showing_agent', 'member'];
+    ? [...proRoles, ...enterpriseRoles]
+    : proRoles;
+
+  // Check if member has custom permissions (different from role defaults)
+  const hasCustomPermissions = (member: TeamMember) => {
+    const defaults = DEFAULT_PERMISSIONS[member.role] || [];
+    if (!member.permissions || member.permissions.length !== defaults.length) return true;
+    return !defaults.every(p => member.permissions.includes(p));
+  };
 
   return (
     <div className="space-y-6">
@@ -376,8 +450,10 @@ export function TeamMembersTab({
           ) : (
             <div className="divide-y divide-white/5">
               {filteredActive.map((member) => {
-                const config = ROLE_CONFIG[member.role] || ROLE_CONFIG.member;
+                const roleKey = member.role as keyof typeof ROLE_CONFIG;
+                const config = ROLE_CONFIG[roleKey] || ROLE_CONFIG.employee;
                 const RoleIcon = config.icon;
+                const isCustomized = hasCustomPermissions(member);
                 
                 return (
                   <div key={member.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
@@ -405,10 +481,17 @@ export function TeamMembersTab({
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <Badge className={`${config.bg} ${config.color} border-0`}>
-                        <RoleIcon className="h-3 w-3 mr-1" />
-                        {config.label}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={`${config.bg} ${config.color} border-0`}>
+                          <RoleIcon className="h-3 w-3 mr-1" />
+                          {config.label}
+                        </Badge>
+                        {isCustomized && member.role !== 'owner' && (
+                          <Badge variant="outline" className="border-violet-500/30 text-violet-400 text-xs">
+                            Custom
+                          </Badge>
+                        )}
+                      </div>
                       
                       {member.role !== 'owner' && canManageTeam && (
                         <DropdownMenu>
@@ -417,25 +500,28 @@ export function TeamMembersTab({
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-slate-800 border-white/10 w-48">
+                          <DropdownMenuContent align="end" className="bg-slate-800 border-white/10 w-52">
                             <div className="px-2 py-1.5 text-xs text-slate-400 font-medium">Change Role</div>
-                            {availableRoles.map(role => (
-                              <DropdownMenuItem 
-                                key={role}
-                                onClick={() => handleUpdateRole(member.id, role)}
-                                className={`text-slate-200 focus:bg-white/10 ${member.role === role ? 'bg-white/5' : ''}`}
-                              >
-                                {ROLE_CONFIG[role as keyof typeof ROLE_CONFIG]?.label || role}
-                                {member.role === role && <span className="ml-auto text-violet-400">✓</span>}
-                              </DropdownMenuItem>
-                            ))}
+                            {availableRoles.map(role => {
+                              const roleConfig = ROLE_CONFIG[role as keyof typeof ROLE_CONFIG];
+                              return (
+                                <DropdownMenuItem 
+                                  key={role}
+                                  onClick={() => handleUpdateRole(member.id, role)}
+                                  className={`text-slate-200 focus:bg-white/10 ${member.role === role ? 'bg-white/5' : ''}`}
+                                >
+                                  {roleConfig?.label || role}
+                                  {member.role === role && <span className="ml-auto text-violet-400">✓</span>}
+                                </DropdownMenuItem>
+                              );
+                            })}
                             <DropdownMenuSeparator className="bg-white/10" />
                             <DropdownMenuItem 
                               onClick={() => openPermissionsDialog(member)}
                               className="text-slate-200 focus:bg-white/10"
                             >
                               <Shield className="h-4 w-4 mr-2" />
-                              Custom Permissions
+                              Customize Permissions
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-white/10" />
                             <DropdownMenuItem 
@@ -589,16 +675,24 @@ export function TeamMembersTab({
                 </SelectContent>
               </Select>
               
-              {isEnterprise && (
-                <div className="text-xs text-slate-500 space-y-1 mt-2">
-                  <p><strong>Admin:</strong> Full access to all features</p>
-                  <p><strong>Manager:</strong> Can manage team, assign tasks, approve timesheets</p>
-                  <p><strong>Leasing Agent:</strong> Process applications, manage tenants</p>
-                  <p><strong>Showing Agent:</strong> Schedule and conduct property showings</p>
-                  <p><strong>Member:</strong> View & manage assigned tasks</p>
-                  <p><strong>Employee:</strong> Clock in/out, view schedule, request time off</p>
-                </div>
-              )}
+              {/* Role descriptions */}
+              <div className="text-xs text-slate-500 space-y-1.5 mt-3 p-3 rounded-lg bg-slate-800/40 border border-white/5">
+                <p className="text-slate-400 font-medium mb-2">Role Descriptions:</p>
+                <p><span className="text-violet-400">Admin:</span> Full operational access, can manage team</p>
+                <p><span className="text-blue-400">Property Manager:</span> Manages properties, tenants, schedules</p>
+                <p><span className="text-cyan-400">Leasing Agent:</span> Handles applications and leasing</p>
+                <p><span className="text-teal-400">Showing Agent:</span> Conducts property showings</p>
+                {isEnterprise && (
+                  <>
+                    <p><span className="text-orange-400">Maintenance Tech:</span> Handles repairs and work orders</p>
+                    <p><span className="text-emerald-400">Accountant:</span> Manages financial records</p>
+                    <p><span className="text-slate-400">Employee:</span> Basic access, time clock only</p>
+                  </>
+                )}
+                <p className="text-slate-500 mt-2 pt-2 border-t border-white/5">
+                  You can customize permissions after inviting.
+                </p>
+              </div>
             </div>
           </div>
           
@@ -621,60 +715,113 @@ export function TeamMembersTab({
       <Dialog open={!!showPermissionsDialog} onOpenChange={(open) => {
         if (!open) setShowPermissionsDialog(null);
       }}>
-        <DialogContent className="bg-slate-900 border-white/10 max-w-lg">
+        <DialogContent className="bg-slate-900 border-white/10 max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle className="text-white">Custom Permissions</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-3">
+              <Shield className="h-5 w-5 text-violet-400" />
+              Customize Permissions
+            </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Customize access permissions for {showPermissionsDialog?.user?.name || showPermissionsDialog?.invitedEmail}
+              {showPermissionsDialog?.user?.name || showPermissionsDialog?.invitedEmail} • {ROLE_CONFIG[showPermissionsDialog?.role as keyof typeof ROLE_CONFIG]?.label || showPermissionsDialog?.role}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-slate-300 mb-3">Select Permissions</p>
-              <div className="grid grid-cols-1 gap-2">
-                {Object.entries(PERMISSION_LABELS).map(([key, label]) => (
-                  <label 
-                    key={key}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/60 border border-white/10 hover:bg-slate-800 cursor-pointer transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedPermissions.includes(key)}
-                      onChange={() => togglePermission(key)}
-                      className="h-4 w-4 rounded border-white/20 bg-slate-700 text-violet-600 focus:ring-violet-500 focus:ring-offset-slate-900"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-white">{label}</p>
-                      {key === 'manage_finances' && (
-                        <p className="text-xs text-slate-400">Access to financial data and reports</p>
-                      )}
-                      {key === 'view_financials' && (
-                        <p className="text-xs text-slate-400">View-only access to financial information</p>
-                      )}
-                    </div>
-                  </label>
-                ))}
-              </div>
+          <div className="flex-1 overflow-y-auto py-4 space-y-6">
+            {/* Info banner */}
+            <div className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/30">
+              <p className="text-sm text-violet-300">
+                Toggle permissions on or off to customize what this team member can access. 
+                Changes take effect immediately after saving.
+              </p>
             </div>
+
+            {/* Permissions by category */}
+            {PERMISSION_CATEGORIES.map(category => {
+              const categoryPermissions = Object.entries(PERMISSION_CONFIG)
+                .filter(([_, config]) => config.category === category.id);
+              
+              if (categoryPermissions.length === 0) return null;
+              
+              const CategoryIcon = category.icon;
+              
+              return (
+                <div key={category.id} className="space-y-3">
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <CategoryIcon className="h-4 w-4" />
+                    <span className="font-medium">{category.label}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {categoryPermissions.map(([permKey, permConfig]) => {
+                      const isEnabled = selectedPermissions.includes(permKey);
+                      const isDefault = DEFAULT_PERMISSIONS[showPermissionsDialog?.role || 'employee']?.includes(permKey);
+                      const isViewProperties = permKey === 'view_properties';
+                      
+                      return (
+                        <div 
+                          key={permKey}
+                          className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                            isEnabled 
+                              ? 'bg-slate-800/80 border-violet-500/30' 
+                              : 'bg-slate-800/40 border-white/5'
+                          }`}
+                        >
+                          <div className="flex-1 pr-4">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-white">{permConfig.label}</p>
+                              {isDefault && (
+                                <Badge variant="outline" className="border-slate-500/30 text-slate-400 text-xs">
+                                  Default
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-400 mt-0.5">{permConfig.description}</p>
+                          </div>
+                          <Switch
+                            checked={isEnabled}
+                            onCheckedChange={() => togglePermission(permKey)}
+                            disabled={isViewProperties || isSavingPermissions}
+                            className="data-[state=checked]:bg-violet-600"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
             
-            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-              <p className="text-xs text-blue-400">
-                <strong>Tip:</strong> You can restrict access to finances by unchecking &quot;Manage Finances&quot; and &quot;View Financials&quot;
+            {/* Note about view_properties */}
+            <div className="p-3 rounded-lg bg-slate-800/60 border border-white/5">
+              <p className="text-xs text-slate-500">
+                <strong>Note:</strong> &quot;View Properties&quot; is always enabled as it&apos;s required for basic access.
               </p>
             </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowPermissionsDialog(null)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleUpdatePermissions}
-              className="bg-violet-600 hover:bg-violet-500"
-            >
-              Save Permissions
-            </Button>
+          <DialogFooter className="flex-shrink-0 border-t border-white/10 pt-4">
+            <div className="flex items-center justify-between w-full">
+              <Button 
+                variant="ghost" 
+                onClick={handleResetPermissions}
+                disabled={isSavingPermissions}
+                className="text-slate-400 hover:text-white"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset to Defaults
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setShowPermissionsDialog(null)} disabled={isSavingPermissions}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleUpdatePermissions}
+                  disabled={isSavingPermissions}
+                  className="bg-violet-600 hover:bg-violet-500"
+                >
+                  {isSavingPermissions ? 'Saving...' : 'Save Permissions'}
+                </Button>
+              </div>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

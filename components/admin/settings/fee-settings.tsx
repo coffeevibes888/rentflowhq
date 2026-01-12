@@ -58,6 +58,23 @@ interface LateFeeSettings {
   notifyTenant: boolean;
 }
 
+interface PropertyFeeOverride {
+  securityDepositMonths?: number | null;
+  noSecurityDeposit?: boolean;
+  lastMonthRentRequired?: boolean | null;
+  petDepositEnabled?: boolean | null;
+  petDepositAmount?: number | null;
+  petRentEnabled?: boolean | null;
+  petRentAmount?: number | null;
+  noPetFees?: boolean;
+  cleaningFeeEnabled?: boolean | null;
+  cleaningFeeAmount?: number | null;
+  noCleaningFee?: boolean;
+  applicationFeeEnabled?: boolean | null;
+  applicationFeeAmount?: number | null;
+  noApplicationFee?: boolean;
+}
+
 export function FeeSettings({ isPro }: FeeSettingsProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -65,8 +82,15 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [reminderModalOpen, setReminderModalOpen] = useState(false);
   const [lateFeeModalOpen, setLateFeeModalOpen] = useState(false);
+  const [propertyOverrideModalOpen, setPropertyOverrideModalOpen] = useState(false);
+  const [selectedPropertyForOverride, setSelectedPropertyForOverride] = useState<Property | null>(null);
   const [savingReminders, setSavingReminders] = useState(false);
   const [savingLateFees, setSavingLateFees] = useState(false);
+  const [savingPropertyOverride, setSavingPropertyOverride] = useState(false);
+
+  // Property-specific overrides
+  const [propertyOverrides, setPropertyOverrides] = useState<Record<string, PropertyFeeOverride>>({});
+  const [currentPropertyOverride, setCurrentPropertyOverride] = useState<PropertyFeeOverride>({});
   
   // Rent automation settings
   const [reminderSettings, setReminderSettings] = useState<RentReminderSettings>({
@@ -146,6 +170,56 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
         const data = await feesRes.json();
         if (data.settings) {
           // Map the settings to our state structure
+          if (data.settings.petDeposit) {
+            setPetDeposit({
+              enabled: data.settings.petDeposit.enabled ?? false,
+              amount: data.settings.petDeposit.amount ?? 300,
+              applyToAll: data.settings.petDeposit.applyToAll ?? true,
+              selectedProperties: data.settings.petDeposit.selectedProperties ?? [],
+            });
+          }
+          if (data.settings.petRent) {
+            setPetRent({
+              enabled: data.settings.petRent.enabled ?? false,
+              amount: data.settings.petRent.amount ?? 50,
+              applyToAll: data.settings.petRent.applyToAll ?? true,
+              selectedProperties: data.settings.petRent.selectedProperties ?? [],
+            });
+          }
+          if (data.settings.cleaningFee) {
+            setCleaningFee({
+              enabled: data.settings.cleaningFee.enabled ?? false,
+              amount: data.settings.cleaningFee.amount ?? 150,
+              applyToAll: data.settings.cleaningFee.applyToAll ?? true,
+              selectedProperties: data.settings.cleaningFee.selectedProperties ?? [],
+            });
+          }
+          if (data.settings.applicationFee) {
+            setApplicationFee({
+              enabled: data.settings.applicationFee.enabled ?? true,
+              amount: data.settings.applicationFee.amount ?? 50,
+              applyToAll: data.settings.applicationFee.applyToAll ?? true,
+              selectedProperties: data.settings.applicationFee.selectedProperties ?? [],
+            });
+          }
+          if (data.settings.securityDeposit) {
+            setSecurityDeposit({
+              months: data.settings.securityDeposit.months ?? 1,
+              applyToAll: data.settings.securityDeposit.applyToAll ?? true,
+              selectedProperties: data.settings.securityDeposit.selectedProperties ?? [],
+            });
+          }
+          if (data.settings.lastMonthRent) {
+            setLastMonthRent({
+              required: data.settings.lastMonthRent.required ?? true,
+              applyToAll: data.settings.lastMonthRent.applyToAll ?? true,
+              selectedProperties: data.settings.lastMonthRent.selectedProperties ?? [],
+            });
+          }
+        }
+        // Load property-specific overrides
+        if (data.propertySettings) {
+          setPropertyOverrides(data.propertySettings);
         }
       }
 
@@ -237,6 +311,69 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
     }
   };
 
+  const openPropertyOverrideModal = (property: Property) => {
+    setSelectedPropertyForOverride(property);
+    setCurrentPropertyOverride(propertyOverrides[property.id] || {});
+    setPropertyOverrideModalOpen(true);
+  };
+
+  const savePropertyOverride = async () => {
+    if (!selectedPropertyForOverride) return;
+    
+    setSavingPropertyOverride(true);
+    try {
+      const res = await fetch('/api/landlord/fee-settings/property', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propertyId: selectedPropertyForOverride.id,
+          ...currentPropertyOverride,
+        }),
+      });
+
+      if (res.ok) {
+        setPropertyOverrides({
+          ...propertyOverrides,
+          [selectedPropertyForOverride.id]: currentPropertyOverride,
+        });
+        toast({ title: `Fee settings saved for ${selectedPropertyForOverride.name}` });
+        setPropertyOverrideModalOpen(false);
+      } else {
+        const data = await res.json();
+        toast({ title: data.message || 'Failed to save', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Failed to save property settings', variant: 'destructive' });
+    } finally {
+      setSavingPropertyOverride(false);
+    }
+  };
+
+  const resetPropertyOverride = async () => {
+    if (!selectedPropertyForOverride) return;
+    
+    setSavingPropertyOverride(true);
+    try {
+      const res = await fetch(`/api/landlord/fee-settings/property?propertyId=${selectedPropertyForOverride.id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        const newOverrides = { ...propertyOverrides };
+        delete newOverrides[selectedPropertyForOverride.id];
+        setPropertyOverrides(newOverrides);
+        toast({ title: `Reset to default settings for ${selectedPropertyForOverride.name}` });
+        setPropertyOverrideModalOpen(false);
+      } else {
+        toast({ title: 'Failed to reset settings', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Failed to reset settings', variant: 'destructive' });
+    } finally {
+      setSavingPropertyOverride(false);
+    }
+  };
+
   const PropertySelector = ({ 
     applyToAll, 
     setApplyToAll, 
@@ -304,6 +441,42 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
 
   return (
     <div className="space-y-4">
+      {/* Property-Specific Overrides Section */}
+      {properties.length > 0 && (
+        <div className="rounded-xl border border-sky-500/30 bg-gradient-to-br from-sky-500/10 to-blue-500/10 p-4 sm:p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Building2 className="w-5 h-5 text-sky-400" />
+            <h3 className="text-base font-semibold text-white">Property-Specific Settings</h3>
+          </div>
+          <p className="text-xs text-slate-400 mb-3">
+            Customize fee settings for individual properties. For example, waive security deposit for specific agreements.
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {properties.map((property) => {
+              const hasOverride = !!propertyOverrides[property.id];
+              return (
+                <button
+                  key={property.id}
+                  onClick={() => openPropertyOverrideModal(property)}
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-colors text-left ${
+                    hasOverride 
+                      ? 'border-sky-500/50 bg-sky-500/10 hover:bg-sky-500/20' 
+                      : 'border-white/10 bg-slate-800/30 hover:bg-slate-800/50'
+                  }`}
+                >
+                  <span className="text-sm text-white truncate">{property.name}</span>
+                  {hasOverride && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 ml-2 shrink-0">
+                      Custom
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Rent Automation - Combined Pro Feature Card */}
       <div className="relative rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/10 p-4 sm:p-5 overflow-hidden">
         {!isPro && (
@@ -567,6 +740,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="0">No security deposit</SelectItem>
                   <SelectItem value="0.5">Half month&apos;s rent</SelectItem>
                   <SelectItem value="1">1 month&apos;s rent</SelectItem>
                   <SelectItem value="1.5">1.5 months&apos; rent</SelectItem>
@@ -830,6 +1004,229 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                 {savingLateFees && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Save Settings
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Property Override Modal */}
+      <Dialog open={propertyOverrideModalOpen} onOpenChange={setPropertyOverrideModalOpen}>
+        <DialogContent className="max-w-lg bg-slate-900 border-white/10 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <Building2 className="w-5 h-5 text-sky-400" />
+              Fee Settings for {selectedPropertyForOverride?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <p className="text-xs text-slate-400">
+              Override default fee settings for this property. Leave unchecked to use your default settings.
+            </p>
+
+            {/* Security Deposit Override */}
+            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-white font-medium">Security Deposit</p>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="noSecurityDeposit"
+                    checked={currentPropertyOverride.noSecurityDeposit || false}
+                    onCheckedChange={(checked) => setCurrentPropertyOverride({
+                      ...currentPropertyOverride,
+                      noSecurityDeposit: !!checked,
+                      securityDepositMonths: checked ? 0 : currentPropertyOverride.securityDepositMonths,
+                    })}
+                  />
+                  <label htmlFor="noSecurityDeposit" className="text-xs text-slate-300">No deposit required</label>
+                </div>
+              </div>
+              {!currentPropertyOverride.noSecurityDeposit && (
+                <Select
+                  value={currentPropertyOverride.securityDepositMonths !== null && currentPropertyOverride.securityDepositMonths !== undefined 
+                    ? String(currentPropertyOverride.securityDepositMonths) 
+                    : ''}
+                  onValueChange={(v) => setCurrentPropertyOverride({
+                    ...currentPropertyOverride,
+                    securityDepositMonths: v ? Number(v) : null,
+                  })}
+                >
+                  <SelectTrigger className="h-9 text-sm bg-slate-800 border-white/10">
+                    <SelectValue placeholder="Use default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Use default</SelectItem>
+                    <SelectItem value="0">No security deposit</SelectItem>
+                    <SelectItem value="0.5">Half month&apos;s rent</SelectItem>
+                    <SelectItem value="1">1 month&apos;s rent</SelectItem>
+                    <SelectItem value="1.5">1.5 months&apos; rent</SelectItem>
+                    <SelectItem value="2">2 months&apos; rent</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {/* Last Month's Rent Override */}
+            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-white font-medium">Last Month&apos;s Rent</p>
+                <Select
+                  value={currentPropertyOverride.lastMonthRentRequired !== null && currentPropertyOverride.lastMonthRentRequired !== undefined
+                    ? String(currentPropertyOverride.lastMonthRentRequired)
+                    : ''}
+                  onValueChange={(v) => setCurrentPropertyOverride({
+                    ...currentPropertyOverride,
+                    lastMonthRentRequired: v === '' ? null : v === 'true',
+                  })}
+                >
+                  <SelectTrigger className="h-9 w-40 text-sm bg-slate-800 border-white/10">
+                    <SelectValue placeholder="Use default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Use default</SelectItem>
+                    <SelectItem value="true">Required</SelectItem>
+                    <SelectItem value="false">Not required</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Pet Fees Override */}
+            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-white font-medium">Pet Fees</p>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="noPetFees"
+                    checked={currentPropertyOverride.noPetFees || false}
+                    onCheckedChange={(checked) => setCurrentPropertyOverride({
+                      ...currentPropertyOverride,
+                      noPetFees: !!checked,
+                    })}
+                  />
+                  <label htmlFor="noPetFees" className="text-xs text-slate-300">No pet fees</label>
+                </div>
+              </div>
+              {!currentPropertyOverride.noPetFees && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 w-24">Pet Deposit:</span>
+                    <Input
+                      type="number"
+                      value={currentPropertyOverride.petDepositAmount ?? ''}
+                      onChange={(e) => setCurrentPropertyOverride({
+                        ...currentPropertyOverride,
+                        petDepositAmount: e.target.value ? Number(e.target.value) : null,
+                        petDepositEnabled: e.target.value ? true : null,
+                      })}
+                      className="h-8 w-28 text-sm bg-slate-800 border-white/10"
+                      placeholder="Default"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 w-24">Pet Rent:</span>
+                    <Input
+                      type="number"
+                      value={currentPropertyOverride.petRentAmount ?? ''}
+                      onChange={(e) => setCurrentPropertyOverride({
+                        ...currentPropertyOverride,
+                        petRentAmount: e.target.value ? Number(e.target.value) : null,
+                        petRentEnabled: e.target.value ? true : null,
+                      })}
+                      className="h-8 w-28 text-sm bg-slate-800 border-white/10"
+                      placeholder="Default"
+                    />
+                    <span className="text-xs text-slate-500">/month</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Cleaning Fee Override */}
+            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-white font-medium">Cleaning Fee</p>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="noCleaningFee"
+                    checked={currentPropertyOverride.noCleaningFee || false}
+                    onCheckedChange={(checked) => setCurrentPropertyOverride({
+                      ...currentPropertyOverride,
+                      noCleaningFee: !!checked,
+                    })}
+                  />
+                  <label htmlFor="noCleaningFee" className="text-xs text-slate-300">No cleaning fee</label>
+                </div>
+              </div>
+              {!currentPropertyOverride.noCleaningFee && (
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500 text-sm">$</span>
+                  <Input
+                    type="number"
+                    value={currentPropertyOverride.cleaningFeeAmount ?? ''}
+                    onChange={(e) => setCurrentPropertyOverride({
+                      ...currentPropertyOverride,
+                      cleaningFeeAmount: e.target.value ? Number(e.target.value) : null,
+                      cleaningFeeEnabled: e.target.value ? true : null,
+                    })}
+                    className="h-8 w-28 text-sm bg-slate-800 border-white/10"
+                    placeholder="Default"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Application Fee Override */}
+            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-white font-medium">Application Fee</p>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="noApplicationFee"
+                    checked={currentPropertyOverride.noApplicationFee || false}
+                    onCheckedChange={(checked) => setCurrentPropertyOverride({
+                      ...currentPropertyOverride,
+                      noApplicationFee: !!checked,
+                    })}
+                  />
+                  <label htmlFor="noApplicationFee" className="text-xs text-slate-300">No application fee</label>
+                </div>
+              </div>
+              {!currentPropertyOverride.noApplicationFee && (
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500 text-sm">$</span>
+                  <Input
+                    type="number"
+                    value={currentPropertyOverride.applicationFeeAmount ?? ''}
+                    onChange={(e) => setCurrentPropertyOverride({
+                      ...currentPropertyOverride,
+                      applicationFeeAmount: e.target.value ? Number(e.target.value) : null,
+                      applicationFeeEnabled: e.target.value ? true : null,
+                    })}
+                    className="h-8 w-28 text-sm bg-slate-800 border-white/10"
+                    placeholder="Default"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={resetPropertyOverride} 
+                disabled={savingPropertyOverride}
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+              >
+                Reset to Defaults
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setPropertyOverrideModalOpen(false)} className="border-white/10">
+                  Cancel
+                </Button>
+                <Button onClick={savePropertyOverride} disabled={savingPropertyOverride} className="bg-sky-600 hover:bg-sky-500">
+                  {savingPropertyOverride && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                  Save Settings
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

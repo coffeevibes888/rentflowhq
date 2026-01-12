@@ -30,6 +30,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     }
 
+    // Validate propertyId if provided
+    if (propertyId) {
+        const property = await prisma.property.findFirst({
+            where: { id: propertyId, landlordId: landlord.id },
+        });
+        if (!property) {
+            return NextResponse.json({ error: 'Property not found' }, { status: 404 });
+        }
+    }
+
     const uploadedFiles = [];
 
     for (const f of filesToProcess) {
@@ -46,6 +56,7 @@ export async function POST(req: NextRequest) {
                 fileSize: f.size,
                 landlordId: landlord.id,
                 uploadedBy: session.user.id,
+                propertyId: propertyId || null,
                 documentType: category || null,
                 classificationStatus: category ? 'classified' : 'pending',
             },
@@ -55,4 +66,31 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ documents: uploadedFiles });
+}
+
+export async function GET() {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const landlord = await prisma.landlord.findFirst({
+        where: { ownerUserId: session.user.id },
+    });
+
+    if (!landlord) {
+        return NextResponse.json({ error: 'Landlord not found' }, { status: 404 });
+    }
+
+    const documents = await prisma.scannedDocument.findMany({
+        where: { landlordId: landlord.id },
+        orderBy: { createdAt: 'desc' },
+        include: {
+            property: {
+                select: { id: true, name: true },
+            },
+        },
+    });
+
+    return NextResponse.json({ documents });
 }

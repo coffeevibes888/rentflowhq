@@ -31,37 +31,80 @@ type InviteData = {
 type OnboardingStep = 'welcome' | 'account' | 'role-info' | 'employment' | 'complete';
 
 const ROLE_INFO = {
-  employee: {
-    title: 'Employee',
-    icon: Clock,
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/20',
-    description: 'You\'ll be able to clock in/out, view your schedule, request time off, and access the employee portal.',
-    features: ['Clock in/out with GPS', 'View work schedule', 'Request time off', 'View pay stubs'],
-  },
-  manager: {
-    title: 'Manager',
-    icon: Briefcase,
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/20',
-    description: 'You\'ll manage team schedules, approve timesheets, and oversee property operations.',
-    features: ['Manage team schedules', 'Approve timesheets', 'Assign tasks', 'View reports'],
-  },
-  member: {
-    title: 'Team Member',
-    icon: Users,
-    color: 'text-violet-400',
-    bg: 'bg-violet-500/20',
-    description: 'You\'ll collaborate with the team, handle maintenance requests, and access property information.',
-    features: ['View properties', 'Handle maintenance', 'Team chat access', 'Task management'],
-  },
+  // Pro Plan Roles
   admin: {
     title: 'Admin',
     icon: Shield,
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/20',
+    color: 'text-violet-400',
+    bg: 'bg-violet-500/20',
     description: 'You\'ll have full access to manage properties, tenants, finances, and team operations.',
     features: ['Full property access', 'Manage tenants', 'Financial reports', 'Team management'],
+  },
+  property_manager: {
+    title: 'Property Manager',
+    icon: Briefcase,
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/20',
+    description: 'You\'ll manage properties, tenants, schedules, and oversee day-to-day operations.',
+    features: ['Manage properties', 'Handle tenant relations', 'Approve timesheets', 'View reports'],
+  },
+  leasing_agent: {
+    title: 'Leasing Agent',
+    icon: Users,
+    color: 'text-cyan-400',
+    bg: 'bg-cyan-500/20',
+    description: 'You\'ll handle rental applications, manage tenants, and schedule property showings.',
+    features: ['Process applications', 'Manage tenants', 'Schedule showings', 'View properties'],
+  },
+  showing_agent: {
+    title: 'Showing Agent',
+    icon: Building2,
+    color: 'text-teal-400',
+    bg: 'bg-teal-500/20',
+    description: 'You\'ll conduct property showings for prospective tenants.',
+    features: ['Schedule showings', 'View properties', 'Team chat access'],
+  },
+  // Enterprise-Only Roles
+  maintenance_tech: {
+    title: 'Maintenance Tech',
+    icon: Briefcase,
+    color: 'text-orange-400',
+    bg: 'bg-orange-500/20',
+    description: 'You\'ll handle maintenance requests, repairs, and work orders.',
+    features: ['View work orders', 'Update maintenance status', 'View properties', 'Team chat access'],
+  },
+  accountant: {
+    title: 'Accountant',
+    icon: Shield,
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/20',
+    description: 'You\'ll manage financial records, reports, and payment processing.',
+    features: ['View financials', 'Process payments', 'Generate reports', 'View properties'],
+  },
+  employee: {
+    title: 'Employee',
+    icon: Clock,
+    color: 'text-slate-400',
+    bg: 'bg-slate-500/20',
+    description: 'You\'ll be able to clock in/out, view your schedule, request time off, and access the employee portal.',
+    features: ['Clock in/out with GPS', 'View work schedule', 'Request time off', 'View pay stubs'],
+  },
+  // Legacy role mappings
+  manager: {
+    title: 'Property Manager',
+    icon: Briefcase,
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/20',
+    description: 'You\'ll manage properties, tenants, schedules, and oversee day-to-day operations.',
+    features: ['Manage properties', 'Handle tenant relations', 'Approve timesheets', 'View reports'],
+  },
+  member: {
+    title: 'Maintenance Tech',
+    icon: Briefcase,
+    color: 'text-orange-400',
+    bg: 'bg-orange-500/20',
+    description: 'You\'ll handle maintenance requests, repairs, and work orders.',
+    features: ['View work orders', 'Update maintenance status', 'View properties', 'Team chat access'],
   },
 };
 

@@ -863,9 +863,15 @@ model Property {
   // Lease template assignment
   leaseTemplateAssignment PropertyLeaseTemplate?
 
+  // Property-specific fee settings
+  feeSettings PropertyFeeSettings?
+
   // Team Operations (Enterprise)
   shifts      Shift[]
   timeEntries TimeEntry[]
+
+  // Scanned documents (receipts, etc.)
+  scannedDocuments ScannedDocument[]
 
   @@index([status])
 }
@@ -1432,6 +1438,7 @@ model ScannedDocument {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   landlordId       String    @db.Uuid
   uploadedBy       String?   @db.Uuid
+  propertyId       String?   @db.Uuid // Property this document belongs to
   originalFileName String
   fileUrl          String // S3/Cloudinary URL
   fileType         String // pdf, jpg, png, etc
@@ -1453,15 +1460,18 @@ model ScannedDocument {
   convertedToLeaseId   String? @db.Uuid
   convertedToPaymentId String? @db.Uuid
   convertedToTenantId  String? @db.Uuid
+  convertedToExpenseId String? @db.Uuid // Link to created expense
 
   notes     String?
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  landlord Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
-  uploader User?    @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+  landlord Landlord  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  uploader User?     @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
   @@index([landlordId])
+  @@index([propertyId])
   @@index([documentType])
   @@index([classificationStatus])
   @@index([conversionStatus])
@@ -3539,4 +3549,54 @@ model ContractorReview {
   @@index([reviewerId])
   @@index([status])
   @@index([createdAt])
+}
+
+
+// ============= PROPERTY-SPECIFIC FEE SETTINGS =============
+
+// Property-specific fee overrides - allows customizing fees per property
+model PropertyFeeSettings {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId String @unique @db.Uuid
+  landlordId String @db.Uuid
+
+  // Security Deposit Override
+  securityDepositMonths Decimal? @db.Decimal(3, 1) // null = use landlord default
+  noSecurityDeposit     Boolean  @default(false) // If true, no security deposit required
+
+  // Last Month's Rent Override
+  lastMonthRentRequired Boolean? // null = use landlord default
+
+  // Pet Fees Override
+  petDepositEnabled Boolean? // null = use landlord default
+  petDepositAmount  Decimal? @db.Decimal(12, 2)
+  petRentEnabled    Boolean?
+  petRentAmount     Decimal? @db.Decimal(12, 2)
+  noPetFees         Boolean  @default(false) // If true, no pet fees for this property
+
+  // Cleaning Fee Override
+  cleaningFeeEnabled Boolean?
+  cleaningFeeAmount  Decimal? @db.Decimal(12, 2)
+  noCleaningFee      Boolean  @default(false)
+
+  // Application Fee Override
+  applicationFeeEnabled Boolean?
+  applicationFeeAmount  Decimal? @db.Decimal(12, 2)
+  noApplicationFee      Boolean  @default(false)
+
+  // Late Fee Override (Pro feature)
+  lateFeeEnabled    Boolean?
+  gracePeriodDays   Int?
+  lateFeeType       String? // 'flat' | 'percentage'
+  lateFeeAmount     Decimal? @db.Decimal(12, 2)
+  lateFeeMaxFee     Decimal? @db.Decimal(12, 2)
+  noLateFees        Boolean  @default(false)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([landlordId])
 }

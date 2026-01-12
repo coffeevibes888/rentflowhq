@@ -43,7 +43,7 @@ function TabLoadingState() {
 interface TeamMemberData {
   id: string;
   userId: string;
-  role: 'owner' | 'admin' | 'member';
+  role: 'owner' | 'admin' | 'property_manager' | 'leasing_agent' | 'showing_agent' | 'maintenance_tech' | 'accountant' | 'employee';
   status: 'pending' | 'active' | 'inactive';
   invitedEmail?: string;
   permissions: string[];

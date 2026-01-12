@@ -112,11 +112,13 @@ export default function PricingSection() {
         }
       } else {
         // User exists but not a landlord - redirect to sign-up to create landlord account
-        router.push(`/sign-up?plan=${tierId}&role=landlord`);
+        // Skip onboarding since they're coming from pricing page (we know they're landlords)
+        router.push(`/sign-up?plan=${tierId}&role=landlord&skipOnboarding=true`);
       }
     } else {
       // Not logged in - go to sign up with plan parameter
-      router.push(`/sign-up?plan=${tierId}&role=landlord`);
+      // Skip onboarding since they're coming from pricing page (we know they're landlords)
+      router.push(`/sign-up?plan=${tierId}&role=landlord&skipOnboarding=true`);
     }
     
     setLoadingTier(null);

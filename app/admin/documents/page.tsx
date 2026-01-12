@@ -33,6 +33,11 @@ const AdminDocumentsPage = async () => {
     prisma.scannedDocument.findMany({
       where: { landlordId },
       orderBy: { createdAt: 'desc' },
+      include: {
+        property: {
+          select: { id: true, name: true },
+        },
+      },
     }),
     prisma.property.findMany({
       where: { landlordId },

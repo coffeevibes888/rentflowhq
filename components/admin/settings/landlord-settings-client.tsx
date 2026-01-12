@@ -52,7 +52,7 @@ export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = fal
         </Link>
 
         <Link href="/admin/settings/financials" className="block">
-          <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-green-500/10 p-4 sm:p-5 hover:border-emerald-500/50 transition-all group h-full flex flex-col justify-between">
+          <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-r from-sky-600 to-emerald-500 p-4 sm:p-5 hover:border-emerald-500/50 transition-all group h-full flex flex-col justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-emerald-400" />

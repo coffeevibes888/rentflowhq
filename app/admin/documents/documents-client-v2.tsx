@@ -58,6 +58,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { LeaseBuilderModal } from '@/components/admin/lease-builder';
+import { ReceiptUploadDialog } from '@/components/admin/documents/receipt-upload-dialog';
 import { BrowserTabs, BrowserTab } from '@/components/admin/documents/browser-tabs';
 
 
@@ -94,6 +95,8 @@ interface ScannedDocument {
   extractedData: any;
   conversionStatus: string;
   notes: string | null;
+  propertyId?: string | null;
+  property?: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -223,6 +226,9 @@ export default function DocumentsClientV2({
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
   const [documentHtml, setDocumentHtml] = useState<string | null>(null);
   const [loadingDocumentPreview, setLoadingDocumentPreview] = useState(false);
+
+  // Receipt upload dialog state
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
 
   // Memoize browser tabs to prevent recalculation on every render
   const browserTabs: BrowserTab[] = useMemo(() => [
@@ -607,7 +613,7 @@ export default function DocumentsClientV2({
               </p>
               <Button
                 size="sm"
-                onClick={() => openUploadDialog('scan', 'receipt')}
+                onClick={() => setReceiptDialogOpen(true)}
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
                 <Camera className="h-4 w-4 mr-1" />
@@ -1101,6 +1107,25 @@ export default function DocumentsClientV2({
           />
         )}
 
+        {/* Receipt Upload Dialog */}
+        <ReceiptUploadDialog
+          open={receiptDialogOpen}
+          onOpenChange={setReceiptDialogOpen}
+          properties={properties}
+          onSuccess={async () => {
+            // Refresh scanned documents
+            try {
+              const res = await fetch('/api/documents');
+              if (res.ok) {
+                const data = await res.json();
+                setScannedDocuments(data.documents || []);
+              }
+            } catch (error) {
+              console.error('Failed to refresh documents:', error);
+            }
+          }}
+        />
+
         {/* Document Viewer Modal */}
         {documentViewerOpen && viewingDocument && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -1461,6 +1486,14 @@ function ScannedDocumentGrid({
                   <span className="text-[10px] md:text-xs text-white/70 capitalize">{doc.documentType}</span>
                 )}
               </div>
+
+              {/* Property badge */}
+              {doc.property && (
+                <div className="flex items-center gap-1 mb-2 text-[10px] md:text-xs">
+                  <Building2 className="h-3 w-3 text-violet-300" />
+                  <span className="text-violet-300 truncate">{doc.property.name}</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-[10px] md:text-xs text-white/60">
                 <div className="flex items-center gap-1 md:gap-2">

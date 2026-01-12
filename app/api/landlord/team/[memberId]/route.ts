@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { updateTeamMemberRole, removeTeamMember } from '@/lib/actions/team.actions';
+import { updateTeamMemberRole, removeTeamMember, type TeamMemberRole } from '@/lib/actions/team.actions';
+
+// Valid roles for the system
+const VALID_ROLES: TeamMemberRole[] = [
+  'admin', 
+  'property_manager', 
+  'leasing_agent', 
+  'showing_agent', 
+  'maintenance_tech', 
+  'accountant', 
+  'employee',
+  // Legacy roles (will be normalized)
+  'manager' as TeamMemberRole,
+  'member' as TeamMemberRole,
+];
 
 export async function PATCH(
   req: NextRequest,
@@ -15,13 +29,13 @@ export async function PATCH(
 
     const { memberId } = await params;
     const body = await req.json();
-    const { role } = body;
+    const { role, keepCustomPermissions = false } = body;
 
-    if (!role || !['admin', 'member', 'manager', 'leasing_agent', 'showing_agent', 'employee'].includes(role)) {
+    if (!role || !VALID_ROLES.includes(role)) {
       return NextResponse.json({ success: false, message: 'Invalid role' }, { status: 400 });
     }
 
-    const result = await updateTeamMemberRole(memberId, role);
+    const result = await updateTeamMemberRole(memberId, role, keepCustomPermissions);
 
     if (!result.success) {
       return NextResponse.json(result, { status: 400 });

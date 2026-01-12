@@ -37,7 +37,7 @@ const AdminSettingsPage = async () => {
     return (
       <main className="w-full space-y-4">
         <h1 className="text-xl sm:text-2xl font-semibold text-white">Settings</h1>
-        <p className="text-sm text-slate-400">Unable to load settings. Please try again.</p>
+        <p className="text-sm text-black">Unable to load settings. Please try again.</p>
       </main>
     );
   }
@@ -46,7 +46,7 @@ const AdminSettingsPage = async () => {
     <main className="w-full space-y-4">
       <div className="space-y-1">
         <h1 className="text-xl sm:text-2xl font-semibold text-white">Settings</h1>
-        <p className="text-[10px] sm:text-xs text-slate-400">
+        <p className="text-[10px] sm:text-xs text-black">
           Manage your profile, notifications, fees, and get help
         </p>
       </div>

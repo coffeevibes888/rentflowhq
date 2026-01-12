@@ -158,14 +158,22 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
 
     // Check if user came from pricing page with a plan
     const planParam = formData.get('plan');
+    const skipOnboarding = formData.get('skipOnboarding') === 'true';
+    
     if ((roleValue === 'landlord' || roleValue === 'property_manager') && planParam && typeof planParam === 'string') {
-      // If they selected a paid plan, redirect to subscription checkout
-      if (planParam !== 'free') {
-        redirect(`/admin/settings/subscription?upgrade=${planParam}`);
-      } else {
-        // Free plan - go to admin dashboard
-        redirect('/admin/overview');
+      // Create landlord record immediately if skipping onboarding
+      if (skipOnboarding) {
+        await getOrCreateCurrentLandlord();
+        
+        // Mark onboarding as completed since we're skipping the role selection
+        await prisma.user.update({
+          where: { id: createdUser.id },
+          data: { onboardingCompleted: true },
+        });
       }
+      
+      // Redirect to subscription page with the plan
+      redirect(`/onboarding/landlord/subscription?plan=${planParam}&skipOnboarding=${skipOnboarding}`);
     }
 
     const rawCallbackUrl = formData.get('callbackUrl');

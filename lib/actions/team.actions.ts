@@ -8,29 +8,53 @@ import { checkFeatureAccess } from './subscription.actions';
 import { randomUUID } from 'crypto';
 import { Resend } from 'resend';
 import { APP_NAME } from '@/lib/constants';
+import {
+  TeamMemberRole,
+  TeamPermission,
+  LEGACY_ROLE_MAP,
+  PERMISSION_DEFINITIONS,
+  ROLE_DEFINITIONS,
+  DEFAULT_PERMISSIONS,
+} from '@/lib/types/team.types';
 
-export type TeamMemberRole = 'owner' | 'admin' | 'manager' | 'leasing_agent' | 'showing_agent' | 'member' | 'employee';
-export type TeamPermission = 
-  | 'view_properties' 
-  | 'manage_tenants' 
-  | 'manage_maintenance' 
-  | 'manage_finances'
-  | 'manage_team'
-  | 'manage_schedule'
-  | 'approve_timesheets'
-  | 'view_financials'
-  | 'schedule_showings'
-  | 'process_applications';
+// Re-export types for consumers that import from this file
+export type { TeamMemberRole, TeamPermission } from '@/lib/types/team.types';
 
-const DEFAULT_PERMISSIONS: Record<TeamMemberRole, TeamPermission[]> = {
-  owner: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_team', 'manage_schedule', 'approve_timesheets', 'view_financials', 'schedule_showings', 'process_applications'],
-  admin: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_finances', 'manage_schedule', 'approve_timesheets', 'view_financials', 'schedule_showings', 'process_applications'],
-  manager: ['view_properties', 'manage_tenants', 'manage_maintenance', 'manage_schedule', 'approve_timesheets', 'view_financials', 'schedule_showings', 'process_applications'],
-  leasing_agent: ['view_properties', 'manage_tenants', 'process_applications', 'schedule_showings'],
-  showing_agent: ['view_properties', 'schedule_showings'],
-  member: ['view_properties', 'manage_maintenance'],
-  employee: ['view_properties'],
-};
+/**
+ * Get roles available for a subscription tier
+ */
+export async function getRolesForTier(tier: 'starter' | 'pro' | 'enterprise'): Promise<TeamMemberRole[]> {
+  if (tier === 'starter') return []; // No team management on starter
+  
+  const proRoles: TeamMemberRole[] = ['admin', 'property_manager', 'leasing_agent', 'showing_agent'];
+  const enterpriseRoles: TeamMemberRole[] = ['maintenance_tech', 'accountant', 'employee'];
+  
+  if (tier === 'enterprise') {
+    return [...proRoles, ...enterpriseRoles];
+  }
+  
+  return proRoles;
+}
+
+/**
+ * Get default permissions for a role
+ */
+export async function getDefaultPermissionsForRole(role: TeamMemberRole): Promise<TeamPermission[]> {
+  return [...DEFAULT_PERMISSIONS[role]];
+}
+
+/**
+ * Normalize legacy role names to current role names
+ */
+export async function normalizeRole(role: string): Promise<TeamMemberRole> {
+  if (LEGACY_ROLE_MAP[role]) {
+    return LEGACY_ROLE_MAP[role];
+  }
+  if (Object.keys(ROLE_DEFINITIONS).includes(role)) {
+    return role as TeamMemberRole;
+  }
+  return 'employee'; // Default fallback
+}
 
 // Type-safe prisma access for models that may not exist yet
 const teamMemberModel = () => (prisma as any).teamMember;
@@ -177,7 +201,7 @@ export async function getTeamMembers() {
   }
 }
 
-export async function inviteTeamMember(email: string, role: TeamMemberRole = 'member') {
+export async function inviteTeamMember(email: string, role: TeamMemberRole = 'employee') {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -211,6 +235,21 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'me
     
     const isEnterprise = landlord?.subscriptionTier === 'enterprise';
     const isPro = landlord?.subscriptionTier === 'pro' || landlord?.subscriptionTier === 'professional';
+    const currentTier = isEnterprise ? 'enterprise' : isPro ? 'pro' : 'starter';
+    
+    // Validate role is available for this tier
+    const availableRoles = await getRolesForTier(currentTier);
+    const normalizedRole = await normalizeRole(role);
+    
+    if (normalizedRole !== 'owner' && !availableRoles.includes(normalizedRole)) {
+      const roleDefinition = ROLE_DEFINITIONS[normalizedRole];
+      return {
+        success: false,
+        message: `The ${roleDefinition.label} role requires an ${roleDefinition.tier === 'enterprise' ? 'Enterprise' : 'Pro'} subscription.`,
+        featureLocked: true,
+        upgradeTier: roleDefinition.tier,
+      };
+    }
     
     // Pro: 5 team members + owner (6 total), Enterprise: unlimited
     const maxMembers = isEnterprise ? Infinity : 6;
@@ -273,6 +312,9 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'me
     const inviteToken = randomUUID();
     const inviteExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
+    // Get default permissions for the role
+    const defaultPermissions = getDefaultPermissionsForRole(normalizedRole);
+
     // Create pending team member
     // userId is null for users not in the system yet
     let member;
@@ -281,8 +323,8 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'me
         data: {
           landlordId: landlordResult.landlord.id,
           userId: existingUser?.id ?? null,
-          role,
-          permissions: DEFAULT_PERMISSIONS[role],
+          role: normalizedRole,
+          permissions: defaultPermissions,
           invitedEmail: email,
           inviteToken,
           inviteExpires,
@@ -473,7 +515,7 @@ export async function acceptTeamInvite(inviteToken: string) {
   }
 }
 
-export async function updateTeamMemberRole(memberId: string, role: TeamMemberRole) {
+export async function updateTeamMemberRole(memberId: string, role: TeamMemberRole, keepCustomPermissions: boolean = false) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -485,7 +527,7 @@ export async function updateTeamMemberRole(memberId: string, role: TeamMemberRol
       return { success: false, message: landlordResult.message };
     }
 
-    // Check if current user is the owner or has manage_team permission
+    // Check if current user has permission to manage team
     const currentUserMember = await teamMemberModel()?.findFirst?.({
       where: {
         userId: session.user.id,
@@ -494,8 +536,37 @@ export async function updateTeamMemberRole(memberId: string, role: TeamMemberRol
       },
     });
 
-    if (!currentUserMember || (currentUserMember.role !== 'owner' && !currentUserMember.permissions.includes('manage_team'))) {
-      return { success: false, message: 'Only the account owner can manage team roles' };
+    // Only owner, admin, or property_manager can manage team roles
+    const canManageRoles = currentUserMember?.role === 'owner' || 
+                          currentUserMember?.role === 'admin' ||
+                          (currentUserMember?.role === 'property_manager' && currentUserMember?.permissions?.includes('manage_team'));
+
+    if (!currentUserMember || !canManageRoles) {
+      return { success: false, message: 'You do not have permission to manage team roles' };
+    }
+
+    // Check subscription tier for role availability
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: landlordResult.landlord.id },
+      select: { subscriptionTier: true },
+    });
+    
+    const isEnterprise = landlord?.subscriptionTier === 'enterprise';
+    const isPro = landlord?.subscriptionTier === 'pro' || landlord?.subscriptionTier === 'professional';
+    const currentTier = isEnterprise ? 'enterprise' : isPro ? 'pro' : 'starter';
+    
+    // Validate role is available for this tier
+    const normalizedRole = await normalizeRole(role);
+    const availableRoles = await getRolesForTier(currentTier);
+    
+    if (normalizedRole !== 'owner' && !availableRoles.includes(normalizedRole)) {
+      const roleDefinition = ROLE_DEFINITIONS[normalizedRole];
+      return {
+        success: false,
+        message: `The ${roleDefinition.label} role requires an ${roleDefinition.tier === 'enterprise' ? 'Enterprise' : 'Pro'} subscription.`,
+        featureLocked: true,
+        upgradeTier: roleDefinition.tier,
+      };
     }
 
     let member;
@@ -515,15 +586,31 @@ export async function updateTeamMemberRole(memberId: string, role: TeamMemberRol
       return { success: false, message: 'Cannot change the owner role' };
     }
 
+    // Determine new permissions
+    let newPermissions: TeamPermission[];
+    if (keepCustomPermissions && member.permissions?.length > 0) {
+      // Keep existing custom permissions but ensure they're valid
+      const validPermissions = Object.keys(PERMISSION_DEFINITIONS) as TeamPermission[];
+      newPermissions = member.permissions.filter((p: string) => validPermissions.includes(p as TeamPermission));
+    } else {
+      // Reset to default permissions for the new role
+      newPermissions = await getDefaultPermissionsForRole(normalizedRole);
+    }
+
     await teamMemberModel()?.update?.({
       where: { id: memberId },
       data: {
-        role,
-        permissions: DEFAULT_PERMISSIONS[role],
+        role: normalizedRole,
+        permissions: newPermissions,
       },
     });
 
-    return { success: true, message: 'Role updated successfully' };
+    return { 
+      success: true, 
+      message: 'Role updated successfully',
+      newRole: normalizedRole,
+      newPermissions,
+    };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -622,7 +709,7 @@ export async function updateTeamMemberPermissions(memberId: string, permissions:
       return { success: false, message: landlordResult.message };
     }
 
-    // Check if current user is the owner or has manage_team permission
+    // Check if current user has permission to manage team
     const currentUserMember = await teamMemberModel()?.findFirst?.({
       where: {
         userId: session.user.id,
@@ -631,8 +718,13 @@ export async function updateTeamMemberPermissions(memberId: string, permissions:
       },
     });
 
-    if (!currentUserMember || (currentUserMember.role !== 'owner' && !currentUserMember.permissions.includes('manage_team'))) {
-      return { success: false, message: 'Only the account owner can manage team permissions' };
+    // Only owner, admin, or property_manager with manage_team permission can customize permissions
+    const canManagePermissions = currentUserMember?.role === 'owner' || 
+                                 currentUserMember?.role === 'admin' ||
+                                 (currentUserMember?.role === 'property_manager' && currentUserMember?.permissions?.includes('manage_team'));
+
+    if (!currentUserMember || !canManagePermissions) {
+      return { success: false, message: 'You do not have permission to manage team permissions' };
     }
 
     let member;
@@ -649,31 +741,100 @@ export async function updateTeamMemberPermissions(memberId: string, permissions:
     }
 
     if (member.role === 'owner') {
-      return { success: false, message: 'Cannot change owner permissions' };
+      return { success: false, message: 'Cannot change owner permissions - owner always has full access' };
     }
 
-    // Validate permissions
-    const validPermissions: TeamPermission[] = [
-      'view_properties',
-      'manage_tenants',
-      'manage_maintenance',
-      'manage_finances',
-      'manage_team',
-      'manage_schedule',
-      'approve_timesheets',
-      'view_financials',
-      'schedule_showings',
-      'process_applications',
-    ];
+    // Check if this role allows permission customization
+    const roleDefinition = ROLE_DEFINITIONS[member.role as TeamMemberRole];
+    if (!roleDefinition?.canCustomizePermissions) {
+      return { success: false, message: `Permissions cannot be customized for the ${roleDefinition?.label || member.role} role` };
+    }
 
+    // Validate permissions - only allow valid permission keys
+    const validPermissions = Object.keys(PERMISSION_DEFINITIONS) as TeamPermission[];
     const filteredPermissions = permissions.filter(p => validPermissions.includes(p));
+
+    // Ensure at least view_properties is always granted (minimum access)
+    if (!filteredPermissions.includes('view_properties')) {
+      filteredPermissions.unshift('view_properties');
+    }
 
     await teamMemberModel()?.update?.({
       where: { id: memberId },
       data: { permissions: filteredPermissions },
     });
 
-    return { success: true, message: 'Permissions updated successfully', permissions: filteredPermissions };
+    return { 
+      success: true, 
+      message: 'Permissions updated successfully', 
+      permissions: filteredPermissions,
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+/**
+ * Reset a team member's permissions to the default for their role
+ */
+export async function resetTeamMemberPermissions(memberId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    // Check if current user has permission to manage team
+    const currentUserMember = await teamMemberModel()?.findFirst?.({
+      where: {
+        userId: session.user.id,
+        landlordId: landlordResult.landlord.id,
+        status: 'active',
+      },
+    });
+
+    const canManagePermissions = currentUserMember?.role === 'owner' || 
+                                 currentUserMember?.role === 'admin' ||
+                                 (currentUserMember?.role === 'property_manager' && currentUserMember?.permissions?.includes('manage_team'));
+
+    if (!currentUserMember || !canManagePermissions) {
+      return { success: false, message: 'You do not have permission to manage team permissions' };
+    }
+
+    let member;
+    try {
+      member = await teamMemberModel()?.findFirst?.({
+        where: { id: memberId, landlordId: landlordResult.landlord.id },
+      });
+    } catch {
+      return { success: false, message: 'Team management requires database migration' };
+    }
+
+    if (!member) {
+      return { success: false, message: 'Team member not found' };
+    }
+
+    if (member.role === 'owner') {
+      return { success: false, message: 'Cannot reset owner permissions' };
+    }
+
+    const defaultPermissions = getDefaultPermissionsForRole(member.role as TeamMemberRole);
+
+    await teamMemberModel()?.update?.({
+      where: { id: memberId },
+      data: { permissions: defaultPermissions },
+    });
+
+    return { 
+      success: true, 
+      message: 'Permissions reset to defaults', 
+      permissions: defaultPermissions,
+    };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -681,6 +842,16 @@ export async function updateTeamMemberPermissions(memberId: string, permissions:
 
 export async function checkTeamMemberPermission(userId: string, landlordId: string, permission: TeamPermission): Promise<boolean> {
   try {
+    // First check if user is the landlord owner (always has full access)
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: landlordId },
+      select: { ownerUserId: true },
+    });
+
+    if (landlord?.ownerUserId === userId) {
+      return true; // Landlord owner has all permissions
+    }
+
     const member = await teamMemberModel()?.findFirst?.({
       where: {
         userId,
@@ -690,9 +861,80 @@ export async function checkTeamMemberPermission(userId: string, landlordId: stri
     });
 
     if (!member) return false;
-    if (member.role === 'owner') return true; // Owner has all permissions
+    if (member.role === 'owner') return true; // Owner role has all permissions
     
-    return member.permissions.includes(permission);
+    // Check the member's custom permissions array
+    return member.permissions?.includes(permission) || false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check if a user has any of the specified permissions
+ */
+export async function checkTeamMemberHasAnyPermission(
+  userId: string, 
+  landlordId: string, 
+  permissions: TeamPermission[]
+): Promise<boolean> {
+  try {
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: landlordId },
+      select: { ownerUserId: true },
+    });
+
+    if (landlord?.ownerUserId === userId) {
+      return true;
+    }
+
+    const member = await teamMemberModel()?.findFirst?.({
+      where: {
+        userId,
+        landlordId,
+        status: 'active',
+      },
+    });
+
+    if (!member) return false;
+    if (member.role === 'owner') return true;
+    
+    return permissions.some(p => member.permissions?.includes(p));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check if a user has all of the specified permissions
+ */
+export async function checkTeamMemberHasAllPermissions(
+  userId: string, 
+  landlordId: string, 
+  permissions: TeamPermission[]
+): Promise<boolean> {
+  try {
+    const landlord = await prisma.landlord.findUnique({
+      where: { id: landlordId },
+      select: { ownerUserId: true },
+    });
+
+    if (landlord?.ownerUserId === userId) {
+      return true;
+    }
+
+    const member = await teamMemberModel()?.findFirst?.({
+      where: {
+        userId,
+        landlordId,
+        status: 'active',
+      },
+    });
+
+    if (!member) return false;
+    if (member.role === 'owner') return true;
+    
+    return permissions.every(p => member.permissions?.includes(p));
   } catch {
     return false;
   }
@@ -702,7 +944,7 @@ export async function getCurrentUserTeamRole(landlordId: string) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { success: false, role: null, isOwner: false, canManageTeam: false };
+      return { success: false, role: null, isOwner: false, canManageTeam: false, permissions: [] };
     }
 
     // First check if user is the landlord owner
@@ -714,10 +956,11 @@ export async function getCurrentUserTeamRole(landlordId: string) {
     if (landlord?.ownerUserId === session.user.id) {
       return {
         success: true,
-        role: 'owner',
+        role: 'owner' as TeamMemberRole,
         isOwner: true,
         canManageTeam: true,
-        permissions: ['*'], // Owner has all permissions
+        canCustomizePermissions: true,
+        permissions: Object.keys(PERMISSION_DEFINITIONS) as TeamPermission[], // Owner has all permissions
       };
     }
 
@@ -731,17 +974,59 @@ export async function getCurrentUserTeamRole(landlordId: string) {
     });
 
     if (!member) {
-      return { success: false, role: null, isOwner: false, canManageTeam: false };
+      return { success: false, role: null, isOwner: false, canManageTeam: false, permissions: [] };
     }
+
+    const normalizedRole = await normalizeRole(member.role);
+    const roleDefinition = ROLE_DEFINITIONS[normalizedRole];
+    const isOwnerRole = normalizedRole === 'owner';
+    const canManageTeam = isOwnerRole || 
+                          normalizedRole === 'admin' || 
+                          member.permissions?.includes('manage_team');
 
     return {
       success: true,
-      role: member.role,
-      isOwner: member.role === 'owner',
-      canManageTeam: member.role === 'owner' || member.permissions.includes('manage_team'),
-      permissions: member.permissions,
+      role: normalizedRole,
+      roleLabel: roleDefinition?.label || normalizedRole,
+      isOwner: isOwnerRole,
+      canManageTeam,
+      canCustomizePermissions: canManageTeam,
+      permissions: isOwnerRole 
+        ? Object.keys(PERMISSION_DEFINITIONS) as TeamPermission[]
+        : (member.permissions || []) as TeamPermission[],
     };
   } catch (error) {
-    return { success: false, role: null, isOwner: false, canManageTeam: false };
+    return { success: false, role: null, isOwner: false, canManageTeam: false, permissions: [] };
   }
+}
+
+/**
+ * Get all team role and permission definitions for UI display
+ */
+export async function getTeamRoleDefinitions(tier: 'starter' | 'pro' | 'enterprise') {
+  const availableRoles = await getRolesForTier(tier);
+  
+  return {
+    roles: await Promise.all(
+      Object.entries(ROLE_DEFINITIONS)
+        .filter(([key]) => key === 'owner' || availableRoles.includes(key as TeamMemberRole))
+        .map(async ([key, value]) => ({
+          id: key as TeamMemberRole,
+          ...value,
+          defaultPermissions: await getDefaultPermissionsForRole(key as TeamMemberRole),
+          isAvailable: key === 'owner' || availableRoles.includes(key as TeamMemberRole),
+        }))
+    ),
+    permissions: Object.entries(PERMISSION_DEFINITIONS).map(([key, value]) => ({
+      id: key as TeamPermission,
+      ...value,
+    })),
+    permissionsByCategory: Object.entries(PERMISSION_DEFINITIONS).reduce((acc, [key, value]) => {
+      if (!acc[value.category]) {
+        acc[value.category] = [];
+      }
+      acc[value.category].push({ id: key as TeamPermission, ...value });
+      return acc;
+    }, {} as Record<string, Array<{ id: TeamPermission; label: string; description: string; category: string }>>),
+  };
 }

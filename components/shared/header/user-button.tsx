@@ -18,11 +18,18 @@ const UserButton = async () => {
 
   if (!session) {
     return (
-      <Button asChild>
-        <Link href='/sign-in'>
-          <UserIcon /> Sign In
-        </Link>
-      </Button>
+      <div className='flex gap-2 items-center'>
+        <Button asChild variant='outline'>
+          <Link href='/sign-in'>
+            Sign In
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link href='/sign-up'>
+            Sign Up
+          </Link>
+        </Button>
+      </div>
     );
   }
 
