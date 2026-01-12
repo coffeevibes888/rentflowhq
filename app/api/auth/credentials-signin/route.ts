@@ -4,6 +4,7 @@ import { prisma } from '@/db/prisma';
 import { getSubdomainRedirectUrl } from '@/lib/utils/subdomain-redirect';
 import { notifySuspiciousActivity } from '@/lib/services/admin-notifications';
 import { checkRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/security/rate-limiter';
+import { logAuthEvent } from '@/lib/security/audit-logger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,6 +38,15 @@ export async function POST(req: NextRequest) {
         severity: 'high',
       }).catch(console.error);
 
+      // Log rate limit hit to audit log
+      logAuthEvent('AUTH_FAILED_LOGIN', {
+        email,
+        ipAddress: ip,
+        userAgent,
+        success: false,
+        failureReason: 'Rate limit exceeded',
+      }).catch(console.error);
+
       return NextResponse.json({ 
         success: false, 
         message: 'Too many login attempts. Please try again later.' 
@@ -51,7 +61,16 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result || result.error) {
-      // Log failed attempt - notify if multiple failures
+      // Log failed attempt to audit log
+      logAuthEvent('AUTH_FAILED_LOGIN', {
+        email,
+        ipAddress: ip,
+        userAgent,
+        success: false,
+        failureReason: 'Invalid credentials',
+      }).catch(console.error);
+
+      // Notify if multiple failures
       if (rateLimit.remaining <= 2) {
         notifySuspiciousActivity({
           type: 'Multiple Failed Logins',
@@ -75,6 +94,15 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
+
+    // Log successful login to audit log
+    logAuthEvent('AUTH_LOGIN', {
+      userId: user.id,
+      email,
+      ipAddress: ip,
+      userAgent,
+      success: true,
+    }).catch(console.error);
 
     // Special handling for affiliate dashboard callback
     const isAffiliateCallback = callbackUrl?.includes('/affiliate-program/dashboard');

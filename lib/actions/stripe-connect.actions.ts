@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache';
 import Stripe from 'stripe';
 import { PAYOUT_FEES, calculatePayoutFee, getEstimatedArrival, type PayoutType } from '@/lib/config/payout-fees';
 import { runPayoutSecurityChecks, logPayoutAttempt } from '@/lib/security/payout-security';
+import { logFinancialEvent } from '@/lib/security/audit-logger';
 
 function getStripe() {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -583,6 +584,20 @@ export async function createPayout(options: CreatePayoutOptions = {}): Promise<C
         status: 'success',
       });
 
+      // Log payout completion to audit trail
+      logFinancialEvent('PAYOUT_COMPLETED', {
+        landlordId: landlord.id,
+        amount: netAmount,
+        currency: 'USD',
+        transactionId: stripePayout.id,
+        paymentMethod: payoutType,
+        additionalData: {
+          payoutId: payout.id,
+          fee,
+          payoutMethodLast4: payoutMethod.last4,
+        },
+      }).catch(console.error);
+
       return {
         success: true,
         message: `$${netAmount.toFixed(2)} sent to ****${payoutMethod.last4}. ${estimatedArrival}.`,
@@ -600,6 +615,18 @@ export async function createPayout(options: CreatePayoutOptions = {}): Promise<C
 
       const err = stripeError as { message?: string; code?: string };
       console.error('Payout error:', err);
+      
+      // Log failed payout to audit trail
+      logFinancialEvent('PAYOUT_FAILED', {
+        landlordId: landlord.id,
+        amount: requestedAmount,
+        currency: 'USD',
+        additionalData: {
+          payoutId: payout.id,
+          errorCode: err.code,
+          errorMessage: err.message,
+        },
+      }).catch(console.error);
       
       // Provide helpful error messages
       if (err.code === 'balance_insufficient') {

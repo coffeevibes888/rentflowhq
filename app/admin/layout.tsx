@@ -9,12 +9,49 @@ import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { SubscriptionProvider } from '@/components/subscription/subscription-provider';
 import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
 import { OnboardingWrapper } from '@/components/onboarding/onboarding-wrapper';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
+import { prisma } from '@/db/prisma';
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check if user has an active subscription
+  const session = await auth();
+  
+  if (session?.user?.id && (session.user.role === 'landlord' || session.user.role === 'property_manager')) {
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+      select: {
+        id: true,
+        stripeSubscriptionId: true,
+        subscriptionStatus: true,
+        subscription: {
+          select: {
+            status: true,
+            stripeSubscriptionId: true,
+          },
+        },
+      },
+    });
+
+    // If landlord exists but has no active subscription, redirect to subscription page
+    if (landlord) {
+      const hasActiveSubscription = 
+        landlord.stripeSubscriptionId || 
+        landlord.subscription?.stripeSubscriptionId ||
+        landlord.subscriptionStatus === 'trialing' ||
+        landlord.subscription?.status === 'trialing' ||
+        landlord.subscription?.status === 'active';
+
+      if (!hasActiveSubscription) {
+        redirect('/onboarding/landlord/subscription');
+      }
+    }
+  }
+
   return (
     <SessionProviderWrapper>
       <SubscriptionProvider>

@@ -147,6 +147,7 @@ export async function getOrCreateCurrentLandlord() {
         companyName: userName,
         subdomain,
         ownerUserId: userId,
+        subscriptionStatus: 'incomplete', // Require subscription before accessing dashboard
       };
 
       landlord = await prisma.landlord.create({

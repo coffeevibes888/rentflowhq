@@ -25,6 +25,7 @@ import { redirect } from 'next/navigation';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { getSubdomainRedirectUrl } from '../utils/subdomain-redirect';
 import { notifyNewSignup } from '../services/admin-notifications';
+import { logAuthEvent } from '@/lib/security/audit-logger';
 
 // Sign in the user with credentials
 export async function signInWithCredentials(
@@ -85,6 +86,9 @@ export async function signInWithCredentials(
 
 // Sign user out
 export async function signOutUser() {
+  // Get current session for audit logging
+  const session = await auth();
+  
   // get current users cart and delete it so it does not persist to next user
   const currentCart = await getMyCart();
 
@@ -93,6 +97,16 @@ export async function signOutUser() {
   } else {
     console.warn('No cart found for deletion.');
   }
+
+  // Log logout to audit trail
+  if (session?.user?.id) {
+    logAuthEvent('AUTH_LOGOUT', {
+      userId: session.user.id,
+      email: session.user.email || undefined,
+      success: true,
+    }).catch(console.error);
+  }
+
   await signOut();
 }
 

@@ -6,6 +6,7 @@ import { sendVerificationEmail, sendPasswordResetEmail } from '@/email';
 import { hash } from '../encrypt';
 import { randomBytes } from 'crypto';
 import { signOut } from '@/auth';
+import { logAuthEvent } from '@/lib/security/audit-logger';
 
 const generateToken = () => randomBytes(32).toString('hex');
 
@@ -161,6 +162,12 @@ export async function resetPassword(token: string, newPassword: string) {
 
     const hashedPassword = await hash(newPassword);
 
+    // Get user ID for audit logging
+    const user = await prisma.user.findUnique({
+      where: { email: passwordResetToken.email },
+      select: { id: true },
+    });
+
     await prisma.user.update({
       where: { email: passwordResetToken.email },
       data: { password: hashedPassword },
@@ -169,6 +176,13 @@ export async function resetPassword(token: string, newPassword: string) {
     await prisma.passwordResetToken.delete({
       where: { id: passwordResetToken.id },
     });
+
+    // Log password reset to audit trail
+    logAuthEvent('AUTH_PASSWORD_RESET', {
+      userId: user?.id,
+      email: passwordResetToken.email,
+      success: true,
+    }).catch(console.error);
 
     return { success: true, message: 'Password reset successfully' };
   } catch (error) {

@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { logFinancialEvent } from '@/lib/security/audit-logger';
 
 const PLATFORM_CASHOUT_FEE = 2.00;
 
@@ -323,6 +324,24 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Log payout to audit trail
+    const payoutStatus = stripePayout.status === 'paid' ? 'PAYOUT_COMPLETED' : 'PAYOUT_INITIATED';
+    logFinancialEvent(payoutStatus, {
+      userId: session.user.id,
+      landlordId: landlord.id,
+      amount: netAmount,
+      currency: 'USD',
+      transactionId: stripePayout.id,
+      paymentMethod: actualPayoutMethod,
+      additionalData: {
+        payoutId: payoutRecord.id,
+        grossAmount,
+        platformFee,
+        stripeFee,
+        destinationPropertyId: propertyId || null,
+      },
+    }).catch(console.error);
+
     return NextResponse.json({
       success: true,
       payoutId: payoutRecord.id,
@@ -338,6 +357,20 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Landlord cash-out error:', error);
+    
+    // Log failed payout to audit trail
+    const session = await auth();
+    if (session?.user?.id) {
+      logFinancialEvent('PAYOUT_FAILED', {
+        userId: session.user.id,
+        amount: 0,
+        currency: 'USD',
+        additionalData: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      }).catch(console.error);
+    }
+    
     return NextResponse.json(
       { success: false, message: 'Failed to process payout.' },
       { status: 500 }

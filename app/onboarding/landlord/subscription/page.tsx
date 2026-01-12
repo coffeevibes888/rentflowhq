@@ -41,5 +41,34 @@ export default async function LandlordSubscriptionPage({
     await getOrCreateCurrentLandlord();
   }
 
+  // Check if user already has an active subscription - redirect to dashboard
+  const landlord = await prisma.landlord.findFirst({
+    where: { ownerUserId: session.user.id },
+    select: {
+      stripeSubscriptionId: true,
+      subscriptionStatus: true,
+      subscription: {
+        select: {
+          status: true,
+          stripeSubscriptionId: true,
+        },
+      },
+    },
+  });
+
+  if (landlord) {
+    const hasActiveSubscription = 
+      landlord.stripeSubscriptionId || 
+      landlord.subscription?.stripeSubscriptionId ||
+      landlord.subscriptionStatus === 'trialing' ||
+      landlord.subscriptionStatus === 'active' ||
+      landlord.subscription?.status === 'trialing' ||
+      landlord.subscription?.status === 'active';
+
+    if (hasActiveSubscription) {
+      redirect('/admin/overview');
+    }
+  }
+
   return <SubscriptionSelectionClient userName={session.user.name || 'there'} />;
 }

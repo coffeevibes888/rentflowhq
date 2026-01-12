@@ -7,6 +7,7 @@ import { NotificationService } from '@/lib/services/notification-service';
 import { formatCurrency } from '@/lib/utils';
 import { formatEstimatedArrival } from '@/lib/config/stripe-constants';
 import { sendLandlordPaymentReceivedEmail } from '@/lib/actions/email.actions';
+import { logFinancialEvent } from '@/lib/security/audit-logger';
 
 /**
  * Stripe Webhook Handler
@@ -96,6 +97,24 @@ export async function POST(req: NextRequest) {
             )
           );
 
+          // Log payment to audit trail
+          const totalPaidAmount = rentPayments.reduce((sum, rp) => sum + Number(rp.amount), 0);
+          const landlord = rentPayments[0]?.lease?.unit?.property?.landlord;
+          
+          logFinancialEvent('PAYMENT_COMPLETED', {
+            userId: rentPayments[0]?.tenant?.userId || undefined,
+            landlordId: landlord?.id,
+            amount: totalPaidAmount,
+            currency: 'USD',
+            transactionId: paymentIntent.id,
+            paymentMethod: paymentMethodType,
+            additionalData: {
+              rentPaymentIds: rentPayments.map(rp => rp.id),
+              leaseId: rentPayments[0]?.leaseId,
+              tenantName: rentPayments[0]?.tenant?.name,
+            },
+          }).catch(console.error);
+
           // Best-effort transaction ledger write (avoid duplicates where possible)
           try {
             await tx.paymentTransaction.createMany({
@@ -127,20 +146,20 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          const landlord = rentPayments[0]?.lease?.unit?.property?.landlord;
+          const paymentLandlord = rentPayments[0]?.lease?.unit?.property?.landlord;
           const tenantName = rentPayments[0]?.tenant?.name || 'Tenant';
           const totalPaid = rentPayments.reduce((sum, rp) => sum + Number(rp.amount), 0);
           const idsForNotification = rentPayments.map((rp) => rp.id);
 
-          if (landlord?.owner?.id && landlord.id) {
+          if (paymentLandlord?.owner?.id && paymentLandlord.id) {
             await NotificationService.createNotification({
-              userId: landlord.owner.id,
+              userId: paymentLandlord.owner.id,
               type: 'payment',
               title: 'Rent Payment Received',
               message: `${tenantName} paid ${formatCurrency(totalPaid)}.`,
               actionUrl: `/admin/revenue`,
               metadata: { rentPaymentIds: idsForNotification, leaseId: rentPayments[0]?.leaseId },
-              landlordId: landlord.id,
+              landlordId: paymentLandlord.id,
             });
 
             // Send email notification to landlord
@@ -150,10 +169,10 @@ export async function POST(req: NextRequest) {
             const estimatedArrival = formatEstimatedArrival(paymentMethodType);
             const paymentMethodDisplay = paymentMethodType === 'us_bank_account' ? 'Bank Transfer (ACH)' : 'Card';
 
-            if (landlord.owner?.email) {
+            if (paymentLandlord.owner?.email) {
               await sendLandlordPaymentReceivedEmail({
-                landlordEmail: landlord.owner.email,
-                landlordName: landlord.name,
+                landlordEmail: paymentLandlord.owner.email,
+                landlordName: paymentLandlord.name,
                 tenantName,
                 propertyName,
                 unitNumber,
@@ -161,7 +180,7 @@ export async function POST(req: NextRequest) {
                 paymentMethod: paymentMethodDisplay,
                 paidAt: now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
                 estimatedArrival,
-                logoUrl: landlord.logoUrl,
+                logoUrl: paymentLandlord.logoUrl,
               });
             }
           }
@@ -308,6 +327,18 @@ export async function POST(req: NextRequest) {
           status: 'failed',
         },
       });
+
+      // Log failed payment to audit trail
+      logFinancialEvent('PAYMENT_FAILED', {
+        amount: paymentIntent.amount / 100,
+        currency: paymentIntent.currency?.toUpperCase() || 'USD',
+        transactionId: paymentIntent.id,
+        paymentMethod: paymentIntent.payment_method_types?.[0] || 'unknown',
+        additionalData: {
+          failureReason: paymentIntent.last_payment_error?.message,
+          failureCode: paymentIntent.last_payment_error?.code,
+        },
+      }).catch(console.error);
     }
 
     return NextResponse.json({
