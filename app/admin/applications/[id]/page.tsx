@@ -702,6 +702,15 @@ async function handleDecision(applicationId: string, status: string, adminRespon
 
       const hasPets = freshApp.notes?.toLowerCase().includes('has pets: yes');
       const petDepositAmount = hasPets && unit.property?.petDepositAnnual ? Number(unit.property.petDepositAnnual) : 0;
+      
+      // Get landlord fee settings for cleaning fee
+      const landlord = await tx.landlord.findUnique({
+        where: { id: propertyWithLease?.landlord?.id },
+        select: { cleaningFeeEnabled: true, cleaningFeeAmount: true },
+      });
+      const cleaningFeeAmount = landlord?.cleaningFeeEnabled && landlord?.cleaningFeeAmount 
+        ? Number(landlord.cleaningFeeAmount) 
+        : (unit.property?.cleaningFee ? Number(unit.property.cleaningFee) : 0);
 
       const rentPaymentsData: any[] = [
         { leaseId: lease.id, tenantId: lease.tenantId, dueDate: startDate, amount: lease.rentAmount, status: 'pending', metadata: { type: 'first_month_rent' } },
@@ -710,6 +719,10 @@ async function handleDecision(applicationId: string, status: string, adminRespon
       ];
       if (petDepositAmount > 0) {
         rentPaymentsData.push({ leaseId: lease.id, tenantId: lease.tenantId, dueDate: startDate, amount: petDepositAmount, status: 'pending', metadata: { type: 'pet_deposit_annual' } });
+      }
+      // Add cleaning fee to first month bill if enabled
+      if (cleaningFeeAmount > 0) {
+        rentPaymentsData.push({ leaseId: lease.id, tenantId: lease.tenantId, dueDate: startDate, amount: cleaningFeeAmount, status: 'pending', metadata: { type: 'cleaning_fee' } });
       }
 
       await tx.rentPayment.createMany({ data: rentPaymentsData });

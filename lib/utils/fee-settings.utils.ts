@@ -8,8 +8,6 @@ export interface EffectiveFeeSettings {
   petRentAmount: number | null;
   cleaningFeeEnabled: boolean;
   cleaningFeeAmount: number | null;
-  applicationFeeEnabled: boolean;
-  applicationFeeAmount: number | null;
   lastMonthRentRequired: boolean;
 }
 
@@ -21,8 +19,6 @@ export interface LandlordFeeSettings {
   petRentAmount: number | null;
   cleaningFeeEnabled: boolean;
   cleaningFeeAmount: number | null;
-  applicationFeeEnabled: boolean;
-  applicationFeeAmount: number | null;
   lastMonthRentRequired: boolean;
 }
 
@@ -89,18 +85,6 @@ export async function getEffectiveFeeSettings(
           ? Number(propertyOverride.cleaningFeeAmount) 
           : landlordSettings.cleaningFeeAmount),
 
-    // Application Fee
-    applicationFeeEnabled: propertyOverride.noApplicationFee 
-      ? false 
-      : (propertyOverride.applicationFeeEnabled !== null 
-          ? propertyOverride.applicationFeeEnabled 
-          : landlordSettings.applicationFeeEnabled),
-    applicationFeeAmount: propertyOverride.noApplicationFee 
-      ? null 
-      : (propertyOverride.applicationFeeAmount !== null 
-          ? Number(propertyOverride.applicationFeeAmount) 
-          : landlordSettings.applicationFeeAmount),
-
     // Last Month's Rent
     lastMonthRentRequired: propertyOverride.lastMonthRentRequired !== null 
       ? propertyOverride.lastMonthRentRequired 
@@ -158,17 +142,6 @@ export function applyPropertyOverrides(
       : (propertyOverride.cleaningFeeAmount !== null 
           ? Number(propertyOverride.cleaningFeeAmount) 
           : landlordSettings.cleaningFeeAmount),
-
-    applicationFeeEnabled: propertyOverride.noApplicationFee 
-      ? false 
-      : (propertyOverride.applicationFeeEnabled !== null 
-          ? propertyOverride.applicationFeeEnabled 
-          : landlordSettings.applicationFeeEnabled),
-    applicationFeeAmount: propertyOverride.noApplicationFee 
-      ? null 
-      : (propertyOverride.applicationFeeAmount !== null 
-          ? Number(propertyOverride.applicationFeeAmount) 
-          : landlordSettings.applicationFeeAmount),
 
     lastMonthRentRequired: propertyOverride.lastMonthRentRequired !== null 
       ? propertyOverride.lastMonthRentRequired 

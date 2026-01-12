@@ -8,6 +8,7 @@ export const MOVE_IN_PAYMENT_TYPES = [
   'last_month_rent',
   'security_deposit',
   'pet_deposit_annual',
+  'cleaning_fee',
 ] as const;
 
 export type MoveInPaymentType = typeof MOVE_IN_PAYMENT_TYPES[number];
@@ -44,6 +45,7 @@ export interface GroupedPayment {
     lastMonth?: number;
     securityDeposit?: number;
     petDeposit?: number;
+    cleaningFee?: number;
   };
   // Original payments for reference
   originalPayments?: PaymentWithMetadata[];
@@ -77,6 +79,8 @@ export function getPaymentTypeLabel(type: string): string {
       return 'Security Deposit';
     case 'pet_deposit_annual':
       return 'Pet Deposit';
+    case 'cleaning_fee':
+      return 'Cleaning Fee';
     case 'monthly_rent':
       return 'Monthly Rent';
     case 'move_in':
@@ -196,6 +200,9 @@ export function consolidateMoveInPayments(
           break;
         case 'pet_deposit_annual':
           breakdown.petDeposit = amount;
+          break;
+        case 'cleaning_fee':
+          breakdown.cleaningFee = amount;
           break;
       }
     }

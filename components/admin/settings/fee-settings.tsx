@@ -70,9 +70,6 @@ interface PropertyFeeOverride {
   cleaningFeeEnabled?: boolean | null;
   cleaningFeeAmount?: number | null;
   noCleaningFee?: boolean;
-  applicationFeeEnabled?: boolean | null;
-  applicationFeeAmount?: number | null;
-  noApplicationFee?: boolean;
 }
 
 export function FeeSettings({ isPro }: FeeSettingsProps) {
@@ -125,13 +122,6 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
   const [cleaningFee, setCleaningFee] = useState<FeeConfig>({
     enabled: false,
     amount: 150,
-    applyToAll: true,
-    selectedProperties: [],
-  });
-  
-  const [applicationFee, setApplicationFee] = useState<FeeConfig>({
-    enabled: true,
-    amount: 50,
     applyToAll: true,
     selectedProperties: [],
   });
@@ -192,14 +182,6 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
               amount: data.settings.cleaningFee.amount ?? 150,
               applyToAll: data.settings.cleaningFee.applyToAll ?? true,
               selectedProperties: data.settings.cleaningFee.selectedProperties ?? [],
-            });
-          }
-          if (data.settings.applicationFee) {
-            setApplicationFee({
-              enabled: data.settings.applicationFee.enabled ?? true,
-              amount: data.settings.applicationFee.amount ?? 50,
-              applyToAll: data.settings.applicationFee.applyToAll ?? true,
-              selectedProperties: data.settings.applicationFee.selectedProperties ?? [],
             });
           }
           if (data.settings.securityDeposit) {
@@ -293,7 +275,6 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
           petDeposit,
           petRent,
           cleaningFee,
-          applicationFee,
           securityDeposit,
           lastMonthRent,
         }),
@@ -683,42 +664,6 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                   selectedProperties={cleaningFee.selectedProperties}
                   setSelectedProperties={(v) => setCleaningFee({ ...cleaningFee, selectedProperties: v })}
                   label="cleaningFee"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Application Fee */}
-          <div className="rounded-lg border border-white/5 bg-slate-800/30 p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className="text-sm text-white font-medium">Application Fee</p>
-                <p className="text-[11px] text-slate-500">Per applicant</p>
-              </div>
-              <Switch
-                checked={applicationFee.enabled}
-                onCheckedChange={(checked) => setApplicationFee({ ...applicationFee, enabled: checked })}
-              />
-            </div>
-            {applicationFee.enabled && (
-              <div className="space-y-2 pt-2 border-t border-white/5">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-500 text-sm">$</span>
-                  <Input
-                    type="number"
-                    value={applicationFee.amount || ''}
-                    onChange={(e) => setApplicationFee({ ...applicationFee, amount: e.target.value === '' ? 0 : Number(e.target.value) })}
-                    className="h-8 w-28 text-sm"
-                    min={0}
-                    placeholder="0"
-                  />
-                </div>
-                <PropertySelector
-                  applyToAll={applicationFee.applyToAll}
-                  setApplyToAll={(v) => setApplicationFee({ ...applicationFee, applyToAll: v })}
-                  selectedProperties={applicationFee.selectedProperties}
-                  setSelectedProperties={(v) => setApplicationFee({ ...applicationFee, selectedProperties: v })}
-                  label="applicationFee"
                 />
               </div>
             )}

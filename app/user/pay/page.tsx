@@ -62,14 +62,15 @@ export default async function PayRentPage() {
   const pendingPayments = lease?.rentPayments || [];
   
   // Separate move-in payments from regular rent
+  const moveInPaymentTypes = ['first_month_rent', 'last_month_rent', 'security_deposit', 'pet_deposit_annual', 'cleaning_fee'];
   const moveInPayments = pendingPayments.filter(
-    (p) => ['first_month_rent', 'last_month_rent', 'security_deposit'].includes(
+    (p) => moveInPaymentTypes.includes(
       (p.metadata as Record<string, unknown>)?.type as string || ''
     )
   );
   
   const regularPayments = pendingPayments.filter(
-    (p) => !['first_month_rent', 'last_month_rent', 'security_deposit'].includes(
+    (p) => !moveInPaymentTypes.includes(
       (p.metadata as Record<string, unknown>)?.type as string || ''
     )
   );

@@ -321,7 +321,7 @@ describe('Post-Signing Payment Flow - Property Tests', () => {
         fc.asyncProperty(
           rentPaymentArb,
           async (payment) => {
-            const moveInTypes = ['first_month_rent', 'last_month_rent', 'security_deposit'];
+            const moveInTypes = ['first_month_rent', 'last_month_rent', 'security_deposit', 'pet_deposit_annual', 'cleaning_fee'];
             const paymentType = payment.metadata?.type;
 
             if (moveInTypes.includes(paymentType)) {
