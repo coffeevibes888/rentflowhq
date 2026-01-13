@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { trackPageView } from '@/lib/actions/analytics.actions';
+import { auth } from '@/auth';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
     const { path, referrer } = await request.json();
+
+    // Check if user is super admin - exclude from analytics
+    const session = await auth();
+    if (session?.user?.role === 'super_admin' || session?.user?.role === 'superAdmin') {
+      return NextResponse.json({ ok: true, skipped: 'super_admin' });
+    }
 
     let sessionCartId = request.cookies.get('sessionCartId')?.value;
     const country = request.headers.get('x-vercel-ip-country');

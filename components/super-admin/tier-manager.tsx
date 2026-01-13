@@ -156,7 +156,7 @@ export default function TierManager() {
   };
 
   const revokeTier = async (landlordId: string) => {
-    if (!confirm('Are you sure you want to revoke this subscription? The landlord will be reset to the free tier.')) {
+    if (!confirm('Are you sure you want to revoke this subscription? The landlord will be reset to the Starter tier.')) {
       return;
     }
 
@@ -175,7 +175,7 @@ export default function TierManager() {
         setLandlords(prev =>
           prev.map(l =>
             l.id === landlordId 
-              ? { ...l, currentTier: 'free', isGranted: false, periodEnd: undefined } 
+              ? { ...l, currentTier: 'starter', isGranted: false, periodEnd: undefined } 
               : l
           )
         );
@@ -296,7 +296,7 @@ export default function TierManager() {
                     <Check className="h-4 w-4" /> All Pro Features Unlocked
                   </span>
                 ) : (
-                  <span className="text-slate-600">Currently on Free Tier</span>
+                  <span className="text-slate-600">Currently on Starter Tier</span>
                 )}
               </p>
               <p className="text-sm text-muted-foreground">

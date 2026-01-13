@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Bell, DollarSign, HelpCircle, CreditCard, Crown, ArrowRight, Shield, Building2 } from 'lucide-react';
+import { User, Bell, DollarSign, HelpCircle, CreditCard, Crown, ArrowRight, Shield, Building2, Code } from 'lucide-react';
 import { ProfileSettings } from './profile-settings';
 import { NotificationSettings } from './notification-settings';
 import { FeeSettings } from './fee-settings';
@@ -25,11 +25,12 @@ interface LandlordSettingsClientProps {
     aboutPhoto?: string | null;
   };
   isPro: boolean;
+  isEnterprise?: boolean;
   twoFactorEnabled?: boolean;
   initialTab?: string;
 }
 
-export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = false, initialTab = 'profile' }: LandlordSettingsClientProps) {
+export function LandlordSettingsClient({ landlord, isPro, isEnterprise = false, twoFactorEnabled = false, initialTab = 'profile' }: LandlordSettingsClientProps) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const router = useRouter();
 
@@ -92,6 +93,25 @@ export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = fal
                   <span className="hidden sm:inline mr-1">Upgrade</span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {isEnterprise && (
+          <Link href="/admin/settings/developer" className="block">
+            <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-600 to-blue-500 p-4 sm:p-5 hover:border-cyan-500/50 transition-all group h-full flex flex-col justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                  <Code className="w-5 h-5 text-cyan-300" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-white">Developer Settings</h3>
+                  <p className="text-xs text-black">API keys & webhooks</p>
+                </div>
+              </div>
+              <div className="text-right mt-2">
+                <ArrowRight className="w-4 h-4 inline text-cyan-300 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </Link>

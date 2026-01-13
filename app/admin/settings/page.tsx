@@ -28,6 +28,7 @@ const AdminSettingsPage = async ({ searchParams }: AdminSettingsPageProps) => {
   const landlord = landlordResult.success ? landlordResult.landlord : null;
   const isPro = subscriptionResult.success && 
     (subscriptionResult.currentTier === 'pro' || subscriptionResult.currentTier === 'enterprise');
+  const isEnterprise = subscriptionResult.success && subscriptionResult.currentTier === 'enterprise';
 
   // Get user's 2FA status
   let twoFactorEnabled = false;
@@ -69,6 +70,7 @@ const AdminSettingsPage = async ({ searchParams }: AdminSettingsPageProps) => {
           aboutPhoto: landlord.aboutPhoto,
         }}
         isPro={isPro}
+        isEnterprise={isEnterprise}
         twoFactorEnabled={twoFactorEnabled}
         initialTab={initialTab}
       />

@@ -60,10 +60,15 @@ const Menu = async () => {
             <NotificationBell isAdmin={isAdmin} />
             <Link href='/' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Home</Link>
             <Link href='/listings' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Listings</Link>
-            {/* <Link href='/contractors' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Contractors</Link> */}
-            <Link href='/about' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">About</Link>
+            <Link href='/about' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">About Us</Link>
+            
+            {/* Resources Section */}
+            <div className="mt-4 mb-2 px-1 text-xs uppercase tracking-wider text-white/60">Resources</div>
+            <Link href='/faq' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">FAQs</Link>
+            <Link href='/docs/api' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">API & Webhooks</Link>
+            <Link href='/affiliate-program' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Affiliate Program</Link>
             <Link href='/contact' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Contact</Link>
-            <Link href='/affiliate-program' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Affiliates</Link>
+            
             <UserButton />
             <SheetDescription></SheetDescription>
           </SheetContent>

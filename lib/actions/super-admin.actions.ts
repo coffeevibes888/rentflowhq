@@ -4,6 +4,13 @@ import { prisma } from '@/db/prisma';
 import { formatError } from '../utils';
 import { requireSuperAdmin } from '../auth-guard';
 
+// Helper to normalize tier names (map legacy tiers to current ones)
+function normalizeTierName(tier: string | null | undefined): string {
+  if (!tier || tier === 'free') return 'starter';
+  if (tier === 'growth' || tier === 'professional') return 'pro';
+  return tier;
+}
+
 type RentAggregate = {
   day: number;
   week: number;
@@ -190,7 +197,7 @@ export async function getSuperAdminInsights() {
         units: unitCount,
         tenants: tenantCount,
         rentCollected,
-        subscriptionTier: landlord.subscription?.tier || landlord.subscriptionTier || 'free',
+        subscriptionTier: normalizeTierName(landlord.subscription?.tier || landlord.subscriptionTier || 'starter'),
       };
     });
 
@@ -334,12 +341,15 @@ export async function getSuperAdminInsights() {
     }, {});
 
     const subscriptionBreakdown = {
-      free: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier || 'free') === 'free').length,
-      pro: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier) === 'pro').length,
+      starter: landlords.filter(l => {
+        const tier = (l.subscription?.tier || l.subscriptionTier || 'starter');
+        return tier === 'starter' || tier === 'free'; // Map legacy 'free' to starter
+      }).length,
+      pro: landlords.filter(l => {
+        const tier = (l.subscription?.tier || l.subscriptionTier);
+        return tier === 'pro' || tier === 'growth' || tier === 'professional'; // Include legacy tiers
+      }).length,
       enterprise: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier) === 'enterprise').length,
-      // Legacy support - count old tiers as pro
-      growth: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier) === 'growth').length,
-      professional: landlords.filter(l => (l.subscription?.tier || l.subscriptionTier) === 'professional').length,
     };
 
     const collectionRate =
@@ -489,7 +499,7 @@ export async function getSuperAdminInsights() {
         subscriptionRevenue: { day: 0, week: 0, month: 0, year: 0 },
         total: { day: 0, week: 0, month: 0, year: 0 },
       },
-      subscriptionBreakdown: { free: 0, pro: 0, growth: 0, professional: 0, enterprise: 0 },
+      subscriptionBreakdown: { starter: 0, pro: 0, enterprise: 0 },
       // New enhanced data defaults
       stripeConnectStatus: { completed: 0, pendingVerification: 0, pending: 0, notStarted: 0 },
       maintenanceSummary: { open: 0, inProgress: 0, resolved: 0, closed: 0, urgent: 0, high: 0, total: 0 },
