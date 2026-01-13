@@ -95,13 +95,13 @@ export function TeamHub({
   };
 
   return (
-    <div className="flex flex-col bg-slate-900/40 rounded-2xl border border-white/10 min-h-[600px] max-h-[80vh]">
+    <div className="flex flex-col bg-slate-900/40 rounded-2xl border border-white/10">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-5 border-b border-white/10">
-        <div className="flex items-center justify-between">
+      <div className="flex-shrink-0 px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Team Hub</h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <h1 className="text-xl sm:text-2xl font-semibold text-white">Team Hub</h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               {isEnterprise 
                 ? 'Manage unlimited team members, communicate, and run operations'
                 : isPro
@@ -111,7 +111,7 @@ export function TeamHub({
             </p>
           </div>
           {isEnterprise && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 self-start sm:self-auto">
               <Crown className="h-3 w-3 mr-1" />
               Enterprise
             </Badge>
@@ -121,12 +121,12 @@ export function TeamHub({
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <div className="flex-shrink-0 px-6 py-4 border-b border-white/5 bg-slate-900/30">
-          <TabsList className="inline-flex h-auto p-1 bg-slate-800/60 border border-white/10 rounded-xl gap-1 flex-wrap">
+        <div className="flex-shrink-0 px-3 sm:px-6 py-3 sm:py-4 border-b border-white/5 bg-slate-900/30 overflow-x-auto">
+          <TabsList className="inline-flex h-auto p-1 bg-slate-800/60 border border-white/10 rounded-xl gap-1 min-w-max">
             {/* Always available tabs */}
             <TabsTrigger
               value="chat"
-              className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg text-slate-300"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
             >
               <MessageSquare className="h-4 w-4" />
               <span>Chat</span>
@@ -134,7 +134,7 @@ export function TeamHub({
             
             <TabsTrigger
               value="members"
-              className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg text-slate-300"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
             >
               <Users className="h-4 w-4" />
               <span>Members</span>
@@ -146,58 +146,40 @@ export function TeamHub({
             {/* Pro+ tabs */}
             {isPro && (
               <>
-                <div className="w-px h-6 bg-white/10 mx-1 self-center" />
+                <div className="w-px h-6 bg-white/10 mx-1 self-center hidden sm:block" />
                 
                 <TabsTrigger
                   value="schedule"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
                 >
                   <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Schedule</span>
+                  <span>Schedule</span>
                 </TabsTrigger>
                 
                 <TabsTrigger
                   value="time"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
                 >
                   <Clock className="h-4 w-4" />
-                  <span className="hidden sm:inline">Time</span>
+                  <span>Time</span>
                 </TabsTrigger>
                 
                 <TabsTrigger
                   value="timesheets"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
                 >
                   <FileText className="h-4 w-4" />
-                  <span className="hidden sm:inline">Timesheets</span>
+                  <span>Timesheets</span>
                 </TabsTrigger>
-                
-                {/* Payroll - Commented out until third-party payroll API integration */}
-                {/* <TabsTrigger
-                  value="payroll"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300"
-                >
-                  <DollarSign className="h-4 w-4" />
-                  <span className="hidden sm:inline">Payroll</span>
-                </TabsTrigger> */}
-                
-                {/* Hiring - Commented out until public careers page is ready */}
-                {/* <TabsTrigger
-                  value="hiring"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-500 data-[state=active]:text-white rounded-lg text-slate-300"
-                >
-                  <Briefcase className="h-4 w-4" />
-                  <span className="hidden sm:inline">Hiring</span>
-                </TabsTrigger> */}
               </>
             )}
           </TabsList>
         </div>
 
-        {/* Tab Content - Controlled height with proper scrolling */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        {/* Tab Content */}
+        <div className="flex-1">
           <TabsContent value="chat" className="h-full mt-0 flex flex-col">
-            <div className="flex-1 min-h-0 max-h-[60vh]">
+            <div className="flex-1 min-h-0">
               <TeamChat
                 currentUser={currentUser}
                 landlordId={landlordId}
@@ -209,8 +191,8 @@ export function TeamHub({
             </div>
           </TabsContent>
 
-          <TabsContent value="members" className="mt-0 h-full overflow-y-auto">
-            <div className="p-6 pt-4">
+          <TabsContent value="members" className="mt-0">
+            <div className="p-4 sm:p-6">
               <TeamMembersTab 
                 members={teamMembers} 
                 isEnterprise={isEnterprise}
@@ -222,37 +204,23 @@ export function TeamHub({
 
           {isPro && (
             <>
-              <TabsContent value="schedule" className="mt-0 overflow-y-auto max-h-[60vh]">
-                <div className="p-6">
+              <TabsContent value="schedule" className="mt-0">
+                <div className="p-3 sm:p-6">
                   <ScheduleTab />
                 </div>
               </TabsContent>
 
-              <TabsContent value="time" className="mt-0 overflow-y-auto max-h-[60vh]">
-                <div className="p-6">
+              <TabsContent value="time" className="mt-0">
+                <div className="p-4 sm:p-6">
                   <TimeTrackingTab />
                 </div>
               </TabsContent>
 
-              <TabsContent value="timesheets" className="mt-0 overflow-y-auto max-h-[60vh]">
-                <div className="p-6">
+              <TabsContent value="timesheets" className="mt-0">
+                <div className="p-4 sm:p-6">
                   <TimesheetsTab />
                 </div>
               </TabsContent>
-
-              {/* Payroll - Commented out until third-party payroll API integration */}
-              {/* <TabsContent value="payroll" className="mt-0">
-                <div className="p-6">
-                  <PayrollTab />
-                </div>
-              </TabsContent> */}
-
-              {/* Hiring - Commented out until public careers page is ready */}
-              {/* <TabsContent value="hiring" className="mt-0">
-                <div className="p-6">
-                  <HiringTab landlordId={landlordId} />
-                </div>
-              </TabsContent> */}
             </>
           )}
         </div>

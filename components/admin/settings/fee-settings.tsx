@@ -366,44 +366,96 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
     setSelectedProperties: (v: string[]) => void;
     label: string;
   }) => {
-    const handleToggle = (checked: boolean) => {
-      setApplyToAll(checked);
-      if (checked) {
-        setSelectedProperties([]);
-      }
-    };
-
     return (
-      <div className="space-y-3 pt-2 border-t border-white/5">
+      <div className="space-y-3 pt-3 border-t border-white/5">
         {/* Toggle for Apply to All */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-xs text-slate-300">Applies to all properties</span>
+        <div 
+          className={`
+            flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300
+            ${applyToAll 
+              ? 'bg-gradient-to-r from-violet-500/20 to-purple-500/20 border border-violet-500/30' 
+              : 'bg-slate-800/40 border border-white/5 hover:border-white/10'
+            }
+          `}
+          onClick={() => {
+            const newValue = !applyToAll;
+            setApplyToAll(newValue);
+            if (newValue) {
+              setSelectedProperties([]);
+            }
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`
+              p-2 rounded-lg transition-colors duration-300
+              ${applyToAll ? 'bg-violet-500/30' : 'bg-slate-700/50'}
+            `}>
+              <Building2 className={`w-4 h-4 transition-colors duration-300 ${applyToAll ? 'text-violet-300' : 'text-slate-400'}`} />
+            </div>
+            <div>
+              <span className={`text-sm font-medium transition-colors duration-300 ${applyToAll ? 'text-white' : 'text-slate-300'}`}>
+                All Properties
+              </span>
+              <p className="text-[10px] text-slate-500">
+                {applyToAll ? 'This fee applies to every property' : 'Click to apply to all properties'}
+              </p>
+            </div>
           </div>
-          <Switch
-            checked={applyToAll}
-            onCheckedChange={handleToggle}
-            className="data-[state=checked]:bg-violet-600"
-          />
+          
+          {/* Stylish Toggle */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={applyToAll}
+            onClick={(e) => e.stopPropagation()}
+            className={`
+              relative inline-flex h-7 w-14 shrink-0 cursor-pointer items-center rounded-full 
+              border-2 transition-all duration-300 focus-visible:outline-none 
+              focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900
+              ${applyToAll 
+                ? 'bg-gradient-to-r from-violet-600 to-purple-600 border-violet-500/50 shadow-lg shadow-violet-500/25' 
+                : 'bg-slate-700 border-slate-600 hover:bg-slate-600'
+              }
+            `}
+          >
+            <span
+              className={`
+                pointer-events-none flex items-center justify-center h-5 w-5 rounded-full shadow-md 
+                ring-0 transition-all duration-300
+                ${applyToAll 
+                  ? 'translate-x-7 bg-white' 
+                  : 'translate-x-1 bg-slate-400'
+                }
+              `}
+            >
+              {applyToAll && (
+                <Check className="h-3 w-3 text-violet-600" />
+              )}
+            </span>
+          </button>
         </div>
 
         {/* Property Selection - Only shows when toggle is OFF */}
         {!applyToAll && properties.length > 0 && (
-          <div className="rounded-lg border border-white/10 bg-slate-800/50 p-3 space-y-2">
-            <p className="text-[11px] text-slate-400 mb-2">Select which properties this fee applies to:</p>
-            <div className="space-y-1.5 max-h-36 overflow-y-auto">
+          <div className="rounded-xl border border-white/10 bg-slate-800/30 p-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+            <p className="text-xs text-slate-400 mb-3 flex items-center gap-2">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              Select specific properties for this fee:
+            </p>
+            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
               {properties.map((p) => {
                 const hasCustomOverride = !!propertyOverrides[p.id];
                 const isSelected = selectedProperties.includes(p.id);
                 return (
                   <div 
                     key={p.id} 
-                    className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors ${
-                      isSelected 
-                        ? 'bg-violet-500/20 border border-violet-500/30' 
-                        : 'bg-slate-700/30 border border-transparent hover:bg-slate-700/50'
-                    }`}
+                    className={`
+                      flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all duration-200
+                      ${isSelected 
+                        ? 'bg-gradient-to-r from-violet-500/20 to-purple-500/20 border border-violet-500/40 shadow-sm' 
+                        : 'bg-slate-700/30 border border-transparent hover:bg-slate-700/50 hover:border-white/10'
+                      }
+                    `}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (isSelected) {
@@ -413,42 +465,45 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                       }
                     }}
                   >
-                    <Checkbox
-                      id={`${label}-${p.id}`}
-                      checked={isSelected}
-                      onClick={(e) => e.stopPropagation()}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedProperties([...selectedProperties, p.id]);
-                        } else {
-                          setSelectedProperties(selectedProperties.filter(id => id !== p.id));
-                        }
-                      }}
-                    />
-                    <label 
-                      htmlFor={`${label}-${p.id}`} 
-                      className="text-xs text-slate-300 flex-1 cursor-pointer flex items-center justify-between"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span>{p.name}</span>
-                      {hasCustomOverride && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300">Custom amounts</span>
-                      )}
-                    </label>
+                    <div className={`
+                      w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200
+                      ${isSelected 
+                        ? 'bg-violet-600 border-violet-500' 
+                        : 'bg-transparent border-slate-500 hover:border-slate-400'
+                      }
+                    `}>
+                      {isSelected && <Check className="h-3 w-3 text-white" />}
+                    </div>
+                    <span className={`text-sm flex-1 transition-colors ${isSelected ? 'text-white font-medium' : 'text-slate-300'}`}>
+                      {p.name}
+                    </span>
+                    {hasCustomOverride && (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                        Custom
+                      </span>
+                    )}
                   </div>
                 );
               })}
             </div>
             {selectedProperties.length > 0 && (
-              <p className="text-[10px] text-violet-400 pt-1">
-                {selectedProperties.length} {selectedProperties.length === 1 ? 'property' : 'properties'} selected
-              </p>
+              <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></div>
+                <p className="text-xs text-violet-400">
+                  {selectedProperties.length} {selectedProperties.length === 1 ? 'property' : 'properties'} selected
+                </p>
+              </div>
             )}
           </div>
         )}
 
         {!applyToAll && properties.length === 0 && (
-          <p className="text-[11px] text-slate-500 italic">No properties available. Add properties first.</p>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 animate-in fade-in duration-300">
+            <p className="text-xs text-amber-400/80 flex items-center gap-2">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              No properties available. Add properties first.
+            </p>
+          </div>
         )}
       </div>
     );

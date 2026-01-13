@@ -208,105 +208,131 @@ export default function ScheduleTab() {
   };
 
   const weekDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekDayNamesShort = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-slate-800/60 rounded-lg p-1 border border-white/10">
+      <div className="flex flex-col gap-3">
+        {/* Navigation Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={navigatePrev}
+              className="h-8 w-8 sm:h-9 sm:w-9 bg-slate-800/60 border-white/10 hover:bg-slate-700"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="min-w-[120px] sm:min-w-[180px] text-center">
+              <h3 className="text-sm sm:text-lg font-semibold text-white">
+                {viewMode === 'month' 
+                  ? format(currentDate, 'MMM yyyy')
+                  : `${format(rangeStart, 'MMM d')} - ${format(rangeEnd, 'd')}`
+                }
+              </h3>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={navigateNext}
+              className="h-8 w-8 sm:h-9 sm:w-9 bg-slate-800/60 border-white/10 hover:bg-slate-700"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToToday}
+              className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-slate-800/60 border-white/10 hover:bg-slate-700"
+            >
+              Today
+            </Button>
+            
+            <Button 
+              size="sm"
+              onClick={() => { setSelectedDate(new Date()); setIsCreateOpen(true); }}
+              className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+            >
+              <Plus className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Add Shift</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* View Mode Toggle */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center bg-slate-800/60 rounded-lg p-0.5 sm:p-1 border border-white/10">
             <button
               onClick={() => setViewMode('month')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+              className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm transition-colors ${
                 viewMode === 'month' 
                   ? 'bg-violet-600 text-white' 
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <LayoutGrid className="h-4 w-4" />
-              Month
+              <LayoutGrid className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span>Month</span>
             </button>
             <button
               onClick={() => setViewMode('week')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+              className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm transition-colors ${
                 viewMode === 'week' 
                   ? 'bg-violet-600 text-white' 
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <List className="h-4 w-4" />
-              Week
+              <List className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span>Week</span>
             </button>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={navigatePrev}
-            className="h-9 w-9 bg-slate-800/60 border-white/10 hover:bg-slate-700"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
           
-          <div className="min-w-[180px] text-center">
-            <h3 className="text-lg font-semibold text-white">
-              {viewMode === 'month' 
-                ? format(currentDate, 'MMMM yyyy')
-                : `${format(rangeStart, 'MMM d')} - ${format(rangeEnd, 'MMM d, yyyy')}`
-              }
-            </h3>
-          </div>
-          
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={navigateNext}
-            className="h-9 w-9 bg-slate-800/60 border-white/10 hover:bg-slate-700"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToToday}
-            className="bg-slate-800/60 border-white/10 hover:bg-slate-700"
-          >
-            Today
-          </Button>
-          
-          <Button 
-            onClick={() => { setSelectedDate(new Date()); setIsCreateOpen(true); }}
-            className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Shift
-          </Button>
+          {/* Legend - Desktop only */}
+          {teamMembers.length > 0 && (
+            <div className="hidden md:flex items-center gap-3">
+              {teamMembers.slice(0, 4).map((member) => {
+                const colors = getMemberColor(member.id);
+                return (
+                  <div key={member.id} className="flex items-center gap-1.5">
+                    <div className={`w-2.5 h-2.5 rounded-full ${colors.bg}`} />
+                    <span className="text-xs text-slate-400">{member.name.split(' ')[0]}</span>
+                  </div>
+                );
+              })}
+              {teamMembers.length > 4 && (
+                <span className="text-xs text-slate-500">+{teamMembers.length - 4} more</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Calendar */}
-      <div className="rounded-2xl bg-slate-900/60 border border-white/10 overflow-hidden shadow-xl">
+      <div className="rounded-xl sm:rounded-2xl bg-slate-900/60 border border-white/10 overflow-hidden shadow-xl">
         {/* Day Headers */}
         <div className="grid grid-cols-7 bg-slate-800/50">
           {weekDayNames.map((day, i) => (
             <div
               key={day}
-              className={`py-3 text-center text-sm font-medium border-r border-white/5 last:border-r-0 ${
+              className={`py-2 sm:py-3 text-center text-[10px] sm:text-sm font-medium border-r border-white/5 last:border-r-0 ${
                 i === 0 || i === 6 ? 'text-slate-500' : 'text-slate-300'
               }`}
             >
-              {day}
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden">{weekDayNamesShort[i]}</span>
             </div>
           ))}
         </div>
 
         {/* Calendar Grid */}
-        <div className={`grid grid-cols-7 ${viewMode === 'month' ? '' : 'min-h-[500px]'}`}>
-          {calendarDays.map((day, index) => {
+        <div className={`grid grid-cols-7 ${viewMode === 'month' ? '' : 'min-h-[300px] sm:min-h-[400px]'}`}>
+          {calendarDays.map((day) => {
             const dayShifts = getShiftsForDay(day);
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isDayToday = isToday(day);
@@ -319,7 +345,7 @@ export default function ScheduleTab() {
                 className={`
                   relative border-r border-b border-white/5 last:border-r-0 
                   transition-colors cursor-pointer group
-                  ${viewMode === 'month' ? 'min-h-[100px] sm:min-h-[120px]' : 'min-h-[400px]'}
+                  ${viewMode === 'month' ? 'min-h-[60px] sm:min-h-[100px]' : 'min-h-[200px] sm:min-h-[300px]'}
                   ${!isCurrentMonth && viewMode === 'month' ? 'bg-slate-900/40' : ''}
                   ${isDayToday ? 'bg-violet-600/10' : ''}
                   ${isHovered ? 'bg-white/5' : ''}
@@ -330,10 +356,10 @@ export default function ScheduleTab() {
                 onMouseLeave={() => setHoveredDay(null)}
               >
                 {/* Day Number */}
-                <div className="p-2 flex items-start justify-between">
+                <div className="p-1 sm:p-2 flex items-start justify-between">
                   <span
                     className={`
-                      inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium
+                      inline-flex items-center justify-center w-5 h-5 sm:w-7 sm:h-7 rounded-full text-[10px] sm:text-sm font-medium
                       ${isDayToday 
                         ? 'bg-violet-600 text-white' 
                         : isCurrentMonth 
@@ -345,40 +371,41 @@ export default function ScheduleTab() {
                     {format(day, 'd')}
                   </span>
                   
-                  {/* Quick add button on hover */}
+                  {/* Quick add button on hover - desktop only */}
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDayClick(day); }}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded-full bg-violet-600/80 hover:bg-violet-600 transition-all"
+                    className="hidden sm:block opacity-0 group-hover:opacity-100 p-1 rounded-full bg-violet-600/80 hover:bg-violet-600 transition-all"
                   >
                     <Plus className="h-3 w-3 text-white" />
                   </button>
                 </div>
 
                 {/* Shifts */}
-                <div className={`px-1 pb-1 space-y-1 ${viewMode === 'month' ? 'max-h-[70px] overflow-hidden' : ''}`}>
+                <div className={`px-0.5 sm:px-1 pb-1 space-y-0.5 sm:space-y-1 ${viewMode === 'month' ? 'max-h-[35px] sm:max-h-[60px] overflow-hidden' : ''}`}>
                   {isLoading ? (
-                    <div className="animate-pulse bg-white/5 rounded h-5 mx-1" />
+                    <div className="animate-pulse bg-white/5 rounded h-3 sm:h-5 mx-0.5 sm:mx-1" />
                   ) : (
-                    dayShifts.slice(0, viewMode === 'month' ? 3 : undefined).map(shift => {
+                    dayShifts.slice(0, viewMode === 'month' ? 2 : undefined).map(shift => {
                       const colors = getMemberColor(shift.teamMember.id);
                       return (
                         <div
                           key={shift.id}
                           onClick={(e) => { e.stopPropagation(); setSelectedShift(shift); }}
                           className={`
-                            ${colors.light} ${colors.border} border rounded-md px-2 py-1
-                            text-xs cursor-pointer hover:scale-[1.02] transition-transform
-                            ${viewMode === 'week' ? 'mb-2' : ''}
+                            ${colors.light} ${colors.border} border rounded px-1 sm:px-2 py-0.5 sm:py-1
+                            text-[8px] sm:text-xs cursor-pointer hover:scale-[1.02] transition-transform
+                            ${viewMode === 'week' ? 'mb-1 sm:mb-2' : ''}
                           `}
                         >
                           <div className={`font-medium ${colors.text} truncate`}>
-                            {shift.teamMember.name}
+                            <span className="sm:hidden">{shift.teamMember.name.split(' ')[0]}</span>
+                            <span className="hidden sm:inline">{shift.teamMember.name}</span>
                           </div>
-                          <div className="text-slate-400 text-[10px]">
+                          <div className="text-slate-400 text-[8px] sm:text-[10px] hidden sm:block">
                             {shift.startTime} - {shift.endTime}
                           </div>
                           {viewMode === 'week' && shift.property && (
-                            <div className="flex items-center gap-1 text-slate-500 text-[10px] mt-0.5">
+                            <div className="hidden sm:flex items-center gap-1 text-slate-500 text-[10px] mt-0.5">
                               <MapPin className="h-2.5 w-2.5" />
                               {shift.property.name}
                             </div>
@@ -389,9 +416,9 @@ export default function ScheduleTab() {
                   )}
                   
                   {/* More indicator */}
-                  {viewMode === 'month' && dayShifts.length > 3 && (
-                    <div className="text-[10px] text-slate-500 px-2">
-                      +{dayShifts.length - 3} more
+                  {viewMode === 'month' && dayShifts.length > 2 && (
+                    <div className="text-[8px] sm:text-[10px] text-slate-500 px-1 sm:px-2">
+                      +{dayShifts.length - 2}
                     </div>
                   )}
                 </div>
@@ -401,16 +428,16 @@ export default function ScheduleTab() {
         </div>
       </div>
 
-      {/* Legend */}
+      {/* Mobile Legend */}
       {teamMembers.length > 0 && (
-        <div className="flex flex-wrap items-center gap-4 px-2">
-          <span className="text-xs text-slate-500 uppercase tracking-wider">Team:</span>
+        <div className="flex md:hidden flex-wrap items-center gap-2 px-1">
+          <span className="text-[10px] text-slate-500 uppercase">Team:</span>
           {teamMembers.map((member) => {
             const colors = getMemberColor(member.id);
             return (
-              <div key={member.id} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${colors.bg}`} />
-                <span className="text-sm text-slate-300">{member.name}</span>
+              <div key={member.id} className="flex items-center gap-1">
+                <div className={`w-2 h-2 rounded-full ${colors.bg}`} />
+                <span className="text-[10px] text-slate-400">{member.name.split(' ')[0]}</span>
               </div>
             );
           })}
