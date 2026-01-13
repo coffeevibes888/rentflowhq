@@ -10,9 +10,15 @@ export const metadata: Metadata = {
   title: 'Settings | Property Management',
 };
 
-const AdminSettingsPage = async () => {
+interface AdminSettingsPageProps {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+const AdminSettingsPage = async ({ searchParams }: AdminSettingsPageProps) => {
   await requireAdmin();
   const session = await auth();
+  const params = await searchParams;
+  const initialTab = params.tab || 'profile';
 
   const [landlordResult, subscriptionResult] = await Promise.all([
     getOrCreateCurrentLandlord(),
@@ -64,6 +70,7 @@ const AdminSettingsPage = async () => {
         }}
         isPro={isPro}
         twoFactorEnabled={twoFactorEnabled}
+        initialTab={initialTab}
       />
     </main>
   );

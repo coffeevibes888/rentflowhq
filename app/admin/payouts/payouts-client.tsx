@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import StripeConnectOnboarding from '@/components/admin/stripe-connect-onboarding';
 import {
   DollarSign,
@@ -10,6 +12,7 @@ import {
   AlertCircle,
   CreditCard,
   Building2,
+  Settings,
 } from 'lucide-react';
 import {
   consolidateMoveInPayments,
@@ -194,7 +197,7 @@ export default function PayoutsClient({
                   <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
                     <CheckCircle2 className="h-5 w-5 text-blue-600" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold text-slate-900 dark:text-white">
                       Direct deposits enabled
                     </h3>
@@ -206,6 +209,12 @@ export default function PayoutsClient({
                       . Card payments arrive in ~2 business days, ACH in ~5 business days.
                     </p>
                   </div>
+                  <Link href="/admin/settings?tab=banking">
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      Manage Banks
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

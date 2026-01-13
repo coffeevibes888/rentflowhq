@@ -1,14 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Bell, DollarSign, HelpCircle, CreditCard, Crown, ArrowRight, Shield } from 'lucide-react';
+import { User, Bell, DollarSign, HelpCircle, CreditCard, Crown, ArrowRight, Shield, Building2 } from 'lucide-react';
 import { ProfileSettings } from './profile-settings';
 import { NotificationSettings } from './notification-settings';
 import { FeeSettings } from './fee-settings';
 import { HelpAndTour } from './help-and-tour';
 import { SecuritySettings } from './security-settings';
-import { Badge } from '@/components/ui/badge';
+import { BankAccountSettings } from './bank-account-settings';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -25,10 +26,16 @@ interface LandlordSettingsClientProps {
   };
   isPro: boolean;
   twoFactorEnabled?: boolean;
+  initialTab?: string;
 }
 
-export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = false }: LandlordSettingsClientProps) {
-  const [activeTab, setActiveTab] = useState('profile');
+export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = false, initialTab = 'profile' }: LandlordSettingsClientProps) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const router = useRouter();
+
+  const handleNeedsOnboarding = () => {
+    router.push('/admin/payouts');
+  };
 
   return (
     <div className="space-y-5">
@@ -92,13 +99,20 @@ export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = fal
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-5 gap-1 bg-slate-900/60 border border-white/10 p-1 rounded-xl h-auto">
+        <TabsList className="w-full grid grid-cols-6 gap-1 bg-slate-900/60 border border-white/10 p-1 rounded-xl h-auto">
           <TabsTrigger 
             value="profile" 
             className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
           >
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="banking" 
+            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+          >
+            <Building2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Banking</span>
           </TabsTrigger>
           <TabsTrigger 
             value="security" 
@@ -132,6 +146,10 @@ export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = fal
 
         <TabsContent value="profile" className="mt-4">
           <ProfileSettings landlord={landlord} />
+        </TabsContent>
+
+        <TabsContent value="banking" className="mt-4">
+          <BankAccountSettings onNeedsOnboarding={handleNeedsOnboarding} />
         </TabsContent>
 
         <TabsContent value="security" className="mt-4">
