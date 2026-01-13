@@ -33,7 +33,7 @@ export async function getEffectiveFeeSettings(
   landlordSettings: LandlordFeeSettings
 ): Promise<EffectiveFeeSettings> {
   // Try to get property-specific overrides
-  const propertyOverride = await (prisma as any).propertyFeeSettings?.findUnique?.({
+  const propertyOverride = await prisma.propertyFeeSettings.findUnique({
     where: { propertyId },
   }).catch(() => null);
 

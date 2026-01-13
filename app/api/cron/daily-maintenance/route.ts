@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { applyLateFees } from '@/lib/actions/cron.actions';
+import { applyLateFees, processRecurringCharges, markOverduePayments } from '@/lib/actions/cron.actions';
 
 // Combined daily maintenance cron job
 // Runs: cleanup expired documents, release pending balances, check verification expiration, process webhook retries
@@ -173,6 +173,24 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Apply late fees error:', error);
     errors.push(`Apply late fees: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // 7. Process Recurring Charges (e.g., monthly pet rent)
+  try {
+    const recurringResult = await processRecurringCharges();
+    results.processRecurringCharges = recurringResult;
+  } catch (error) {
+    console.error('Process recurring charges error:', error);
+    errors.push(`Process recurring charges: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // 8. Mark Overdue Payments
+  try {
+    const overdueResult = await markOverduePayments();
+    results.markOverduePayments = overdueResult;
+  } catch (error) {
+    console.error('Mark overdue payments error:', error);
+    errors.push(`Mark overdue payments: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
   return NextResponse.json({

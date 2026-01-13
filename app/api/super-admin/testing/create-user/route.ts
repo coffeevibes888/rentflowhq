@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         role,
         emailVerified: new Date(),
+        // Enable 2FA by default for landlords
+        twoFactorEnabled: role === 'landlord' || role === 'admin',
       },
     });
 

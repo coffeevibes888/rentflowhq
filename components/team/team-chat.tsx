@@ -173,11 +173,16 @@ export function TeamChat({
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [showFilePreview, setShowFilePreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showMentionPicker, setShowMentionPicker] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState('');
+  const [showDMPicker, setShowDMPicker] = useState(false);
+  const [dmSearch, setDmSearch] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const mentionPickerRef = useRef<HTMLDivElement>(null);
 
   // Load team members
   useEffect(() => {
@@ -496,22 +501,93 @@ export function TeamChat({
     inputRef.current?.focus();
   };
 
+  // Mention picker handlers
+  const handleMentionSelect = (member: TeamMember) => {
+    setInput(prev => prev + `@${member.name} `);
+    setShowMentionPicker(false);
+    setMentionSearch('');
+    inputRef.current?.focus();
+  };
+
+  const filteredMembersForMention = members.filter(m => 
+    m.name.toLowerCase().includes(mentionSearch.toLowerCase()) ||
+    m.email?.toLowerCase().includes(mentionSearch.toLowerCase())
+  );
+
+  // Start a direct message with a member
+  const handleStartDM = async (member: TeamMember) => {
+    try {
+      // Check if DM channel already exists
+      const existingDM = channels.find(c => 
+        c.type === 'direct' && 
+        c.members?.some(m => m.id === member.id)
+      );
+      
+      if (existingDM) {
+        setActiveChannel(existingDM);
+        setShowDMPicker(false);
+        setDmSearch('');
+        setIsMobileMenuOpen(false);
+        return;
+      }
+      
+      // Create new DM channel
+      const res = await fetch('/api/landlord/team/channels/dm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: member.id }),
+      });
+      const data = await res.json();
+      
+      if (data.success && data.channel) {
+        setChannels(prev => [...prev, data.channel]);
+        setActiveChannel(data.channel);
+      } else {
+        // Fallback: create local DM channel for demo
+        const dmChannel: Channel = {
+          id: `dm-${member.id}-${Date.now()}`,
+          name: member.name,
+          type: 'direct',
+          members: [member],
+        };
+        setChannels(prev => [...prev, dmChannel]);
+        setActiveChannel(dmChannel);
+      }
+      
+      setShowDMPicker(false);
+      setDmSearch('');
+      setIsMobileMenuOpen(false);
+    } catch {
+      console.error('Failed to start DM');
+    }
+  };
+
+  const filteredMembersForDM = members.filter(m => 
+    m.id !== currentUser.id && (
+      m.name.toLowerCase().includes(dmSearch.toLowerCase()) ||
+      m.email?.toLowerCase().includes(dmSearch.toLowerCase())
+    )
+  );
+
   // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
         setShowEmojiPicker(false);
       }
+      if (mentionPickerRef.current && !mentionPickerRef.current.contains(event.target as Node)) {
+        setShowMentionPicker(false);
+      }
     };
 
-    if (showEmojiPicker) {
+    if (showEmojiPicker || showMentionPicker) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showEmojiPicker]);
+  }, [showEmojiPicker, showMentionPicker]);
 
   // Message reaction handlers
   const handleAddReaction = async (messageId: string, emoji: string) => {
@@ -785,14 +861,53 @@ export function TeamChat({
           <div className="px-2 py-2 border-t border-white/5">
             <div className="flex items-center justify-between px-2 mb-1">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Direct Messages</span>
-              <button className="p-1 hover:bg-white/10 rounded transition-colors">
+              <button 
+                onClick={() => setShowDMPicker(true)}
+                className="p-1 hover:bg-white/10 rounded transition-colors"
+                title="Start a new conversation"
+              >
                 <Plus className="h-4 w-4 text-slate-400" />
               </button>
             </div>
             
-            {members.slice(0, 5).map(member => (
+            {/* Existing DM channels */}
+            {channels.filter(c => c.type === 'direct').map(channel => (
+              <button
+                key={channel.id}
+                onClick={() => {
+                  setActiveChannel(channel);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${
+                  activeChannel?.id === channel.id
+                    ? 'bg-violet-600/20 text-white'
+                    : 'text-slate-300 hover:bg-white/5'
+                }`}
+              >
+                <div className="relative">
+                  <div className="h-6 w-6 rounded-md bg-slate-700 flex items-center justify-center text-xs">
+                    {channel.members?.[0]?.image ? (
+                      <img src={channel.members[0].image} alt="" className="h-6 w-6 rounded-md" />
+                    ) : (
+                      (channel.name || 'D')[0].toUpperCase()
+                    )}
+                  </div>
+                  <div className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 ${STATUS_COLORS[channel.members?.[0]?.status || 'offline']}`} />
+                </div>
+                <span className="truncate">{channel.name}</span>
+                {channel.unreadCount && channel.unreadCount > 0 && (
+                  <span className="ml-auto bg-violet-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                    {channel.unreadCount}
+                  </span>
+                )}
+              </button>
+            ))}
+            
+            {/* Quick access to team members for DM */}
+            {channels.filter(c => c.type === 'direct').length === 0 && members.filter(m => m.id !== currentUser.id).slice(0, 5).map(member => (
               <button
                 key={member.id}
+                onClick={() => handleStartDM(member)}
                 className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-slate-300 hover:bg-white/5 transition-colors"
               >
                 <div className="relative">
@@ -825,11 +940,18 @@ export function TeamChat({
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <Hash className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
+                {activeChannel?.type === 'direct' ? (
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
+                ) : (
+                  <Hash className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
+                )}
                 <span className="font-semibold text-white text-sm sm:text-base truncate">{activeChannel?.name || 'Select a channel'}</span>
               </div>
               {activeChannel?.description && (
                 <p className="text-[10px] sm:text-xs text-slate-400 truncate max-w-[120px] sm:max-w-[200px]">{activeChannel.description}</p>
+              )}
+              {activeChannel?.type === 'direct' && (
+                <p className="text-[10px] sm:text-xs text-slate-400">Direct message</p>
               )}
             </div>
           </div>
@@ -1161,9 +1283,57 @@ export function TeamChat({
                   />
                   
                   <div className="flex items-center gap-0.5 sm:gap-1">
-                    <button type="button" className="hidden sm:block p-2 hover:bg-white/10 rounded-lg text-slate-400">
-                      <AtSign className="h-5 w-5" />
-                    </button>
+                    {/* Mention Picker Button */}
+                    <div className="relative hidden sm:block" ref={mentionPickerRef}>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowMentionPicker(!showMentionPicker)}
+                        className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                        title="Mention someone"
+                      >
+                        <AtSign className="h-5 w-5" />
+                      </button>
+                      
+                      {showMentionPicker && (
+                        <div className="absolute bottom-full right-0 mb-2 z-50 w-64 bg-slate-800 border border-white/10 rounded-lg shadow-xl overflow-hidden">
+                          <div className="p-2 border-b border-white/10">
+                            <Input
+                              placeholder="Search members..."
+                              value={mentionSearch}
+                              onChange={(e) => setMentionSearch(e.target.value)}
+                              className="h-8 bg-slate-700 border-slate-600 text-white text-sm"
+                              autoFocus
+                            />
+                          </div>
+                          <div className="max-h-48 overflow-y-auto">
+                            {filteredMembersForMention.length === 0 ? (
+                              <div className="p-3 text-center text-slate-400 text-sm">No members found</div>
+                            ) : (
+                              filteredMembersForMention.map(member => (
+                                <button
+                                  key={member.id}
+                                  type="button"
+                                  onClick={() => handleMentionSelect(member)}
+                                  className="w-full flex items-center gap-2 p-2 hover:bg-white/10 transition-colors text-left"
+                                >
+                                  <div className="h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center text-xs text-white">
+                                    {member.image ? (
+                                      <img src={member.image} alt="" className="h-7 w-7 rounded-full" />
+                                    ) : (
+                                      member.name[0].toUpperCase()
+                                    )}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm text-white truncate">{member.name}</p>
+                                    <p className="text-xs text-slate-400 truncate">{member.role}</p>
+                                  </div>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     
                     {/* Emoji Picker Button */}
                     <div className="relative" ref={emojiPickerRef}>
@@ -1321,6 +1491,69 @@ export function TeamChat({
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DM Picker Dialog */}
+      <Dialog open={showDMPicker} onOpenChange={(open) => {
+        setShowDMPicker(open);
+        if (!open) setDmSearch('');
+      }}>
+        <DialogContent className="bg-slate-900 border-white/10 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-violet-400" />
+              New Message
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Start a private conversation with a team member.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <Input
+                placeholder="Search team members..."
+                value={dmSearch}
+                onChange={(e) => setDmSearch(e.target.value)}
+                className="pl-9 bg-slate-800 border-white/10 text-white"
+                autoFocus
+              />
+            </div>
+            
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {filteredMembersForDM.length === 0 ? (
+                <div className="p-4 text-center text-slate-400 text-sm">
+                  {dmSearch ? 'No members found' : 'No team members available'}
+                </div>
+              ) : (
+                filteredMembersForDM.map(member => (
+                  <button
+                    key={member.id}
+                    onClick={() => handleStartDM(member)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-colors text-left"
+                  >
+                    <div className="relative">
+                      <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-sm text-white">
+                        {member.image ? (
+                          <img src={member.image} alt="" className="h-10 w-10 rounded-full" />
+                        ) : (
+                          member.name[0].toUpperCase()
+                        )}
+                      </div>
+                      <div className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-slate-900 ${STATUS_COLORS[member.status || 'offline']}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-white font-medium truncate">{member.name}</p>
+                      <p className="text-xs text-slate-400 truncate">{member.email}</p>
+                    </div>
+                    <span className="text-xs text-slate-500 capitalize">{member.role}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

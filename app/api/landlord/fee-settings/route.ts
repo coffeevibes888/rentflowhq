@@ -33,9 +33,9 @@ export async function GET() {
     }
 
     // Get property-specific fee settings
-    const propertyFeeSettings = await (prisma as any).propertyFeeSettings?.findMany?.({
+    const propertyFeeSettings = await prisma.propertyFeeSettings.findMany({
       where: { landlordId: landlord.id },
-    }) || [];
+    });
 
     // Transform property settings into a map for easy lookup
     const propertySettingsMap: Record<string, any> = {};

@@ -13,17 +13,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2, Check, DollarSign, Clock, PawPrint, Sparkles, Crown, ChevronDown, Bell, Building2, Settings2, AlertTriangle } from 'lucide-react';
+import { Loader2, Check, DollarSign, Clock, PawPrint, Sparkles, Crown, Bell, Building2, Settings2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
@@ -70,6 +65,9 @@ interface PropertyFeeOverride {
   cleaningFeeEnabled?: boolean | null;
   cleaningFeeAmount?: number | null;
   noCleaningFee?: boolean;
+  applicationFeeEnabled?: boolean | null;
+  applicationFeeAmount?: number | null;
+  noApplicationFee?: boolean;
 }
 
 export function FeeSettings({ isPro }: FeeSettingsProps) {
@@ -367,50 +365,94 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
     selectedProperties: string[];
     setSelectedProperties: (v: string[]) => void;
     label: string;
-  }) => (
-    <Collapsible open={!applyToAll} defaultOpen={!applyToAll}>
-      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-xs text-slate-400 hover:text-slate-300">
-        <span className="flex items-center gap-1.5">
-          <Building2 className="w-3 h-3" />
-          {applyToAll ? 'Applies to all properties' : `${selectedProperties.length} properties selected`}
-        </span>
-        <ChevronDown className={`w-3 h-3 transition-transform ${!applyToAll ? 'rotate-180' : ''}`} />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="pt-2 space-y-2">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={`${label}-all`}
+  }) => {
+    const handleToggle = (checked: boolean) => {
+      setApplyToAll(checked);
+      if (checked) {
+        setSelectedProperties([]);
+      }
+    };
+
+    return (
+      <div className="space-y-3 pt-2 border-t border-white/5">
+        {/* Toggle for Apply to All */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs text-slate-300">Applies to all properties</span>
+          </div>
+          <Switch
             checked={applyToAll}
-            onCheckedChange={(checked) => {
-              setApplyToAll(!!checked);
-              if (checked) setSelectedProperties([]);
-            }}
+            onCheckedChange={handleToggle}
+            className="data-[state=checked]:bg-violet-600"
           />
-          <label htmlFor={`${label}-all`} className="text-xs text-slate-300">Apply to all properties</label>
         </div>
+
+        {/* Property Selection - Only shows when toggle is OFF */}
         {!applyToAll && properties.length > 0 && (
-          <div className="pl-4 space-y-1.5 max-h-32 overflow-y-auto border-l-2 border-violet-500/30 ml-1">
-            {properties.map((p) => (
-              <div key={p.id} className="flex items-center gap-2">
-                <Checkbox
-                  id={`${label}-${p.id}`}
-                  checked={selectedProperties.includes(p.id)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedProperties([...selectedProperties, p.id]);
-                    } else {
-                      setSelectedProperties(selectedProperties.filter(id => id !== p.id));
-                    }
-                  }}
-                />
-                <label htmlFor={`${label}-${p.id}`} className="text-xs text-slate-400">{p.name}</label>
-              </div>
-            ))}
+          <div className="rounded-lg border border-white/10 bg-slate-800/50 p-3 space-y-2">
+            <p className="text-[11px] text-slate-400 mb-2">Select which properties this fee applies to:</p>
+            <div className="space-y-1.5 max-h-36 overflow-y-auto">
+              {properties.map((p) => {
+                const hasCustomOverride = !!propertyOverrides[p.id];
+                const isSelected = selectedProperties.includes(p.id);
+                return (
+                  <div 
+                    key={p.id} 
+                    className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors ${
+                      isSelected 
+                        ? 'bg-violet-500/20 border border-violet-500/30' 
+                        : 'bg-slate-700/30 border border-transparent hover:bg-slate-700/50'
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isSelected) {
+                        setSelectedProperties(selectedProperties.filter(id => id !== p.id));
+                      } else {
+                        setSelectedProperties([...selectedProperties, p.id]);
+                      }
+                    }}
+                  >
+                    <Checkbox
+                      id={`${label}-${p.id}`}
+                      checked={isSelected}
+                      onClick={(e) => e.stopPropagation()}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedProperties([...selectedProperties, p.id]);
+                        } else {
+                          setSelectedProperties(selectedProperties.filter(id => id !== p.id));
+                        }
+                      }}
+                    />
+                    <label 
+                      htmlFor={`${label}-${p.id}`} 
+                      className="text-xs text-slate-300 flex-1 cursor-pointer flex items-center justify-between"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span>{p.name}</span>
+                      {hasCustomOverride && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300">Custom amounts</span>
+                      )}
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+            {selectedProperties.length > 0 && (
+              <p className="text-[10px] text-violet-400 pt-1">
+                {selectedProperties.length} {selectedProperties.length === 1 ? 'property' : 'properties'} selected
+              </p>
+            )}
           </div>
         )}
-      </CollapsibleContent>
-    </Collapsible>
-  );
+
+        {!applyToAll && properties.length === 0 && (
+          <p className="text-[11px] text-slate-500 italic">No properties available. Add properties first.</p>
+        )}
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -753,7 +795,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
 
       {/* Rent Reminders Modal */}
       <Dialog open={reminderModalOpen} onOpenChange={setReminderModalOpen}>
-        <DialogContent className="max-w-md bg-slate-900 border-white/10">
+        <DialogContent className="max-w-md bg-slate-800 border-slate-700">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Bell className="w-5 h-5 text-violet-400" />
@@ -764,7 +806,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-white font-medium">Enable Reminders</p>
-                <p className="text-xs text-slate-400">Send automated reminders before rent is due</p>
+                <p className="text-xs text-slate-300">Send automated reminders before rent is due</p>
               </div>
               <Switch
                 checked={reminderSettings.enabled}
@@ -775,7 +817,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             {reminderSettings.enabled && (
               <>
                 <div>
-                  <p className="text-xs text-slate-300 mb-2">Remind tenants</p>
+                  <p className="text-xs text-slate-200 mb-2">Remind tenants</p>
                   <div className="flex flex-wrap gap-2">
                     {[1, 3, 5, 7, 14].map((days) => (
                       <button
@@ -790,7 +832,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                         className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                           reminderSettings.reminderDaysBefore.includes(days)
                             ? 'bg-violet-600 text-white'
-                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                            : 'bg-slate-700 text-slate-200 hover:bg-slate-600'
                         }`}
                       >
                         {days} day{days > 1 ? 's' : ''} before
@@ -800,7 +842,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-300 mb-2">Notification channels</p>
+                  <p className="text-xs text-slate-200 mb-2">Notification channels</p>
                   <div className="flex gap-2">
                     {['email', 'in-app'].map((channel) => (
                       <button
@@ -815,7 +857,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                         className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                           reminderSettings.reminderChannels.includes(channel)
                             ? 'bg-violet-600 text-white'
-                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                            : 'bg-slate-700 text-slate-200 hover:bg-slate-600'
                         }`}
                       >
                         {channel === 'in-app' ? 'In-App' : 'Email'}
@@ -827,7 +869,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setReminderModalOpen(false)} className="border-white/10">
+              <Button variant="outline" onClick={() => setReminderModalOpen(false)} className="border-slate-600 text-slate-200 hover:bg-slate-700">
                 Cancel
               </Button>
               <Button onClick={saveReminderSettings} disabled={savingReminders} className="bg-violet-600 hover:bg-violet-500">
@@ -841,7 +883,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
 
       {/* Late Fees Modal */}
       <Dialog open={lateFeeModalOpen} onOpenChange={setLateFeeModalOpen}>
-        <DialogContent className="max-w-md bg-slate-900 border-white/10">
+        <DialogContent className="max-w-md bg-slate-800 border-slate-700">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <DollarSign className="w-5 h-5 text-amber-400" />
@@ -852,7 +894,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-white font-medium">Enable Late Fees</p>
-                <p className="text-xs text-slate-400">Automatically apply fees after grace period</p>
+                <p className="text-xs text-slate-300">Automatically apply fees after grace period</p>
               </div>
               <Switch
                 checked={lateFeeSettings.enabled}
@@ -864,12 +906,12 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-slate-300 mb-1.5">Grace period</p>
+                    <p className="text-xs text-slate-200 mb-1.5">Grace period</p>
                     <Select
                       value={String(lateFeeSettings.gracePeriodDays)}
                       onValueChange={(v) => setLateFeeSettings({ ...lateFeeSettings, gracePeriodDays: Number(v) })}
                     >
-                      <SelectTrigger className="h-9 text-sm bg-slate-800 border-white/10">
+                      <SelectTrigger className="h-9 text-sm bg-slate-700 border-slate-600 text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -883,12 +925,12 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                   </div>
 
                   <div>
-                    <p className="text-xs text-slate-300 mb-1.5">Fee type</p>
+                    <p className="text-xs text-slate-200 mb-1.5">Fee type</p>
                     <Select
                       value={lateFeeSettings.feeType}
                       onValueChange={(v) => setLateFeeSettings({ ...lateFeeSettings, feeType: v as 'flat' | 'percentage' })}
                     >
-                      <SelectTrigger className="h-9 text-sm bg-slate-800 border-white/10">
+                      <SelectTrigger className="h-9 text-sm bg-slate-700 border-slate-600 text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -901,14 +943,14 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-slate-300 mb-1.5">
+                    <p className="text-xs text-slate-200 mb-1.5">
                       {lateFeeSettings.feeType === 'flat' ? 'Fee amount ($)' : 'Fee percentage (%)'}
                     </p>
                     <Input
                       type="number"
                       value={lateFeeSettings.feeAmount || ''}
                       onChange={(e) => setLateFeeSettings({ ...lateFeeSettings, feeAmount: e.target.value === '' ? 0 : Number(e.target.value) })}
-                      className="h-9 text-sm bg-slate-800 border-white/10"
+                      className="h-9 text-sm bg-slate-700 border-slate-600 text-white"
                       min={0}
                       step={lateFeeSettings.feeType === 'percentage' ? 0.5 : 1}
                       placeholder="0"
@@ -917,12 +959,12 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
 
                   {lateFeeSettings.feeType === 'percentage' && (
                     <div>
-                      <p className="text-xs text-slate-300 mb-1.5">Max fee cap ($)</p>
+                      <p className="text-xs text-slate-200 mb-1.5">Max fee cap ($)</p>
                       <Input
                         type="number"
                         value={lateFeeSettings.maxFee || ''}
                         onChange={(e) => setLateFeeSettings({ ...lateFeeSettings, maxFee: e.target.value ? Number(e.target.value) : undefined })}
-                        className="h-9 text-sm bg-slate-800 border-white/10"
+                        className="h-9 text-sm bg-slate-700 border-slate-600 text-white"
                         placeholder="No cap"
                         min={0}
                       />
@@ -936,14 +978,14 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                     checked={lateFeeSettings.notifyTenant}
                     onCheckedChange={(checked) => setLateFeeSettings({ ...lateFeeSettings, notifyTenant: !!checked })}
                   />
-                  <label htmlFor="notifyTenant" className="text-xs text-slate-300">
+                  <label htmlFor="notifyTenant" className="text-xs text-slate-200">
                     Notify tenant when fee is applied
                   </label>
                 </div>
 
-                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/20 border border-amber-500/30">
                   <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                  <p className="text-xs text-amber-200/90">
+                  <p className="text-xs text-amber-100">
                     Late fees run daily at 10 AM UTC. Fees are applied to payments past the grace period.
                   </p>
                 </div>
@@ -951,7 +993,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setLateFeeModalOpen(false)} className="border-white/10">
+              <Button variant="outline" onClick={() => setLateFeeModalOpen(false)} className="border-slate-600 text-slate-200 hover:bg-slate-700">
                 Cancel
               </Button>
               <Button onClick={saveLateFeeSettings} disabled={savingLateFees} className="bg-amber-600 hover:bg-amber-500">
@@ -965,7 +1007,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
 
       {/* Property Override Modal */}
       <Dialog open={propertyOverrideModalOpen} onOpenChange={setPropertyOverrideModalOpen}>
-        <DialogContent className="max-w-lg bg-slate-900 border-white/10 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg bg-slate-800 border-slate-700 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Building2 className="w-5 h-5 text-sky-400" />
@@ -973,12 +1015,12 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-300">
               Override default fee settings for this property. Leave unchecked to use your default settings.
             </p>
 
             {/* Security Deposit Override */}
-            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+            <div className="rounded-lg border border-slate-600 bg-slate-700/50 p-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-white font-medium">Security Deposit</p>
                 <div className="flex items-center gap-2">
@@ -1004,7 +1046,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                     securityDepositMonths: v ? Number(v) : null,
                   })}
                 >
-                  <SelectTrigger className="h-9 text-sm bg-slate-800 border-white/10">
+                  <SelectTrigger className="h-9 text-sm bg-slate-700 border-slate-600 text-white">
                     <SelectValue placeholder="Use default" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1020,7 +1062,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             </div>
 
             {/* Last Month's Rent Override */}
-            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+            <div className="rounded-lg border border-slate-600 bg-slate-700/50 p-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-white font-medium">Last Month&apos;s Rent</p>
                 <Select
@@ -1032,7 +1074,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                     lastMonthRentRequired: v === '' ? null : v === 'true',
                   })}
                 >
-                  <SelectTrigger className="h-9 w-40 text-sm bg-slate-800 border-white/10">
+                  <SelectTrigger className="h-9 w-40 text-sm bg-slate-700 border-slate-600 text-white">
                     <SelectValue placeholder="Use default" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1045,7 +1087,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             </div>
 
             {/* Pet Fees Override */}
-            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+            <div className="rounded-lg border border-slate-600 bg-slate-700/50 p-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-white font-medium">Pet Fees</p>
                 <div className="flex items-center gap-2">
@@ -1057,13 +1099,13 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                       noPetFees: !!checked,
                     })}
                   />
-                  <label htmlFor="noPetFees" className="text-xs text-slate-300">No pet fees</label>
+                  <label htmlFor="noPetFees" className="text-xs text-slate-200">No pet fees</label>
                 </div>
               </div>
               {!currentPropertyOverride.noPetFees && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400 w-24">Pet Deposit:</span>
+                    <span className="text-xs text-slate-300 w-24">Pet Deposit:</span>
                     <Input
                       type="number"
                       value={currentPropertyOverride.petDepositAmount ?? ''}
@@ -1072,12 +1114,12 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                         petDepositAmount: e.target.value ? Number(e.target.value) : null,
                         petDepositEnabled: e.target.value ? true : null,
                       })}
-                      className="h-8 w-28 text-sm bg-slate-800 border-white/10"
+                      className="h-8 w-28 text-sm bg-slate-700 border-slate-600 text-white"
                       placeholder="Default"
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400 w-24">Pet Rent:</span>
+                    <span className="text-xs text-slate-300 w-24">Pet Rent:</span>
                     <Input
                       type="number"
                       value={currentPropertyOverride.petRentAmount ?? ''}
@@ -1086,17 +1128,17 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                         petRentAmount: e.target.value ? Number(e.target.value) : null,
                         petRentEnabled: e.target.value ? true : null,
                       })}
-                      className="h-8 w-28 text-sm bg-slate-800 border-white/10"
+                      className="h-8 w-28 text-sm bg-slate-700 border-slate-600 text-white"
                       placeholder="Default"
                     />
-                    <span className="text-xs text-slate-500">/month</span>
+                    <span className="text-xs text-slate-400">/month</span>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Cleaning Fee Override */}
-            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+            <div className="rounded-lg border border-slate-600 bg-slate-700/50 p-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-white font-medium">Cleaning Fee</p>
                 <div className="flex items-center gap-2">
@@ -1108,12 +1150,12 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                       noCleaningFee: !!checked,
                     })}
                   />
-                  <label htmlFor="noCleaningFee" className="text-xs text-slate-300">No cleaning fee</label>
+                  <label htmlFor="noCleaningFee" className="text-xs text-slate-200">No cleaning fee</label>
                 </div>
               </div>
               {!currentPropertyOverride.noCleaningFee && (
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500 text-sm">$</span>
+                  <span className="text-slate-400 text-sm">$</span>
                   <Input
                     type="number"
                     value={currentPropertyOverride.cleaningFeeAmount ?? ''}
@@ -1122,7 +1164,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                       cleaningFeeAmount: e.target.value ? Number(e.target.value) : null,
                       cleaningFeeEnabled: e.target.value ? true : null,
                     })}
-                    className="h-8 w-28 text-sm bg-slate-800 border-white/10"
+                    className="h-8 w-28 text-sm bg-slate-700 border-slate-600 text-white"
                     placeholder="Default"
                   />
                 </div>
@@ -1130,7 +1172,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
             </div>
 
             {/* Application Fee Override */}
-            <div className="rounded-lg border border-white/10 bg-slate-800/30 p-3">
+            <div className="rounded-lg border border-slate-600 bg-slate-700/50 p-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-white font-medium">Application Fee</p>
                 <div className="flex items-center gap-2">
@@ -1142,12 +1184,12 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                       noApplicationFee: !!checked,
                     })}
                   />
-                  <label htmlFor="noApplicationFee" className="text-xs text-slate-300">No application fee</label>
+                  <label htmlFor="noApplicationFee" className="text-xs text-slate-200">No application fee</label>
                 </div>
               </div>
               {!currentPropertyOverride.noApplicationFee && (
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500 text-sm">$</span>
+                  <span className="text-slate-400 text-sm">$</span>
                   <Input
                     type="number"
                     value={currentPropertyOverride.applicationFeeAmount ?? ''}
@@ -1156,7 +1198,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                       applicationFeeAmount: e.target.value ? Number(e.target.value) : null,
                       applicationFeeEnabled: e.target.value ? true : null,
                     })}
-                    className="h-8 w-28 text-sm bg-slate-800 border-white/10"
+                    className="h-8 w-28 text-sm bg-slate-700 border-slate-600 text-white"
                     placeholder="Default"
                   />
                 </div>
@@ -1173,7 +1215,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
                 Reset to Defaults
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setPropertyOverrideModalOpen(false)} className="border-white/10">
+                <Button variant="outline" onClick={() => setPropertyOverrideModalOpen(false)} className="border-slate-600 text-slate-200 hover:bg-slate-700">
                   Cancel
                 </Button>
                 <Button onClick={savePropertyOverride} disabled={savingPropertyOverride} className="bg-sky-600 hover:bg-sky-500">

@@ -6,6 +6,7 @@ import { fetchPdfBuffer, applySignaturesToPdf, SignatureFieldPosition } from '@/
 import crypto from 'crypto';
 import { sendBrandedEmail } from '@/lib/services/email-service';
 import { NotificationService } from '@/lib/services/notification-service';
+import { generateMoveInCharges } from '@/lib/services/move-in-charges.service';
 
 function getClientIp(req: NextRequest) {
   const xfwd = req.headers.get('x-forwarded-for');
@@ -585,6 +586,35 @@ export async function POST(
         : { landlordSignedAt: signedAt, status: 'active' }, // Activate lease when landlord signs
     }),
   ]);
+
+  // Generate move-in charges when landlord signs (lease becomes active)
+  if (sig.role === 'landlord') {
+    try {
+      const moveInResult = await generateMoveInCharges(lease.id);
+      if (moveInResult.success && moveInResult.payments.length > 0) {
+        console.log(`Generated ${moveInResult.payments.length} move-in charges totaling $${moveInResult.totalAmount} for lease ${lease.id}`);
+        
+        // Notify tenant about move-in payments due
+        if (lease.tenant?.id) {
+          const landlordId = lease.unit.property?.landlord?.id;
+          await NotificationService.createNotification({
+            userId: lease.tenant.id,
+            type: 'payment',
+            title: 'Move-In Payments Due',
+            message: `Your lease is now active! You have $${moveInResult.totalAmount.toLocaleString()} in move-in payments due.`,
+            actionUrl: '/user/pay',
+            metadata: { leaseId: lease.id, totalAmount: moveInResult.totalAmount },
+            landlordId: landlordId || undefined,
+          });
+        }
+      } else if (!moveInResult.success) {
+        console.error('Failed to generate move-in charges:', moveInResult.error);
+      }
+    } catch (moveInError) {
+      console.error('Error generating move-in charges:', moveInError);
+      // Don't fail the signing if move-in charge generation fails
+    }
+  }
 
   // If tenant just signed, create landlord signature request and notification
   if (sig.role === 'tenant' && !lease.landlordSignedAt) {

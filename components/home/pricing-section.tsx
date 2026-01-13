@@ -70,7 +70,7 @@ const tiers = [
     unitLimit: 'Unlimited units',
     icon: Crown,
     popular: false,
-    comingSoon: true,
+    comingSoon: false,
     features: [
       { name: 'Unlimited Units', included: true },
       { name: 'Everything in Pro', included: true },
@@ -85,7 +85,7 @@ const tiers = [
       { name: 'API access & webhooks', included: true },
       { name: 'Hiring Emplyees and posting jobs', included: true },
     ],
-    cta: 'Coming Soon',
+    cta: 'Start Free with 7 day free trial',
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-300',
   },

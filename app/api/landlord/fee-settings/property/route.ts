@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // If propertyId is provided, get settings for that property
     if (propertyId) {
-      const settings = await (prisma as any).propertyFeeSettings?.findUnique?.({
+      const settings = await prisma.propertyFeeSettings.findUnique({
         where: { propertyId },
       });
 
@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Otherwise, get all property settings for this landlord
-    const allSettings = await (prisma as any).propertyFeeSettings?.findMany?.({
+    const allSettings = await prisma.propertyFeeSettings.findMany({
       where: { landlordId: landlord.id },
-    }) || [];
+    });
 
     return NextResponse.json({ settings: allSettings });
   } catch (error) {
@@ -74,15 +74,90 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'Property not found' }, { status: 404 });
     }
 
+    // Prepare the data for upsert - only include fields that are explicitly set
+    const updateData: Record<string, unknown> = {};
+    
+    // Security Deposit
+    if (settings.securityDepositMonths !== undefined) {
+      updateData.securityDepositMonths = settings.securityDepositMonths;
+    }
+    if (settings.noSecurityDeposit !== undefined) {
+      updateData.noSecurityDeposit = settings.noSecurityDeposit;
+    }
+    
+    // Last Month's Rent
+    if (settings.lastMonthRentRequired !== undefined) {
+      updateData.lastMonthRentRequired = settings.lastMonthRentRequired;
+    }
+    
+    // Pet Fees
+    if (settings.petDepositEnabled !== undefined) {
+      updateData.petDepositEnabled = settings.petDepositEnabled;
+    }
+    if (settings.petDepositAmount !== undefined) {
+      updateData.petDepositAmount = settings.petDepositAmount;
+    }
+    if (settings.petRentEnabled !== undefined) {
+      updateData.petRentEnabled = settings.petRentEnabled;
+    }
+    if (settings.petRentAmount !== undefined) {
+      updateData.petRentAmount = settings.petRentAmount;
+    }
+    if (settings.noPetFees !== undefined) {
+      updateData.noPetFees = settings.noPetFees;
+    }
+    
+    // Cleaning Fee
+    if (settings.cleaningFeeEnabled !== undefined) {
+      updateData.cleaningFeeEnabled = settings.cleaningFeeEnabled;
+    }
+    if (settings.cleaningFeeAmount !== undefined) {
+      updateData.cleaningFeeAmount = settings.cleaningFeeAmount;
+    }
+    if (settings.noCleaningFee !== undefined) {
+      updateData.noCleaningFee = settings.noCleaningFee;
+    }
+    
+    // Application Fee
+    if (settings.applicationFeeEnabled !== undefined) {
+      updateData.applicationFeeEnabled = settings.applicationFeeEnabled;
+    }
+    if (settings.applicationFeeAmount !== undefined) {
+      updateData.applicationFeeAmount = settings.applicationFeeAmount;
+    }
+    if (settings.noApplicationFee !== undefined) {
+      updateData.noApplicationFee = settings.noApplicationFee;
+    }
+    
+    // Late Fees
+    if (settings.lateFeeEnabled !== undefined) {
+      updateData.lateFeeEnabled = settings.lateFeeEnabled;
+    }
+    if (settings.gracePeriodDays !== undefined) {
+      updateData.gracePeriodDays = settings.gracePeriodDays;
+    }
+    if (settings.lateFeeType !== undefined) {
+      updateData.lateFeeType = settings.lateFeeType;
+    }
+    if (settings.lateFeeAmount !== undefined) {
+      updateData.lateFeeAmount = settings.lateFeeAmount;
+    }
+    if (settings.lateFeeMaxFee !== undefined) {
+      updateData.lateFeeMaxFee = settings.lateFeeMaxFee;
+    }
+    if (settings.noLateFees !== undefined) {
+      updateData.noLateFees = settings.noLateFees;
+    }
+
     // Upsert property fee settings
-    const result = await (prisma as any).propertyFeeSettings?.upsert?.({
+    const result = await prisma.propertyFeeSettings.upsert({
       where: { propertyId },
       create: {
         propertyId,
         landlordId: landlord.id,
-        ...settings,
+        ...updateData,
       },
-      update: settings,
+      update: updateData,
     });
 
     return NextResponse.json({ success: true, settings: result });
@@ -115,11 +190,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ message: 'Landlord not found' }, { status: 404 });
     }
 
-    await (prisma as any).propertyFeeSettings?.delete?.({
-      where: { propertyId },
-    }).catch(() => {
-      // Ignore if doesn't exist
+    // Verify property belongs to landlord before deleting
+    const existingSettings = await prisma.propertyFeeSettings.findFirst({
+      where: { 
+        propertyId,
+        landlordId: landlord.id,
+      },
     });
+
+    if (existingSettings) {
+      await prisma.propertyFeeSettings.delete({
+        where: { propertyId },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

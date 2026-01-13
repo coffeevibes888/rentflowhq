@@ -142,6 +142,8 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
         email: user.email,
         password: user.password,
         role: roleValue,
+        // Enable 2FA by default for landlords and property managers
+        twoFactorEnabled: roleValue === 'landlord' || roleValue === 'property_manager',
       },
     });
 
@@ -774,6 +776,8 @@ export async function setUserRoleAndLandlordIntake(data: {
       data: { 
         role: data.role,
         onboardingCompleted: true,
+        // Enable 2FA by default for landlords
+        ...(data.role === 'landlord' && { twoFactorEnabled: true }),
       },
     });
 

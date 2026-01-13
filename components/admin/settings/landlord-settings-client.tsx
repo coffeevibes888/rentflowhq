@@ -35,14 +35,14 @@ export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = fal
       {/* Subscription & Getting Started Banner */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link href="/admin/settings/subscription" className="block">
-          <div className="rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10 p-4 sm:p-5 hover:border-amber-500/50 transition-all group h-full flex flex-col justify-between">
+          <div className="rounded-xl border border-amber-500/30 bg-gradient-to-r from-sky-600 to-violet-500 p-4 sm:p-5 hover:border-amber-500/50 transition-all group h-full flex flex-col justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
                 <CreditCard className="w-5 h-5 text-amber-400" />
               </div>
               <div>
                 <h3 className="text-base font-semibold text-white">Manage Subscription</h3>
-                <p className="text-xs text-slate-400">View plan, billing & usage</p>
+                <p className="text-xs text-black">View plan, billing & usage</p>
               </div>
             </div>
              <div className="text-right mt-2">
@@ -52,14 +52,14 @@ export function LandlordSettingsClient({ landlord, isPro, twoFactorEnabled = fal
         </Link>
 
         <Link href="/admin/settings/financials" className="block">
-          <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-r from-sky-600 to-emerald-500 p-4 sm:p-5 hover:border-emerald-500/50 transition-all group h-full flex flex-col justify-between">
+          <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-r from-sky-600 to-violet-500 transition-all group h-full flex flex-col justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
                 <h3 className="text-base font-semibold text-white">Financial Rules</h3>
-                <p className="text-xs text-slate-400">Set up late fees and payment rules.</p>
+                <p className="text-xs text-black">Set up late fees and payment rules.</p>
               </div>
             </div>
             <div className="text-right mt-2">

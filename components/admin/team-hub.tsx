@@ -209,8 +209,8 @@ export function TeamHub({
             </div>
           </TabsContent>
 
-          <TabsContent value="members" className="mt-0 overflow-y-auto max-h-[60vh]">
-            <div className="p-6">
+          <TabsContent value="members" className="mt-0 h-full overflow-y-auto">
+            <div className="p-6 pt-4">
               <TeamMembersTab 
                 members={teamMembers} 
                 isEnterprise={isEnterprise}

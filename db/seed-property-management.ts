@@ -52,6 +52,7 @@ async function main() {
       password: adminPassword,
       role: 'admin',
       emailVerified: new Date(),
+      twoFactorEnabled: true, // 2FA enabled by default for landlords/admins
     },
   });
   console.log('✅ Admin created:', adminUser.email, '/ Password: Admin123!');
