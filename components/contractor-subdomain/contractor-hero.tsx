@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { CheckCircle2, MessageSquare, MapPin } from 'lucide-react';
 import { ContractorQuoteButton } from '@/components/contractor/quote-button';
+import { ContractorMessageWidget } from './contractor-message-widget';
 
 interface ContractorSubdomainHeroProps {
   brandName: string;
@@ -18,6 +19,9 @@ interface ContractorSubdomainHeroProps {
   subdomain: string;
   slug: string;
   specialties?: string[];
+  contractorId?: string;
+  contractorImage?: string | null;
+  isAvailable?: boolean;
 }
 
 export default function ContractorSubdomainHero({
@@ -31,6 +35,9 @@ export default function ContractorSubdomainHero({
   subdomain,
   slug,
   specialties = [],
+  contractorId,
+  contractorImage,
+  isAvailable = true,
 }: ContractorSubdomainHeroProps) {
   const location = [baseCity, baseState].filter(Boolean).join(', ');
   
@@ -119,7 +126,20 @@ export default function ContractorSubdomainHero({
         </div>
 
         <div className="flex-1 flex items-start justify-center w-full pt-2">
-          <HeroImageRotator heroMedia={heroMedia} brandName={brandName} />
+          {contractorId ? (
+            <ContractorMessageWidget
+              contractorId={contractorId}
+              contractorName={brandName}
+              contractorImage={contractorImage}
+              contractorEmail={brandEmail}
+              contractorPhone={brandPhone}
+              subdomain={subdomain}
+              isAvailable={isAvailable}
+              responseTime="Usually responds within 2 hours"
+            />
+          ) : (
+            <HeroImageRotator heroMedia={heroMedia} brandName={brandName} />
+          )}
         </div>
       </div>
     </div>

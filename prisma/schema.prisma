@@ -118,6 +118,7 @@ model User {
   // Contractor Marketplace
   contractorMarketplaceProfile ContractorProfile?
   contractorReviewsGiven       ContractorReview[] @relation("ContractorReviewsGiven")
+  contractorLeadsSubmitted     ContractorLead[]
 
   // Dispute Center
   disputesFiled    Dispute[]         @relation("DisputeFiledBy")
@@ -3495,6 +3496,11 @@ model ContractorProfile {
 
   user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews ContractorReview[]
+  
+  // Lead generation relations
+  leadMatches      ContractorLeadMatch[]
+  leadCredit       ContractorLeadCredit?
+  leadPreferences  ContractorLeadPreferences?
 
   @@index([slug])
   @@index([rankScore])
@@ -3599,4 +3605,216 @@ model PropertyFeeSettings {
 
   @@index([propertyId])
   @@index([landlordId])
+}
+
+
+// ============= CONTRACTOR LEAD GENERATION SYSTEM =============
+
+// ContractorLead - A lead/project request from a homeowner or landlord
+model ContractorLead {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  // Lead source
+  source             String   @default("marketplace") // marketplace, work_order, subdomain, referral
+  sourceId           String?  @db.Uuid // work order ID, referral ID, etc.
+  
+  // Customer info
+  customerName       String
+  customerEmail      String
+  customerPhone      String?
+  customerUserId     String?  @db.Uuid // if registered user
+  
+  // Project details
+  projectType        String   // matches contractor specialties (plumbing, electrical, etc.)
+  projectTitle       String?
+  projectDescription String
+  projectPhotos      String[] @default([])
+  budgetMin          Decimal? @db.Decimal(12, 2)
+  budgetMax          Decimal? @db.Decimal(12, 2)
+  timeline           String?  // asap, this_week, this_month, flexible
+  urgency            String   @default("normal") // emergency, urgent, normal, flexible
+  
+  // Location
+  propertyAddress    String?
+  propertyCity       String?
+  propertyState      String?
+  propertyZip        String?
+  propertyType       String?  // residential, commercial, multi_family
+  
+  // Lead quality
+  leadScore          Int      @default(0) // 0-100 quality score
+  isVerified         Boolean  @default(false) // email/phone verified
+  isExclusive        Boolean  @default(false) // exclusive lead (sent to 1 contractor)
+  maxContractors     Int      @default(3) // max contractors to match
+  
+  // Status
+  status             String   @default("new") // new, matching, sent, responded, booked, completed, expired, cancelled
+  
+  // Timestamps
+  createdAt          DateTime @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime @updatedAt
+  expiresAt          DateTime // leads expire after 7 days
+  
+  // Relations
+  matches            ContractorLeadMatch[]
+  customer           User?    @relation(fields: [customerUserId], references: [id])
+  
+  @@index([status])
+  @@index([projectType])
+  @@index([propertyZip])
+  @@index([createdAt])
+  @@index([customerUserId])
+}
+
+// ContractorLeadMatch - Links a lead to matched contractors
+model ContractorLeadMatch {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  leadId            String   @db.Uuid
+  contractorId      String   @db.Uuid
+  
+  // Pricing model used
+  pricingModel      String   @default("per_lead") // per_lead, per_booking, subscription, free
+  leadCost          Decimal? @db.Decimal(10, 2) // cost charged for this lead
+  bookingFeePercent Decimal? @db.Decimal(5, 2) // % fee if pay-per-booking
+  
+  // Match quality
+  matchScore        Int      @default(0) // how well contractor matches lead
+  matchReason       String?  // why this contractor was matched
+  priority          Int      @default(0) // display order (higher = shown first)
+  
+  // Status tracking
+  status            String   @default("pending") // pending, sent, viewed, responded, quoted, won, lost, expired, refunded
+  sentAt            DateTime?
+  viewedAt          DateTime?
+  respondedAt       DateTime?
+  quotedAt          DateTime?
+  
+  // Contractor response
+  responseMessage   String?
+  quoteAmount       Decimal? @db.Decimal(12, 2)
+  quoteNotes        String?
+  estimatedDuration String?
+  
+  // Outcome
+  wasBooked         Boolean  @default(false)
+  jobValue          Decimal? @db.Decimal(12, 2)
+  bookingFee        Decimal? @db.Decimal(10, 2)
+  completedAt       DateTime?
+  
+  // Refund tracking
+  refundRequested   Boolean  @default(false)
+  refundApproved    Boolean  @default(false)
+  refundReason      String?
+  refundAmount      Decimal? @db.Decimal(10, 2)
+  refundedAt        DateTime?
+  
+  // Relations
+  lead              ContractorLead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contractor        ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([leadId, contractorId])
+  @@index([contractorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ContractorLeadCredit - Contractor's lead credit balance and subscription
+model ContractorLeadCredit {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId       String   @unique @db.Uuid
+  
+  // Credit balance (for pay-per-lead)
+  creditBalance      Decimal  @db.Decimal(10, 2) @default(0)
+  
+  // Subscription info
+  subscriptionTier   String?  // starter, pro, enterprise
+  subscriptionStatus String   @default("none") // none, active, cancelled, past_due
+  leadsIncluded      Int      @default(0) // leads included in subscription
+  leadsUsedThisMonth Int      @default(0)
+  billingCycleStart  DateTime?
+  
+  // Preferred pricing model
+  preferredPricing   String   @default("per_lead") // per_lead, per_booking, subscription
+  
+  // Stripe billing
+  stripeCustomerId   String?
+  stripeSubscriptionId String?
+  
+  // Lead preferences
+  maxLeadCost        Decimal? @db.Decimal(10, 2) // max willing to pay per lead
+  autoAcceptLeads    Boolean  @default(false) // auto-accept matching leads
+  leadNotifications  Boolean  @default(true)
+  
+  // Relations
+  contractor         ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  transactions       ContractorCreditTransaction[]
+  
+  createdAt          DateTime @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime @updatedAt
+}
+
+// ContractorCreditTransaction - Credit/debit transactions
+model ContractorCreditTransaction {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creditAccountId String   @db.Uuid
+  
+  type            String   // purchase, lead_charge, booking_fee, refund, subscription, bonus, adjustment
+  amount          Decimal  @db.Decimal(10, 2) // positive = credit, negative = debit
+  balanceAfter    Decimal  @db.Decimal(10, 2) // balance after transaction
+  description     String
+  
+  // References
+  leadMatchId     String?  @db.Uuid
+  stripePaymentId String?
+  stripeInvoiceId String?
+  
+  // Relations
+  creditAccount   ContractorLeadCredit @relation(fields: [creditAccountId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  
+  @@index([creditAccountId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ContractorLeadPreferences - Contractor's lead matching preferences
+model ContractorLeadPreferences {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId    String   @unique @db.Uuid
+  
+  // Service preferences
+  acceptedTypes   String[] @default([]) // project types willing to accept
+  excludedTypes   String[] @default([]) // project types to exclude
+  
+  // Budget preferences
+  minJobValue     Decimal? @db.Decimal(12, 2)
+  maxJobValue     Decimal? @db.Decimal(12, 2)
+  
+  // Location preferences
+  serviceZipCodes String[] @default([])
+  serviceRadius   Int?     // miles from base location
+  
+  // Timing preferences
+  acceptEmergency Boolean  @default(true)
+  acceptWeekends  Boolean  @default(false)
+  maxLeadsPerDay  Int?
+  maxLeadsPerWeek Int?
+  
+  // Customer preferences
+  residentialOnly Boolean  @default(false)
+  commercialOnly  Boolean  @default(false)
+  
+  // Availability
+  isPaused        Boolean  @default(false) // temporarily stop receiving leads
+  pausedUntil     DateTime?
+  
+  // Relations
+  contractor      ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt
 }

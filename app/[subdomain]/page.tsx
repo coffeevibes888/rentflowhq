@@ -7,6 +7,10 @@ import { formatCurrency } from '@/lib/utils';
 import SubdomainHero from '@/components/subdomain/subdomain-hero';
 import ContractorSubdomainHero from '@/components/contractor-subdomain/contractor-hero';
 import { ContractorQuoteButton } from '@/components/contractor/quote-button';
+import { ContractorStats } from '@/components/contractor-subdomain/contractor-stats';
+import { ServiceAreaBadge } from '@/components/contractor-subdomain/service-area-badge';
+import { QuickActions } from '@/components/contractor-subdomain/quick-actions';
+import { TrustBadges } from '@/components/contractor-subdomain/trust-badges';
 import { detectSubdomainEntity, getContractorSubdomainPath } from '@/lib/utils/subdomain-detection';
 import {
   CheckCircle2,
@@ -344,6 +348,52 @@ async function ContractorSubdomainPage({
         subdomain={subdomain}
         slug={contractor.slug}
         specialties={contractor.specialties}
+        contractorId={contractor.id}
+        contractorImage={contractor.profilePhoto}
+        isAvailable={contractor.isAvailable ?? true}
+      />
+
+      {/* Quick Actions Bar */}
+      <div className="w-full py-6 px-4">
+        <div className="max-w-6xl mx-auto space-y-4">
+          <QuickActions
+            contractorName={brandName}
+            phone={contractor.phone}
+            email={contractor.email}
+            subdomain={subdomain}
+          />
+          
+          {/* Service Area Badge */}
+          <div className="flex justify-center">
+            <ServiceAreaBadge
+              baseCity={contractor.baseCity}
+              baseState={contractor.baseState}
+              serviceRadius={contractor.serviceRadius}
+              serviceAreas={contractor.serviceAreas}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      {(contractor.totalReviews > 0 || contractor.completedJobs > 0) && (
+        <ContractorStats
+          avgRating={contractor.avgRating}
+          totalReviews={contractor.totalReviews}
+          completedJobs={contractor.completedJobs}
+          responseRate={contractor.responseRate}
+          onTimeRate={contractor.onTimeRate}
+          yearsExperience={contractor.yearsExperience}
+        />
+      )}
+
+      {/* Trust Badges */}
+      <TrustBadges
+        insuranceVerified={contractor.insuranceVerified}
+        backgroundChecked={contractor.backgroundChecked}
+        identityVerified={contractor.identityVerified}
+        licenseNumber={contractor.licenseNumber}
+        licenseState={contractor.licenseState}
       />
 
       {/* Services Section */}
