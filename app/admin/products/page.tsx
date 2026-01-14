@@ -28,6 +28,8 @@ const AdminProductsPage = async (props: {
 
   const where = {
     landlordId,
+    // Exclude soft-deleted properties
+    status: { not: 'deleted' },
     ...(searchText && searchText !== 'all'
       ? { name: { contains: searchText, mode: 'insensitive' as const } }
       : {}),

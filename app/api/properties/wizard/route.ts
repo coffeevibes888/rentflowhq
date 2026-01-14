@@ -97,6 +97,9 @@ export async function POST(req: NextRequest) {
 
     // Handle room rentals - create individual room units
     if (propertyType === 'room_rental' && formData.rooms) {
+      // Use general property images for all rooms if no room-specific images
+      const propertyImages = formData.images || [];
+      
       for (const room of formData.rooms) {
         await prisma.unit.create({
           data: {
@@ -108,7 +111,8 @@ export async function POST(req: NextRequest) {
             sizeSqFt: room.sizeSqFt || null,
             rentAmount: room.rentAmount || 0,
             amenities: room.amenities || [],
-            images: room.images || [],
+            // Use room-specific images if available, otherwise use property-level images
+            images: (room.images && room.images.length > 0) ? room.images : propertyImages,
             isAvailable: true,
           },
         });

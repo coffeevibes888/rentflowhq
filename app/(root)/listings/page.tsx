@@ -22,6 +22,7 @@ const getCachedFilterOptions = unstable_cache(
         where: { 
           isAvailable: true,
           property: {
+            status: { not: 'deleted' }, // Exclude deleted properties
             landlord: {
               ownerUserId: { not: null },
             },
@@ -129,6 +130,7 @@ async function getListings(searchParams: {
       where: {
         ...unitWhere,
         property: {
+          status: { not: 'deleted' }, // Exclude deleted properties
           landlord: {
             ownerUserId: { not: null }, // Only include properties from landlords with valid user accounts
           },

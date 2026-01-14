@@ -116,10 +116,11 @@ async function LandlordSubdomainPage({
     }
   }
 
-  // Get available properties
+  // Get available properties (excluding deleted ones)
   const properties = await prisma.property.findMany({
     where: {
       landlordId: landlord.id,
+      status: { not: 'deleted' },
       units: {
         some: {
           isAvailable: true,
