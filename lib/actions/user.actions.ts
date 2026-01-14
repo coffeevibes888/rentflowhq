@@ -751,6 +751,9 @@ export async function updatePhoneNumber(phoneNumber: string) {
   }
 }
 
+// Roles that cannot be changed through onboarding - these are privileged system roles
+const PROTECTED_ROLES = ['superAdmin', 'admin'];
+
 export async function setUserRoleAndLandlordIntake(data: {
   role: 'tenant' | 'landlord' | 'homeowner';
   unitsEstimateRange?: '0-10' | '11-50' | '51-200' | '200+';
@@ -770,6 +773,19 @@ export async function setUserRoleAndLandlordIntake(data: {
     }
 
     const userId = session.user.id as string;
+
+    // Check if user has a protected role that cannot be changed via onboarding
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    if (currentUser && PROTECTED_ROLES.includes(currentUser.role)) {
+      return { 
+        success: false, 
+        message: `Cannot change role for ${currentUser.role} accounts through onboarding. Please contact support if you need to change your account type.` 
+      };
+    }
 
     await prisma.user.update({
       where: { id: userId },
