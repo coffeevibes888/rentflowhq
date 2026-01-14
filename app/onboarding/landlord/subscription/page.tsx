@@ -45,8 +45,10 @@ export default async function LandlordSubscriptionPage({
   const landlord = await prisma.landlord.findFirst({
     where: { ownerUserId: session.user.id },
     select: {
+      id: true,
       stripeSubscriptionId: true,
       subscriptionStatus: true,
+      stripeCustomerId: true,
       subscription: {
         select: {
           status: true,
@@ -67,6 +69,14 @@ export default async function LandlordSubscriptionPage({
 
     if (hasActiveSubscription) {
       redirect('/admin/overview');
+    }
+
+    // If they have a Stripe customer ID but subscription is incomplete,
+    // the webhook may still be processing - redirect to dashboard to let it sync
+    if (landlord.stripeCustomerId && landlord.subscriptionStatus === 'incomplete') {
+      // Give the webhook a chance to process by redirecting to admin
+      // The admin layout will allow access for incomplete subscriptions with a customer ID
+      redirect('/admin/onboarding?subscription=pending');
     }
   }
 

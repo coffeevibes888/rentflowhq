@@ -12,6 +12,7 @@ import { OnboardingWrapper } from '@/components/onboarding/onboarding-wrapper';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
+import { headers } from 'next/headers';
 
 export default async function AdminLayout({
   children,
@@ -22,12 +23,18 @@ export default async function AdminLayout({
   const session = await auth();
   
   if (session?.user?.id && (session.user.role === 'landlord' || session.user.role === 'property_manager')) {
+    // Check if coming from successful Stripe checkout - allow access while webhook processes
+    const headersList = await headers();
+    const referer = headersList.get('referer') || '';
+    const isFromStripeCheckout = referer.includes('checkout.stripe.com');
+    
     const landlord = await prisma.landlord.findFirst({
       where: { ownerUserId: session.user.id },
       select: {
         id: true,
         stripeSubscriptionId: true,
         subscriptionStatus: true,
+        stripeCustomerId: true,
         subscription: {
           select: {
             status: true,
@@ -43,10 +50,16 @@ export default async function AdminLayout({
         landlord.stripeSubscriptionId || 
         landlord.subscription?.stripeSubscriptionId ||
         landlord.subscriptionStatus === 'trialing' ||
+        landlord.subscriptionStatus === 'active' ||
         landlord.subscription?.status === 'trialing' ||
         landlord.subscription?.status === 'active';
 
-      if (!hasActiveSubscription) {
+      // Allow access if coming from Stripe checkout (webhook may still be processing)
+      // or if they have a Stripe customer ID (means they went through checkout)
+      const allowPendingSubscription = isFromStripeCheckout || 
+        (landlord.stripeCustomerId && landlord.subscriptionStatus === 'incomplete');
+
+      if (!hasActiveSubscription && !allowPendingSubscription) {
         redirect('/onboarding/landlord/subscription');
       }
     }
