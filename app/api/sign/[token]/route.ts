@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { sendBrandedEmail } from '@/lib/services/email-service';
 import { NotificationService } from '@/lib/services/notification-service';
 import { generateMoveInCharges } from '@/lib/services/move-in-charges.service';
+import { revalidatePath } from 'next/cache';
 
 function getClientIp(req: NextRequest) {
   const xfwd = req.headers.get('x-forwarded-for');
@@ -586,6 +587,13 @@ export async function POST(
         : { landlordSignedAt: signedAt, status: 'active' }, // Activate lease when landlord signs
     }),
   ]);
+
+  // Revalidate cached pages after lease status change
+  revalidatePath('/user/pay');
+  revalidatePath('/user/profile/lease');
+  revalidatePath('/user/profile/rent-receipts');
+  revalidatePath('/admin/leases');
+  revalidatePath('/admin/tenants');
 
   // Generate move-in charges when landlord signs (lease becomes active)
   if (sig.role === 'landlord') {
