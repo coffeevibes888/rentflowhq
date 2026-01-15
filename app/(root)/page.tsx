@@ -176,11 +176,11 @@ const Homepage = async () => {
             <div className='grid gap-6 md:gap-8 lg:grid-cols-2 items-center'>
               <div className='space-y-4 md:space-y-6 text-center lg:text-left'>
                 
-                <h1 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
-                 Property Management...
+                <h1 className='text-3xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-center'>
+                 Property Managers
                 </h1>
-                <h4 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
-                 Fully Automated!
+                <h4 className='text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
+                &
                 </h4>
                 <p className='text-base md:text-lg text-white font-bold max-w-xl leading-relaxed mx-auto lg:mx-0'>
                   Find the time to live the life you always dreamed and let us handle the dirty work...From appications, collecting rents, leases, maintance tickets, internal communicatins, to even the eviction process -- we got your back.

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Combined daily tasks cron job
-// Runs: rent reminders, late fees, lease signing reminders, check unit limits
+// Runs: rent reminders, late fees, lease signing reminders, check unit limits, lead follow-up reminders
 // Schedule: 9 AM UTC daily
 
 export async function GET(req: NextRequest) {
@@ -94,6 +94,82 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Unit limits error:', error);
     errors.push(`Unit limits: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // 5. Lead Follow-Up Reminders (Contractor CRM)
+  try {
+    const { prisma } = await import('@/db/prisma');
+    const { ContractorCRMService } = await import('@/lib/services/contractor-crm');
+    const { Resend } = await import('resend');
+    
+    let remindersSent = 0;
+    const leadReminderErrors: string[] = [];
+
+    // Get all contractors
+    const contractors = await prisma.contractorProfile.findMany({
+      where: {
+        isPublic: true,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    // For each contractor, check for uncontacted leads
+    if (process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      
+      for (const contractor of contractors) {
+        if (!contractor.user.email) continue;
+
+        try {
+          // Get uncontacted leads (new leads older than 48 hours)
+          const uncontactedLeads = await ContractorCRMService.getUncontactedLeads(
+            contractor.id
+          );
+
+          if (uncontactedLeads.length === 0) continue;
+
+          // Generate simple email
+          const leadsList = uncontactedLeads
+            .map(lead => `- ${lead.name} (${lead.email})`)
+            .join('\n');
+
+          await resend.emails.send({
+            from: process.env.EMAIL_FROM || 'noreply@example.com',
+            to: contractor.user.email,
+            subject: `${uncontactedLeads.length} Lead${uncontactedLeads.length > 1 ? 's' : ''} Waiting for Your Response`,
+            html: `
+              <p>Hi ${contractor.user.name || contractor.businessName},</p>
+              <p>You have <strong>${uncontactedLeads.length}</strong> lead${uncontactedLeads.length > 1 ? 's' : ''} that haven't been contacted yet:</p>
+              <pre>${leadsList}</pre>
+              <p>Quick responses help you win more jobs!</p>
+              <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/contractor/crm">View All Leads</a></p>
+            `,
+          });
+
+          remindersSent++;
+        } catch (error) {
+          leadReminderErrors.push(
+            `Contractor ${contractor.id}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+        }
+      }
+    }
+
+    results.leadReminders = { 
+      sent: remindersSent,
+      errors: leadReminderErrors.length > 0 ? leadReminderErrors : undefined
+    };
+  } catch (error) {
+    console.error('Lead reminders error:', error);
+    errors.push(`Lead reminders: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
   return NextResponse.json({
