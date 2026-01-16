@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "node --max-old-space-size=4096 server.js",
+    "dev:turbo": "next dev --turbo",
+    "dev:fast": "prisma generate --skip-if-no-changes && node --max-old-space-size=4096 server.js",
     "dev:https": "node --max-old-space-size=4096 server.js",
     "build": "prisma generate && next build",
     "start": "NODE_ENV=production node server.js",
@@ -13,7 +15,8 @@
     "test:watch": "jest --watch",
     "email": "cp .env ./node_modules/react-email && email dev --dir email --port 3001",
     "zoho:sync": "ts-node scripts/zoho-sync.ts",
-    "seed": "ts-node db/seed-property-management.ts"
+    "seed": "ts-node db/seed-property-management.ts",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache"
   },
   "dependencies": {
     "@auth/core": "0.41.1",

@@ -3,16 +3,16 @@ import { instantBookingService } from '@/lib/services/instant-booking';
 import { parse, isValid } from 'date-fns';
 
 /**
- * GET /api/contractor/[id]/availability
+ * GET /api/contractor/[contractorId]/availability
  * Get available time slots for a contractor
  * Query params: date (YYYY-MM-DD), serviceType, slotDuration (optional, default 60)
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ contractorId: string }> }
 ) {
   try {
-    const contractorId = params.id;
+    const { contractorId } = await params;
     const searchParams = request.nextUrl.searchParams;
     
     const dateStr = searchParams.get('date');

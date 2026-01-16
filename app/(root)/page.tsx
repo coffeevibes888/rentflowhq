@@ -176,24 +176,35 @@ const Homepage = async () => {
             <div className='grid gap-6 md:gap-8 lg:grid-cols-2 items-center'>
               <div className='space-y-4 md:space-y-6 text-center lg:text-left'>
                 
-                <h1 className='text-3xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-center'>
-                 Property Managers
-                </h1>
-                <h4 className='text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight'>
-                &
-                </h4>
-                <p className='text-base md:text-lg text-white font-bold max-w-xl leading-relaxed mx-auto lg:mx-0'>
-                  Find the time to live the life you always dreamed and let us handle the dirty work...From appications, collecting rents, leases, maintance tickets, internal communicatins, to even the eviction process -- we got your back.
-                </p>
+                {/* Animated Gradient Heading */}
+                <div className='space-y-2 md:space-y-3'>
+                  <h1 className='text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]'>
+                    <span className='text-center block bg-gradient-to-r from-purple-700 via-gray-900 to-purple-700 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(255,255,255,0.3)]'>
+                      Property Management
+                    </span>
+                    <span className='text-center block mt-1 md:mt-2 bg-gradient-to-r from-purple-700 via-gray-900 to-purple-700 bg-clip-text text-transparent bg-clip-text bg-clip-text animate-gradient-reverse bg-[length:200%_auto] drop-shadow-[0_2px_8px_rgba(165,243,252,0.4)]'>
+                      Made Simple
+                    </span>
+                  </h1>
+                  <p className='text-center text-sm sm:text-base md:text-lg text-cyan-50/95 font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4 drop-shadow-sm'>
+                    For landlords and property managers who want their time back. Automate everything from applications to rent collection, maintenance, and even evictions.
+                  </p>
+                </div>
           
                 
-                <div className='flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4'>
+                <div className='flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4 pt-2'>
                   <Link
                     href='/sign-up'
-                    className='group inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg hover:bg-violet-400 transition-colors duration-200'
+                    className='group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105 transition-all duration-200'
                   >
                     Start Free Today
                     <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
+                  </Link>
+                  <Link
+                    href='/contact'
+                    className='group inline-flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold border-2 border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200'
+                  >
+                    Schedule Demo
                   </Link>
                 </div>
               </div>

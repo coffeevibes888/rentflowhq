@@ -40,6 +40,37 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    // Speed up dev server
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', 'date-fns'],
+    turbo: {
+      // Enable Turbopack for faster builds (Next.js 14+)
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  },
+  // Optimize webpack for faster dev builds
+  webpack: (config, { dev, isServer }) => {
+    if (dev) {
+      // Faster source maps in development
+      config.devtool = 'eval-cheap-module-source-map';
+      
+      // Reduce the number of chunks
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'async',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+          },
+        },
+      };
+    }
+    return config;
   },
   async headers() {
     return [
@@ -79,6 +110,13 @@ const nextConfig: NextConfig = {
         port: '',
       },
     ],
+  },
+  // Reduce compilation overhead
+  onDemandEntries: {
+    // Period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 60 * 1000,
+    // Number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 5,
   },
 };
 

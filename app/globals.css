@@ -115,6 +115,27 @@
   100% { background-position: 0% 50%; }
 }
 
+/* Hero gradient text animations */
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes gradient-reverse {
+  0% { background-position: 100% 50%; }
+  50% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.animate-gradient {
+  animation: gradient 8s ease infinite;
+}
+
+.animate-gradient-reverse {
+  animation: gradient-reverse 8s ease infinite;
+}
+
 /* Glass morphism effects */
 .glass-effect {
   background: rgba(255, 255, 255, 0.05);
