@@ -75,7 +75,7 @@ const tiers = [
     unitLimit: 'Unlimited units',
     icon: Crown,
     popular: false,
-    comingSoon: true,
+    comingSoon: false,
     features: [
       'Everything in Pro',
       'Unlimited units',
@@ -89,7 +89,7 @@ const tiers = [
     ],
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-300',
-    buttonStyle: 'bg-slate-700 text-slate-400 cursor-not-allowed',
+    buttonStyle: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 shadow-lg shadow-amber-500/30',
   },
 ];
 
