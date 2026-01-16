@@ -179,15 +179,18 @@ const Homepage = async () => {
                 {/* Animated Gradient Heading */}
                 <div className='space-y-2 md:space-y-3'>
                   <h1 className='text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]'>
-                    <span className='text-center block bg-gradient-to-r from-purple-700 via-gray-900 to-purple-700 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(255,255,255,0.3)]'>
-                      Property Management
+                    <span className='text-center block mt-1 md:mt-2 text-black '>
+                     Your Properties.
                     </span>
-                    <span className='text-center block mt-1 md:mt-2 bg-gradient-to-r from-purple-700 via-gray-900 to-purple-700 bg-clip-text text-transparent bg-clip-text bg-clip-text animate-gradient-reverse bg-[length:200%_auto] drop-shadow-[0_2px_8px_rgba(165,243,252,0.4)]'>
-                      Made Simple
+                    <span className='text-center block mt-1 md:mt-2 text-black '>
+                     Your Rules.
+                    </span>
+                    <span className='text-center block mt-1 md:mt-2 text-black'>
+                      Fully Automated!
                     </span>
                   </h1>
-                  <p className='text-center text-sm sm:text-base md:text-lg text-cyan-50/95 font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4 drop-shadow-sm'>
-                    For landlords and property managers who want their time back. Automate everything from applications to rent collection, maintenance, and even evictions.
+                  <p className='text-center text-sm sm:text-base md:text-lg text-cyan-50/95 font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4'>
+                    Whether you manage 5 units or 500 — We handle everything from applications, rent collections, maintenance requests, and even evictions with ease.
                   </p>
                 </div>
           
