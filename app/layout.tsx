@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import '@/assets/styles/globals.css';
 import { APP_DESCRIPTION, APP_NAME, SERVER_URL } from '@/lib/constants';
 import { Toaster } from '@/components/ui/toaster';
@@ -87,6 +88,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
+      <head>
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-98GMCN3RXZ"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-98GMCN3RXZ');
+          `}
+        </Script>
+      </head>
       <body className='bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-black font-semibold flex flex-col min-h-screen overflow-x-hidden'>
         <SessionProviderWrapper>
           <ThemeProvider attribute='class' defaultTheme='light' enableSystem={false} disableTransitionOnChange>

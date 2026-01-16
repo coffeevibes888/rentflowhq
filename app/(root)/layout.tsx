@@ -1,6 +1,7 @@
 import Header from '@/components/shared/header';
 import Footer from '@/components/footer';
 import { SessionProvider } from 'next-auth/react';
+import AnalyticsProvider from '@/components/analytics-provider';
 export const dynamic = 'force-dynamic';
 
 export default function RootLayout({
@@ -10,6 +11,7 @@ export default function RootLayout({
 }>) {
   return (
     <SessionProvider>
+      <AnalyticsProvider />
       <div className=' flex min-h-screen flex-col'>
         <Header />
         <main className='flex-1'>{children}</main>

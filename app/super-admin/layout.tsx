@@ -69,6 +69,12 @@ export default function SuperAdminLayout({
               >
                 🧪 Testing
               </Link>
+              <Link 
+                href='/super-admin/analytics' 
+                className='text-sm text-blue-300 hover:text-blue-200 transition-colors font-medium'
+              >
+                📊 Analytics
+              </Link>
             </nav>
             <div className='ml-auto items-center flex space-x-4'>
               <Menu />

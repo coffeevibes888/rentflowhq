@@ -168,7 +168,7 @@ const Homepage = async () => {
   }
 
   return (
-    <>
+    <> 
       <main className='flex-1 w-full'>
         {/* Hero Section - Conversion Focused */}
         <section className='w-full pt-8 pb-12 md:pt-20 md:pb-24 px-4 md:px-4 relative overflow-hidden'>
