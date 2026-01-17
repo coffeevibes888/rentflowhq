@@ -15,6 +15,10 @@ interface ResumeData {
     location: string;
     email: string;
     phone: string;
+    photo?: string;
+    title?: string;
+    linkedin?: string;
+    website?: string;
   };
   summary: string;
   experience: Array<{
@@ -42,9 +46,13 @@ interface ResumeData {
 const defaultResume: ResumeData = {
   personalInfo: {
     name: 'Gregory Young',
+    title: 'Business Operations Manager',
     location: 'Littleton, CO 80123',
     email: 'coffeevibes888@gmail.com',
     phone: '(478) 335-7618',
+    linkedin: 'linkedin.com/in/gregoryyoung',
+    website: '',
+    photo: '',
   },
   summary: 'Versatile and dynamic leader with 10+ years of diverse experience in property management, business operations, team leadership, and customer service. Proven success in supervising teams, resolving complex problems, and delivering high-quality results across real estate, tech, service, and entrepreneurial sectors.',
   experience: [
@@ -228,6 +236,51 @@ export default function ResumeBuilderClient() {
                   <CardTitle className="text-white">Personal Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Photo Upload */}
+                  <div>
+                    <Label className="text-slate-300">Profile Photo (Optional)</Label>
+                    <div className="mt-2 flex items-center gap-4">
+                      {resume.personalInfo.photo ? (
+                        <div className="relative">
+                          <img
+                            src={resume.personalInfo.photo}
+                            alt="Profile"
+                            className="h-24 w-24 rounded-full object-cover border-4 border-violet-500"
+                          />
+                          <Button
+                            onClick={() =>
+                              setResume({
+                                ...resume,
+                                personalInfo: { ...resume.personalInfo, photo: '' },
+                              })
+                            }
+                            size="sm"
+                            variant="ghost"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600 text-white p-0"
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="h-24 w-24 rounded-full bg-white/5 border-2 border-dashed border-white/20 flex items-center justify-center">
+                          <span className="text-white/40 text-xs">No photo</span>
+                        </div>
+                      )}
+                      <Input
+                        type="url"
+                        placeholder="Enter photo URL"
+                        value={resume.personalInfo.photo || ''}
+                        onChange={(e) =>
+                          setResume({
+                            ...resume,
+                            personalInfo: { ...resume.personalInfo, photo: e.target.value },
+                          })
+                        }
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <Label className="text-slate-300">Full Name</Label>
                     <Input
@@ -241,6 +294,22 @@ export default function ResumeBuilderClient() {
                       className="bg-white/5 border-white/10 text-white"
                     />
                   </div>
+
+                  <div>
+                    <Label className="text-slate-300">Professional Title</Label>
+                    <Input
+                      placeholder="e.g., Business Operations Manager"
+                      value={resume.personalInfo.title || ''}
+                      onChange={(e) =>
+                        setResume({
+                          ...resume,
+                          personalInfo: { ...resume.personalInfo, title: e.target.value },
+                        })
+                      }
+                      className="bg-white/5 border-white/10 text-white"
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-slate-300">Email</Label>
@@ -281,6 +350,36 @@ export default function ResumeBuilderClient() {
                       }
                       className="bg-white/5 border-white/10 text-white"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-slate-300">LinkedIn (Optional)</Label>
+                      <Input
+                        placeholder="linkedin.com/in/yourname"
+                        value={resume.personalInfo.linkedin || ''}
+                        onChange={(e) =>
+                          setResume({
+                            ...resume,
+                            personalInfo: { ...resume.personalInfo, linkedin: e.target.value },
+                          })
+                        }
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-slate-300">Website (Optional)</Label>
+                      <Input
+                        placeholder="yourwebsite.com"
+                        value={resume.personalInfo.website || ''}
+                        onChange={(e) =>
+                          setResume({
+                            ...resume,
+                            personalInfo: { ...resume.personalInfo, website: e.target.value },
+                          })
+                        }
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -484,87 +583,178 @@ export default function ResumeBuilderClient() {
 function ResumePreview({ resume, template }: { resume: ResumeData; template: string }) {
   if (template === 'modern') {
     return (
-      <div className="space-y-6">
-        <div className="border-b-4 border-violet-600 pb-4">
-          <h1 className="text-4xl font-bold text-slate-900">{resume.personalInfo.name}</h1>
-          <div className="flex gap-4 text-sm text-slate-600 mt-2">
-            <span>{resume.personalInfo.location}</span>
-            <span>•</span>
-            <span>{resume.personalInfo.email}</span>
-            <span>•</span>
-            <span>{resume.personalInfo.phone}</span>
+      <div className="flex min-h-[1000px]">
+        {/* Sidebar - Colored Panel */}
+        <div className="w-1/3 bg-gradient-to-b from-slate-800 to-slate-900 p-8 text-white">
+          {/* Photo */}
+          {resume.personalInfo.photo && (
+            <div className="mb-6">
+              <img
+                src={resume.personalInfo.photo}
+                alt={resume.personalInfo.name}
+                className="w-40 h-40 rounded-full mx-auto object-cover border-4 border-white/20 shadow-xl"
+              />
+            </div>
+          )}
+
+          {/* Contact Info */}
+          <div className="mb-8">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-violet-300 mb-4 border-b border-white/20 pb-2">
+              Contact
+            </h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-2">
+                <span className="text-violet-300">📧</span>
+                <span className="break-all">{resume.personalInfo.email}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-violet-300">📱</span>
+                <span>{resume.personalInfo.phone}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-violet-300">📍</span>
+                <span>{resume.personalInfo.location}</span>
+              </div>
+              {resume.personalInfo.linkedin && (
+                <div className="flex items-start gap-2">
+                  <span className="text-violet-300">💼</span>
+                  <span className="break-all text-xs">{resume.personalInfo.linkedin}</span>
+                </div>
+              )}
+              {resume.personalInfo.website && (
+                <div className="flex items-start gap-2">
+                  <span className="text-violet-300">🌐</span>
+                  <span className="break-all text-xs">{resume.personalInfo.website}</span>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Skills */}
+          {resume.skills.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-violet-300 mb-4 border-b border-white/20 pb-2">
+                Skills
+              </h3>
+              <div className="space-y-2">
+                {resume.skills.map((skill, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-violet-400 rounded-full"></div>
+                    <span className="text-sm">{skill}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Certifications */}
+          {resume.certifications.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-violet-300 mb-4 border-b border-white/20 pb-2">
+                Certifications
+              </h3>
+              <div className="space-y-2">
+                {resume.certifications.map((cert, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-violet-400 rounded-full"></div>
+                    <span className="text-sm">{cert}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {resume.summary && (
-          <div>
-            <h2 className="text-xl font-bold text-violet-600 mb-2">PROFESSIONAL SUMMARY</h2>
-            <p className="text-slate-700 leading-relaxed">{resume.summary}</p>
+        {/* Main Content */}
+        <div className="flex-1 p-10 bg-white">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-5xl font-bold text-slate-900 mb-2">{resume.personalInfo.name}</h1>
+            {resume.personalInfo.title && (
+              <p className="text-xl text-violet-600 font-medium">{resume.personalInfo.title}</p>
+            )}
           </div>
-        )}
 
-        {resume.experience.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold text-violet-600 mb-3">EXPERIENCE</h2>
-            <div className="space-y-4">
-              {resume.experience.map((exp) => (
-                <div key={exp.id}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-slate-900">{exp.title}</h3>
-                      <p className="text-slate-700">{exp.company} - {exp.location}</p>
-                    </div>
-                    <span className="text-sm text-slate-600 whitespace-nowrap">
-                      {exp.startDate} - {exp.endDate}
-                    </span>
-                  </div>
-                  <ul className="list-disc list-inside mt-2 space-y-1">
-                    {exp.bullets.map((bullet, i) => (
-                      <li key={i} className="text-slate-700 text-sm">{bullet}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+          {/* Summary */}
+          {resume.summary && (
+            <div className="mb-8">
+              <h2 className="text-lg font-bold text-slate-900 mb-3 uppercase tracking-wide border-b-2 border-violet-600 pb-2">
+                Professional Summary
+              </h2>
+              <p className="text-slate-700 leading-relaxed">{resume.summary}</p>
             </div>
-          </div>
-        )}
+          )}
 
-        {resume.education.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold text-violet-600 mb-3">EDUCATION & TRAINING</h2>
-            <div className="space-y-3">
-              {resume.education.map((edu) => (
-                <div key={edu.id}>
-                  <div className="flex justify-between">
-                    <h3 className="font-bold text-slate-900">{edu.degree}</h3>
-                    <span className="text-sm text-slate-600">{edu.years}</span>
-                  </div>
-                  <p className="text-slate-700">{edu.school} - {edu.location}</p>
-                  {edu.details.length > 0 && (
-                    <ul className="list-disc list-inside mt-1 space-y-1">
-                      {edu.details.map((detail, i) => (
-                        <li key={i} className="text-slate-700 text-sm">{detail}</li>
+          {/* Experience */}
+          {resume.experience.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-bold text-slate-900 mb-4 uppercase tracking-wide border-b-2 border-violet-600 pb-2">
+                Experience
+              </h2>
+              <div className="space-y-6">
+                {resume.experience.map((exp) => (
+                  <div key={exp.id} className="relative pl-6 border-l-2 border-violet-200">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 bg-violet-600 rounded-full"></div>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-lg">{exp.title}</h3>
+                        <p className="text-violet-600 font-medium">{exp.company}</p>
+                        <p className="text-sm text-slate-600">{exp.location}</p>
+                      </div>
+                      <span className="text-sm text-slate-600 font-medium whitespace-nowrap ml-4">
+                        {exp.startDate} - {exp.endDate}
+                      </span>
+                    </div>
+                    <ul className="space-y-2 mt-3">
+                      {exp.bullets.map((bullet, i) => (
+                        <li key={i} className="text-slate-700 text-sm flex items-start gap-2">
+                          <span className="text-violet-600 mt-1">▸</span>
+                          <span>{bullet}</span>
+                        </li>
                       ))}
                     </ul>
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {resume.skills.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold text-violet-600 mb-2">KEY SKILLS</h2>
-            <div className="flex flex-wrap gap-2">
-              {resume.skills.map((skill, i) => (
-                <span key={i} className="bg-violet-100 text-violet-800 px-3 py-1 rounded-full text-sm">
-                  {skill}
-                </span>
-              ))}
+          {/* Education */}
+          {resume.education.length > 0 && (
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 mb-4 uppercase tracking-wide border-b-2 border-violet-600 pb-2">
+                Education & Training
+              </h2>
+              <div className="space-y-4">
+                {resume.education.map((edu) => (
+                  <div key={edu.id} className="relative pl-6 border-l-2 border-violet-200">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 bg-violet-600 rounded-full"></div>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-bold text-slate-900">{edu.degree}</h3>
+                        <p className="text-violet-600">{edu.school}</p>
+                        <p className="text-sm text-slate-600">{edu.location}</p>
+                      </div>
+                      <span className="text-sm text-slate-600 font-medium whitespace-nowrap ml-4">
+                        {edu.years}
+                      </span>
+                    </div>
+                    {edu.details.length > 0 && (
+                      <ul className="space-y-1 mt-2">
+                        {edu.details.map((detail, i) => (
+                          <li key={i} className="text-slate-700 text-sm flex items-start gap-2">
+                            <span className="text-violet-600">•</span>
+                            <span>{detail}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }

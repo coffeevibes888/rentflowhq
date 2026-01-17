@@ -3552,7 +3552,9 @@ model ContractorProfile {
   customers ContractorCustomer[]
 
   // Scheduler availability
-  availability ContractorAvailability?
+  availability    ContractorAvailability?
+  blockedDates    ContractorBlockedDate[]
+  serviceDurations ContractorServiceDuration[]
 
   // Business Operating System (Professional & Business tiers)
   jobs                ContractorJob[]
@@ -4718,6 +4720,42 @@ model ContractorReferral {
   @@index([contractorId])
   @@index([referrerId])
   @@index([status])
+}
+
+// ContractorBlockedDate - Block specific dates (vacations, holidays, etc)
+model ContractorBlockedDate {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+
+  startDate DateTime @db.Timestamp(6)
+  endDate   DateTime @db.Timestamp(6)
+  reason    String?
+  isAllDay  Boolean @default(true)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@index([contractorId])
+  @@index([startDate, endDate])
+}
+
+// ContractorServiceDuration - Set duration for each service type
+model ContractorServiceDuration {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+
+  serviceName String
+  duration    Int // Duration in minutes
+  description String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@unique([contractorId, serviceName])
+  @@index([contractorId])
 }
 
 // Add relations to existing ContractorProfile model
