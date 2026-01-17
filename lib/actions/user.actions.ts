@@ -172,24 +172,19 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       redirect(`/application?property=${encodeURIComponent(propertySlug.trim())}`);
     }
 
-    // Check if user came from pricing page with a plan
-    const planParam = formData.get('plan');
-    const skipOnboarding = formData.get('skipOnboarding') === 'true';
-    
-    if ((roleValue === 'landlord' || roleValue === 'property_manager') && planParam && typeof planParam === 'string') {
-      // Create landlord record immediately if skipping onboarding
-      if (skipOnboarding) {
-        await getOrCreateCurrentLandlord();
-        
-        // Mark onboarding as completed since we're skipping the role selection
-        await prisma.user.update({
-          where: { id: createdUser.id },
-          data: { onboardingCompleted: true },
-        });
-      }
+    // Check if user is a landlord/property manager - redirect to subscription page
+    if (roleValue === 'landlord' || roleValue === 'property_manager') {
+      // Create landlord record immediately
+      await getOrCreateCurrentLandlord();
       
-      // Redirect to subscription page with the plan
-      redirect(`/onboarding/landlord/subscription?plan=${planParam}&skipOnboarding=${skipOnboarding}`);
+      // Mark onboarding as completed since we're going straight to subscription
+      await prisma.user.update({
+        where: { id: createdUser.id },
+        data: { onboardingCompleted: true },
+      });
+      
+      // Redirect to subscription page to choose plan
+      redirect(`/onboarding/landlord/subscription`);
     }
 
     const rawCallbackUrl = formData.get('callbackUrl');

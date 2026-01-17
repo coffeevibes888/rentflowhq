@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/admin/onboarding?subscription=success&tier=${targetTier}`,
+      success_url: `${baseUrl}/admin/overview?subscription=success&tier=${targetTier}`,
       cancel_url: `${baseUrl}/onboarding/landlord/subscription?canceled=true`,
       metadata: {
         landlordId: landlord.id,

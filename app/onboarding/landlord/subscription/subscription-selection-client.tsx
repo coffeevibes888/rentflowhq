@@ -99,27 +99,15 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // Get plan from URL params (from pricing page flow)
-  const preselectedPlan = searchParams.get('plan');
-  const skipOnboarding = searchParams.get('skipOnboarding') === 'true';
-
+  // Get suggested plan from URL (from homepage pricing section)
+  const suggestedPlan = searchParams.get('plan');
+  
   // Check if user canceled checkout
   useEffect(() => {
     if (searchParams.get('canceled') === 'true') {
       setError('Checkout was canceled. Please select a plan to continue.');
     }
   }, [searchParams]);
-  
-  // Auto-select plan if coming from pricing page
-  useEffect(() => {
-    if (preselectedPlan && !searchParams.get('canceled')) {
-      // Small delay to show the page briefly before redirecting
-      const timer = setTimeout(() => {
-        handleSelectPlan(preselectedPlan);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [preselectedPlan]);
 
   const handleSelectPlan = async (tierId: string) => {
     setLoadingTier(tierId);
@@ -131,7 +119,6 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           tier: tierId,
-          skipOnboarding: skipOnboarding,
         }),
       });
 
@@ -164,13 +151,11 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
             Welcome, {userName.split(' ')[0]}!
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            {preselectedPlan && !searchParams.get('canceled') 
-              ? 'Starting your free trial...' 
-              : 'Choose your plan'}
+            {suggestedPlan ? 'Review your plan selection' : 'Choose your plan'}
           </h1>
           <p className="text-lg text-slate-400 max-w-xl mx-auto">
-            {preselectedPlan && !searchParams.get('canceled')
-              ? 'Redirecting you to secure checkout...'
+            {suggestedPlan 
+              ? 'Take a moment to review all plans. You can upgrade or downgrade anytime.'
               : 'All plans include a 7-day free trial. No credit card charged until trial ends.'}
           </p>
         </motion.div>
@@ -198,6 +183,7 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
             const Icon = tier.icon;
             const isPopular = tier.popular;
             const isLoading = loadingTier === tier.id;
+            const isSuggested = suggestedPlan === tier.id;
             
             return (
               <motion.div
@@ -206,13 +192,22 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 * index }}
                 className={`relative group rounded-2xl border bg-slate-900/60 backdrop-blur-sm p-6 flex flex-col transition-all duration-300 ${
-                  isPopular 
-                    ? 'border-violet-500/50 hover:border-violet-500 ring-1 ring-violet-500/20' 
-                    : 'border-white/10 hover:border-white/20'
+                  isSuggested
+                    ? 'border-cyan-500/70 hover:border-cyan-500 ring-2 ring-cyan-500/30 scale-105'
+                    : isPopular 
+                      ? 'border-violet-500/50 hover:border-violet-500 ring-1 ring-violet-500/20' 
+                      : 'border-white/10 hover:border-white/20'
                 }`}
               >
-                {/* Popular badge */}
-                {isPopular && (
+                {/* Suggested or Popular badge */}
+                {isSuggested ? (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-cyan-500/50 flex items-center gap-1">
+                      <Sparkles className="h-3 w-3" />
+                      YOUR SELECTION
+                    </div>
+                  </div>
+                ) : isPopular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                     <div className="bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-violet-500/50 flex items-center gap-1">
                       <Zap className="h-3 w-3" />

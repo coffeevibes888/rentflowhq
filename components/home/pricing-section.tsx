@@ -103,22 +103,17 @@ export default function PricingSection() {
     if (status === 'authenticated' && session?.user) {
       // Check if user is a landlord/admin
       if (session.user.role === 'admin' || session.user.role === 'landlord') {
-        // Already an admin, go to subscription checkout or dashboard
-        if (tierId === 'starter') {
-          router.push('/admin/overview');
-        } else {
-          // Redirect to subscription checkout page
-          router.push(`/admin/settings/subscription?upgrade=${tierId}`);
-        }
+        // Already an admin, go to subscription selection page with suggested plan
+        router.push(`/onboarding/landlord/subscription?plan=${tierId}`);
       } else {
         // User exists but not a landlord - redirect to sign-up to create landlord account
-        // Skip onboarding since they're coming from pricing page (we know they're landlords)
-        router.push(`/sign-up?plan=${tierId}&role=landlord&skipOnboarding=true`);
+        // Pass the plan they clicked on as a suggestion
+        router.push(`/sign-up?role=landlord&plan=${tierId}`);
       }
     } else {
-      // Not logged in - go to sign up with plan parameter
-      // Skip onboarding since they're coming from pricing page (we know they're landlords)
-      router.push(`/sign-up?plan=${tierId}&role=landlord&skipOnboarding=true`);
+      // Not logged in - go to sign up with suggested plan
+      // They'll see it highlighted on the subscription page
+      router.push(`/sign-up?role=landlord&plan=${tierId}`);
     }
     
     setLoadingTier(null);

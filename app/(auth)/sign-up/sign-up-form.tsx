@@ -63,10 +63,10 @@ const SignUpForm = () => {
       )}
       
       {/* Show context message if coming from pricing page */}
-      {skipOnboarding && plan && (
+      {plan && (
         <div className='rounded-lg bg-violet-50 border border-violet-200 p-4 mb-4'>
           <p className='text-sm text-violet-800'>
-            <strong>Great choice!</strong> Create your account to start your 7-day free trial.
+            <strong>Great choice!</strong> Create your account to review your plan selection.
           </p>
         </div>
       )}
@@ -74,8 +74,8 @@ const SignUpForm = () => {
       <OAuthButtons callbackUrl={
         fromProperty 
           ? `/application?property=${propertySlug}` 
-          : skipOnboarding && plan 
-            ? `/onboarding/landlord/subscription?plan=${plan}&skipOnboarding=true`
+          : plan 
+            ? `/onboarding/landlord/subscription?plan=${plan}`
             : callbackUrl
       } />
       
@@ -83,8 +83,8 @@ const SignUpForm = () => {
         <input type='hidden' name='callbackUrl' value={
           fromProperty 
             ? `/application?property=${propertySlug}` 
-            : skipOnboarding && plan 
-              ? `/onboarding/landlord/subscription?plan=${plan}&skipOnboarding=true`
+            : plan 
+              ? `/onboarding/landlord/subscription?plan=${plan}`
               : callbackUrl
         } />
         {/* Pass property application params to the server action */}
@@ -95,13 +95,9 @@ const SignUpForm = () => {
             <input type='hidden' name='role' value='tenant' />
           </>
         )}
-        {/* Pass pricing page params to skip onboarding */}
-        {skipOnboarding && plan && (
-          <>
-            <input type='hidden' name='plan' value={plan} />
-            <input type='hidden' name='role' value={role || 'landlord'} />
-            <input type='hidden' name='skipOnboarding' value='true' />
-          </>
+        {/* Pass role if coming from pricing page */}
+        {plan && (
+          <input type='hidden' name='role' value={role || 'landlord'} />
         )}
         {/* Pass referral code to the server action */}
         {referralCode && (

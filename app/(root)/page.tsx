@@ -924,7 +924,7 @@ const Homepage = async () => {
       {/* <NewsletterSignup /> */}
       {/* <CustomerReviews /> */}
       <HomeContactCard />
-      <ExitIntentPopup />
+      {/* <ExitIntentPopup /> */}
       <TrustBadges />
     </>
   );
