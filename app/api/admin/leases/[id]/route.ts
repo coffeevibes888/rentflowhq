@@ -57,7 +57,7 @@ export async function GET(
 
     // Check authorization - must be landlord owner or super admin
     const isLandlordOwner = lease.unit.property?.landlord?.ownerUserId === session.user.id;
-    const isSuperAdmin = session.user.role === 'super_admin';
+    const isSuperAdmin = session.user.role === 'superAdmin';
 
     if (!isLandlordOwner && !isSuperAdmin) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -116,7 +116,7 @@ export async function PUT(
 
     // Check authorization
     const isLandlordOwner = lease.unit.property?.landlord?.ownerUserId === session.user.id;
-    const isSuperAdmin = session.user.role === 'super_admin';
+    const isSuperAdmin = session.user.role === 'superAdmin';
 
     if (!isLandlordOwner && !isSuperAdmin) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });

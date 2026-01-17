@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       select: { role: true },
     });
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+    const isAdmin = user?.role === 'admin' || user?.role === 'superAdmin';
     const isContractor = hold.contractorId === session.user.id;
 
     if (!isAdmin && !isContractor) {

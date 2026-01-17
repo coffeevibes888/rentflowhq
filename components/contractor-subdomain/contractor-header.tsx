@@ -90,12 +90,6 @@ export default function ContractorSubdomainHeader({ contractor, useRootPath = fa
             <Link href={basePath} className="hover:text-violet-200 transition-colors">
               Home
             </Link>
-            <Link href={`${basePath}#services`} className="hover:text-violet-200 transition-colors">
-              Services
-            </Link>
-            <Link href={`${basePath}/about`} className="hover:text-violet-200 transition-colors">
-              About
-            </Link>
             <Link href={`${basePath}/contact`} className="hover:text-violet-200 transition-colors">
               Contact
             </Link>
@@ -147,12 +141,6 @@ export default function ContractorSubdomainHeader({ contractor, useRootPath = fa
           <div className="md:hidden mt-3 space-y-2 text-sm font-medium text-slate-200/90">
             <Link href={basePath} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
               Home
-            </Link>
-            <Link href={`${basePath}#services`} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-              Services
-            </Link>
-            <Link href={`${basePath}/about`} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-              About
             </Link>
             <Link href={`${basePath}/contact`} className="block px-3 py-2 rounded-lg bg-white/5 border border-white/10">
               Contact

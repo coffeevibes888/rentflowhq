@@ -9,8 +9,8 @@ export async function POST(request: NextRequest) {
 
     // Check if user is super admin - exclude from analytics
     const session = await auth();
-    if (session?.user?.role === 'super_admin' || session?.user?.role === 'superAdmin') {
-      return NextResponse.json({ ok: true, skipped: 'super_admin' });
+    if (session?.user?.role === 'superAdmin') {
+      return NextResponse.json({ ok: true, skipped: 'superAdmin' });
     }
 
     let sessionCartId = request.cookies.get('sessionCartId')?.value;

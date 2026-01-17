@@ -24,7 +24,7 @@ export default async function OnboardingPage() {
       case 'property_manager':
       case 'admin':
         return redirect('/admin/overview');
-      case 'super_admin':
+      case 'superAdmin':
         return redirect('/super-admin');
       case 'tenant':
         return redirect('/user/dashboard');

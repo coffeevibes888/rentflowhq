@@ -31,7 +31,7 @@ const SignUpPage = async () => {
     const role = session.user.role;
     if (role === 'admin' || role === 'landlord') {
       return redirect('/admin');
-    } else if (role === 'super_admin') {
+    } else if (role === 'superAdmin') {
       return redirect('/super-admin');
     } else {
       return redirect('/user');

@@ -39,7 +39,7 @@ function normalizeUserRole(role: string | null | undefined): string {
 
   switch (cleaned) {
     case 'superadmin':
-      return 'super_admin';
+      return 'superAdmin';
     case 'propertymanager':
     case 'pm':
       return 'property_manager';
@@ -111,7 +111,7 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
           // Redirect based on role to their appropriate dashboard
           if (role === 'landlord' || role === 'property_manager' || role === 'admin') {
             return '/admin/overview';
-          } else if (role === 'super_admin') {
+          } else if (role === 'superAdmin') {
             return '/super-admin';
           }
           return '/user/dashboard';
@@ -120,7 +120,7 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
         // Landlord slug doesn't exist, redirect based on role
         if (role === 'landlord' || role === 'property_manager' || role === 'admin') {
           return '/admin/overview';
-        } else if (role === 'super_admin') {
+        } else if (role === 'superAdmin') {
           return '/super-admin';
         }
         return '/user/dashboard';
@@ -133,7 +133,7 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
       case 'landlord':
       case 'property_manager':
         return '/admin/overview';
-      case 'super_admin':
+      case 'superAdmin':
         return '/super-admin';
       case 'contractor':
         return '/contractor';
@@ -154,7 +154,7 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
     const role = normalizeUserRole(userRole);
     if (role === 'landlord' || role === 'property_manager' || role === 'admin') {
       return '/admin/overview';
-    } else if (role === 'super_admin') {
+    } else if (role === 'superAdmin') {
       return '/super-admin';
     }
     // Default to user dashboard for all other roles

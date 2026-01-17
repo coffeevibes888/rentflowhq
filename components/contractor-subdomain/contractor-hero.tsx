@@ -139,14 +139,14 @@ export default function ContractorSubdomainHero({
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                <Link href={`#booking`} className="flex-1">
+                <Link href={`/${subdomain}/schedule`} className="flex-1">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="w-full px-8 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-500/25 transition-all flex items-center justify-center gap-2"
                   >
                     <Calendar className="h-5 w-5" />
-                    Book Appointment
+                    Instant Booking
                   </motion.button>
                 </Link>
                 <div className="flex-1">

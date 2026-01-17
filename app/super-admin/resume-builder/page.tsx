@@ -5,7 +5,7 @@ import ResumeBuilderClient from './resume-builder-client';
 export default async function ResumeBuilderPage() {
   const session = await auth();
 
-  if (!session?.user || session.user.role !== 'super_admin') {
+  if (!session?.user || session.user.role !== 'superAdmin') {
     redirect('/');
   }
 
