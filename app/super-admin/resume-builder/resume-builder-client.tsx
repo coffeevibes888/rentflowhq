@@ -114,6 +114,7 @@ export default function ResumeBuilderClient() {
   const [resume, setResume] = useState<ResumeData>(defaultResume);
   const [template, setTemplate] = useState<'modern' | 'classic' | 'minimal'>('modern');
   const [preview, setPreview] = useState(false);
+  const [sidebarColor, setSidebarColor] = useState<string>('slate'); // slate, blue, violet, emerald, rose, amber
 
   const addExperience = () => {
     setResume({
@@ -535,21 +536,51 @@ export default function ResumeBuilderClient() {
                 <CardHeader>
                   <CardTitle className="text-white">Template Style</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    {(['modern', 'classic', 'minimal'] as const).map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setTemplate(t)}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          template === t
-                            ? 'border-violet-500 bg-violet-500/20'
-                            : 'border-white/10 bg-white/5 hover:border-white/30'
-                        }`}
-                      >
-                        <div className="text-white font-medium capitalize">{t}</div>
-                      </button>
-                    ))}
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label className="text-slate-300 mb-3 block">Layout</Label>
+                    <div className="grid grid-cols-3 gap-4">
+                      {(['modern', 'classic', 'minimal'] as const).map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => setTemplate(t)}
+                          className={`p-4 rounded-lg border-2 transition-all ${
+                            template === t
+                              ? 'border-violet-500 bg-violet-500/20'
+                              : 'border-white/10 bg-white/5 hover:border-white/30'
+                          }`}
+                        >
+                          <div className="text-white font-medium capitalize">{t}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-slate-300 mb-3 block">Sidebar Color</Label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { name: 'slate', from: 'from-slate-800', to: 'to-slate-900', accent: 'bg-slate-700' },
+                        { name: 'blue', from: 'from-blue-800', to: 'to-blue-900', accent: 'bg-blue-700' },
+                        { name: 'violet', from: 'from-violet-800', to: 'to-violet-900', accent: 'bg-violet-700' },
+                        { name: 'emerald', from: 'from-emerald-800', to: 'to-emerald-900', accent: 'bg-emerald-700' },
+                        { name: 'rose', from: 'from-rose-800', to: 'to-rose-900', accent: 'bg-rose-700' },
+                        { name: 'amber', from: 'from-amber-800', to: 'to-amber-900', accent: 'bg-amber-700' },
+                      ].map((color) => (
+                        <button
+                          key={color.name}
+                          onClick={() => setSidebarColor(color.name)}
+                          className={`relative p-4 rounded-lg border-2 transition-all ${
+                            sidebarColor === color.name
+                              ? 'border-white ring-2 ring-white/50'
+                              : 'border-white/10 hover:border-white/30'
+                          }`}
+                        >
+                          <div className={`h-12 rounded bg-gradient-to-b ${color.from} ${color.to}`}></div>
+                          <div className="text-white text-xs mt-2 capitalize">{color.name}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -560,7 +591,7 @@ export default function ResumeBuilderClient() {
                 </CardHeader>
                 <CardContent>
                   <div className="bg-white p-8 rounded-lg shadow-2xl min-h-[600px]">
-                    <ResumePreview resume={resume} template={template} />
+                    <ResumePreview resume={resume} template={template} sidebarColor={sidebarColor} />
                   </div>
                 </CardContent>
               </Card>
@@ -570,7 +601,7 @@ export default function ResumeBuilderClient() {
           <Card className="bg-white/10 backdrop-blur-md border-white/20">
             <CardContent className="p-8">
               <div className="bg-white p-12 rounded-lg shadow-2xl max-w-4xl mx-auto">
-                <ResumePreview resume={resume} template={template} />
+                <ResumePreview resume={resume} template={template} sidebarColor={sidebarColor} />
               </div>
             </CardContent>
           </Card>
@@ -580,12 +611,24 @@ export default function ResumeBuilderClient() {
   );
 }
 
-function ResumePreview({ resume, template }: { resume: ResumeData; template: string }) {
+function ResumePreview({ resume, template, sidebarColor = 'slate' }: { resume: ResumeData; template: string; sidebarColor?: string }) {
+  // Color mapping for sidebar
+  const colorClasses = {
+    slate: { gradient: 'from-slate-800 to-slate-900', accent: 'text-slate-300', dot: 'bg-slate-400', border: 'border-slate-600' },
+    blue: { gradient: 'from-blue-800 to-blue-900', accent: 'text-blue-300', dot: 'bg-blue-400', border: 'border-blue-600' },
+    violet: { gradient: 'from-violet-800 to-violet-900', accent: 'text-violet-300', dot: 'bg-violet-400', border: 'border-violet-600' },
+    emerald: { gradient: 'from-emerald-800 to-emerald-900', accent: 'text-emerald-300', dot: 'bg-emerald-400', border: 'border-emerald-600' },
+    rose: { gradient: 'from-rose-800 to-rose-900', accent: 'text-rose-300', dot: 'bg-rose-400', border: 'border-rose-600' },
+    amber: { gradient: 'from-amber-800 to-amber-900', accent: 'text-amber-300', dot: 'bg-amber-400', border: 'border-amber-600' },
+  };
+
+  const colors = colorClasses[sidebarColor as keyof typeof colorClasses] || colorClasses.slate;
+
   if (template === 'modern') {
     return (
       <div className="flex min-h-[1000px]">
         {/* Sidebar - Colored Panel */}
-        <div className="w-1/3 bg-gradient-to-b from-slate-800 to-slate-900 p-8 text-white">
+        <div className={`w-1/3 bg-gradient-to-b ${colors.gradient} p-8 text-white`}>
           {/* Photo */}
           {resume.personalInfo.photo && (
             <div className="mb-6">
@@ -599,31 +642,31 @@ function ResumePreview({ resume, template }: { resume: ResumeData; template: str
 
           {/* Contact Info */}
           <div className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-violet-300 mb-4 border-b border-white/20 pb-2">
+            <h3 className={`text-sm font-bold uppercase tracking-wider ${colors.accent} mb-4 border-b ${colors.border} border-opacity-30 pb-2`}>
               Contact
             </h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-2">
-                <span className="text-violet-300">📧</span>
+                <span className={colors.accent}>📧</span>
                 <span className="break-all">{resume.personalInfo.email}</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-violet-300">📱</span>
+                <span className={colors.accent}>📱</span>
                 <span>{resume.personalInfo.phone}</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-violet-300">📍</span>
+                <span className={colors.accent}>📍</span>
                 <span>{resume.personalInfo.location}</span>
               </div>
               {resume.personalInfo.linkedin && (
                 <div className="flex items-start gap-2">
-                  <span className="text-violet-300">💼</span>
+                  <span className={colors.accent}>💼</span>
                   <span className="break-all text-xs">{resume.personalInfo.linkedin}</span>
                 </div>
               )}
               {resume.personalInfo.website && (
                 <div className="flex items-start gap-2">
-                  <span className="text-violet-300">🌐</span>
+                  <span className={colors.accent}>🌐</span>
                   <span className="break-all text-xs">{resume.personalInfo.website}</span>
                 </div>
               )}
@@ -633,13 +676,13 @@ function ResumePreview({ resume, template }: { resume: ResumeData; template: str
           {/* Skills */}
           {resume.skills.length > 0 && (
             <div className="mb-8">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-violet-300 mb-4 border-b border-white/20 pb-2">
+              <h3 className={`text-sm font-bold uppercase tracking-wider ${colors.accent} mb-4 border-b ${colors.border} border-opacity-30 pb-2`}>
                 Skills
               </h3>
               <div className="space-y-2">
                 {resume.skills.map((skill, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-violet-400 rounded-full"></div>
+                    <div className={`w-2 h-2 ${colors.dot} rounded-full`}></div>
                     <span className="text-sm">{skill}</span>
                   </div>
                 ))}
@@ -650,13 +693,13 @@ function ResumePreview({ resume, template }: { resume: ResumeData; template: str
           {/* Certifications */}
           {resume.certifications.length > 0 && (
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-violet-300 mb-4 border-b border-white/20 pb-2">
+              <h3 className={`text-sm font-bold uppercase tracking-wider ${colors.accent} mb-4 border-b ${colors.border} border-opacity-30 pb-2`}>
                 Certifications
               </h3>
               <div className="space-y-2">
                 {resume.certifications.map((cert, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-violet-400 rounded-full"></div>
+                    <div className={`w-2 h-2 ${colors.dot} rounded-full`}></div>
                     <span className="text-sm">{cert}</span>
                   </div>
                 ))}
