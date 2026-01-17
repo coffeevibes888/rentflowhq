@@ -563,7 +563,7 @@ export async function POST(
   }
 
   // Update database - save signature and initials data URLs
-  await prisma.$transaction([
+  const [updatedRequest, updatedLease] = await prisma.$transaction([
     prisma.documentSignatureRequest.update({
       where: { token },
       data: {
@@ -585,8 +585,32 @@ export async function POST(
       data: sig.role === 'tenant'
         ? { tenantSignedAt: signedAt }
         : { landlordSignedAt: signedAt, status: 'active' }, // Activate lease when landlord signs
+      include: {
+        unit: {
+          include: {
+            property: {
+              include: {
+                landlord: {
+                  include: { owner: true },
+                },
+              },
+            },
+          },
+        },
+        tenant: true,
+      },
     }),
   ]);
+
+  // ✅ NEW: Emit event when tenant or landlord signs (replaces cron job)
+  try {
+    const { dbTriggers } = await import('@/lib/event-system');
+    if (sig.role === 'tenant') {
+      await dbTriggers.onLeaseUpdate(updatedLease, { tenantSignedAt: null });
+    }
+  } catch (error) {
+    console.error('Failed to emit lease event:', error);
+  }
 
   // Revalidate cached pages after lease status change
   revalidatePath('/user/pay');

@@ -31,6 +31,14 @@ app.prepare().then(async () => {
     console.error('Failed to initialize WebSocket server:', error);
   }
 
+  // Initialize event-driven system (replaces cron jobs)
+  try {
+    const { initializeEventSystem } = require('./lib/event-system/index.ts');
+    await initializeEventSystem();
+  } catch (error) {
+    console.error('Failed to initialize event system:', error);
+  }
+
   server
     .once('error', (err) => {
       console.error(err);
@@ -39,5 +47,6 @@ app.prepare().then(async () => {
     .listen(port, () => {
       console.log(`> Ready on http://${hostname}:${port}`);
       console.log('> WebSocket server initialized');
+      console.log('> Event-driven system active');
     });
 });

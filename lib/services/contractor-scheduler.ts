@@ -192,6 +192,14 @@ export class ContractorSchedulerService {
       },
     });
 
+    // ✅ NEW: Emit event for appointment creation (replaces cron job)
+    try {
+      const { dbTriggers } = await import('@/lib/event-system');
+      await dbTriggers.onAppointmentCreate(appointment);
+    } catch (error) {
+      console.error('Failed to emit appointment event:', error);
+    }
+
     return appointment;
   }
 

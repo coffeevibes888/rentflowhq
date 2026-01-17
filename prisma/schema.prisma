@@ -4229,3 +4229,40 @@ model ConversionFunnel {
   @@index([step])
   @@index([completed])
 }
+
+// ============= EVENT SYSTEM MODELS =============
+// These models replace cron jobs with an event-driven system
+
+// SystemEvent - Stores all system events for audit trail and recovery
+model SystemEvent {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        String    // Event type (e.g., 'lease.tenant_signed')
+  payload     Json      @db.Json // Event data
+  processed   Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+  processedAt DateTime? @db.Timestamp(6)
+
+  @@index([type])
+  @@index([processed])
+  @@index([createdAt])
+}
+
+// ScheduledJob - Database-backed job queue that replaces cron jobs
+model ScheduledJob {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type         String    // Job type (e.g., 'send_reminder')
+  payload      Json      @db.Json // Job data
+  scheduledFor DateTime  @db.Timestamp(6) // When to run the job
+  priority     Int       @default(0) // Higher = more important
+  status       String    @default("pending") // pending, processing, completed, failed
+  retryCount   Int       @default(0)
+  maxRetries   Int       @default(3)
+  lastError    String?
+  createdAt    DateTime  @default(now()) @db.Timestamp(6)
+  completedAt  DateTime? @db.Timestamp(6)
+
+  @@index([type])
+  @@index([status])
+  @@index([scheduledFor])
+  @@index([priority])
+}

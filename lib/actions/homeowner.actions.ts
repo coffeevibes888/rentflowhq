@@ -396,6 +396,14 @@ export async function createHomeownerWorkOrder(data: {
       },
     });
 
+    // ✅ NEW: Emit event for work order creation (notifies contractors)
+    try {
+      const { dbTriggers } = await import('@/lib/event-system');
+      await dbTriggers.onWorkOrderCreate(workOrder, 'homeowner');
+    } catch (error) {
+      console.error('Failed to emit work order event:', error);
+    }
+
     return { 
       success: true, 
       message: 'Job posted successfully',

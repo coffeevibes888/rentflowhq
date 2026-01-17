@@ -95,7 +95,7 @@ export async function creditLandlordWallet({
   });
 
   // Record wallet transaction with availableAt date
-  await prisma.walletTransaction.create({
+  const transaction = await prisma.walletTransaction.create({
     data: {
       walletId: wallet.id,
       type: 'credit',
@@ -111,6 +111,14 @@ export async function creditLandlordWallet({
       },
     },
   });
+
+  // ✅ NEW: Emit event for pending payment (replaces cron job)
+  try {
+    const { dbTriggers } = await import('@/lib/event-system');
+    await dbTriggers.onPaymentCreate(transaction);
+  } catch (error) {
+    console.error('Failed to emit payment event:', error);
+  }
 
   return { 
     success: true, 

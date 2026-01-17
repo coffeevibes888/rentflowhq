@@ -343,6 +343,14 @@ export async function createWorkOrder(data: {
       },
     });
 
+    // ✅ NEW: Emit event for work order creation (notifies contractors)
+    try {
+      const { dbTriggers } = await import('@/lib/event-system');
+      await dbTriggers.onWorkOrderCreate(workOrder, 'landlord');
+    } catch (error) {
+      console.error('Failed to emit work order event:', error);
+    }
+
     // Create media entries if provided
     if (data.media && data.media.length > 0) {
       await prisma.workOrderMedia.createMany({

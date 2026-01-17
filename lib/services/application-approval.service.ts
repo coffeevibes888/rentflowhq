@@ -356,6 +356,14 @@ export async function approveApplication(
     },
   });
 
+  // ✅ NEW: Emit event for lease creation (schedules rent reminders)
+  try {
+    const { dbTriggers } = await import('@/lib/event-system');
+    await dbTriggers.onLeaseCreate(lease);
+  } catch (error) {
+    console.error('Failed to emit lease event:', error);
+  }
+
   // 7. Create signature request for tenant
   const tenantToken = crypto.randomBytes(24).toString('hex');
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days

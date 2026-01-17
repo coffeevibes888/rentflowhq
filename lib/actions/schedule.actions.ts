@@ -97,6 +97,14 @@ export async function bookAppointment(data: {
       },
     });
 
+    // ✅ NEW: Emit event for property showing (sends confirmation + reminders)
+    try {
+      const { dbTriggers } = await import('@/lib/event-system');
+      await dbTriggers.onPropertyAppointmentCreate(appointment);
+    } catch (error) {
+      console.error('Failed to emit property showing event:', error);
+    }
+
     return { success: true, appointment };
   } catch (error) {
     console.error('Book appointment error:', error);

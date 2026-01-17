@@ -34,6 +34,12 @@ export default function SuperAdminLayout({
                 Dashboard
               </Link>
               <Link 
+                href='/super-admin/resume-builder' 
+                className='text-sm text-green-300 hover:text-green-200 transition-colors font-medium'
+              >
+                📄 Resume Builder
+              </Link>
+              <Link 
                 href='/super-admin/affiliates' 
                 className='text-sm text-emerald-300 hover:text-emerald-200 transition-colors font-medium'
               >

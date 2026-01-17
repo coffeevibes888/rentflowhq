@@ -62,6 +62,14 @@ export async function POST(request: Request) {
       },
     });
 
+    // ✅ NEW: Emit event for open house (sends reminders to agent)
+    try {
+      const { dbTriggers } = await import('@/lib/event-system');
+      await dbTriggers.onOpenHouseCreate(openHouse);
+    } catch (error) {
+      console.error('Failed to emit open house event:', error);
+    }
+
     return NextResponse.json({ success: true, openHouse });
   } catch (error) {
     console.error('Create open house error:', error);

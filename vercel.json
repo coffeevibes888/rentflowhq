@@ -3,22 +3,6 @@
     "app/api/sign/[token]/route.ts": {
       "maxDuration": 60,
       "memory": 1024
-    },
-    "app/api/cron/daily-tasks/route.ts": {
-      "maxDuration": 60
-    },
-    "app/api/cron/daily-maintenance/route.ts": {
-      "maxDuration": 60
     }
-  },
-  "crons": [
-    {
-      "path": "/api/cron/daily-tasks",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/daily-maintenance",
-      "schedule": "0 3 * * *"
-    }
-  ]
+  }
 }

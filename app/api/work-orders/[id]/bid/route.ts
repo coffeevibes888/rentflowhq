@@ -108,6 +108,20 @@ export async function POST(
       },
     });
 
+    // ✅ NEW: Emit event for bid received (notifies work order owner)
+    try {
+      const { dbTriggers } = await import('@/lib/event-system');
+      const workOrder = await prisma.workOrder.findUnique({ 
+        where: { id: workOrderId },
+        include: { landlord: true }
+      });
+      if (workOrder) {
+        await dbTriggers.onWorkOrderBidCreate(bid, workOrder);
+      }
+    } catch (error) {
+      console.error('Failed to emit bid event:', error);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Bid submitted successfully',

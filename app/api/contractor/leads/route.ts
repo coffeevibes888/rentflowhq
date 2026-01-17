@@ -309,7 +309,7 @@ async function createLeadMatch(
   if (lead && lead.leadScore > 70) leadCost += 5;
   if (lead && lead.leadScore > 85) leadCost += 5;
 
-  await prisma.contractorLeadMatch.create({
+  const match = await prisma.contractorLeadMatch.create({
     data: {
       leadId,
       contractorId,
@@ -321,6 +321,16 @@ async function createLeadMatch(
       priority: matchScore,
     },
   });
+
+  // ✅ NEW: Emit event for contractor lead match (notifies contractor)
+  try {
+    const { dbTriggers } = await import('@/lib/event-system');
+    if (lead) {
+      await dbTriggers.onContractorLeadMatch(match, lead);
+    }
+  } catch (error) {
+    console.error('Failed to emit lead match event:', error);
+  }
 }
 
 /**
