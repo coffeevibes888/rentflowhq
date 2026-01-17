@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
 import SubdomainHero from '@/components/subdomain/subdomain-hero';
 import ContractorSubdomainHero from '@/components/contractor-subdomain/contractor-hero';
+import { ContractorMessageWidget } from '@/components/contractor-subdomain/contractor-message-widget';
 import { ContractorQuoteButton } from '@/components/contractor/quote-button';
 import { ContractorStats } from '@/components/contractor-subdomain/contractor-stats';
 import { ServiceAreaBadge } from '@/components/contractor-subdomain/service-area-badge';
@@ -26,6 +27,7 @@ import {
   Star,
   MapPin,
   User,
+  Calendar,
 } from 'lucide-react';
 
 // Icon mapping for contractor feature cards
@@ -352,27 +354,31 @@ async function ContractorSubdomainPage({
         contractorId={contractor.id}
         contractorImage={contractor.profilePhoto}
         isAvailable={contractor.isAvailable ?? true}
+        avgRating={contractor.avgRating}
+        totalReviews={contractor.totalReviews}
       />
 
-      {/* Quick Actions Bar */}
+      {/* Floating Message Widget */}
+      <ContractorMessageWidget
+        contractorId={contractor.id}
+        contractorName={brandName}
+        contractorImage={contractor.profilePhoto}
+        contractorEmail={contractor.email}
+        contractorPhone={contractor.phone}
+        subdomain={subdomain}
+        isAvailable={contractor.isAvailable ?? true}
+        responseTime="Usually responds within 2 hours"
+      />
+
+      {/* Service Area Badge */}
       <div className="w-full py-6 px-4">
-        <div className="max-w-6xl mx-auto space-y-4">
-          <QuickActions
-            contractorName={brandName}
-            phone={contractor.phone}
-            email={contractor.email}
-            subdomain={subdomain}
+        <div className="max-w-6xl mx-auto flex justify-center">
+          <ServiceAreaBadge
+            baseCity={contractor.baseCity}
+            baseState={contractor.baseState}
+            serviceRadius={contractor.serviceRadius}
+            serviceAreas={contractor.serviceAreas}
           />
-          
-          {/* Service Area Badge */}
-          <div className="flex justify-center">
-            <ServiceAreaBadge
-              baseCity={contractor.baseCity}
-              baseState={contractor.baseState}
-              serviceRadius={contractor.serviceRadius}
-              serviceAreas={contractor.serviceAreas}
-            />
-          </div>
         </div>
       </div>
 
@@ -387,6 +393,126 @@ async function ContractorSubdomainPage({
           yearsExperience={contractor.yearsExperience}
         />
       )}
+
+      {/* Reviews Section - Moved Higher */}
+      {contractor.reviews.length > 0 && (
+        <section className="w-full py-12 px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <h2 className="text-3xl md:text-4xl font-bold text-white">
+                  Customer Reviews
+                </h2>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-400/30">
+                  <Star className="h-5 w-5 text-amber-400 fill-current" />
+                  <span className="text-xl font-bold text-white">{contractor.avgRating.toFixed(1)}</span>
+                  <span className="text-slate-400">({contractor.totalReviews})</span>
+                </div>
+              </div>
+              <p className="text-lg text-slate-300">
+                See what our customers are saying
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {contractor.reviews.map((review: any) => (
+                <div key={review.id} className="rounded-xl border border-white/10 bg-slate-900/60 backdrop-blur-sm p-6 space-y-4 hover:border-violet-400/30 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+                        {review.reviewer?.image ? (
+                          <Image src={review.reviewer.image} alt="" width={48} height={48} className="object-cover" />
+                        ) : (
+                          <User className="h-6 w-6 text-slate-400" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white">{review.reviewer?.name || 'Anonymous'}</p>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`h-4 w-4 ${
+                                star <= review.overallRating ? 'text-amber-400 fill-current' : 'text-slate-600'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    {review.isVerified && (
+                      <div className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-500/20 px-2 py-1 rounded-full">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Verified
+                      </div>
+                    )}
+                  </div>
+                  {review.title && <p className="font-semibold text-white text-lg">{review.title}</p>}
+                  <p className="text-sm text-slate-300 leading-relaxed">{review.content}</p>
+                  <p className="text-xs text-slate-500">
+                    {new Date(review.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Booking Section */}
+      <section id="booking" className="w-full py-16 px-4 bg-slate-900/40">
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl p-8 md:p-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+                Schedule Your Appointment
+              </h2>
+              <p className="text-lg text-slate-300">
+                Book a time that works for you. Fast, easy, and convenient.
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="h-12 w-12 mx-auto mb-3 rounded-full bg-violet-500/20 flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-violet-400" />
+                </div>
+                <h3 className="font-semibold text-white mb-1">Choose Date & Time</h3>
+                <p className="text-sm text-slate-400">Pick a slot that fits your schedule</p>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="h-12 w-12 mx-auto mb-3 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+                </div>
+                <h3 className="font-semibold text-white mb-1">Instant Confirmation</h3>
+                <p className="text-sm text-slate-400">Get confirmed immediately</p>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="h-12 w-12 mx-auto mb-3 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-cyan-400" />
+                </div>
+                <h3 className="font-semibold text-white mb-1">Flexible Rescheduling</h3>
+                <p className="text-sm text-slate-400">Change anytime if needed</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href={`/${subdomain}/schedule`}
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold shadow-lg shadow-violet-500/25 transition-all"
+              >
+                <Calendar className="h-5 w-5" />
+                Book Now
+              </Link>
+              <div className="sm:w-auto">
+                <ContractorQuoteButton
+                  contractorSlug={contractor.slug}
+                  contractorName={brandName}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Trust Badges */}
       <TrustBadges
@@ -426,24 +552,28 @@ async function ContractorSubdomainPage({
 
       {/* Portfolio Section */}
       {contractor.portfolioImages.length > 0 && (
-        <section className="w-full py-12 px-4 bg-slate-900/40">
+        <section className="w-full py-12 px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl p-8 md:p-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
                 Our Work
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {contractor.portfolioImages.slice(0, 8).map((url: string, idx: number) => (
-                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-white/10">
-                    <Image
-                      src={url}
-                      alt={`Portfolio ${idx + 1}`}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                ))}
-              </div>
+              <p className="text-lg text-slate-300">
+                Quality craftsmanship you can see
+              </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {contractor.portfolioImages.slice(0, 8).map((url: string, idx: number) => (
+                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-white/10 group">
+                  <Image
+                    src={url}
+                    alt={`Portfolio ${idx + 1}`}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -481,16 +611,16 @@ async function ContractorSubdomainPage({
             <div className="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl p-8 md:p-12">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl md:text-3xl font-bold text-white">
-                  Customer Reviews
+                  More Reviews
                 </h2>
                 <div className="flex items-center gap-2">
                   <Star className="h-6 w-6 text-amber-400 fill-current" />
                   <span className="text-2xl font-bold text-white">{contractor.avgRating.toFixed(1)}</span>
-                  <span className="text-slate-400">({contractor.totalReviews} reviews)</span>
+                  <span className="text-slate-400">({contractor.totalReviews} total)</span>
                 </div>
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {contractor.reviews.map((review: any) => (
+                {contractor.reviews.slice(6).map((review: any) => (
                   <div key={review.id} className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-3">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">

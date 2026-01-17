@@ -22,7 +22,7 @@ export const authConfig = {
         /^\/user\/.*/,  // All user routes require auth
         /^\/order\//,
         /^\/admin\/.*/,  // All admin routes require auth
-        /^\/super-admin/,
+        /^\/super-admin\/.*/,
         /^\/contractor\/.*/,  // All contractor routes require auth
         /^\/homeowner\/.*/,  // All homeowner routes require auth
         /^\/agent\/.*/,  // All agent routes require auth

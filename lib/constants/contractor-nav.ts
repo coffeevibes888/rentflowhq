@@ -9,6 +9,12 @@ import {
   Clock,
   Briefcase,
   Scale,
+  Users,
+  FolderKanban,
+  BarChart3,
+  Calendar,
+  UserCircle,
+  Megaphone,
   LucideIcon 
 } from 'lucide-react';
 
@@ -25,6 +31,42 @@ export const contractorNavLinks: ContractorNavLink[] = [
     description: 'Overview of your work',
     href: '/contractor/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    title: 'Jobs',
+    description: 'Manage your projects',
+    href: '/contractor/jobs',
+    icon: FolderKanban,
+  },
+  {
+    title: 'Customers',
+    description: 'Customer CRM',
+    href: '/contractor/customers',
+    icon: Users,
+  },
+  {
+    title: 'Employees',
+    description: 'Team management',
+    href: '/contractor/employees',
+    icon: UserCircle,
+  },
+  {
+    title: 'Calendar',
+    description: 'Schedule & dispatch',
+    href: '/contractor/calendar',
+    icon: Calendar,
+  },
+  {
+    title: 'Marketing',
+    description: 'Campaigns & referrals',
+    href: '/contractor/marketing',
+    icon: Megaphone,
+  },
+  {
+    title: 'Reports',
+    description: 'Analytics & insights',
+    href: '/contractor/reports',
+    icon: BarChart3,
   },
   {
     title: 'Browse Jobs',

@@ -63,6 +63,7 @@ export function ContractorMessageWidget({
   const [showQuickContact, setShowQuickContact] = useState(false);
   const [guestInfo, setGuestInfo] = useState({ name: '', email: '', phone: '' });
   const [hasStartedChat, setHasStartedChat] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -239,86 +240,27 @@ export function ContractorMessageWidget({
 
   return (
     <>
-      {/* Message Button - Replaces Hero Image */}
-      <motion.div
-        className="relative w-full max-w-md aspect-square flex flex-col items-center justify-center -mt-6"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="relative w-full h-full rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-violet-900/30 to-slate-900/80 backdrop-blur-xl overflow-hidden flex flex-col items-center justify-center p-8">
-          {/* Animated background */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-violet-500/20 to-transparent rounded-full blur-3xl animate-pulse" />
-            <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-500/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          </div>
-
-          {/* Content */}
-          <div className="relative z-10 text-center space-y-6">
-            {/* Contractor Avatar */}
-            <motion.div
-              className="relative mx-auto"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 p-1">
-                <div className="h-full w-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
-                  {contractorImage ? (
-                    <Image src={contractorImage} alt={contractorName} width={88} height={88} className="rounded-full object-cover" />
-                  ) : (
-                    <User className="h-10 w-10 text-slate-400" />
-                  )}
-                </div>
-              </div>
-              {/* Online indicator */}
-              <div className={`absolute bottom-1 right-1 h-5 w-5 rounded-full border-2 border-slate-900 ${isAvailable ? 'bg-emerald-500' : 'bg-slate-500'}`} />
-            </motion.div>
-
-            {/* Status */}
-            <div>
-              <p className="text-white font-medium mb-1">
-                {isAvailable ? 'Available for new projects' : 'Currently busy'}
-              </p>
-              <p className="text-sm text-slate-400 flex items-center justify-center gap-1">
-                <Clock className="h-3 w-3" />
-                {responseTime}
-              </p>
-            </div>
-
-            {/* Message Button */}
-            <motion.button
-              onClick={() => setIsOpen(true)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all"
-            >
-              <MessageCircle className="h-5 w-5" />
-              Message {contractorName.split(' ')[0]}
-            </motion.button>
-
-            {/* Quick contact options */}
-            <div className="flex items-center justify-center gap-4 pt-2">
-              {contractorPhone && (
-                <a
-                  href={`tel:${contractorPhone}`}
-                  className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors"
-                >
-                  <Phone className="h-4 w-4" />
-                  Call
-                </a>
-              )}
-              {contractorEmail && (
-                <a
-                  href={`mailto:${contractorEmail}`}
-                  className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors"
-                >
-                  <Mail className="h-4 w-4" />
-                  Email
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      </motion.div>
+      {/* Floating Message Button - Bottom Right */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-6 right-6 z-40 h-16 w-16 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 shadow-2xl shadow-violet-500/50 flex items-center justify-center text-white hover:shadow-violet-500/70 transition-shadow"
+          >
+            <MessageCircle className="h-7 w-7" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center border-2 border-slate-900">
+                {unreadCount}
+              </span>
+            )}
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Chat Modal */}
       <AnimatePresence>

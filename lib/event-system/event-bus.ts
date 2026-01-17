@@ -34,6 +34,17 @@ export type SystemEvent =
   | 'work_order.completed'
   | 'contractor.lead_matched'
   | 'contractor.lead_responded'
+  | 'contractor.job.created'
+  | 'contractor.job.status_changed'
+  | 'contractor.job.deleted'
+  | 'contractor.customer.created'
+  | 'contractor.employee.created'
+  | 'contractor.time.clock_in'
+  | 'contractor.time.clock_out'
+  | 'contractor.campaign.created'
+  | 'contractor.campaign.send'
+  | 'contractor.referral.created'
+  | 'contractor.referral.updated'
   | 'homeowner.job_posted'
   | 'homeowner.estimate_requested';
 
