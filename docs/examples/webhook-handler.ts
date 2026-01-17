@@ -5,9 +5,14 @@
  * Use this as a reference when building your own webhook handler.
  * 
  * This example uses Express.js, but the concepts apply to any framework.
+ * 
+ * NOTE: This is example code for external developers. It is not meant to be run
+ * in this Next.js project. To use this, copy it to your own Express.js project
+ * and install the required dependencies: npm install express @types/express
  */
 
-import express from 'express';
+// @ts-nocheck - This is example code, not part of the project
+import express, { Request, Response } from 'express';
 import crypto from 'crypto';
 
 const app = express();
@@ -54,7 +59,7 @@ function verifySignature(payload: string, signature: string, secret: string): bo
 /**
  * Webhook endpoint
  */
-app.post('/webhooks/property-manager', (req, res) => {
+app.post('/webhooks/property-manager', (req: Request, res: Response) => {
   const signature = req.headers['x-webhook-signature'] as string;
   const payload = req.body.toString();
 

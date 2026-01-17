@@ -178,8 +178,8 @@ export async function GET(request: NextRequest) {
       acc[click.path].push({
         x: click.xPosition,
         y: click.yPosition,
-        element: click.elementTag,
-        text: click.elementText,
+        element: click.elementTag ?? 'unknown',
+        text: click.elementText ?? null,
       });
       return acc;
     }, {} as Record<string, Array<{ x: number | null; y: number | null; element: string; text: string | null }>>);

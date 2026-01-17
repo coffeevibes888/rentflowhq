@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function LandlordSubscriptionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ plan?: string; skipOnboarding?: string }>;
+  searchParams: Promise<{ plan?: string; skipOnboarding?: string; canceled?: string }>;
 }) {
   const session = await auth();
 
@@ -23,6 +23,7 @@ export default async function LandlordSubscriptionPage({
 
   const params = await searchParams;
   const skipOnboarding = params.skipOnboarding === 'true';
+  const canceledCheckout = params.canceled === 'true';
 
   // If coming from pricing page flow, ensure landlord record exists and user is set up
   if (skipOnboarding) {
@@ -42,41 +43,44 @@ export default async function LandlordSubscriptionPage({
   }
 
   // Check if user already has an active subscription - redirect to dashboard
-  const landlord = await prisma.landlord.findFirst({
-    where: { ownerUserId: session.user.id },
-    select: {
-      id: true,
-      stripeSubscriptionId: true,
-      subscriptionStatus: true,
-      stripeCustomerId: true,
-      subscription: {
-        select: {
-          status: true,
-          stripeSubscriptionId: true,
+  // UNLESS they just canceled checkout (they need to select a plan)
+  if (!canceledCheckout) {
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: session.user.id },
+      select: {
+        id: true,
+        stripeSubscriptionId: true,
+        subscriptionStatus: true,
+        stripeCustomerId: true,
+        subscription: {
+          select: {
+            status: true,
+            stripeSubscriptionId: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (landlord) {
-    const hasActiveSubscription = 
-      landlord.stripeSubscriptionId || 
-      landlord.subscription?.stripeSubscriptionId ||
-      landlord.subscriptionStatus === 'trialing' ||
-      landlord.subscriptionStatus === 'active' ||
-      landlord.subscription?.status === 'trialing' ||
-      landlord.subscription?.status === 'active';
+    if (landlord) {
+      const hasActiveSubscription = 
+        landlord.stripeSubscriptionId || 
+        landlord.subscription?.stripeSubscriptionId ||
+        landlord.subscriptionStatus === 'trialing' ||
+        landlord.subscriptionStatus === 'active' ||
+        landlord.subscription?.status === 'trialing' ||
+        landlord.subscription?.status === 'active';
 
-    if (hasActiveSubscription) {
-      redirect('/admin/overview');
-    }
+      if (hasActiveSubscription) {
+        redirect('/admin/overview');
+      }
 
-    // If they have a Stripe customer ID but subscription is incomplete,
-    // the webhook may still be processing - redirect to dashboard to let it sync
-    if (landlord.stripeCustomerId && landlord.subscriptionStatus === 'incomplete') {
-      // Give the webhook a chance to process by redirecting to admin
-      // The admin layout will allow access for incomplete subscriptions with a customer ID
-      redirect('/admin/onboarding?subscription=pending');
+      // If they have a Stripe customer ID but subscription is incomplete,
+      // the webhook may still be processing - redirect to dashboard to let it sync
+      if (landlord.stripeCustomerId && landlord.subscriptionStatus === 'incomplete') {
+        // Give the webhook a chance to process by redirecting to admin
+        // The admin layout will allow access for incomplete subscriptions with a customer ID
+        redirect('/admin/onboarding?subscription=pending');
+      }
     }
   }
 
