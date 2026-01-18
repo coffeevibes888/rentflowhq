@@ -166,7 +166,7 @@ export default async function CustomersPage() {
                     </div>
                   </div>
 
-                  {customer.totalSpent > 0 && (
+                  {Number(customer.totalSpent) > 0 && (
                     <div className="mt-3 pt-3 border-t border-white/10">
                       <p className="text-sm text-white/60">Lifetime Value</p>
                       <p className="text-lg font-semibold text-emerald-300">

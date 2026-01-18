@@ -21,29 +21,47 @@ export default async function SuperAdminPage() {
     return redirect('/sign-in');
   }
 
-  const [summary, analytics, insights, users, landlords] = await Promise.all([
-    getOrderSummary(),
-    getAnalyticsOverview(),
-    getSuperAdminInsights(),
-    listUsersForSuperAdmin(),
-    listLandlordsForSuperAdmin(),
-  ]);
+  // Check if user is superAdmin before loading data
+  if (session.user?.role !== 'superAdmin') {
+    return redirect('/unauthorized');
+  }
 
-  const serializedSummary = convertToPlainObject(summary);
-  const serializedAnalytics = convertToPlainObject(analytics);
-  const serializedInsights = convertToPlainObject(insights);
-  const serializedUsers = convertToPlainObject(users);
-  const serializedLandlords = convertToPlainObject(landlords);
+  try {
+    const [summary, analytics, insights, users, landlords] = await Promise.all([
+      getOrderSummary(),
+      getAnalyticsOverview(),
+      getSuperAdminInsights(),
+      listUsersForSuperAdmin(),
+      listLandlordsForSuperAdmin(),
+    ]);
 
-  return (
-    <SuperAdminDashboard
-      userEmail={session.user.email || ''}
-      summary={serializedSummary}
-      analytics={serializedAnalytics}
-      insights={serializedInsights as any}
-      users={serializedUsers as any}
-      landlords={serializedLandlords as any}
-      currentUser={session.user}
-    />
-  );
+    const serializedSummary = convertToPlainObject(summary);
+    const serializedAnalytics = convertToPlainObject(analytics);
+    const serializedInsights = convertToPlainObject(insights);
+    const serializedUsers = convertToPlainObject(users);
+    const serializedLandlords = convertToPlainObject(landlords);
+
+    return (
+      <SuperAdminDashboard
+        userEmail={session.user.email || ''}
+        summary={serializedSummary}
+        analytics={serializedAnalytics}
+        insights={serializedInsights as any}
+        users={serializedUsers as any}
+        landlords={serializedLandlords as any}
+        currentUser={session.user}
+      />
+    );
+  } catch (error) {
+    console.error('Super Admin page error:', error);
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold text-white">Error Loading Dashboard</h1>
+          <p className="text-white/70">There was an error loading the super admin dashboard.</p>
+          <p className="text-sm text-white/50">Check the server logs for more details.</p>
+        </div>
+      </div>
+    );
+  }
 }
