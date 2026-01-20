@@ -4,12 +4,12 @@ export default function TrustBadges() {
   return (
     <section className='w-full py-8 md:py-12 px-3 md:px-4'>
       <div className='max-w-6xl mx-auto'>
-        <div className='rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl p-6 md:p-8'>
+        <div className='rounded-2xl border border-slate-200 bg-white shadow-md p-6 md:p-8'>
           <div className='text-center mb-6 md:mb-8'>
-            <h3 className='text-lg md:text-xl font-bold text-white mb-2'>
+            <h3 className='text-lg md:text-xl font-bold text-slate-900 mb-2'>
               Trusted by Property Managers Nationwide
             </h3>
-            <p className='text-xs md:text-sm text-slate-300'>
+            <p className='text-xs md:text-sm text-slate-600'>
               Enterprise-grade security and reliability for landlords of all sizes
             </p>
           </div>
@@ -21,8 +21,8 @@ export default function TrustBadges() {
                 <Lock className='h-5 w-5 md:h-6 md:w-6 text-emerald-400' />
               </div>
               <div>
-                <p className='text-xs md:text-sm font-semibold text-white'>SSL Secured</p>
-                <p className='text-[10px] md:text-xs text-slate-400'>256-bit encryption</p>
+                <p className='text-xs md:text-sm font-semibold text-slate-900'>SSL Secured</p>
+                <p className='text-[10px] md:text-xs text-slate-600'>256-bit encryption</p>
               </div>
             </div>
 
@@ -32,8 +32,8 @@ export default function TrustBadges() {
                 <CreditCard className='h-5 w-5 md:h-6 md:w-6 text-blue-400' />
               </div>
               <div>
-                <p className='text-xs md:text-sm font-semibold text-white'>PCI Compliant</p>
-                <p className='text-[10px] md:text-xs text-slate-400'>Stripe powered</p>
+                <p className='text-xs md:text-sm font-semibold text-slate-900'>PCI Compliant</p>
+                <p className='text-[10px] md:text-xs text-slate-600'>Stripe powered</p>
               </div>
             </div>
 
@@ -43,8 +43,8 @@ export default function TrustBadges() {
                 <Shield className='h-5 w-5 md:h-6 md:w-6 text-violet-400' />
               </div>
               <div>
-                <p className='text-xs md:text-sm font-semibold text-white'>Data Protected</p>
-                <p className='text-[10px] md:text-xs text-slate-400'>Bank-level security</p>
+                <p className='text-xs md:text-sm font-semibold text-slate-900'>Data Protected</p>
+                <p className='text-[10px] md:text-xs text-slate-600'>Bank-level security</p>
               </div>
             </div>
 
@@ -54,8 +54,8 @@ export default function TrustBadges() {
                 <CheckCircle2 className='h-5 w-5 md:h-6 md:w-6 text-cyan-400' />
               </div>
               <div>
-                <p className='text-xs md:text-sm font-semibold text-white'>99.9% Uptime</p>
-                <p className='text-[10px] md:text-xs text-slate-400'>Always available</p>
+                <p className='text-xs md:text-sm font-semibold text-slate-900'>99.9% Uptime</p>
+                <p className='text-[10px] md:text-xs text-slate-600'>Always available</p>
               </div>
             </div>
 
@@ -65,8 +65,8 @@ export default function TrustBadges() {
                 <Users className='h-5 w-5 md:h-6 md:w-6 text-amber-400' />
               </div>
               <div>
-                <p className='text-xs md:text-sm font-semibold text-white'>1,000+</p>
-                <p className='text-[10px] md:text-xs text-slate-400'>Active landlords</p>
+                <p className='text-xs md:text-sm font-semibold text-slate-900'>1,000+</p>
+                <p className='text-[10px] md:text-xs text-slate-600'>Active landlords</p>
               </div>
             </div>
 
@@ -76,8 +76,8 @@ export default function TrustBadges() {
                 <Building2 className='h-5 w-5 md:h-6 md:w-6 text-rose-400' />
               </div>
               <div>
-                <p className='text-xs md:text-sm font-semibold text-white'>50,000+</p>
-                <p className='text-[10px] md:text-xs text-slate-400'>Units managed</p>
+                <p className='text-xs md:text-sm font-semibold text-slate-900'>50,000+</p>
+                <p className='text-[10px] md:text-xs text-slate-600'>Units managed</p>
               </div>
             </div>
           </div>

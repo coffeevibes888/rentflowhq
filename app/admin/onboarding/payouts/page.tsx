@@ -40,7 +40,7 @@ const PayoutsOnboardingPage = async () => {
           </div>
           <div className='w-full rounded-full bg-slate-200 h-3 overflow-hidden'>
             <div
-              className='h-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all'
+              className='h-3 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 transition-all'
               style={{ width: `${progressPercent}%` }}
             />
           </div>

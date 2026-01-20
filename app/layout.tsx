@@ -103,7 +103,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className='bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600 text-black font-semibold flex flex-col min-h-screen overflow-x-hidden'>
+      <body className='bg-white text-black font-semibold flex flex-col min-h-screen overflow-x-hidden'>
         <SessionProviderWrapper>
           <ThemeProvider attribute='class' defaultTheme='light' enableSystem={false} disableTransitionOnChange>
             <PageViewTracker />

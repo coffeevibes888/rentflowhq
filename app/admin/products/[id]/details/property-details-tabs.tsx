@@ -365,8 +365,8 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full flex justify-around overflow-x-auto gap-1 sm:gap-2 bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 sm:p-1.5 rounded-lg sm:rounded-xl h-auto text-white mobile-scroll-x">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base whitespace-nowrap flex-shrink-0">
+          <TabsList className="w-full flex justify-around overflow-x-auto gap-1 sm:gap-2 bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border-2 border-black p-1 sm:p-1.5 rounded-lg sm:rounded-xl h-auto text-black mobile-scroll-x shadow-xl">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base whitespace-nowrap flex-shrink-0 font-bold">
               <Building2 className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
               <span className="hidden sm:inline text-white font-medium">Overview</span>
             </TabsTrigger>
@@ -399,44 +399,44 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl">
                     <div className="flex items-center justify-between">
-                      <div className="text-[10px] sm:text-xs text-black">Total Units</div>
-                      <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90" />
+                      <div className="text-[10px] sm:text-xs text-black font-bold">Total Units</div>
+                      <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
                     </div>
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{property.units.length}</div>
-                    <div className="text-[9px] sm:text-[10px] text-white/80">{property.units.filter((u: any) => u.isAvailable).length} available</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-black">{property.units.length}</div>
+                    <div className="text-[9px] sm:text-[10px] text-black font-semibold">{property.units.filter((u: any) => u.isAvailable).length} available</div>
                   </div>
 
-                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl">
                     <div className="flex items-center justify-between">
-                      <div className="text-[10px] sm:text-xs text-black">Occupied</div>
-                      <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90" />
+                      <div className="text-[10px] sm:text-xs text-black font-bold">Occupied</div>
+                      <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" />
                     </div>
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{property.units.filter((u: any) => !u.isAvailable).length}</div>
-                    <div className="text-[9px] sm:text-[10px] text-emerald-100">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-black">{property.units.filter((u: any) => !u.isAvailable).length}</div>
+                    <div className="text-[9px] sm:text-[10px] text-black font-semibold">
                       {Math.round((property.units.filter((u: any) => !u.isAvailable).length / property.units.length) * 100)}% occupancy
                     </div>
                   </div>
 
-                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl">
                     <div className="flex items-center justify-between">
-                      <div className="text-[10px] sm:text-xs text-black">Open Tickets</div>
-                      <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90" />
+                      <div className="text-[10px] sm:text-xs text-black font-bold">Open Tickets</div>
+                      <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />
                     </div>
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{openTickets.length}</div>
-                    <div className="text-[9px] sm:text-[10px] text-red-100">{allTickets.length} total</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-black">{openTickets.length}</div>
+                    <div className="text-[9px] sm:text-[10px] text-black font-semibold">{allTickets.length} total</div>
                   </div>
 
-                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl">
                     <div className="flex items-center justify-between">
-                      <div className="text-[10px] sm:text-xs text-black">Monthly Revenue</div>
-                      <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90" />
+                      <div className="text-[10px] sm:text-xs text-black font-bold">Monthly Revenue</div>
+                      <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" />
                     </div>
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-black">
                       {formatCurrency(activeLeases.reduce((sum: number, l: any) => sum + l.rentAmount, 0))}
                     </div>
-                    <div className="text-[9px] sm:text-[10px] text-emerald-100">{activeLeases.length} active leases</div>
+                    <div className="text-[9px] sm:text-[10px] text-black font-semibold">{activeLeases.length} active leases</div>
                   </div>
                 </div>
               </div>
@@ -444,23 +444,23 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
 
             <div className="grid gap-4 lg:grid-cols-2">
               {/* Units Overview */}
-              <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 text-white">
+              <Card className="border-2 border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 text-black shadow-xl">
                 <CardHeader className="p-3 sm:p-4 md:p-6">
-                  <CardTitle className="text-white flex items-center gap-2 text-sm sm:text-base">
+                  <CardTitle className="text-black font-bold flex items-center gap-2 text-sm sm:text-base">
                     <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     Units
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 pt-0 sm:p-4 sm:pt-0 md:p-6 md:pt-0 space-y-2 sm:space-y-3">
                   {property.units.map((unit: any) => (
-                    <div key={unit.id} className="rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl text-white">
+                    <div key={unit.id} className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-black font-semibold text-sm">{unit.name}</span>
-                        <Badge variant="outline" className={`text-[10px] sm:text-xs ${unit.isAvailable ? 'border-emerald-400/40 text-black' : 'border-green-400/40 text-black'}`}>
+                        <span className="font-bold text-black text-sm">{unit.name}</span>
+                        <Badge variant="outline" className={`text-[10px] sm:text-xs font-bold ${unit.isAvailable ? 'border-2 border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-2 border-green-600 text-green-700 bg-green-50'}`}>
                           {unit.isAvailable ? 'Available' : 'Occupied'}
                         </Badge>
                       </div>
-                      <p className="text-[10px] sm:text-xs text-black font-semibold">
+                      <p className="text-[10px] sm:text-xs text-black font-bold">
                         {unit.type} • {unit.bedrooms ?? '—'} bd • {unit.bathrooms ?? '—'} ba • {formatCurrency(unit.rentAmount)}/mo
                       </p>
                     </div>
@@ -469,7 +469,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </Card>
 
               {/* Maintenance Tickets */}
-              <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 text-white">
+              <Card className="border-2 border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 text-black shadow-xl">
                 <CardHeader className="p-3 sm:p-4 md:p-6 flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-white flex items-center gap-2 text-sm sm:text-base">
@@ -518,9 +518,9 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
           <TabsContent value="communications" className="mt-4">
             <div className="space-y-3 sm:space-y-4">
               {/* Communications Header */}
-              <Card className="border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900">
+              <Card className="border-2 border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 shadow-xl">
                 <CardHeader className="p-3 sm:p-4">
-                  <CardTitle className="text-white flex items-center gap-2 text-sm sm:text-base">
+                  <CardTitle className="text-black font-bold flex items-center gap-2 text-sm sm:text-base">
                     <MessageCircle className="w-4 h-4" />
                     Property Communications
                   </CardTitle>
@@ -531,7 +531,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </Card>
 
               {/* Tenant Communications Component */}
-              <div className="rounded-xl border border-white/10 bg-gradient-to-r from-indigo-700 to-indigo-900 backdrop-blur-xl shadow-xl overflow-hidden p-2.5 sm:p-3 md:p-4">
+              <div className="rounded-xl border-2 border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 shadow-xl overflow-hidden p-2.5 sm:p-3 md:p-4">
                 <TenantComms 
                   tenants={tenants.length > 0 ? tenants : activeLeases.map((lease: any) => ({
                     id: lease.tenant?.id || '',
@@ -641,10 +641,10 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                         <button
                           key={year}
                           onClick={() => { setSelectedYear(year); setSelectedQuarter(null); }}
-                          className={`flex-shrink-0 text-left px-4 py-2 lg:py-3 rounded-lg transition-colors ${
+                          className={`flex-shrink-0 text-left px-4 py-2 lg:py-3 rounded-lg transition-colors shadow-xl font-bold ${
                             selectedYear === year && !selectedQuarter
-                              ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white' 
-                              : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+                              ? 'bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 text-black border-2 border-black' 
+                              : 'bg-white/50 text-black hover:bg-white/80 border-2 border-black'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -674,7 +674,7 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
                     <div className="flex gap-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="border-white/10 bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90 text-xs sm:text-sm">
+                          <Button variant="outline" size="sm" className="border-slate-200 bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 text-black hover:opacity-90 text-xs sm:text-sm shadow-xl">
                             {exportingPdf || exportingCsv ? (
                               <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
                             ) : (
@@ -1087,7 +1087,7 @@ function LeaseViewerModal({ lease, onClose }: { lease: any; onClose: () => void 
               Close
             </Button>
             <Link href={`/admin/leases/${lease.id}`}>
-              <Button className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 text-white hover:opacity-90">
+              <Button className="bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 text-black hover:opacity-90 shadow-xl">
                 <FileSignature className="w-4 h-4 mr-2" />
                 Open Full Lease Page
               </Button>
@@ -1155,10 +1155,10 @@ function FinancialSummary({
           <p className="text-2xl font-bold text-white">{formatCurrency(totalExpenses)}</p>
           <p className="text-xs text-red-100">{periodExpenses.length} expenses recorded</p>
         </div>
-        <div className={`rounded-xl p-4 ${netIncome >= 0 ? 'bg-gradient-to-r from-blue-600 to-cyan-500' : 'bg-gradient-to-r from-amber-600 to-orange-500'}`}>
-          <p className="text-xs text-white/80 uppercase tracking-wide">Net Income</p>
-          <p className="text-2xl font-bold text-white">{formatCurrency(netIncome)}</p>
-          <p className="text-xs text-white/80">{netIncome >= 0 ? 'Profit' : 'Loss'}</p>
+        <div className={`rounded-xl p-4 ${netIncome >= 0 ? 'bg-gradient-to-r from-sky-500 to-cyan-300' : 'bg-gradient-to-r from-amber-600 to-orange-500'}`}>
+          <p className="text-xs text-black uppercase tracking-wide font-semibold">Net Income</p>
+          <p className="text-2xl font-bold text-black">{formatCurrency(netIncome)}</p>
+          <p className="text-xs text-black">{netIncome >= 0 ? 'Profit' : 'Loss'}</p>
         </div>
       </div>
 

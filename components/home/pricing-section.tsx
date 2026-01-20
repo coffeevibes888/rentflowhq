@@ -120,7 +120,7 @@ export default function PricingSection() {
   };
 
   return (
-    <section id="pricing" className="w-full py-20 md:py-28 px-4 relative overflow-hidden scroll-mt-20">
+    <section id="pricing" className="w-full py-20 md:py-28 px-4 relative overflow-hidden scroll-mt-20 ">
       {/* Background effects */}
       <div className="absolute inset-0 " />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-500/10 rounded-full blur-3xl" />
@@ -128,11 +128,11 @@ export default function PricingSection() {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center space-y-4 mb-16 animate-in fade-in duration-700">
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-violet-300 text-sm font-medium border border-violet-500/20">
-            <Sparkles className="h-4 w-4 text-blue-800" />
-            <span className='text-blue-800'>Simple, Transparent Pricing</span>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-slate-900 text-sm font-medium border border-black bg-white">
+            <Sparkles className="h-4 w-4 text-blue-600" />
+            <span className='text-black font-bold'>Simple, Transparent Pricing</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-white">
+          <h2 className="text-4xl md:text-5xl font-bold text-black">
             Start at Just $19.99/month. Scales as You Grow.
           </h2>
           <p className="text-lg text-black font-semibold max-w-2xl mx-auto">
@@ -149,10 +149,10 @@ export default function PricingSection() {
             return (
               <div
                 key={tier.id}
-                className={`relative group rounded-2xl border bg-slate-950/60 p-8 flex flex-col transition-all duration-300 animate-in fade-in slide-in-from-bottom ${
+                className={`relative group rounded-2xl border border-black bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 shadow-2xl p-8 flex flex-col transition-all duration-300 animate-in fade-in slide-in-from-bottom hover:scale-105 ${
                   isPopular 
-                    ? 'border-violet-500/50 hover:border-violet-500 scale-105 lg:scale-110 z-10' 
-                    : 'border-white/10 hover:border-white/20'
+                    ? 'scale-105 lg:scale-110 z-10' 
+                    : ''
                 }`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -168,12 +168,12 @@ export default function PricingSection() {
 
                 {/* Tier header */}
                 <div className={`flex items-center gap-3 mb-4 ${isPopular ? 'pt-2' : ''}`}>
-                  <div className={`rounded-xl ${tier.iconBg} p-3 border border-white/10`}>
-                    <Icon className={`h-6 w-6 ${tier.iconColor}`} />
+                  <div className={`rounded-xl ${tier.iconBg} p-3 border border-white/20`}>
+                    <Icon className={`h-6 w-6 text-white`} />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-white">{tier.name}</h3>
-                    <p className="text-xs text-slate-400">{tier.unitLimit}</p>
+                    <p className="text-xs text-white font-semibold">{tier.unitLimit}</p>
                   </div>
                 </div>
 
@@ -182,14 +182,14 @@ export default function PricingSection() {
                   {tier.price !== null ? (
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-bold text-white">${tier.price}</span>
-                      <span className="text-slate-400">/month</span>
+                      <span className="text-white font-semibold">/month</span>
                     </div>
                   ) : (
                     <div className="text-2xl font-bold text-white">Custom Pricing</div>
                   )}
                 </div>
 
-                <p className="text-sm text-slate-400 mb-6">{tier.description}</p>
+                <p className="text-sm text-white font-semibold mb-6">{tier.description}</p>
 
                 {/* CTA Button */}
                 <button
@@ -198,13 +198,13 @@ export default function PricingSection() {
                   className={`w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 ${
                     tier.comingSoon
                       ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                      : isPopular
+                    : isPopular
                       ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-400 hover:to-purple-400 shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105'
-                      : tier.id === 'enterprise'
+                    : tier.id === 'enterprise'
                       ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400'
-                      : tier.id === 'starter'
+                    : tier.id === 'starter'
                       ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-400 hover:to-cyan-400 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105'
-                      : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                      : 'bg-slate-900 text-white hover:bg-slate-800 border border-slate-900'
                   }`}
                 >
                   {loadingTier === tier.id ? (
@@ -223,7 +223,7 @@ export default function PricingSection() {
 
                 {/* Features list */}
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+                  <p className="text-xs font-bold text-white uppercase tracking-wider mb-4">
                     What's included
                   </p>
                   <ul className="space-y-3">
@@ -231,17 +231,13 @@ export default function PricingSection() {
                       <li 
                         key={i} 
                         className={`flex items-start gap-3 text-sm ${
-                          feature.included ? 'text-slate-200' : 'text-slate-500'
+                          feature.included ? 'text-white font-semibold' : 'text-white/60'
                         }`}
                       >
                         <div className={`mt-0.5 rounded-full p-0.5 ${
                           feature.included 
-                            ? isPopular 
-                              ? 'bg-violet-500/20 text-violet-400' 
-                              : tier.id === 'starter'
-                              ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-slate-700 text-slate-500'
+                            ? 'bg-white/20 text-white' 
+                            : 'bg-white/10 text-white/40'
                         }`}>
                           <Check className="h-3.5 w-3.5" />
                         </div>

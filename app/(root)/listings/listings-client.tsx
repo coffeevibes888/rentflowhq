@@ -215,28 +215,28 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
           
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-2">
+            <div className="bg-white border border-black rounded-2xl shadow-2xl p-2">
               {/* Mobile: Search input full width, buttons below */}
               <div className="flex flex-col gap-2 md:hidden">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-700" />
                   <Input
                     type="text"
                     placeholder="Search location, property..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                    className="pl-12 h-12 text-base border-0 bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400"
+                    className="pl-12 h-12 text-base border border-black bg-slate-100 text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal"
                   />
                 </div>
                 <div className="flex gap-2">
                   <Sheet open={showFilters} onOpenChange={setShowFilters}>
                     <SheetTrigger asChild>
-                      <Button variant="outline" className="h-11 flex-1 gap-2 text-slate-700 dark:text-slate-200">
+                      <Button variant="outline" className="h-11 flex-1 gap-2 bg-slate-100 text-black border-black hover:bg-slate-200 font-bold">
                         <SlidersHorizontal className="h-5 w-5" />
                         Filters
                         {hasActiveFilters && (
-                          <Badge className="ml-1 bg-blue-600 text-white">!</Badge>
+                          <Badge className="ml-1 bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white border-none font-bold">!</Badge>
                         )}
                       </Button>
                     </SheetTrigger>
@@ -260,7 +260,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                     </SheetContent>
                   </Sheet>
                   <Button 
-                    className="h-11 flex-1 bg-blue-600 hover:bg-blue-700"
+                    className="h-11 flex-1 bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 hover:opacity-90 text-white font-bold shadow-lg"
                     onClick={applyFilters}
                   >
                     Search
@@ -271,24 +271,24 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
               {/* Desktop: Original horizontal layout */}
               <div className="hidden md:flex gap-2">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-700" />
                   <Input
                     type="text"
                     placeholder="Search by location, property name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                    className="pl-12 h-14 text-lg border-0 bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400"
+                    className="pl-12 h-14 text-lg border border-black bg-slate-100 text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal"
                   />
                 </div>
                 <div className="flex gap-2">
                   <Sheet open={showFilters} onOpenChange={setShowFilters}>
                     <SheetTrigger asChild>
-                      <Button variant="outline" size="lg" className="h-14 px-6 gap-2 text-slate-700 dark:text-slate-200">
+                      <Button variant="outline" size="lg" className="h-14 px-6 gap-2 bg-slate-100 text-black border-black hover:bg-slate-200 font-bold">
                         <SlidersHorizontal className="h-5 w-5" />
                         <span>Filters</span>
                         {hasActiveFilters && (
-                          <Badge className="ml-1 bg-blue-600 text-white">!</Badge>
+                          <Badge className="ml-1 bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white border-none font-bold">!</Badge>
                         )}
                       </Button>
                     </SheetTrigger>
@@ -313,7 +313,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   </Sheet>
                   <Button 
                     size="lg" 
-                    className="h-14 px-8 bg-blue-600 hover:bg-blue-700"
+                    className="h-14 px-8 bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 hover:opacity-90 text-white font-bold shadow-lg"
                     onClick={applyFilters}
                   >
                     Search
@@ -332,13 +332,15 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
             {/* Mobile: Dropdown for property types */}
             <div className="flex items-center gap-2 md:hidden">
               {/* Buy/Rent Toggle - Compact on mobile */}
-              <div className="flex border rounded-lg overflow-hidden">
+              <div className="flex gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'rounded-none px-3 h-9',
-                    filters.listingType === 'all' && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                    'px-3 h-9 font-bold border border-black',
+                    filters.listingType === 'all' 
+                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
                   )}
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'all' }));
@@ -351,8 +353,10 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'rounded-none px-3 h-9',
-                    filters.listingType === 'sale' && 'bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white'
+                    'px-3 h-9 font-bold border border-black',
+                    filters.listingType === 'sale' 
+                      ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
                   )}
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'sale' }));
@@ -365,8 +369,10 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'rounded-none px-3 h-9',
-                    filters.listingType === 'rent' && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                    'px-3 h-9 font-bold border border-black',
+                    filters.listingType === 'rent' 
+                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
                   )}
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'rent' }));
@@ -407,13 +413,15 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
             {/* Desktop: Horizontal buttons */}
             <div className="hidden md:flex items-center gap-2">
               {/* Buy/Rent Toggle */}
-              <div className="flex border rounded-lg overflow-hidden mr-2">
+              <div className="flex gap-2 mr-2">
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'rounded-none px-4',
-                    filters.listingType === 'all' && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                    'px-4 font-bold border border-black',
+                    filters.listingType === 'all' 
+                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 shadow-lg'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
                   )}
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'all' }));
@@ -426,8 +434,10 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'rounded-none px-4',
-                    filters.listingType === 'sale' && 'bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white'
+                    'px-4 font-bold border border-black',
+                    filters.listingType === 'sale' 
+                      ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90 shadow-lg'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
                   )}
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'sale' }));
@@ -440,8 +450,10 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'rounded-none px-4',
-                    filters.listingType === 'rent' && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white'
+                    'px-4 font-bold border border-black',
+                    filters.listingType === 'rent' 
+                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 shadow-lg'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
                   )}
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'rent' }));
@@ -460,8 +472,10 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                     variant={filters.type === type.value ? 'default' : 'outline'}
                     size="sm"
                     className={cn(
-                      'whitespace-nowrap gap-2',
-                      filters.type === type.value && 'bg-blue-600 hover:bg-blue-700'
+                      'whitespace-nowrap gap-2 font-bold border border-black',
+                      filters.type === type.value 
+                        ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 shadow-lg'
+                        : 'bg-slate-100 text-black hover:bg-slate-200'
                     )}
                     onClick={() => {
                       setFilters(prev => ({ ...prev, type: type.value }));
@@ -476,11 +490,16 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
             </div>
             
             <div className="flex items-center gap-2">
-              <div className="flex border rounded-lg overflow-hidden">
+              <div className="flex gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={cn('rounded-none', viewMode === 'grid' && 'bg-slate-100 dark:bg-slate-800')}
+                  className={cn(
+                    'font-bold border border-black',
+                    viewMode === 'grid' 
+                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
+                  )}
                   onClick={() => setViewMode('grid')}
                 >
                   <Grid3X3 className="h-4 w-4" />
@@ -488,7 +507,12 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={cn('rounded-none', viewMode === 'list' && 'bg-slate-100 dark:bg-slate-800')}
+                  className={cn(
+                    'font-bold border border-black',
+                    viewMode === 'list' 
+                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
+                  )}
                   onClick={() => setViewMode('list')}
                 >
                   <List className="h-4 w-4" />
@@ -496,7 +520,12 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={cn('rounded-none', viewMode === 'map' && 'bg-slate-100 dark:bg-slate-800')}
+                  className={cn(
+                    'font-bold border border-black',
+                    viewMode === 'map' 
+                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
+                      : 'bg-slate-100 text-black hover:bg-slate-200'
+                  )}
                   onClick={() => setViewMode('map')}
                 >
                   <MapIcon className="h-4 w-4" />
@@ -554,7 +583,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                 <X className="h-3 w-3 cursor-pointer" onClick={() => { setFilters(p => ({...p, minPrice: '', maxPrice: ''})); }} />
               </Badge>
             )}
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-blue-600">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="bg-slate-100 text-black border border-black hover:bg-slate-200 font-bold">
               Clear all
             </Button>
           </div>
@@ -574,7 +603,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                 </div>
                 <h2 className="text-2xl font-semibold mb-2">No properties found</h2>
                 <p className="text-slate-500 mb-6">Try adjusting your filters or search criteria</p>
-                <Button onClick={clearFilters}>Clear Filters</Button>
+                <Button onClick={clearFilters} className="bg-slate-100 text-black border border-black hover:bg-slate-200 font-bold">Clear Filters</Button>
               </div>
             ) : (
               <div className={cn(
@@ -652,7 +681,7 @@ function FilterPanel({
               key={opt.value}
               variant={filters.bedrooms === opt.value ? 'default' : 'outline'}
               size="sm"
-              className={filters.bedrooms === opt.value ? 'bg-blue-600' : ''}
+              className={filters.bedrooms === opt.value ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 font-bold border-black' : 'bg-slate-100 text-black border-black hover:bg-slate-200 font-bold'}
               onClick={() => setFilters((p: any) => ({ ...p, bedrooms: opt.value }))}
             >
               {opt.label}
@@ -670,7 +699,7 @@ function FilterPanel({
               key={opt.value}
               variant={filters.bathrooms === opt.value ? 'default' : 'outline'}
               size="sm"
-              className={filters.bathrooms === opt.value ? 'bg-blue-600' : ''}
+              className={filters.bathrooms === opt.value ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 font-bold border-black' : 'bg-slate-100 text-black border-black hover:bg-slate-200 font-bold'}
               onClick={() => setFilters((p: any) => ({ ...p, bathrooms: opt.value }))}
             >
               {opt.label}
@@ -720,7 +749,7 @@ function FilterPanel({
         </Select>
       </div>
 
-      <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={onApply}>
+      <Button className="w-full bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 hover:opacity-90 text-white font-bold shadow-lg" onClick={onApply}>
         Apply Filters
       </Button>
     </div>

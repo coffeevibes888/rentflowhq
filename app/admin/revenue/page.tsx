@@ -208,13 +208,13 @@ export default async function RentManagementPage() {
               <div className='text-[9px] sm:text-[10px] text-amber-100'>{lateThisMonth.length} overdue</div>
             </div>
 
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl'>
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-blue-100'>Move-in</div>
-                <Users className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Move-in</div>
+                <Users className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{formatCurrency(pendingMoveIn)}</div>
-              <div className='text-[9px] sm:text-[10px] text-blue-100'>{Object.keys(moveInByTenant).length} tenants</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{formatCurrency(pendingMoveIn)}</div>
+              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{Object.keys(moveInByTenant).length} tenants</div>
             </div>
 
             <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-purple-500 to-violet-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl'>

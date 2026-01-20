@@ -26,31 +26,31 @@ export default function ContractorSearch({ initialQuery, initialSpecialty }: Con
 
   return (
     <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
-      <div className="flex flex-col md:flex-row gap-2 bg-white rounded-xl p-2 shadow-xl">
-        <div className="flex-1 flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg">
-          <Search className="h-5 w-5 text-slate-400" />
+      <div className="flex flex-col md:flex-row gap-2 bg-white border border-black rounded-xl p-2 shadow-2xl">
+        <div className="flex-1 flex items-center gap-2 px-4 py-2 bg-slate-100 border border-black rounded-lg">
+          <Search className="h-5 w-5 text-slate-700" />
           <input
             type="text"
             placeholder="Search contractors or services..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-slate-900 placeholder:text-slate-400"
+            className="flex-1 bg-transparent outline-none text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal"
           />
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg md:w-48">
-          <MapPin className="h-5 w-5 text-slate-400" />
+        <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 border border-black rounded-lg md:w-48">
+          <MapPin className="h-5 w-5 text-slate-700" />
           <input
             type="text"
             placeholder="Location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-slate-900 placeholder:text-slate-400"
+            className="flex-1 bg-transparent outline-none text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal"
           />
         </div>
         <Button 
           type="submit"
           size="lg"
-          className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 px-8"
+          className="bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 hover:opacity-90 text-white font-bold px-8 shadow-lg"
         >
           Search
         </Button>

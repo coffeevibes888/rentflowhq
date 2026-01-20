@@ -50,6 +50,22 @@ export default async function HomeownerDashboardPage() {
     // Model doesn't exist yet - show empty state
   }
 
+  // Fetch Marketplace Leads
+  const leads = await prisma.contractorLead.findMany({
+    where: { customerUserId: session.user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+    include: {
+      matches: {
+        include: {
+          contractor: {
+            select: { businessName: true, displayName: true, slug: true }
+          }
+        }
+      }
+    }
+  });
+
   const workOrders = homeowner?.workOrders || [];
   const activeJobs = workOrders.filter((wo: WorkOrder) => 
     ['open', 'assigned', 'in_progress'].includes(wo.status)
@@ -310,6 +326,47 @@ export default async function HomeownerDashboardPage() {
                         'bg-amber-500/30 text-amber-200'
                       }>
                         {job.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Marketplace Requests */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-white">Recent Quote Requests</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {leads.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-white/60">No recent quote requests.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {leads.map((lead) => (
+                  <Link 
+                    key={lead.id} 
+                    href={`/homeowner/requests/${lead.id}`}
+                    className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white truncate">{lead.projectType}</p>
+                      <p className="text-sm text-white/60 truncate">{lead.projectDescription}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-white/60">
+                          {lead.matches.length} match{lead.matches.length !== 1 ? 'es' : ''}
+                        </span>
+                      <Badge className={
+                        lead.status === 'completed' ? 'bg-emerald-500/30 text-emerald-200' :
+                        lead.status === 'matching' ? 'bg-blue-500/30 text-blue-200' :
+                        'bg-amber-500/30 text-amber-200'
+                      }>
+                        {lead.status}
                       </Badge>
                     </div>
                   </Link>

@@ -37,7 +37,7 @@ export function AdminSidebarWrapper({ children }: AdminSidebarWrapperProps) {
   // Prevent hydration mismatch
   if (!isMounted) {
     return (
-      <aside className='hidden md:flex flex-col w-64 border-r border-white/10 glass-effect-dark px-4 py-6 gap-6'>
+      <aside className='hidden md:flex flex-col w-64 border-r border-white/10 glass-effect-beach px-4 py-6 gap-6'>
         {children}
       </aside>
     );
@@ -47,7 +47,7 @@ export function AdminSidebarWrapper({ children }: AdminSidebarWrapperProps) {
     <SidebarContext.Provider value={{ isCollapsed }}>
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r border-white/10 glass-effect-dark py-6 gap-6 transition-all duration-300 ease-in-out relative group/sidebar',
+          'hidden md:flex flex-col border-r border-white/10 glass-effect-beach py-6 gap-6 transition-all duration-300 ease-in-out relative group/sidebar',
           isCollapsed ? 'w-[72px] px-3' : 'w-72 px-4'
         )}
       >
@@ -56,8 +56,8 @@ export function AdminSidebarWrapper({ children }: AdminSidebarWrapperProps) {
           onClick={toggleSidebar}
           className={cn(
             'absolute -right-3 top-8 z-10 flex h-6 w-6 items-center justify-center rounded-full',
-            'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg',
-            'hover:from-violet-500 hover:to-purple-500 transition-all duration-200',
+            'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg',
+            'hover:from-cyan-400 hover:to-blue-500 transition-all duration-200',
             'border-2 border-white/20 hover:scale-110'
           )}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}

@@ -62,8 +62,8 @@ const MainNav = ({
             className={cn(
               'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 overflow-hidden',
               isActive 
-                ? 'bg-gradient-to-r from-violet-600/90 to-purple-600/90 text-white shadow-lg shadow-violet-500/20' 
-                : 'hover:bg-white/20'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                : 'hover:bg-white/30'
             )}
           >
             <Icon className={cn(

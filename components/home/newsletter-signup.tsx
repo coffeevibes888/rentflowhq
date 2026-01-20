@@ -39,20 +39,20 @@ export default function NewsletterSignup() {
   return (
     <section className='w-full py-8 md:py-12 px-3 md:px-4'>
       <div className='max-w-2xl mx-auto'>
-        <div className='rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl p-6 md:p-8 text-center'>
-          <div className='inline-flex items-center justify-center rounded-full bg-violet-500/20 p-3 mb-4 border border-violet-500/30'>
-            <Mail className='h-6 w-6 text-violet-400' />
+        <div className='rounded-2xl border border-slate-200 bg-white p-6 md:p-8 text-center shadow-xl'>
+          <div className='inline-flex items-center justify-center rounded-full bg-violet-50 p-3 mb-4 border border-violet-100'>
+            <Mail className='h-6 w-6 text-violet-500' />
           </div>
           
-          <h3 className='text-lg md:text-xl font-bold text-white mb-2'>
+          <h3 className='text-lg md:text-xl font-bold text-slate-900 mb-2'>
             Stay Updated
           </h3>
-          <p className='text-sm text-slate-300 mb-6 max-w-md mx-auto'>
+          <p className='text-sm text-slate-600 mb-6 max-w-md mx-auto'>
             Get property management tips, product updates, and industry insights delivered to your inbox. No spam, unsubscribe anytime.
           </p>
 
           {status === 'success' ? (
-            <div className='flex items-center justify-center gap-2 text-emerald-400'>
+            <div className='flex items-center justify-center gap-2 text-emerald-600'>
               <CheckCircle2 className='h-5 w-5' />
               <span className='text-sm font-medium'>{message}</span>
             </div>
@@ -63,13 +63,13 @@ export default function NewsletterSignup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder='Enter your email'
-                className='flex-1 rounded-full bg-white/10 border border-white/20 px-5 py-3 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent'
+                className='flex-1 rounded-full bg-slate-50 border border-slate-200 px-5 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent'
                 required
               />
               <button
                 type='submit'
                 disabled={status === 'loading'}
-                className='group inline-flex items-center justify-center rounded-full bg-violet-500 text-white px-6 py-3 text-sm font-semibold hover:bg-violet-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                className='group inline-flex items-center justify-center rounded-full bg-violet-600 text-white px-6 py-3 text-sm font-semibold hover:bg-violet-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-violet-500/25'
               >
                 {status === 'loading' ? (
                   'Subscribing...'
@@ -84,7 +84,7 @@ export default function NewsletterSignup() {
           )}
 
           {status === 'error' && (
-            <p className='mt-3 text-sm text-red-400'>{message}</p>
+            <p className='mt-3 text-sm text-red-500'>{message}</p>
           )}
         </div>
       </div>

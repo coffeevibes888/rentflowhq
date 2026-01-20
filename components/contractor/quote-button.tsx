@@ -31,12 +31,34 @@ export function ContractorQuoteButton({ contractorSlug, contractorName, variant 
     e.preventDefault();
     setIsSubmitting(true);
     
-    // TODO: Implement actual quote request submission
-    // This would create a message thread or quote request in the database
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsSubmitting(false);
-    setSubmitted(true);
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      customerName: formData.get('name'),
+      customerEmail: formData.get('email'),
+      customerPhone: formData.get('phone'),
+      projectType: formData.get('projectType'),
+      projectDescription: formData.get('description'),
+      propertyAddress: formData.get('address'),
+      propertyZip: formData.get('zipCode'),
+      preselectedContractorSlug: contractorSlug,
+    };
+
+    try {
+      const res = await fetch('/api/contractor/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error('Failed to submit request');
+
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting quote request:', error);
+      // Optional: Show error toast
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -102,9 +124,15 @@ export function ContractorQuoteButton({ contractorSlug, contractorName, variant 
               className="min-h-[120px]"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="address">Property Address</Label>
-            <Input id="address" name="address" placeholder="123 Main St, Las Vegas, NV" />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2 space-y-2">
+              <Label htmlFor="address">Property Address</Label>
+              <Input id="address" name="address" placeholder="123 Main St" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="zipCode">Zip Code</Label>
+              <Input id="zipCode" name="zipCode" placeholder="89101" required />
+            </div>
           </div>
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Sending...' : 'Send Quote Request'}

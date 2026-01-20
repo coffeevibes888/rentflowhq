@@ -164,7 +164,7 @@ export default function NotificationBell({ isAdmin }: { isAdmin: boolean }) {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative">
+        <Button variant="ghost" size="sm" className="relative text-black hover:text-black hover:bg-gray-100">
           {unreadCount > 0 ? (
             <BellRing className="h-5 w-5" />
           ) : (

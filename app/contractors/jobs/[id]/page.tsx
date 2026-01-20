@@ -131,8 +131,14 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
     },
   });
 
+  // Calculate lowest bid
+  const lowestBidAmount = job.bids.length > 0 
+    ? Math.min(...job.bids.map(b => Number(b.amount)))
+    : null;
+
   return (
     <JobDetailClient
+      lowestBidAmount={lowestBidAmount}
       job={{
         id: job.id,
         title: job.title,

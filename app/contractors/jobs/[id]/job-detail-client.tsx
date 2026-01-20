@@ -75,6 +75,7 @@ interface JobDetailClientProps {
   isLoggedIn: boolean;
   isContractor: boolean;
   similarJobs: SimilarJob[];
+  lowestBidAmount: number | null;
 }
 
 const priorityConfig: Record<string, { color: string; label: string }> = {
@@ -84,7 +85,7 @@ const priorityConfig: Record<string, { color: string; label: string }> = {
   urgent: { color: 'bg-red-100 text-red-700', label: 'Urgent' },
 };
 
-export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn, isContractor, similarJobs }: JobDetailClientProps) {
+export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn, isContractor, similarJobs, lowestBidAmount }: JobDetailClientProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
@@ -167,6 +168,15 @@ export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn
             <div className="text-right">
               <p className="text-3xl font-bold">{formatBudget(job.budgetMin, job.budgetMax)}</p>
               <p className="text-white/70 text-sm">Project Budget</p>
+              
+              {lowestBidAmount && (
+                <div className="mt-2 pt-2 border-t border-white/20">
+                  <p className="text-xl font-semibold text-emerald-300">
+                    ${lowestBidAmount.toLocaleString()}
+                  </p>
+                  <p className="text-white/70 text-xs">Current Lowest Bid</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

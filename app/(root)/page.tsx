@@ -87,13 +87,13 @@ const Homepage = async () => {
     const properties = await getCachedProperties(landlord.id);
 
     return (
-      <main className='flex-1 w-full'>
+      <main className='flex-1 w-full bg-white'>
         <section className='w-full pt-7 pb-7 px-2'>
-          <div className='max-w-6xl mx-auto space-y-4 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl p-6 md:p-8 text-slate-50 shadow-[0_20px_70px_rgba(15,23,42,0.9)]'>
+          <div className='max-w-6xl mx-auto space-y-4 rounded-3xl border border-slate-200 bg-white p-6 md:p-8 text-slate-900 shadow-xl'>
             <div className='space-y-1'>
-              <p className='text-xs font-medium text-violet-200/80 uppercase tracking-wide'>Listings</p>
-              <h1 className='text-2xl md:text-3xl font-semibold tracking-tight text-white'>Homes and apartments by {landlord.name}</h1>
-              <p className='text-sm text-slate-100/80 max-w-2xl'>
+              <p className='text-xs font-medium text-violet-600 uppercase tracking-wide'>Listings</p>
+              <h1 className='text-2xl md:text-3xl font-semibold tracking-tight text-slate-900'>Homes and apartments by {landlord.name}</h1>
+              <p className='text-sm text-slate-600 max-w-2xl'>
                 Browse available units and start your application online. All rent payments and maintenance
                 requests are handled securely through our resident portal.
               </p>
@@ -102,9 +102,9 @@ const Homepage = async () => {
         </section>
 
         <section className='w-full py-10 px-4'>
-          <div className='max-w-6xl mx-auto rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl p-6 md:p-8 text-slate-50 shadow-[0_20px_70px_rgba(15,23,42,0.9)]'>
+          <div className='max-w-6xl mx-auto rounded-3xl border border-slate-200 bg-white p-6 md:p-8 text-slate-900 shadow-xl'>
             {properties.length === 0 ? (
-              <div className='rounded-xl border border-white/10 bg-slate-900/60 backdrop-blur-sm px-4 py-8 text-center text-sm text-slate-200/90'>
+              <div className='rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-600'>
                 No properties are currently available for this landlord. Please check back soon.
               </div>
             ) : (
@@ -114,9 +114,9 @@ const Homepage = async () => {
                   return (
                     <div
                       key={property.id}
-                      className='rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-[0_20px_70px_rgba(15,23,42,0.9)] overflow-hidden flex flex-col'
+                      className='rounded-2xl border border-slate-200 bg-white shadow-lg hover:shadow-xl transition-all overflow-hidden flex flex-col'
                     >
-                      <div className='relative h-44 w-full bg-slate-900/60'>
+                      <div className='relative h-44 w-full bg-slate-100'>
                         <Image
                           src={property.units[0]?.images?.[0] || '/images/placeholder-property.jpg'}
                           alt={property.name}
@@ -127,8 +127,8 @@ const Homepage = async () => {
                       <div className='p-4 space-y-2 flex-1 flex flex-col'>
                         <div className='flex items-start justify-between gap-3'>
                           <div className='space-y-1'>
-                            <h2 className='text-sm font-semibold text-white'>{property.name}</h2>
-                            <p className='text-[11px] text-slate-200'>
+                            <h2 className='text-sm font-semibold text-slate-900'>{property.name}</h2>
+                            <p className='text-[11px] text-slate-600'>
                               {unitCount === 1
                                 ? '1 available unit'
                                 : `${unitCount} available units`}
@@ -137,12 +137,12 @@ const Homepage = async () => {
                         </div>
 
                         {property.units[0] && (
-                          <p className='text-sm font-medium text-violet-200/80 mt-1'>
+                          <p className='text-sm font-medium text-violet-600 mt-1'>
                             {formatCurrency(Number(property.units[0].rentAmount))} / month
                           </p>
                         )}
 
-                        <div className='mt-3 flex items-center justify-between text-[11px] text-slate-200'>
+                        <div className='mt-3 flex items-center justify-between text-[11px] text-slate-500'>
                           <span>{property.type}</span>
                           <span>Professionally managed</span>
                         </div>
@@ -150,7 +150,7 @@ const Homepage = async () => {
                         <div className='mt-4 flex gap-2'>
                           <Link
                             href={`/${property.slug}/apply`}
-                            className='inline-flex items-center justify-center rounded-full bg-violet-500 px-4 py-1.5 text-[11px] font-medium text-white hover:bg-violet-400 flex-1 transition-colors'
+                            className='inline-flex items-center justify-center rounded-full bg-violet-600 px-4 py-1.5 text-[11px] font-medium text-white hover:bg-violet-700 flex-1 transition-colors'
                           >
                             Start application
                           </Link>
@@ -179,17 +179,17 @@ const Homepage = async () => {
                 {/* Animated Gradient Heading */}
                 <div className='space-y-2 md:space-y-3'>
                   <h1 className='text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]'>
-                    <span className='text-center block mt-1 md:mt-2 text-black '>
+                    <span className='text-center block mt-1 md:mt-2 drop-shadow-2xl bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent'>
                      Your Properties.
                     </span>
-                    <span className='text-center block mt-1 md:mt-2 text-black '>
+                    <span className='text-center block mt-1 md:mt-2 drop-shadow-2xl bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent'>
                      Your Rules.
                     </span>
-                    <span className='text-center block mt-1 md:mt-2 text-black'>
+                    <span className='text-center block mt-1 md:mt-2 drop-shadow-2xl bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent'>
                       Fully Automated!
                     </span>
                   </h1>
-                  <p className='text-center text-sm sm:text-base md:text-lg text-cyan-50/95 font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4'>
+                  <p className='text-center text-sm sm:text-base md:text-lg font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4 text-black'>
                     Whether you manage 5 units or 500 — We handle everything from applications, rent collections, maintenance requests, and even evictions with ease.
                   </p>
                 </div>
@@ -198,122 +198,122 @@ const Homepage = async () => {
                 <div className='flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4 pt-2'>
                   <Link
                     href='/sign-up'
-                    className='group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105 transition-all duration-200'
+                    className='group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-fuchsia-500 to-cyan-400 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-105 transition-all duration-200'
                   >
                     Start Free Today
                     <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
                   </Link>
-                  <Link
+                  {/* <Link
                     href='/contact'
-                    className='group inline-flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold border-2 border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200'
+                    className='group inline-flex items-center justify-center rounded-full bg-white text-slate-900 px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-md transition-all duration-200'
                   >
                     Schedule Demo
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
               
-              <div className='relative rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200'>
-                <div className='absolute inset-0 bg-gradient-to-br from-blue-800 via-blue-700 to-cyan-600' />
+              <div className='relative rounded-2xl md:rounded-3xl border border-black shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200'>
+                <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
                 <div className='relative p-4 md:p-6 flex flex-col'>
                   {/* Header */}
                   <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-base md:text-xl font-bold text-white'>Your Dashboard</h3>
                   </div>
                   
-                  {/* Top Action Cards - Green & Purple */}
+                  {/* Top Action Cards - Light Theme */}
                   <div className='grid grid-cols-3 gap-2 md:gap-3 mb-3'>
-                    <div className='rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-3 md:p-4 space-y-1'>
+                    <div className='rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-[9px] md:text-[11px] text-emerald-100 font-medium'>Share Listings</span>
-                        <svg className='h-3 w-3 md:h-4 md:w-4 text-emerald-200' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' /></svg>
+                        <span className='text-[9px] md:text-[11px] text-black font-semibold'>Share Listings</span>
+                        <svg className='h-3 w-3 md:h-4 md:w-4 text-emerald-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' /></svg>
                       </div>
-                      <div className='text-sm md:text-base font-bold text-white'>Send Link</div>
-                      <div className='text-[8px] md:text-[10px] text-emerald-100'>QR code, text, or email</div>
+                      <div className='text-sm md:text-base font-bold text-black '>Send Link</div>
+                      <div className='text-[8px] md:text-[10px] text-blue-800'>QR code, text, or email</div>
                     </div>
-                    <div className='rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 p-3 md:p-4 space-y-1'>
+                    <div className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-[9px] md:text-[11px] text-violet-100 font-medium'>Invite Contractor</span>
-                        <svg className='h-3 w-3 md:h-4 md:w-4 text-violet-200' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z' /></svg>
+                        <span className='text-[9px] md:text-[11px] text-black font-semibold'>Invite Contractor</span>
+                        <svg className='h-3 w-3 md:h-4 md:w-4 text-violet-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z' /></svg>
                       </div>
-                      <div className='text-sm md:text-base font-bold text-white'>Send Link</div>
-                      <div className='text-[8px] md:text-[10px] text-violet-100'>QR code, text, or email</div>
+                      <div className='text-sm md:text-base font-bold text-slate-900'>Send Link</div>
+                      <div className='text-[8px] md:text-[10px] text-blue-800'>QR code, text, or email</div>
                     </div>
-                    <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
+                    <div className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Total Units</span>
-                        <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' /></svg>
+                        <span className='text-[9px] md:text-[11px] text-black font-semibold'>Total Units</span>
+                        <svg className='h-3 w-3 md:h-4 md:w-4 text-blue-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>149</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>14 vacant</div>
+                      <div className='text-xl md:text-2xl font-bold text-slate-900'>149</div>
+                      <div className='text-[8px] md:text-[10px] text-blue-800'>14 vacant</div>
                     </div>
                   </div>
 
-                  {/* Middle Stats Grid */}
+                  {/* Middle Stats Grid - Light Theme */}
                   <div className='grid grid-cols-3 gap-2 md:gap-3 mb-3'>
-                    <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
+                    <div className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Rent This Month</span>
-                        <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
+                        <span className='text-[9px] md:text-[11px] text-black font-semibold'>Rent This Month</span>
+                        <svg className='h-3 w-3 md:h-4 md:w-4 text-emerald-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>$36,000</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>75% collected</div>
+                      <div className='text-xl md:text-2xl font-bold text-slate-900'>$36,000</div>
+                      <div className='text-[8px] md:text-[10px] text-blue-800'>75% collected</div>
                     </div>
-                    <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
+                    <div className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Maintenance</span>
-                        <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' /></svg>
+                        <span className='text-[9px] md:text-[11px] text-black font-semibold'>Maintenance</span>
+                        <svg className='h-3 w-3 md:h-4 md:w-4 text-red-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' /><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>3</div>
-                      <div className='text-[8px] md:text-[10px] text-red-800'>1 urgent</div>
+                      <div className='text-xl md:text-2xl font-bold text-slate-900'>3</div>
+                      <div className='text-[8px] md:text-[10px] text-blue-800'>1 urgent</div>
                     </div>
-                    <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
+                    <div className='rounded-xl v p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100 bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Applications</span>
-                        <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' /></svg>
+                        <span className='text-[9px] md:text-[11px] text-black font-semibold'>Applications</span>
+                        <svg className='h-3 w-3 md:h-4 md:w-4 text-orange-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>5</div>
-                      <div className='text-[8px] md:text-[10px] text-orange-400'>Review now</div>
+                      <div className='text-xl md:text-2xl font-bold text-slate-900'>5</div>
+                      <div className='text-[8px] md:text-[10px] text-blue-800'>Review now</div>
                     </div>
                   </div>
 
-                  {/* Bottom Stats Row */}
+                  {/* Bottom Stats Row - Light Theme */}
                   <div className='grid grid-cols-2 gap-2 md:gap-3 mb-3'>
-                    <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
+                    <div className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Available Balance</span>
-                        <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' /></svg>
+                        <span className='text-[9px] md:text-[11px] text-black font-semibold'>Available Balance</span>
+                        <svg className='h-3 w-3 md:h-4 md:w-4 text-emerald-600' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>$24,000</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>Ready to cash out</div>
+                      <div className='text-xl md:text-2xl font-bold text-slate-900'>$24,000</div>
+                      <div className='text-[8px] md:text-[10px] text-blue-800'>Ready to cash out</div>
                     </div>
-                    <div className='rounded-xl bg-slate-800/60 border border-slate-600/50 p-3 md:p-4 space-y-1'>
+                    <div className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-[9px] md:text-[11px] text-slate-300 font-medium'>Messages</span>
-                        <svg className='h-3 w-3 md:h-4 md:w-4 text-slate-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' /></svg>
+                        <span className='text-[9px] md:text-[11px] text-black font-semibold'>Messages</span>
+                        <svg className='h-3 w-3 md:h-4 md:w-4 text-blue-600' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' /></svg>
                       </div>
-                      <div className='text-xl md:text-2xl font-bold text-white'>7</div>
-                      <div className='text-[8px] md:text-[10px] text-slate-400'>Open inbox threads</div>
+                      <div className='text-xl md:text-2xl font-bold text-slate-900'>7</div>
+                      <div className='text-[8px] md:text-[10px] text-blue-800'>Open inbox threads</div>
                     </div>
                   </div>
 
-                  {/* Footer Stats Bar */}
-                  <div className='rounded-xl bg-slate-900/80 border border-slate-700/50 p-3 md:p-4'>
+                  {/* Footer Stats Bar - Light Theme */}
+                  <div className='rounded-xl bg-slate-50 border border-slate-200 p-3 md:p-4 bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500'>
                     <div className='grid grid-cols-4 gap-2 text-center'>
                       <div>
-                        <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Occupied</div>
-                        <div className='text-base md:text-lg font-bold text-white'>0</div>
+                        <div className='text-[9px] md:text-[10px] text-black font-semibold uppercase tracking-wide'>Occupied</div>
+                        <div className='text-base md:text-lg font-bold text-slate-900'>0</div>
                       </div>
                       <div>
-                        <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Tenants</div>
-                        <div className='text-base md:text-lg font-bold text-white'>1</div>
+                        <div className='text-[9px] md:text-[10px] text-black font-semibold uppercase tracking-wide'>Tenants</div>
+                        <div className='text-base md:text-lg font-bold text-slate-900'>1</div>
                       </div>
                       <div>
-                        <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Rent (YTD)</div>
-                        <div className='text-base md:text-lg font-bold text-white'>$0.00</div>
+                        <div className='text-[9px] md:text-[10px] text-black font-semibold uppercase tracking-wide'>Rent (YTD)</div>
+                        <div className='text-base md:text-lg font-bold text-slate-900'>$0.00</div>
                       </div>
                       <div>
-                        <div className='text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wide'>Properties</div>
-                        <div className='text-base md:text-lg font-bold text-white'>1</div>
+                        <div className='text-[9px] md:text-[10px] text-black font-semibold uppercase tracking-wide'>Properties</div>
+                        <div className='text-base md:text-lg font-bold text-slate-900'>1</div>
                       </div>
                     </div>
                   </div>
@@ -329,22 +329,20 @@ const Homepage = async () => {
             <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
       
               {/* Tenant Lifecycle Flow Card - Full Width */}
-              <div className='md:col-span-2 group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.01]'>
-                <div className='absolute inset-0 bg-gradient-to-r from-indigo-700 to-blue-900' />
-                <div className='absolute inset-0 border border-cyan-500/30 rounded-2xl md:rounded-3xl' />
+              <div className='md:col-span-2 group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.01] bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border border-black shadow-2xl'>
                 <div className='absolute top-4 right-4 md:top-6 md:right-6'>
-                  <span className='inline-flex items-center gap-1 bg-cyan-500/20 backdrop-blur-sm text-cyan-400 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-cyan-500/40'>
+                  <span className='inline-flex items-center gap-1 bg-cyan-50 text-cyan-600 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-cyan-100'>
                     <span className='relative flex h-2 w-2'>
                       <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75'></span>
-                      <span className='relative inline-flex rounded-full h-2 w-2 bg-cyan-400'></span>
+                      <span className='relative inline-flex rounded-full h-2 w-2 bg-cyan-500'></span>
                     </span>
                     AUTOMATED
                   </span>
                 </div>
                 <div className='relative p-6 md:p-8 space-y-4 md:space-y-6'>
                   <div className='space-y-2'>
-                    <h3 className='text-2xl md:text-3xl font-bold text-white'>Complete Tenant Lifecycle</h3>
-                    <p className='text-slate-300 text-sm md:text-base'>
+                    <h3 className='text-2xl md:text-3xl font-bold text-slate-900'>Complete Tenant Lifecycle</h3>
+                    <p className='text-slate-600 text-sm md:text-base'>
                       From first click to move-out — fully automated
                     </p>
                   </div>
@@ -357,23 +355,23 @@ const Homepage = async () => {
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-blue-400 text-center shadow-lg shadow-cyan-500/10'>
                           <div className='text-cyan-400 text-[10px] sm:text-xs font-bold'>Add Property</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Listed On White Lable Domain</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Listed On White Label Domain</div>
                         </div>
                         <div className='flex items-center'>
-                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-cyan-300 text-center shadow-lg shadow-cyan-500/10'>
                           <div className='text-cyan-400 text-[10px] sm:text-xs font-bold'>Free Lease Builder</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Or Upload Your Own</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Or Upload Your Own</div>
                         </div>
                       </div>
                       
                       {/* Down arrow from row 1 to row 2 */}
                       <div className='flex justify-end pr-[20%]'>
                         <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
@@ -381,23 +379,23 @@ const Homepage = async () => {
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
                           <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>One Click Approval</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Or Schedule Viewing</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Or Schedule Viewing</div>
                         </div>
                         <div className='flex items-center'>
-                          <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-slate-800'></div>
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
                           <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Tenant Apply's</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>E-mail Notified</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>E-mail Notified</div>
                         </div>
                       </div>
 
                       {/* Down arrow from row 2 to row 3 - on LEFT side */}
                       <div className='flex justify-start pl-[20%]'>
                         <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
@@ -405,23 +403,23 @@ const Homepage = async () => {
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
                           <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>Tenant Pays Rent</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Directly to your bank</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Directly to your bank</div>
                         </div>
                         <div className='flex items-center'>
-                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
                           <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Tenant Moves In</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Keys Ready</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Keys Ready</div>
                         </div>
                       </div>
 
                       {/* Down arrow from row 3 to row 4 - on RIGHT side */}
                       <div className='flex justify-end pr-[20%]'>
                         <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
@@ -429,23 +427,23 @@ const Homepage = async () => {
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10'>
                           <div className='text-violet-400 text-[10px] sm:text-xs font-bold'>Contractor Marketplace</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Find and Hire Contractors</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Find and Hire Contractors</div>
                         </div>
                         <div className='flex items-center'>
-                          <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-slate-800'></div>
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10'>
                           <div className='text-emerald-400 text-[10px] sm:text-xs font-bold'>Maintenance Tickets</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Urgency System</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Urgency System</div>
                         </div>
                       </div>
 
                       {/* Down arrow from row 4 to row 5 - on LEFT side */}
                       <div className='flex justify-start pl-[20%]'>
                         <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
@@ -453,23 +451,23 @@ const Homepage = async () => {
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10'>
                           <div className='text-amber-400 text-[10px] sm:text-xs font-bold'>Late Rent?</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Auto Late Fee's</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Auto Late Fee's</div>
                         </div>
                         <div className='flex items-center'>
-                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10'>
                           <div className='text-amber-400 text-[10px] sm:text-xs font-bold'>Internal Communications</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Notices Sent</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Notices Sent</div>
                         </div>
                       </div>
 
                       {/* Down arrow from row 5 to row 6 - on RIGHT side */}
                       <div className='flex justify-end pr-[20%]'>
                         <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-2 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-3 w-3 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-0.5 h-2 border-l-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
@@ -477,15 +475,15 @@ const Homepage = async () => {
                       <div className='flex items-center gap-1 sm:gap-2'>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-slate-300 text-center shadow-lg'>
                           <div className='text-slate-300 text-[10px] sm:text-xs font-bold'>Move-Out</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Inspection Check list</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Inspection Check list</div>
                         </div>
                         <div className='flex items-center'>
-                          <svg className='h-3 w-3 text-cyan-500 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-3 sm:w-6 h-0.5 border-t-2 border-dashed border-slate-800'></div>
                         </div>
                         <div className='flex-1 bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-2 sm:px-3 sm:py-3 border-2 border-red-300 text-center shadow-lg shadow-red-500/10'>
                           <div className='text-red-400 text-[10px] sm:text-xs font-bold'>Eviction</div>
-                          <div className='text-slate-400 text-[8px] sm:text-[10px] mt-0.5'>Legal Docs</div>
+                          <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>Legal Docs</div>
                         </div>
                       </div>
                     </div>
@@ -496,47 +494,47 @@ const Homepage = async () => {
                       <div className='flex items-center justify-between gap-3'>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-blue-400 text-center shadow-lg shadow-cyan-500/10 min-w-[100px]'>
                           <div className='text-cyan-400 text-xs font-bold'>Add Property</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Listed On White Lable Domain</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Listed On White Label Domain</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
+                          <svg className='h-3 w-5 text-slate-800 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-cyan-300 text-center shadow-lg shadow-cyan-500/10 min-w-[100px]'>
                           <div className='text-cyan-400 text-xs font-bold'>Free Lease Builder</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Or Upload Your Own</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Or Upload Your Own</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
+                          <svg className='h-3 w-5 text-slate-800 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
                           <div className='text-emerald-400 text-xs font-bold'>Tenant Apply's</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>E-mail Notified</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>E-mail Notified</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
+                          <svg className='h-3 w-5 text-slate-800 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10 min-w-[100px]'>
                           <div className='text-violet-400 text-xs font-bold'>One Click Approval</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Or Schedule Viewing</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Or Schedule Viewing</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
+                          <svg className='h-3 w-5 text-slate-800 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10 min-w-[100px]'>
                           <div className='text-violet-400 text-xs font-bold'>Tenant Pays Rent</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Directly to your bank</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Directly to your bank</div>
                         </div>
                       </div>
 
                       {/* Connector: Row 1 to Row 2 */}
                       <div className='flex justify-end pr-[50px]'>
                         <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-4 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-4 w-4 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-0.5 h-4 border-l-2 border-dashed border-slate-800'></div>
+                          <svg className='h-3 w-5 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
@@ -544,47 +542,47 @@ const Homepage = async () => {
                       <div className='flex items-center justify-between gap-3'>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10 min-w-[100px]'>
                           <div className='text-amber-400 text-xs font-bold'>Internal Communications</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Notices Sent</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Notices Sent</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
-                          <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-slate-800 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-amber-300 text-center shadow-lg shadow-amber-500/10 min-w-[100px]'>
                           <div className='text-amber-400 text-xs font-bold'>Late Rent?</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Auto Late Fee's</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Auto Late Fee's</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
-                          <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-slate-800 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-violet-300 text-center shadow-lg shadow-violet-500/10 min-w-[100px]'>
                           <div className='text-violet-400 text-xs font-bold'>Contractor Marketplace</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Find and Hire Contractors</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Find and Hire Contractors</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
-                          <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-slate-800 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
                           <div className='text-emerald-400 text-xs font-bold'>Maintenance Tickets</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Urgency System</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Urgency System</div>
                         </div>
                         <div className='flex-1 flex items-center justify-center'>
-                          <svg className='h-4 w-4 text-cyan-500 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
+                          <svg className='h-4 w-4 text-slate-800 -mr-1 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-emerald-300 text-center shadow-lg shadow-emerald-500/10 min-w-[100px]'>
                           <div className='text-emerald-400 text-xs font-bold'>Tenant Moves In</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Keys Ready</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Keys Ready</div>
                         </div>
                       </div>
 
                       {/* Connector: Row 2 to Row 3 */}
                       <div className='flex justify-start pl-[50px]'>
                         <div className='flex flex-col items-center'>
-                          <div className='w-0.5 h-4 border-l-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-4 w-4 text-cyan-500 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='w-0.5 h-4 border-l-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                       </div>
 
@@ -592,22 +590,21 @@ const Homepage = async () => {
                       <div className='flex items-center gap-3'>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-red-300 text-center shadow-lg shadow-red-500/10 min-w-[100px]'>
                           <div className='text-red-400 text-xs font-bold'>Eviction</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Legal Docs</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Legal Docs</div>
                         </div>
                         <div className='w-24 flex items-center justify-center'>
-                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-cyan-500'></div>
-                          <svg className='h-4 w-4 text-cyan-500 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                          <div className='h-0.5 flex-1 border-t-2 border-dashed border-slate-800'></div>
+                          <svg className='h-4 w-4 text-slate-800 -ml-1' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
                         </div>
                         <div className='bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-3 border-2 border-slate-300 text-center shadow-lg min-w-[100px]'>
                           <div className='text-slate-300 text-xs font-bold'>Move-Out</div>
-                          <div className='text-slate-400 text-[10px] mt-0.5'>Inspection Check list</div>
+                          <div className='text-white text-[10px] mt-0.5 font-semibold'>Inspection Check list</div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </section>

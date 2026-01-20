@@ -12,22 +12,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { contractorId, message, threadId: existingThreadId } = await req.json();
+    const { contractorId, message, threadId: existingThreadId, recipientUserId } = await req.json();
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'Message required' }, { status: 400 });
     }
 
-    // Get contractor
-    const contractor = await prisma.contractor.findUnique({
-      where: { id: contractorId },
-      include: {
-        user: { select: { id: true, name: true } },
-      },
-    });
+    // Get contractor (to find the other participant if we are the homeowner)
+    // OR if we are the contractor, we need to know who we are talking to (recipientUserId)
+    
+    let targetUserId = recipientUserId;
+    
+    if (!targetUserId) {
+        // Assume we are a user messaging a contractor
+        const contractor = await prisma.contractor.findUnique({
+          where: { id: contractorId },
+          include: {
+            user: { select: { id: true, name: true } },
+          },
+        });
 
-    if (!contractor?.userId) {
-      return NextResponse.json({ error: 'Contractor not found' }, { status: 404 });
+        if (!contractor?.userId) {
+          return NextResponse.json({ error: 'Contractor not found' }, { status: 404 });
+        }
+        targetUserId = contractor.userId;
+    }
+
+    // Prevent self-chat loop if logic is flawed
+    if (targetUserId === session.user.id) {
+        return NextResponse.json({ error: 'Cannot chat with yourself' }, { status: 400 });
     }
 
     let threadId = existingThreadId;
@@ -40,7 +53,7 @@ export async function POST(req: NextRequest) {
           type: 'dm',
           AND: [
             { participants: { some: { userId: session.user.id } } },
-            { participants: { some: { userId: contractor.userId } } },
+            { participants: { some: { userId: targetUserId } } },
           ],
         },
       });
@@ -52,13 +65,13 @@ export async function POST(req: NextRequest) {
         const newThread = await prisma.thread.create({
           data: {
             type: 'dm',
-            subject: `Chat with ${contractor.name}`,
+            subject: `Chat`, // We can improve this subject
             createdByUserId: session.user.id,
             status: 'open',
             participants: {
               create: [
                 { userId: session.user.id },
-                { userId: contractor.userId },
+                { userId: targetUserId },
               ],
             },
           },

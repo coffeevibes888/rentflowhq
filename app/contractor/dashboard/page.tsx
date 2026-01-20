@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
-import { Wrench, ClipboardList, DollarSign, Building2, Clock, TrendingUp, Briefcase, Gavel } from 'lucide-react';
+import { Wrench, ClipboardList, DollarSign, Building2, Clock, TrendingUp, Briefcase, Gavel, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -80,6 +80,19 @@ export default async function ContractorDashboardPage() {
           landlord: { select: { name: true, companyName: true } },
         },
       },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  });
+
+  // Get new leads
+  const leads = await prisma.contractorLeadMatch.findMany({
+    where: {
+      contractorId: { in: contractors.map(c => c.id) },
+      status: { in: ['pending', 'matching', 'new'] },
+    },
+    include: {
+      lead: true,
     },
     orderBy: { createdAt: 'desc' },
     take: 5,
@@ -196,6 +209,43 @@ export default async function ContractorDashboardPage() {
             </CardContent>
           </Card>
         </Link>
+      )}
+
+      {/* New Leads Banner */}
+      {leads.length > 0 && (
+        <Card className="bg-gradient-to-r from-violet-600/20 to-indigo-600/20 backdrop-blur-md border-violet-500/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-white flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-violet-400" />
+              New Leads ({leads.length})
+            </CardTitle>
+            <Link href="/contractor/leads" className="text-sm text-violet-300 hover:text-violet-200">
+              View all →
+            </Link>
+          </CardHeader>
+          <CardContent>
+             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {leads.map((match) => (
+                    <Link key={match.id} href={`/contractor/leads/${match.lead.id}`}>
+                        <div className="p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer">
+                            <div className="flex justify-between items-start mb-2">
+                                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                                    New Lead
+                                </Badge>
+                                <span className="text-xs text-white/50">{new Date(match.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <h4 className="font-semibold text-white mb-1">{match.lead.projectType}</h4>
+                            <p className="text-sm text-white/70 line-clamp-2 mb-3">{match.lead.projectDescription}</p>
+                            <div className="flex items-center gap-2 text-xs text-white/50">
+                                <MapPin className="h-3 w-3" />
+                                {match.lead.propertyCity || 'Unknown'}, {match.lead.propertyState || ''}
+                            </div>
+                        </div>
+                    </Link>
+                ))}
+             </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Main Content Grid - 3 columns on large screens */}

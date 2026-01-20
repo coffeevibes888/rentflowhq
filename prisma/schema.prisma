@@ -120,14 +120,22 @@ model User {
   contractorReviewsGiven       ContractorReview[] @relation("ContractorReviewsGiven")
   contractorLeadsSubmitted     ContractorLead[]
 
+  // Quote & Offer System
+  quotesReceived         ContractorQuote[]        @relation("QuoteCustomer")
+  quoteCountersInitiated ContractorQuoteCounter[] @relation("CounterOfferInitiator")
+  quoteMessagesFrom      ContractorQuoteMessage[] @relation("QuoteMessageFrom")
+  quoteMessagesTo        ContractorQuoteMessage[] @relation("QuoteMessageTo")
+  bidsReceived           ContractorBid[]
+
   // Dispute Center
-  disputesFiled    Dispute[]         @relation("DisputeFiledBy")
-  disputesAssigned Dispute[]         @relation("DisputeAssignedTo")
-  disputesResolved Dispute[]         @relation("DisputeResolvedBy")
-  disputeMessages  DisputeMessage[]
-  disputeEvidence  DisputeEvidence[]
-  disputeTimeline  DisputeTimeline[]
-  recurringCharges RecurringCharge[]
+  disputesFiled           Dispute[]                @relation("DisputeFiledBy")
+  disputesAssigned        Dispute[]                @relation("DisputeAssignedTo")
+  disputesResolved        Dispute[]                @relation("DisputeResolvedBy")
+  disputeMessages         DisputeMessage[]
+  disputeEvidence         DisputeEvidence[]
+  disputeTimeline         DisputeTimeline[]
+  recurringCharges        RecurringCharge[]
+  contractorQuoteCounters ContractorQuoteCounter[]
 }
 
 model Account {
@@ -2268,6 +2276,7 @@ model WorkOrder {
   payment           ContractorPayment?
   bids              WorkOrderBid[]
   estimates         ContractorEstimate[]
+  contractorBids    ContractorBid[]
 
   @@index([landlordId])
   @@index([contractorId])
@@ -3552,21 +3561,25 @@ model ContractorProfile {
   customers ContractorCustomer[]
 
   // Scheduler availability
-  availability    ContractorAvailability?
-  blockedDates    ContractorBlockedDate[]
+  availability     ContractorAvailability?
+  blockedDates     ContractorBlockedDate[]
   serviceDurations ContractorServiceDuration[]
 
   // Business Operating System (Professional & Business tiers)
-  jobs                ContractorJob[]
-  employees           ContractorEmployee[]
-  timeEntries         ContractorTimeEntry[]
-  expenses            ContractorExpense[]
-  jobAssignments      ContractorJobAssignment[]
-  changeOrders        ContractorChangeOrder[]
-  jobMilestones       ContractorJobMilestone[]
-  jobNotes            ContractorJobNote[]
-  marketingCampaigns  ContractorMarketingCampaign[]
-  referrals           ContractorReferral[]
+  jobs               ContractorJob[]
+  employees          ContractorEmployee[]
+  timeEntries        ContractorTimeEntry[]
+  expenses           ContractorExpense[]
+  jobAssignments     ContractorJobAssignment[]
+  changeOrders       ContractorChangeOrder[]
+  jobMilestones      ContractorJobMilestone[]
+  jobNotes           ContractorJobNote[]
+  marketingCampaigns ContractorMarketingCampaign[]
+  referrals          ContractorReferral[]
+
+  // Quote & Offer System
+  quotes ContractorQuote[]
+  bids   ContractorBid[]
 
   @@index([slug])
   @@index([rankScore])
@@ -3721,6 +3734,7 @@ model ContractorLead {
 
   // Relations
   matches  ContractorLeadMatch[]
+  quotes   ContractorQuote[]
   customer User?                 @relation(fields: [customerUserId], references: [id])
 
   @@index([status])
@@ -3775,6 +3789,7 @@ model ContractorLeadMatch {
   // Relations
   lead       ContractorLead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  quotes     ContractorQuote[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -4255,7 +4270,7 @@ model ConversionFunnel {
 // SystemEvent - Stores all system events for audit trail and recovery
 model SystemEvent {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type        String    // Event type (e.g., 'lease.tenant_signed')
+  type        String // Event type (e.g., 'lease.tenant_signed')
   payload     Json      @db.Json // Event data
   processed   Boolean   @default(false)
   createdAt   DateTime  @default(now()) @db.Timestamp(6)
@@ -4269,7 +4284,7 @@ model SystemEvent {
 // ScheduledJob - Database-backed job queue that replaces cron jobs
 model ScheduledJob {
   id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type         String    // Job type (e.g., 'send_reminder')
+  type         String // Job type (e.g., 'send_reminder')
   payload      Json      @db.Json // Job data
   scheduledFor DateTime  @db.Timestamp(6) // When to run the job
   priority     Int       @default(0) // Higher = more important
@@ -4297,14 +4312,14 @@ model ContractorJob {
   leadId       String? @db.Uuid // Link to ContractorLead if converted
 
   // Job identification
-  jobNumber String  @unique // Auto-generated: JOB-2024-0001
-  title     String
+  jobNumber   String  @unique // Auto-generated: JOB-2024-0001
+  title       String
   description String?
-  jobType   String? // Kitchen Remodel, Bathroom, Deck, etc.
+  jobType     String? // Kitchen Remodel, Bathroom, Deck, etc.
 
   // Status tracking
   status String @default("quoted") // quoted, approved, scheduled, in_progress, on_hold, completed, invoiced, paid, canceled
-  
+
   // Location
   address     String?
   city        String?
@@ -4343,8 +4358,8 @@ model ContractorJob {
   reviewedAt     DateTime? @db.Timestamp(6)
 
   // Internal notes
-  notes          String?
-  internalNotes  String? // Private notes not visible to customer
+  notes         String?
+  internalNotes String? // Private notes not visible to customer
 
   // Metadata
   tags     String[] @default([])
@@ -4353,15 +4368,15 @@ model ContractorJob {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile   @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   customer   ContractorCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  
+
   // Relations
-  timeEntries    ContractorTimeEntry[]
-  expenses       ContractorExpense[]
-  changeOrders   ContractorChangeOrder[]
-  jobMilestones  ContractorJobMilestone[]
-  jobNotes       ContractorJobNote[]
+  timeEntries   ContractorTimeEntry[]
+  expenses      ContractorExpense[]
+  changeOrders  ContractorChangeOrder[]
+  jobMilestones ContractorJobMilestone[]
+  jobNotes      ContractorJobNote[]
 
   @@index([contractorId])
   @@index([customerId])
@@ -4371,8 +4386,8 @@ model ContractorJob {
 
 // ContractorEmployee - Team member management
 model ContractorEmployee {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
   userId       String? @db.Uuid // Link to User if they have an account
 
   // Basic info
@@ -4383,10 +4398,10 @@ model ContractorEmployee {
   photo     String?
 
   // Employment
-  role         String // Lead Technician, Helper, Subcontractor, Admin
-  employeeType String @default("w2") // w2, 1099, subcontractor
-  status       String @default("active") // active, inactive, terminated
-  hireDate     DateTime @db.Timestamp(6)
+  role            String // Lead Technician, Helper, Subcontractor, Admin
+  employeeType    String    @default("w2") // w2, 1099, subcontractor
+  status          String    @default("active") // active, inactive, terminated
+  hireDate        DateTime  @db.Timestamp(6)
   terminationDate DateTime? @db.Timestamp(6)
 
   // Compensation
@@ -4395,10 +4410,10 @@ model ContractorEmployee {
   paySchedule String? // weekly, biweekly, monthly
 
   // Skills & Certifications
-  skills          String[] @default([])
-  certifications  String[] @default([])
-  licenseNumber   String?
-  licenseExpiry   DateTime? @db.Timestamp(6)
+  skills         String[]  @default([])
+  certifications String[]  @default([])
+  licenseNumber  String?
+  licenseExpiry  DateTime? @db.Timestamp(6)
 
   // Performance tracking
   totalJobsCompleted Int     @default(0)
@@ -4406,8 +4421,8 @@ model ContractorEmployee {
   onTimeRate         Decimal @default(0) @db.Decimal(5, 2)
 
   // Access & Permissions
-  canViewFinancials Boolean @default(false)
-  canManageJobs     Boolean @default(false)
+  canViewFinancials  Boolean @default(false)
+  canManageJobs      Boolean @default(false)
   canManageCustomers Boolean @default(false)
 
   // Documents
@@ -4421,7 +4436,7 @@ model ContractorEmployee {
   updatedAt DateTime @updatedAt
 
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  
+
   // Relations
   timeEntries ContractorTimeEntry[]
   assignments ContractorJobAssignment[]
@@ -4466,7 +4481,7 @@ model ContractorTimeEntry {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile   @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   employee   ContractorEmployee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   job        ContractorJob?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
 
@@ -4479,8 +4494,8 @@ model ContractorTimeEntry {
 
 // ContractorExpense - Expense tracking for jobs
 model ContractorExpense {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
   jobId        String? @db.Uuid
 
   // Expense details
@@ -4488,12 +4503,12 @@ model ContractorExpense {
   description String
   amount      Decimal @db.Decimal(12, 2)
   vendor      String?
-  
+
   // Date
   expenseDate DateTime @db.Timestamp(6)
 
   // Receipt
-  receiptUrl String?
+  receiptUrl     String?
   receiptScanned Boolean @default(false)
 
   // Billing
@@ -4516,7 +4531,7 @@ model ContractorExpense {
   updatedAt DateTime @updatedAt
 
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  job        ContractorJob?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  job        ContractorJob?    @relation(fields: [jobId], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
   @@index([jobId])
@@ -4532,18 +4547,18 @@ model ContractorJobAssignment {
   employeeId   String @db.Uuid
 
   // Assignment details
-  role       String  @default("technician") // lead, technician, helper
-  isLead     Boolean @default(false)
-  startDate  DateTime @db.Timestamp(6)
-  endDate    DateTime? @db.Timestamp(6)
-  
+  role      String    @default("technician") // lead, technician, helper
+  isLead    Boolean   @default(false)
+  startDate DateTime  @db.Timestamp(6)
+  endDate   DateTime? @db.Timestamp(6)
+
   // Status
   status String @default("assigned") // assigned, active, completed, removed
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   employee   ContractorEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([jobId, employeeId])
@@ -4564,20 +4579,20 @@ model ContractorChangeOrder {
   reason      String?
 
   // Financial impact
-  additionalCost Decimal @db.Decimal(12, 2)
+  additionalCost  Decimal @db.Decimal(12, 2)
   additionalHours Int?
 
   // Approval
-  status        String    @default("pending") // pending, approved, rejected
-  approvedBy    String?   // Customer name/email
-  approvedAt    DateTime? @db.Timestamp(6)
-  signatureUrl  String?   // Digital signature
+  status       String    @default("pending") // pending, approved, rejected
+  approvedBy   String? // Customer name/email
+  approvedAt   DateTime? @db.Timestamp(6)
+  signatureUrl String? // Digital signature
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  job        ContractorJob      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  job        ContractorJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([contractorId])
   @@index([jobId])
@@ -4609,7 +4624,7 @@ model ContractorJobMilestone {
   updatedAt DateTime @updatedAt
 
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  job        ContractorJob      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  job        ContractorJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([contractorId])
   @@index([jobId])
@@ -4637,7 +4652,7 @@ model ContractorJobNote {
   updatedAt DateTime @updatedAt
 
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  job        ContractorJob      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  job        ContractorJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([contractorId])
   @@index([jobId])
@@ -4650,14 +4665,14 @@ model ContractorMarketingCampaign {
   contractorId String @db.Uuid
 
   // Campaign details
-  name        String
-  type        String // email, sms, both
-  status      String @default("draft") // draft, scheduled, sending, sent, paused
-  
+  name   String
+  type   String // email, sms, both
+  status String @default("draft") // draft, scheduled, sending, sent, paused
+
   // Content
-  subject     String? // For email
-  message     String
-  templateId  String?
+  subject    String? // For email
+  message    String
+  templateId String?
 
   // Targeting
   targetAudience String // all_customers, repeat_customers, inactive_customers, custom
@@ -4688,19 +4703,19 @@ model ContractorMarketingCampaign {
 
 // ContractorReferral - Track customer referrals
 model ContractorReferral {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
-  referrerId   String @db.Uuid // ContractorCustomer who referred
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
+  referrerId   String  @db.Uuid // ContractorCustomer who referred
   referredId   String? @db.Uuid // ContractorCustomer who was referred
 
   // Referral details
   referredName  String
   referredEmail String?
   referredPhone String?
-  
+
   // Status
   status String @default("pending") // pending, contacted, converted, lost
-  
+
   // Conversion
   convertedAt DateTime? @db.Timestamp(6)
   jobValue    Decimal?  @db.Decimal(12, 2)
@@ -4708,13 +4723,13 @@ model ContractorReferral {
   // Reward
   rewardType   String? // discount, cash, gift_card
   rewardAmount Decimal? @db.Decimal(10, 2)
-  rewardGiven  Boolean @default(false)
+  rewardGiven  Boolean  @default(false)
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  referrer   ContractorCustomer @relation("ReferrerCustomer", fields: [referrerId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile   @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  referrer   ContractorCustomer  @relation("ReferrerCustomer", fields: [referrerId], references: [id], onDelete: Cascade)
   referred   ContractorCustomer? @relation("ReferredCustomer", fields: [referredId], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
@@ -4730,7 +4745,7 @@ model ContractorBlockedDate {
   startDate DateTime @db.Timestamp(6)
   endDate   DateTime @db.Timestamp(6)
   reason    String?
-  isAllDay  Boolean @default(true)
+  isAllDay  Boolean  @default(true)
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
 
@@ -4758,8 +4773,192 @@ model ContractorServiceDuration {
   @@index([contractorId])
 }
 
+// ==================== QUOTE & OFFER SYSTEM ====================
+
+// ContractorQuote - Quotes/Offers sent by contractors to customers
+model ContractorQuote {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Reference
+  leadId       String  @db.Uuid // from ContractorLead
+  leadMatchId  String? @db.Uuid // from ContractorLeadMatch if applicable
+  contractorId String  @db.Uuid
+  customerId   String  @db.Uuid // customer user ID
+
+  // Quote details
+  title          String
+  description    String?
+  projectScope   String? // detailed scope of work
+  deliverables   String[]  @default([]) // list of deliverables
+  startDate      DateTime? @db.Timestamp(6)
+  completionDate DateTime? @db.Timestamp(6)
+  estimatedHours Decimal?  @db.Decimal(10, 2)
+  hourlyRate     Decimal?  @db.Decimal(10, 2)
+
+  // Pricing
+  basePrice       Decimal  @db.Decimal(12, 2) // base price
+  discount        Decimal  @default(0) @db.Decimal(10, 2) // discount amount
+  discountPercent Decimal? @db.Decimal(5, 2) // discount percentage
+  tax             Decimal  @default(0) @db.Decimal(10, 2)
+  totalPrice      Decimal  @db.Decimal(12, 2) // final price (basePrice - discount + tax)
+
+  // Terms
+  paymentTerms String? // net_30, upfront, milestone, etc
+  warranty     String? // warranty info
+  notes        String?
+  attachments  String[] @default([]) // URLs to attached files/images
+
+  // Validity
+  validUntil DateTime @db.Timestamp(6) // quote expiration date
+  status     String   @default("pending") // pending, viewed, accepted, rejected, expired, counterOffered
+
+  // Counters (for multi-round negotiation)
+  counterOfferCount  Int       @default(0)
+  lastCounterOfferAt DateTime? @db.Timestamp(6)
+
+  // Acceptance tracking
+  acceptedAt      DateTime? @db.Timestamp(6)
+  rejectedAt      DateTime? @db.Timestamp(6)
+  rejectionReason String?
+
+  // Create booking if accepted
+  bookingCreatedAt DateTime? @db.Timestamp(6)
+  bookingId        String?   @db.Uuid // WorkOrder ID if converted
+
+  // Tracking
+  viewedAt  DateTime? @db.Timestamp(6)
+  viewCount Int       @default(0)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  lead          ContractorLead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadMatch     ContractorLeadMatch?     @relation(fields: [leadMatchId], references: [id], onDelete: SetNull)
+  contractor    ContractorProfile        @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  customer      User                     @relation("QuoteCustomer", fields: [customerId], references: [id], onDelete: Cascade)
+  counterOffers ContractorQuoteCounter[]
+  messages      ContractorQuoteMessage[]
+
+  @@index([leadId])
+  @@index([contractorId])
+  @@index([customerId])
+  @@index([status])
+  @@index([validUntil])
+  @@index([createdAt])
+}
+
+// ContractorQuoteCounter - Counter offers for negotiation (like Fiverr/Upwork)
+model ContractorQuoteCounter {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  originalQuoteId String @db.Uuid
+  counterType     String // contractor_counter, customer_counter
+  counterBy       String @db.Uuid // User ID of who made the counter
+
+  // Updated terms
+  basePrice    Decimal   @db.Decimal(12, 2)
+  tax          Decimal   @default(0) @db.Decimal(10, 2)
+  totalPrice   Decimal   @db.Decimal(12, 2)
+  deliveryDate DateTime? @db.Timestamp(6)
+  description  String?
+  notes        String?
+
+  // Status
+  status     String    @default("pending") // pending, accepted, rejected, expired
+  acceptedAt DateTime? @db.Timestamp(6)
+  rejectedAt DateTime? @db.Timestamp(6)
+
+  // Valid until
+  validUntil DateTime @db.Timestamp(6)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  originalQuote ContractorQuote @relation(fields: [originalQuoteId], references: [id], onDelete: Cascade)
+  initiatedBy   User            @relation("CounterOfferInitiator", fields: [counterBy], references: [id], onDelete: Cascade)
+  user          User?           @relation(fields: [userId], references: [id])
+  userId        String?         @db.Uuid
+
+  @@index([originalQuoteId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ContractorQuoteMessage - Messages within quote/offer negotiation
+model ContractorQuoteMessage {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  quoteId String @db.Uuid
+  fromId  String @db.Uuid
+  toId    String @db.Uuid
+
+  message     String
+  attachments String[]  @default([])
+  readAt      DateTime? @db.Timestamp(6)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  // Relations
+  quote ContractorQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  from  User            @relation("QuoteMessageFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to    User            @relation("QuoteMessageTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@index([fromId])
+  @@index([toId])
+  @@index([createdAt])
+}
+
+// ContractorBid - eBay-style bidding system
+model ContractorBid {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Auction reference
+  jobId        String @db.Uuid // WorkOrder ID or special job posting
+  contractorId String @db.Uuid
+  customerId   String @db.Uuid
+
+  // Bid details
+  bidAmount    Decimal  @db.Decimal(12, 2)
+  bidMessage   String? // contractor's bid message/proposal
+  deliveryDays Int? // estimated days to complete
+  attachments  String[] @default([])
+
+  // Status
+  status     String    @default("active") // active, withdrawn, accepted, rejected, expired
+  acceptedAt DateTime? @db.Timestamp(6)
+  rejectedAt DateTime? @db.Timestamp(6)
+
+  // Auto-acceptance
+  autoAccept  Boolean @default(false) // contractor accepts auto-acceptance terms
+  acceptTerms String? // T&C json
+
+  // Valid until
+  validUntil DateTime @db.Timestamp(6)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  job        WorkOrder         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  customer   User              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, contractorId])
+  @@index([jobId])
+  @@index([contractorId])
+  @@index([status])
+  @@index([validUntil])
+  @@index([createdAt])
+}
+
 // Add relations to existing ContractorProfile model
 // Note: These need to be added to the ContractorProfile model above
+// quotes              ContractorQuote[]
+// bids                ContractorBid[]
+// counterOffers       ContractorQuoteCounter[] @relation("CounterOfferInitiator")
 // jobs                ContractorJob[]
 // employees           ContractorEmployee[]
 // timeEntries         ContractorTimeEntry[]
@@ -4770,6 +4969,13 @@ model ContractorServiceDuration {
 // jobNotes            ContractorJobNote[]
 // marketingCampaigns  ContractorMarketingCampaign[]
 // referrals           ContractorReferral[]
+
+// Add relations to existing User model
+// quotes              ContractorQuote[]
+// quoteCounters       ContractorQuoteCounter[] @relation("CounterOfferInitiator")
+// quoteMessagesFrom   ContractorQuoteMessage[] @relation("QuoteMessageFrom")
+// quoteMessagesTo     ContractorQuoteMessage[] @relation("QuoteMessageTo")
+// bids                ContractorBid[]
 
 // Add relations to existing ContractorCustomer model
 // jobs                ContractorJob[]

@@ -37,7 +37,7 @@ const Header = async () => {
             <Image
               src={landlord?.logoUrl || '/images/logo.svg'}
               fill
-              className="object-contain scale-[2.8] origin-center mt-6"
+              className="object-contain scale-[2.8] origin-center"
               alt={`${displayName} Logo`}
               priority={true}
             />
@@ -97,7 +97,7 @@ const Header = async () => {
             </div>
           </div>
 
-          <div className="relative group">
+          <div className="relative group text-black">
             {categories.length > 0 && (
               <div className="absolute left-0 top-full mt-1 hidden group-hover:flex border rounded-md shadow-lg z-50 min-w-[520px] bg-white">
                 <div className="w-52 border-r py-3">
@@ -137,7 +137,7 @@ const Header = async () => {
         </div>
 
         {/* Menu - fixed width to balance logo */}
-        <div className="w-32 flex-shrink-0 flex justify-end">
+        <div className="w-32 flex-shrink-0 flex justify-end text-black font-bold">
           <Menu />
         </div>
       </div>

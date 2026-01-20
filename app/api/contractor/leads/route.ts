@@ -1,6 +1,8 @@
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+import { sendContractorLeadNotification, sendCustomerLeadConfirmation } from '@/lib/services/marketplace-email';
+import { dbTriggers } from '@/lib/event-system';
 
 /**
  * Create a new contractor lead
@@ -29,15 +31,33 @@ export async function POST(req: NextRequest) {
       customerPhone,
       isExclusive,
       preselectedContractorId,
+      preselectedContractorSlug,
       photos,
     } = body;
 
     // Validate required fields
-    if (!projectType || !projectDescription || !customerName || !customerEmail || !propertyZip) {
+    if (!projectType || !projectDescription || !customerName || !customerEmail) {
       return NextResponse.json(
         { success: false, message: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // Resolve slug to ID if needed
+    let finalContractorId = preselectedContractorId;
+    let selectedContractor = null;
+
+    if (!finalContractorId && preselectedContractorSlug) {
+      selectedContractor = await prisma.contractorProfile.findUnique({
+        where: { slug: preselectedContractorSlug },
+        select: { id: true, email: true, businessName: true, displayName: true }
+      });
+      if (selectedContractor) finalContractorId = selectedContractor.id;
+    } else if (finalContractorId) {
+       selectedContractor = await prisma.contractorProfile.findUnique({
+        where: { id: finalContractorId },
+        select: { id: true, email: true, businessName: true, displayName: true }
+      });
     }
 
     // Calculate lead score based on completeness and quality signals
@@ -70,8 +90,8 @@ export async function POST(req: NextRequest) {
     // Create the lead
     const lead = await prisma.contractorLead.create({
       data: {
-        source: preselectedContractorId ? 'subdomain' : 'marketplace',
-        sourceId: preselectedContractorId || null,
+        source: finalContractorId ? 'subdomain' : 'marketplace',
+        sourceId: finalContractorId || null,
         customerName,
         customerEmail,
         customerPhone: customerPhone || null,
@@ -87,7 +107,7 @@ export async function POST(req: NextRequest) {
         propertyAddress: propertyAddress || null,
         propertyCity: propertyCity || null,
         propertyState: propertyState || null,
-        propertyZip,
+        propertyZip: propertyZip || '', // Allow empty if not provided, though validation suggests it might be needed. Removed required check for zip if general inquiry
         propertyType: propertyType || 'residential',
         leadScore,
         isVerified: !!session?.user?.id,
@@ -99,15 +119,37 @@ export async function POST(req: NextRequest) {
     });
 
     // If preselected contractor, create match immediately
-    if (preselectedContractorId) {
-      await createLeadMatch(lead.id, preselectedContractorId, true);
+    if (finalContractorId) {
+      await createLeadMatch(lead.id, finalContractorId, true);
+      
+      // Notify Contractor
+      if (selectedContractor) {
+        await sendContractorLeadNotification({
+          contractorEmail: selectedContractor.email,
+          contractorName: selectedContractor.displayName || selectedContractor.businessName,
+          leadDetails: {
+            projectType: lead.projectType,
+            customerName: lead.customerName,
+            projectDescription: lead.projectDescription,
+            propertyCity: lead.propertyCity || 'Unknown City',
+            propertyState: lead.propertyState || 'Unknown State',
+            urgency: lead.urgency,
+          },
+          leadId: lead.id
+        });
+      }
     } else {
       // Find and match contractors
       await matchContractorsToLead(lead.id);
     }
 
-    // TODO: Send email confirmation to customer
-    // TODO: Send notifications to matched contractors
+    // Send email confirmation to customer
+    await sendCustomerLeadConfirmation({
+      customerEmail: lead.customerEmail,
+      customerName: lead.customerName,
+      projectType: lead.projectType,
+      contractorName: selectedContractor ? (selectedContractor.displayName || selectedContractor.businessName) : undefined
+    });
 
     return NextResponse.json({
       success: true,
@@ -324,7 +366,6 @@ async function createLeadMatch(
 
   // ✅ NEW: Emit event for contractor lead match (notifies contractor)
   try {
-    const { dbTriggers } = await import('@/lib/event-system');
     if (lead) {
       await dbTriggers.onContractorLeadMatch(match, lead);
     }

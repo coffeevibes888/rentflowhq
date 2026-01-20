@@ -255,17 +255,17 @@ const AdminOverviewPage = async (props: {
   return (
     <div className='w-full space-y-4 sm:space-y-6'>
       <div>
-        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50 mb-1'>Property Dashboard</h1>
-        <p className='text-xs sm:text-sm text-slate-300/80'>High-level snapshot of properties, tenants, and operations.</p>
+        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-black mb-1'>Property Dashboard</h1>
+        <p className='text-xs sm:text-sm text-black'>High-level snapshot of properties, tenants, and operations.</p>
       </div>
 
       {/* Stats Cards - Clickable on mobile */}
-      <div className='relative rounded-xl sm:rounded-2xl border border-white/10 shadow-xl overflow-hidden backdrop-blur-md'>
-        <div className='absolute inset-0 bg-blue-700' />
+      <div className='relative rounded-xl sm:rounded-2xl border-2 border-black shadow-xl overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
         <div className='relative p-3 sm:p-4 md:p-6'>
           <div className='flex items-center justify-between mb-3'>
-            <h3 className='text-sm sm:text-base font-bold text-white'>Your Dashboard</h3>
-            <span className='text-[10px] text-violet-200/80 bg-white/5 px-1.5 py-0.5 rounded-full ring-1 ring-white/10'>Live</span>
+            <h3 className='text-sm sm:text-base font-bold text-black'>Your Dashboard</h3>
+            <span className='text-[10px] text-black bg-white/30 px-1.5 py-0.5 rounded-full ring-1 ring-black/20 font-semibold'>Live</span>
           </div>
 
           <div className='grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3'>
@@ -279,94 +279,94 @@ const AdminOverviewPage = async (props: {
 
             <Link
               href='/admin/products'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black'>Total Units</div>
-                <Building2 className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Total Units</div>
+                <Building2 className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{totalUnitsSafe}</div>
-              <div className='text-[9px] sm:text-[10px] text-red-200'>{vacantUnits} vacant</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{totalUnitsSafe}</div>
+              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{vacantUnits} vacant</div>
             </Link>
 
             <Link
               href='/admin/revenue'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black'>Rent This Month</div>
-                <DollarSign className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Rent This Month</div>
+                <DollarSign className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{formatCurrency(rentCollectedThisMonth)}</div>
-              <div className='text-[9px] sm:text-[10px] text-yellow-100'>{collectionRate.toFixed(0)}% collected</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{formatCurrency(rentCollectedThisMonth)}</div>
+              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{collectionRate.toFixed(0)}% collected</div>
             </Link>
 
             <Link
               href='/admin/maintenance'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black'>Maintenance</div>
-                <Wrench className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Maintenance</div>
+                <Wrench className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{ticketsCount}</div>
-              <div className='text-[9px] sm:text-[10px] text-red-100'>{urgentTickets} urgent</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{ticketsCount}</div>
+              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{urgentTickets} urgent</div>
             </Link>
 
             <Link
               href='/admin/applications'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black'>Applications</div>
-                <FileText className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Applications</div>
+                <FileText className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{applicationsCount}</div>
-              <div className='text-[9px] sm:text-[10px] text-emerald-100'>Review now</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{applicationsCount}</div>
+              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>Review now</div>
             </Link>
 
             <Link
               href='/admin/payouts'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black'>Available Balance</div>
-                <Wallet className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Available Balance</div>
+                <Wallet className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{formatCurrency(availableBalance)}</div>
-              <div className='text-[9px] sm:text-[10px] text-white/90'>Ready to cash out</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{formatCurrency(availableBalance)}</div>
+              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>Ready to cash out</div>
             </Link>
 
             <Link
               href={isAdmin ? '/admin/messages' : '/admin/tenant-messages'}
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black'>Messages</div>
-                <MessageCircle className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Messages</div>
+                <MessageCircle className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{messagesCountToShow}</div>
-              <div className='text-[9px] sm:text-[10px] text-white/90'>{isAdmin ? 'Open inbox threads' : 'Unread threads'}</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{messagesCountToShow}</div>
+              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{isAdmin ? 'Open inbox threads' : 'Unread threads'}</div>
             </Link>
           </div>
 
-          <div className='mt-3 rounded-lg sm:rounded-xl bg-slate-900/60 p-2.5 sm:p-3 md:p-4 border border-white/10'>
+          <div className='mt-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-2.5 sm:p-3 md:p-4 border-2 border-black'>
             <div className='grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4'>
               <div className='space-y-0.5'>
-                <div className='text-[9px] sm:text-[10px] text-slate-200/80 uppercase tracking-wide'>Occupied</div>
-                <div className='text-xs sm:text-sm font-semibold text-white'>{occupiedUnitsSafe}</div>
+                <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Occupied</div>
+                <div className='text-xs sm:text-sm font-bold text-black'>{occupiedUnitsSafe}</div>
               </div>
               <div className='space-y-0.5'>
-                <div className='text-[9px] sm:text-[10px] text-slate-200/80 uppercase tracking-wide'>Tenants</div>
-                <div className='text-xs sm:text-sm font-semibold text-white'>{tenantsCount}</div>
+                <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Tenants</div>
+                <div className='text-xs sm:text-sm font-bold text-black'>{tenantsCount}</div>
               </div>
               <div className='space-y-0.5'>
-                <div className='text-[9px] sm:text-[10px] text-slate-200/80 uppercase tracking-wide'>Rent (YTD)</div>
-                <div className='text-xs sm:text-sm font-semibold text-white'>{formatCurrency(rentCollectedYtd)}</div>
+                <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Rent (YTD)</div>
+                <div className='text-xs sm:text-sm font-bold text-black'>{formatCurrency(rentCollectedYtd)}</div>
               </div>
               <div className='space-y-0.5'>
-                <div className='text-[9px] sm:text-[10px] text-slate-200/80 uppercase tracking-wide'>Properties</div>
-                <div className='text-xs sm:text-sm font-semibold text-white'>{propertiesCount}</div>
+                <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Properties</div>
+                <div className='text-xs sm:text-sm font-bold text-black'>{propertiesCount}</div>
               </div>
             </div>
           </div>
@@ -388,14 +388,14 @@ const AdminOverviewPage = async (props: {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className='rounded-lg border border-white/10 bg-slate-900/60 p-3 flex items-start gap-2.5 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer active:scale-[0.98]'
+                  className='rounded-lg border-2 border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 flex items-start gap-2.5 hover:border-slate-700 transition-colors cursor-pointer active:scale-[0.98] shadow-xl'
                 >
-                  <div className='h-8 w-8 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
+                  <div className='h-8 w-8 rounded-lg bg-white/30 text-blue-600 flex items-center justify-center shrink-0 ring-1 ring-black/20'>
                     <Icon className='h-4 w-4' />
                   </div>
                   <div className='flex flex-col gap-0.5 min-w-0'>
-                    <span className='text-sm font-semibold text-slate-50'>{item.title}</span>
-                    <span className='text-[10px] text-slate-300/80 truncate'>{item.description}</span>
+                    <span className='text-sm font-bold text-black'>{item.title}</span>
+                    <span className='text-[10px] text-black font-semibold truncate'>{item.description}</span>
                   </div>
                 </Link>
               );

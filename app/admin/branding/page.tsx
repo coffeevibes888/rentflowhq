@@ -113,7 +113,7 @@ const AdminBrandingPage = async (props: {
           </div>
         )}
         <div>
-          <h1 className='text-3xl md:text-4xl font-bold font-large text-white mb-2'>Branding & Domain</h1>
+          <h1 className='text-3xl md:text-4xl font-bold font-large text-black mb-2'>Branding & Domain</h1>
           <p className='text-sm text-black font-bold'>
             Customize your public tenant portal with your logo, subdomain, and optional custom domain.
           </p>
@@ -151,18 +151,18 @@ const AdminBrandingPage = async (props: {
         </section>
 
         {/* Logo Section */}
-        <section data-tour="logo-upload" className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-4 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
+        <section data-tour="logo-upload" className='rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border-2 border-black p-4 space-y-4 hover:border-slate-700 transition-colors shadow-2xl drop-shadow-2xl'>
           <div className='flex-1 space-y-4'>
             <div className='space-y-1'>
-              <h2 className='text-lg font-semibold text-white'>Company Logo</h2>
-              <p className='text-sm text-slate-100'>
+              <h2 className='text-lg font-semibold text-black'>Company Logo</h2>
+              <p className='text-sm text-black'>
                 Your logo appears on your tenant portal, emails, and documents.
               </p>
             </div>
 
             {/* Current Logo Preview */}
-            <div className='flex items-center gap-4 p-4 rounded-lg bg-slate-900/50 border border-white/10'>
-              <div className='relative h-20 w-20 rounded-lg border-2 border-dashed border-white/20 overflow-hidden bg-[repeating-conic-gradient(#1e293b_0%_25%,#334155_0%_50%)] bg-[length:16px_16px] flex items-center justify-center'>
+            <div className='flex items-center gap-4 p-4 rounded-lg bg-white/50 border-2 border-black'>
+              <div className='relative h-20 w-20 rounded-lg border-2 border-dashed border-slate-300 overflow-hidden bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#e2e8f0_0%_50%)] bg-[length:16px_16px] flex items-center justify-center'>
                 {landlord.logoUrl ? (
                   <img
                     src={landlord.logoUrl}
@@ -170,12 +170,12 @@ const AdminBrandingPage = async (props: {
                     className='h-full w-full object-contain'
                   />
                 ) : (
-                  <span className='text-xs text-slate-400 text-center px-2'>No logo</span>
+                  <span className='text-xs text-slate-500 text-center px-2'>No logo</span>
                 )}
               </div>
               <div className='flex-1'>
-                <p className='font-medium text-white text-sm'>Current logo</p>
-                <p className='text-xs text-slate-300'>
+                <p className='font-medium text-black text-sm'>Current logo</p>
+                <p className='text-xs text-black'>
                   {landlord.logoUrl ? 'Displayed on your tenant portal' : 'Upload a logo to brand your portal'}
                 </p>
                 {landlord.logoUrl && (
@@ -187,23 +187,23 @@ const AdminBrandingPage = async (props: {
             </div>
 
             {/* Requirements Box */}
-            <div className='rounded-lg bg-amber-500/10 border border-amber-400/30 p-4 space-y-2'>
-              <p className='text-sm font-semibold text-amber-200'>📋 Logo Requirements</p>
-              <ul className='text-xs text-amber-100/90 space-y-1.5'>
+            <div className='rounded-lg bg-amber-50 border-2 border-amber-600 p-4 space-y-2'>
+              <p className='text-sm font-semibold text-amber-900'>📋 Logo Requirements</p>
+              <ul className='text-xs text-amber-800 space-y-1.5'>
                 <li className='flex items-start gap-2'>
-                  <span className='text-amber-400'>✓</span>
+                  <span className='text-amber-600'>✓</span>
                   <span><strong>Transparent background</strong> — PNG or SVG format works best</span>
                 </li>
                 <li className='flex items-start gap-2'>
-                  <span className='text-amber-400'>✓</span>
+                  <span className='text-amber-600'>✓</span>
                   <span><strong>Recommended size:</strong> 400×400 pixels (square) or 600×200 pixels (wide)</span>
                 </li>
                 <li className='flex items-start gap-2'>
-                  <span className='text-amber-400'>✓</span>
+                  <span className='text-amber-600'>✓</span>
                   <span><strong>Max file size:</strong> 5MB</span>
                 </li>
                 <li className='flex items-start gap-2'>
-                  <span className='text-slate-400'>💡</span>
+                  <span className='text-slate-600'>💡</span>
                   <span>Tip: A transparent PNG ensures your logo looks great on any background color</span>
                 </li>
               </ul>
@@ -211,15 +211,15 @@ const AdminBrandingPage = async (props: {
 
             <form action={handleLogoUpload} className='space-y-3'>
               <div>
-                <label className='block text-sm font-medium text-white mb-2'>Upload New Logo</label>
+                <label className='block text-sm font-medium text-black mb-2'>Upload New Logo</label>
                 <input
                   type='file'
                   name='logo'
                   accept='image/png,image/svg+xml,image/webp'
-                  className='block w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white file:ring-1 file:ring-white/20 hover:file:bg-white/20 file:cursor-pointer cursor-pointer'
+                  className='block w-full text-sm text-black file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/50 file:text-black file:ring-1 file:ring-slate-200 hover:file:bg-white/80 file:cursor-pointer cursor-pointer'
                   required
                 />
-                <p className='text-xs text-slate-300 mt-1'>Accepts PNG, SVG, or WebP (transparent background recommended)</p>
+                <p className='text-xs text-black mt-1'>Accepts PNG, SVG, or WebP (transparent background recommended)</p>
               </div>
               <div className='flex flex-wrap items-center gap-3'>
                 <button
@@ -232,14 +232,14 @@ const AdminBrandingPage = async (props: {
             </form>
 
             {/* Custom Logo Design Upsell */}
-            <div className='rounded-lg bg-emerald-500/10 border border-emerald-400/30 p-4 space-y-2'>
-              <p className='text-sm font-semibold text-emerald-200'>🎨 Need a professional logo?</p>
-              <p className='text-xs text-emerald-100/80'>
+            <div className='rounded-lg bg-emerald-50 border-2 border-emerald-600 p-4 space-y-2'>
+              <p className='text-sm font-semibold text-emerald-900'>🎨 Need a professional logo?</p>
+              <p className='text-xs text-emerald-800'>
                 We'll design a custom logo for your brand with transparent background, multiple sizes, and 1 revision included. Delivered within 3 business days.
               </p>
               <button
                 type='button'
-                className='inline-flex items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/20 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-500/30 transition-colors'
+                className='inline-flex items-center justify-center rounded-full border border-emerald-300 bg-emerald-100 px-4 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-200 transition-colors'
               >
                 Request custom logo design — $99
               </button>
@@ -248,53 +248,53 @@ const AdminBrandingPage = async (props: {
         </section>
 
         {/* Company Profile Section */}
-        <section className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-          <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
+        <section className='rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border-2 border-black p-4 space-y-2 hover:border-slate-700 transition-colors shadow-2xl drop-shadow-2xl'>
+          <div className='h-9 w-9 rounded-lg bg-white/20 text-blue-600 flex items-center justify-center shrink-0 ring-1 ring-slate-200'>
             <Palette className='h-4 w-4' />
           </div>
           <div className='flex-1 space-y-4'>
             <div className='space-y-1'>
-              <h2 className='text-sm font-semibold text-slate-50'>Company profile</h2>
-              <p className='text-xs text-slate-300/80'>
+              <h2 className='text-sm font-semibold text-black'>Company profile</h2>
+              <p className='text-xs text-black'>
                 This profile powers your tenant portal brand (APP_NAME) and hero content. Use your management company info, not the owner.
               </p>
             </div>
             <form action={handleBrandingProfileUpdate} className='grid gap-4 md:grid-cols-2 text-sm'>
               <div className='space-y-2'>
-                <label className='block text-xs font-medium text-slate-200/90'>Management company name</label>
+                <label className='block text-xs font-medium text-black font-bold'>Management company name</label>
                 <input
                   name='companyName'
                   defaultValue={landlord.companyName || ''}
-                  className='w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-50 placeholder:text-slate-400 focus:border-violet-400 focus:ring-1 focus:ring-violet-400'
+                  className='w-full rounded-md border-2 border-black bg-white px-3 py-2 text-black placeholder:text-slate-500 focus:border-violet-600 focus:ring-2 focus:ring-violet-400'
                   placeholder='Acme Property Management LLC'
                   required
                 />
               </div>
               <div className='space-y-2'>
-                <label className='block text-xs font-medium text-slate-200/90'>Primary contact email</label>
+                <label className='block text-xs font-medium text-black font-bold'>Primary contact email</label>
                 <input
                   name='companyEmail'
                   defaultValue={landlord.companyEmail || ''}
-                  className='w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-50 placeholder:text-slate-400 focus:border-violet-400 focus:ring-1 focus:ring-violet-400'
+                  className='w-full rounded-md border-2 border-black bg-white px-3 py-2 text-black placeholder:text-slate-500 focus:border-violet-600 focus:ring-2 focus:ring-violet-400'
                   placeholder='leasing@company.com'
                   type='email'
                 />
               </div>
               <div className='space-y-2'>
-                <label className='block text-xs font-medium text-slate-200/90'>Office phone</label>
+                <label className='block text-xs font-medium text-black font-bold'>Office phone</label>
                 <input
                   name='companyPhone'
                   defaultValue={landlord.companyPhone || ''}
-                  className='w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-50 placeholder:text-slate-400 focus:border-violet-400 focus:ring-1 focus:ring-violet-400'
+                  className='w-full rounded-md border-2 border-black bg-white px-3 py-2 text-black placeholder:text-slate-500 focus:border-violet-600 focus:ring-2 focus:ring-violet-400'
                   placeholder='(555) 123-4567'
                 />
               </div>
               <div className='space-y-2 md:col-span-2'>
-                <label className='block text-xs font-medium text-slate-200/90'>Office address</label>
+                <label className='block text-xs font-medium text-black font-bold'>Office address</label>
                 <input
                   name='companyAddress'
                   defaultValue={landlord.companyAddress || ''}
-                  className='w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-50 placeholder:text-slate-400 focus:border-violet-400 focus:ring-1 focus:ring-violet-400'
+                  className='w-full rounded-md border-2 border-black bg-white px-3 py-2 text-black placeholder:text-slate-500 focus:border-violet-600 focus:ring-2 focus:ring-violet-400'
                   placeholder='Street, city, state, ZIP'
                 />
               </div>
@@ -305,7 +305,7 @@ const AdminBrandingPage = async (props: {
                 >
                   Save profile
                 </button>
-                <p className='text-xs text-slate-300/80'>
+                <p className='text-xs text-black'>
                   Used across your tenant portal headers, hero, and metadata.
                 </p>
               </div>
@@ -314,14 +314,14 @@ const AdminBrandingPage = async (props: {
         </section>
 
         {/* Hero Media Section */}
-        <section className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-          <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
+        <section className='rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border-2 border-black p-4 space-y-2 hover:border-slate-700 transition-colors shadow-2xl drop-shadow-2xl'>
+          <div className='h-9 w-9 rounded-lg bg-white/20 text-blue-600 flex items-center justify-center shrink-0 ring-1 ring-slate-200'>
             <Sparkles className='h-4 w-4' />
           </div>
           <div className='flex-1 space-y-4'>
             <div className='space-y-1'>
-              <h2 className='text-sm font-semibold text-slate-50'>Hero images</h2>
-              <p className='text-xs text-slate-300/80'>
+              <h2 className='text-sm font-semibold text-black'>Hero images</h2>
+              <p className='text-xs text-black'>
                 Upload up to 3 hero images for your public portal hero section. JPG, PNG, SVG, or WebP up to 5MB each.
               </p>
             </div>
@@ -330,7 +330,7 @@ const AdminBrandingPage = async (props: {
               <div className='space-y-3'>
                 <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
                   {landlord.heroImages.map((src, idx) => (
-                    <div key={idx} className='relative h-32 rounded-lg border border-white/10 overflow-hidden bg-slate-900/70 group'>
+                    <div key={idx} className='relative h-32 rounded-lg border border-slate-200 overflow-hidden bg-white/50 group'>
                       <img src={src} alt={`Hero ${idx + 1}`} className='h-full w-full object-cover' />
                       <DeleteHeroImageButton imageUrl={src} />
                     </div>
@@ -339,21 +339,21 @@ const AdminBrandingPage = async (props: {
                 <DeleteAllHeroImagesButton />
               </div>
             ) : (
-              <p className='text-xs text-slate-400'>No hero images yet.</p>
+              <p className='text-xs text-slate-500'>No hero images yet.</p>
             )}
 
             <form action={handleHeroImagesUpload} className='space-y-3'>
               <div>
-                <label className='block text-sm font-medium text-slate-200/90 mb-2'>Upload hero images</label>
+                <label className='block text-sm font-medium text-black mb-2'>Upload hero images</label>
                 <input
                   type='file'
                   name='heroImages'
                   accept='image/jpeg,image/png,image/svg+xml,image/webp'
                   multiple
-                  className='block w-full text-sm text-slate-300/80 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/5 file:text-violet-200/80 file:ring-1 file:ring-white/10 hover:file:bg-white/10'
+                  className='block w-full text-sm text-black file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/50 file:text-black file:ring-1 file:ring-slate-200 hover:file:bg-white/80'
                   required
                 />
-                <p className='text-[11px] text-slate-400 mt-1'>Max 3 images. Larger uploads will be ignored.</p>
+                <p className='text-[11px] text-slate-500 mt-1'>Max 3 images. Larger uploads will be ignored.</p>
               </div>
               <button
                 type='submit'
@@ -366,25 +366,25 @@ const AdminBrandingPage = async (props: {
         </section>
 
         {/* About Me Section */}
-        <section className='rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-4 space-y-2 backdrop-blur-sm hover:border-violet-400/60 transition-colors shadow-2xl drop-shadow-2xl'>
-          <div className='h-9 w-9 rounded-lg bg-white/5 text-violet-200/80 flex items-center justify-center shrink-0 ring-1 ring-white/10'>
+        <section className='rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border-2 border-black p-4 space-y-2 hover:border-slate-700 transition-colors shadow-2xl drop-shadow-2xl'>
+          <div className='h-9 w-9 rounded-lg bg-white/20 text-blue-600 flex items-center justify-center shrink-0 ring-1 ring-slate-200'>
             <UserCircle className='h-4 w-4' />
           </div>
           <div className='flex-1 space-y-4'>
             <div className='space-y-1'>
-              <h2 className='text-sm font-semibold text-slate-50'>About me / team</h2>
-              <p className='text-xs text-slate-300/80'>
+              <h2 className='text-sm font-semibold text-black'>About me / team</h2>
+              <p className='text-xs text-black'>
                 Tell visitors about your management style, experience, and team. Add a primary headshot plus an optional gallery.
               </p>
             </div>
 
             <form action={handleBrandingProfileUpdate} className='space-y-3 text-sm'>
               <div className='space-y-2'>
-                <label className='block text-xs font-medium text-slate-200/90'>About bio</label>
+                <label className='block text-xs font-medium text-black font-bold'>About bio</label>
                 <textarea
                   name='aboutBio'
                   defaultValue={landlord.aboutBio || ''}
-                  className='w-full rounded-md border border-white/10 bg-slate-900/70 px-3 py-2 text-slate-50 placeholder:text-slate-400 focus:border-violet-400 focus:ring-1 focus:ring-violet-400'
+                  className='w-full rounded-md border-2 border-black bg-white px-3 py-2 text-black placeholder:text-slate-500 focus:border-violet-600 focus:ring-2 focus:ring-violet-400'
                   rows={4}
                   placeholder='Share your story, specialties, and what tenants can expect.'
                 />
@@ -399,9 +399,9 @@ const AdminBrandingPage = async (props: {
 
             <div className='space-y-3'>
               <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-                <div className='rounded-lg border border-white/10 bg-slate-900/70 p-3'>
-                  <p className='text-xs text-slate-300/80 mb-2'>Primary photo</p>
-                  <div className='relative h-32 rounded-md overflow-hidden border border-white/10 bg-slate-950/50'>
+                <div className='rounded-lg border-2 border-black bg-white/50 p-3'>
+                  <p className='text-xs text-black font-bold mb-2'>Primary photo</p>
+                  <div className='relative h-32 rounded-md overflow-hidden border-2 border-black bg-slate-50'>
                     {landlord.aboutPhoto ? (
                       <>
                         <img src={landlord.aboutPhoto} alt='About photo' className='h-full w-full object-cover' />
@@ -412,13 +412,13 @@ const AdminBrandingPage = async (props: {
                     )}
                   </div>
                 </div>
-                <div className='sm:col-span-2 rounded-lg border border-white/10 bg-slate-900/70 p-3'>
-                  <p className='text-xs text-slate-300/80 mb-2'>Gallery</p>
+                <div className='sm:col-span-2 rounded-lg border-2 border-black bg-white/50 p-3'>
+                  <p className='text-xs text-black font-bold mb-2'>Gallery</p>
                   {landlord.aboutGallery?.length ? (
                     <div className='space-y-3'>
                       <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
                         {landlord.aboutGallery.map((src, idx) => (
-                          <div key={idx} className='relative h-24 rounded-md overflow-hidden border border-white/10 bg-slate-950/50 group'>
+                          <div key={idx} className='relative h-24 rounded-md overflow-hidden border border-slate-200 bg-slate-50 group'>
                             <img src={src} alt={`Gallery ${idx + 1}`} className='h-full w-full object-cover' />
                             <DeleteAboutGalleryImageButton imageUrl={src} />
                           </div>
@@ -427,7 +427,7 @@ const AdminBrandingPage = async (props: {
                       <DeleteAllAboutGalleryButton />
                     </div>
                   ) : (
-                    <p className='text-xs text-slate-400'>No gallery images yet.</p>
+                    <p className='text-xs text-slate-500'>No gallery images yet.</p>
                   )}
                 </div>
               </div>
@@ -435,25 +435,25 @@ const AdminBrandingPage = async (props: {
               <form action={handleAboutMediaUpload} className='space-y-3'>
                 <div className='grid gap-3 md:grid-cols-2 text-sm'>
                   <div>
-                    <label className='block text-sm font-medium text-slate-200/90 mb-2'>Upload primary photo</label>
+                    <label className='block text-sm font-medium text-black mb-2'>Upload primary photo</label>
                     <input
                       type='file'
                       name='aboutPhoto'
                       accept='image/jpeg,image/png,image/svg+xml,image/webp'
-                      className='block w-full text-sm text-slate-300/80 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/5 file:text-violet-200/80 file:ring-1 file:ring-white/10 hover:file:bg-white/10'
+                      className='block w-full text-sm text-black file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/50 file:text-black file:ring-1 file:ring-slate-200 hover:file:bg-white/80'
                     />
-                    <p className='text-[11px] text-slate-400 mt-1'>Optional. Replaces existing headshot.</p>
+                    <p className='text-[11px] text-slate-500 mt-1'>Optional. Replaces existing headshot.</p>
                   </div>
                   <div>
-                    <label className='block text-sm font-medium text-slate-200/90 mb-2'>Upload gallery images</label>
+                    <label className='block text-sm font-medium text-black mb-2'>Upload gallery images</label>
                     <input
                       type='file'
                       name='aboutGallery'
                       accept='image/jpeg,image/png,image/svg+xml,image/webp'
                       multiple
-                      className='block w-full text-sm text-slate-300/80 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/5 file:text-violet-200/80 file:ring-1 file:ring-white/10 hover:file:bg-white/10'
+                      className='block w-full text-sm text-black file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/50 file:text-black file:ring-1 file:ring-slate-200 hover:file:bg-white/80'
                     />
-                    <p className='text-[11px] text-slate-400 mt-1'>Up to 6 images. Larger uploads will be ignored.</p>
+                    <p className='text-[11px] text-slate-500 mt-1'>Up to 6 images. Larger uploads will be ignored.</p>
                   </div>
                 </div>
                 <button
