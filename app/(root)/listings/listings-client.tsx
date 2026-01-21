@@ -204,35 +204,35 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
       <NoListingsModal show={listings.length === 0} />
       
       {/* Hero Search Section */}
-      <div className=" text-white">
+      <div className="bg-white">
         <div className="container mx-auto px-4 py-12 md:py-16">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent">
             Find Your Perfect Home
           </h1>
-          <p className="text-blue-100 text-center mb-8 max-w-2xl mx-auto">
+          <p className="text-slate-400 text-center mb-8 max-w-2xl mx-auto font-medium">
             Browse {total} available properties in Las Vegas. Search by location, price, and amenities.
           </p>
           
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white border border-black rounded-2xl shadow-2xl p-2">
+            <div className="border-2 border-slate-400 rounded-2xl shadow-2xl p-2">
               {/* Mobile: Search input full width, buttons below */}
               <div className="flex flex-col gap-2 md:hidden">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-700" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 " />
                   <Input
                     type="text"
                     placeholder="Search location, property..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                    className="pl-12 h-12 text-base border border-black bg-slate-100 text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal"
+                    className="pl-12 h-12 text-base border-2 border-slate-400 bg-white text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal"
                   />
                 </div>
                 <div className="flex gap-2">
                   <Sheet open={showFilters} onOpenChange={setShowFilters}>
                     <SheetTrigger asChild>
-                      <Button variant="outline" className="h-11 flex-1 gap-2 bg-slate-100 text-black border-black hover:bg-slate-200 font-bold">
+                      <Button variant="surface" className="h-11 flex-1 gap-2 font-bold">
                         <SlidersHorizontal className="h-5 w-5" />
                         Filters
                         {hasActiveFilters && (
@@ -260,7 +260,8 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                     </SheetContent>
                   </Sheet>
                   <Button 
-                    className="h-11 flex-1 bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 hover:opacity-90 text-white font-bold shadow-lg"
+                    variant="brand"
+                    className="h-11 flex-1 font-bold"
                     onClick={applyFilters}
                   >
                     Search
@@ -271,20 +272,20 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
               {/* Desktop: Original horizontal layout */}
               <div className="hidden md:flex gap-2">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-700" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <Input
                     type="text"
                     placeholder="Search by location, property name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                    className="pl-12 h-14 text-lg border border-black bg-slate-100 text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal"
+                    className="pl-12 h-14 text-lg border-2 border-slate-400 bg-white text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal"
                   />
                 </div>
                 <div className="flex gap-2">
                   <Sheet open={showFilters} onOpenChange={setShowFilters}>
                     <SheetTrigger asChild>
-                      <Button variant="outline" size="lg" className="h-14 px-6 gap-2 bg-slate-100 text-black border-black hover:bg-slate-200 font-bold">
+                      <Button variant="surface" size="lg" className="h-14 px-6 gap-2 font-bold">
                         <SlidersHorizontal className="h-5 w-5" />
                         <span>Filters</span>
                         {hasActiveFilters && (
@@ -313,7 +314,8 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   </Sheet>
                   <Button 
                     size="lg" 
-                    className="h-14 px-8 bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 hover:opacity-90 text-white font-bold shadow-lg"
+                    variant="brand"
+                    className="h-14 px-8 font-bold"
                     onClick={applyFilters}
                   >
                     Search
@@ -326,7 +328,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
       </div>
 
       {/* Quick Filters Bar */}
-      <div className="sticky top-0 z-40 backdrop-blur-sm border shadow-sm">
+      <div className="sticky top-0 z-40 backdrop-blur-sm border-b border-black shadow-sm">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             {/* Mobile: Dropdown for property types */}
@@ -334,14 +336,9 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
               {/* Buy/Rent Toggle - Compact on mobile */}
               <div className="flex gap-2">
                 <Button
-                  variant="ghost"
+                  variant={filters.listingType === 'all' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'px-3 h-9 font-bold border border-black',
-                    filters.listingType === 'all' 
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="px-3 h-9 font-bold"
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'all' }));
                     setTimeout(applyFilters, 0);
@@ -350,14 +347,9 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   All
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={filters.listingType === 'sale' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'px-3 h-9 font-bold border border-black',
-                    filters.listingType === 'sale' 
-                      ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="px-3 h-9 font-bold"
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'sale' }));
                     setTimeout(applyFilters, 0);
@@ -366,14 +358,9 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   Buy
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={filters.listingType === 'rent' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'px-3 h-9 font-bold border border-black',
-                    filters.listingType === 'rent' 
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="px-3 h-9 font-bold"
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'rent' }));
                     setTimeout(applyFilters, 0);
@@ -415,14 +402,9 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
               {/* Buy/Rent Toggle */}
               <div className="flex gap-2 mr-2">
                 <Button
-                  variant="ghost"
+                  variant={filters.listingType === 'all' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'px-4 font-bold border border-black',
-                    filters.listingType === 'all' 
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 shadow-lg'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="px-4 font-bold"
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'all' }));
                     setTimeout(applyFilters, 0);
@@ -431,14 +413,9 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   All
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={filters.listingType === 'sale' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'px-4 font-bold border border-black',
-                    filters.listingType === 'sale' 
-                      ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90 shadow-lg'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="px-4 font-bold"
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'sale' }));
                     setTimeout(applyFilters, 0);
@@ -447,14 +424,9 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                   Buy
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={filters.listingType === 'rent' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'px-4 font-bold border border-black',
-                    filters.listingType === 'rent' 
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 shadow-lg'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="px-4 font-bold"
                   onClick={() => {
                     setFilters(prev => ({ ...prev, listingType: 'rent' }));
                     setTimeout(applyFilters, 0);
@@ -469,14 +441,9 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                 return (
                   <Button
                     key={type.value}
-                    variant={filters.type === type.value ? 'default' : 'outline'}
+                    variant={filters.type === type.value ? 'brand' : 'brandOutline'}
                     size="sm"
-                    className={cn(
-                      'whitespace-nowrap gap-2 font-bold border border-black',
-                      filters.type === type.value 
-                        ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 shadow-lg'
-                        : 'bg-slate-100 text-black hover:bg-slate-200'
-                    )}
+                    className="whitespace-nowrap gap-2 font-bold"
                     onClick={() => {
                       setFilters(prev => ({ ...prev, type: type.value }));
                       setTimeout(applyFilters, 0);
@@ -492,40 +459,25 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
             <div className="flex items-center gap-2">
               <div className="flex gap-2">
                 <Button
-                  variant="ghost"
+                  variant={viewMode === 'grid' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'font-bold border border-black',
-                    viewMode === 'grid' 
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="font-bold"
                   onClick={() => setViewMode('grid')}
                 >
                   <Grid3X3 className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={viewMode === 'list' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'font-bold border border-black',
-                    viewMode === 'list' 
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="font-bold"
                   onClick={() => setViewMode('list')}
                 >
                   <List className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={viewMode === 'map' ? 'brand' : 'brandOutline'}
                   size="sm"
-                  className={cn(
-                    'font-bold border border-black',
-                    viewMode === 'map' 
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
-                  )}
+                  className="font-bold"
                   onClick={() => setViewMode('map')}
                 >
                   <MapIcon className="h-4 w-4" />
@@ -583,7 +535,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                 <X className="h-3 w-3 cursor-pointer" onClick={() => { setFilters(p => ({...p, minPrice: '', maxPrice: ''})); }} />
               </Badge>
             )}
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="bg-slate-100 text-black border border-black hover:bg-slate-200 font-bold">
+            <Button variant="surface" size="sm" onClick={clearFilters} className="font-bold">
               Clear all
             </Button>
           </div>
@@ -603,7 +555,7 @@ export default function ListingsClient({ initialData, searchParams }: ListingsCl
                 </div>
                 <h2 className="text-2xl font-semibold mb-2">No properties found</h2>
                 <p className="text-slate-500 mb-6">Try adjusting your filters or search criteria</p>
-                <Button onClick={clearFilters} className="bg-slate-100 text-black border border-black hover:bg-slate-200 font-bold">Clear Filters</Button>
+                <Button variant="surface" onClick={clearFilters} className="font-bold">Clear Filters</Button>
               </div>
             ) : (
               <div className={cn(
@@ -654,6 +606,7 @@ function FilterPanel({
               placeholder={`Min ($${filterOptions.minPrice})`}
               value={filters.minPrice}
               onChange={(e) => setFilters((p: any) => ({ ...p, minPrice: e.target.value }))}
+              className="border-2 border-black bg-white"
             />
           </div>
           <span className="self-center text-slate-400">-</span>
@@ -663,6 +616,7 @@ function FilterPanel({
               placeholder={`Max ($${filterOptions.maxPrice})`}
               value={filters.maxPrice}
               onChange={(e) => setFilters((p: any) => ({ ...p, maxPrice: e.target.value }))}
+              className="border-2 border-black bg-white"
             />
           </div>
         </div>
@@ -679,9 +633,9 @@ function FilterPanel({
           {bedroomOptions.map((opt) => (
             <Button
               key={opt.value}
-              variant={filters.bedrooms === opt.value ? 'default' : 'outline'}
+              variant={filters.bedrooms === opt.value ? 'brand' : 'surface'}
               size="sm"
-              className={filters.bedrooms === opt.value ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 font-bold border-black' : 'bg-slate-100 text-black border-black hover:bg-slate-200 font-bold'}
+              className="font-bold"
               onClick={() => setFilters((p: any) => ({ ...p, bedrooms: opt.value }))}
             >
               {opt.label}
@@ -697,9 +651,9 @@ function FilterPanel({
           {bathroomOptions.map((opt) => (
             <Button
               key={opt.value}
-              variant={filters.bathrooms === opt.value ? 'default' : 'outline'}
+              variant={filters.bathrooms === opt.value ? 'brand' : 'surface'}
               size="sm"
-              className={filters.bathrooms === opt.value ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 font-bold border-black' : 'bg-slate-100 text-black border-black hover:bg-slate-200 font-bold'}
+              className="font-bold"
               onClick={() => setFilters((p: any) => ({ ...p, bathrooms: opt.value }))}
             >
               {opt.label}
@@ -715,7 +669,7 @@ function FilterPanel({
           value={filters.type}
           onValueChange={(value) => setFilters((p: any) => ({ ...p, type: value }))}
         >
-          <SelectTrigger>
+          <SelectTrigger className="border-2 border-black bg-white">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
@@ -735,7 +689,7 @@ function FilterPanel({
           value={filters.city}
           onValueChange={(value) => setFilters((p: any) => ({ ...p, city: value }))}
         >
-          <SelectTrigger>
+          <SelectTrigger className="border-2 border-black bg-white">
             <SelectValue placeholder="Select city" />
           </SelectTrigger>
           <SelectContent>
@@ -749,7 +703,7 @@ function FilterPanel({
         </Select>
       </div>
 
-      <Button className="w-full bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 hover:opacity-90 text-white font-bold shadow-lg" onClick={onApply}>
+      <Button variant="brand" className="w-full font-bold" onClick={onApply}>
         Apply Filters
       </Button>
     </div>
@@ -795,7 +749,7 @@ function ListingCard({
   if (viewMode === 'list') {
     return (
       <Link href={propertyUrl}>
-        <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+        <Card className="overflow-hidden bg-white border border-black shadow-2xl hover:shadow-2xl transition-all cursor-pointer">
           <div className="flex flex-col md:flex-row">
             <div className="relative w-full md:w-72 h-48 md:h-auto flex-shrink-0">
               <Image
@@ -903,7 +857,7 @@ function ListingCard({
   // Grid view
   return (
     <Link href={propertyUrl}>
-      <Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 group cursor-pointer h-full">
+      <Card className="overflow-hidden bg-white border border-black shadow-2xl hover:shadow-2xl transition-all hover:-translate-y-1 group cursor-pointer h-full">
         <div className="relative aspect-[4/3]">
           <Image
             src={mainImage}

@@ -178,12 +178,18 @@ class AnalyticsTracker {
 
   private handleClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
+    const elementClass =
+      typeof target.className === 'string'
+        ? target.className
+        : target.className
+        ? String(target.className)
+        : undefined;
     
     const clickData: ClickEventData = {
       sessionId: this.sessionId,
       path: window.location.pathname,
       elementId: target.id || undefined,
-      elementClass: target.className || undefined,
+      elementClass,
       elementTag: target.tagName.toLowerCase(),
       elementText: target.textContent?.substring(0, 100) || undefined,
       xPosition: event.clientX,

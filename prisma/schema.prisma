@@ -117,7 +117,6 @@ model User {
 
   // Contractor Marketplace
   contractorMarketplaceProfile ContractorProfile?
-  contractorReviewsGiven       ContractorReview[] @relation("ContractorReviewsGiven")
   contractorLeadsSubmitted     ContractorLead[]
 
   // Quote & Offer System
@@ -136,6 +135,18 @@ model User {
   disputeTimeline         DisputeTimeline[]
   recurringCharges        RecurringCharge[]
   contractorQuoteCounters ContractorQuoteCounter[]
+  
+  // Verification Reviews
+  verificationsReviewed   ContractorVerification[] @relation("VerificationReviewer")
+  documentsReviewed       ContractorVerificationDocument[] @relation("DocumentReviewer")
+  
+  // Saved Searches & Favorites
+  savedSearches           SavedSearch[]
+  favoriteContractors     FavoriteContractor[]
+  
+  // Reviews & Helpful Votes
+  contractorReviewsWritten ContractorReview[]
+  reviewHelpfulVotes       ReviewHelpful[]
 }
 
 model Account {
@@ -3544,7 +3555,6 @@ model ContractorProfile {
   updatedAt DateTime @updatedAt
 
   user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviews ContractorReview[]
 
   // Lead generation relations
   leadMatches     ContractorLeadMatch[]
@@ -3581,59 +3591,20 @@ model ContractorProfile {
   quotes ContractorQuote[]
   bids   ContractorBid[]
 
+  // Verification
+  verification ContractorVerification?
+  verificationDocuments ContractorVerificationDocument[]
+  
+  // Portfolio & Reviews (New)
+  portfolioItems ContractorPortfolioItem[]
+  reviewsReceived ContractorReview[]
+  favoriteBy FavoriteContractor[]
+
   @@index([slug])
   @@index([rankScore])
   @@index([avgRating])
   @@index([isPublic, acceptingNewWork])
   @@index([baseCity, baseState])
-}
-
-// ContractorReview - Reviews from landlords/homeowners (fraud-protected)
-model ContractorReview {
-  id                  String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorProfileId String @db.Uuid
-  reviewerId          String @db.Uuid
-  workOrderId         String @db.Uuid // REQUIRED - must have completed job
-
-  // Ratings (1-5 stars)
-  overallRating       Int
-  qualityRating       Int?
-  communicationRating Int?
-  timelinessRating    Int?
-  valueRating         Int?
-
-  // Review Content
-  title   String?
-  content String
-
-  // Job context for verification
-  jobType  String? // plumbing, electrical, etc.
-  jobValue Decimal? @db.Decimal(12, 2) // For weighted scoring
-
-  // Verification
-  isVerified         Boolean @default(false) // linked to completed & paid work order
-  verificationMethod String? // "work_order_completion", "payment_confirmed"
-
-  // Moderation
-  status     String  @default("published") // pending, published, flagged, removed
-  flagReason String?
-
-  // Response
-  contractorResponse String?
-  respondedAt        DateTime? @db.Timestamp(6)
-
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt
-
-  contractorProfile ContractorProfile @relation(fields: [contractorProfileId], references: [id], onDelete: Cascade)
-  reviewer          User              @relation("ContractorReviewsGiven", fields: [reviewerId], references: [id], onDelete: Cascade)
-
-  @@unique([contractorProfileId, workOrderId]) // One review per job
-  @@unique([reviewerId, workOrderId]) // Reviewer can only review once per job
-  @@index([contractorProfileId])
-  @@index([reviewerId])
-  @@index([status])
-  @@index([createdAt])
 }
 
 // ============= PROPERTY-SPECIFIC FEE SETTINGS =============
@@ -4981,3 +4952,285 @@ model ContractorBid {
 // jobs                ContractorJob[]
 // referralsMade       ContractorReferral[] @relation("ReferrerCustomer")
 // referralsReceived   ContractorReferral[] @relation("ReferredCustomer")
+
+// ContractorVerification - Tracks verification status and documents
+model ContractorVerification {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId  String   @unique @db.Uuid
+  
+  // Overall Status
+  verificationStatus String @default("unverified") // unverified, pending, verified, rejected
+  verifiedAt         DateTime? @db.Timestamp(6)
+  
+  // Identity Verification
+  identityStatus         String @default("not_started") // not_started, pending, verified, rejected
+  identityProvider       String? // persona, stripe_identity, manual
+  identityVerificationId String? // External provider ID
+  identityVerifiedAt     DateTime? @db.Timestamp(6)
+  identityDocumentType   String? // drivers_license, passport, etc
+  identityDocumentUrl    String?
+  identityRejectionReason String?
+  
+  // Business License Verification
+  licenseStatus          String @default("not_started")
+  licenseNumber          String?
+  licenseState           String?
+  licenseType            String? // general_contractor, plumber, electrician, etc
+  licenseDocumentUrl     String?
+  licenseVerifiedAt      DateTime? @db.Timestamp(6)
+  licenseExpiresAt       DateTime? @db.Timestamp(6)
+  licenseVerificationData Json? @db.Json
+  licenseRejectionReason String?
+  
+  // Insurance Verification
+  insuranceStatus         String @default("not_started")
+  insuranceProvider       String?
+  insurancePolicyNumber   String?
+  insuranceCoverageAmount Decimal? @db.Decimal(12, 2)
+  insuranceCertificateUrl String?
+  insuranceVerifiedAt     DateTime? @db.Timestamp(6)
+  insuranceExpiresAt      DateTime? @db.Timestamp(6)
+  insuranceRejectionReason String?
+  
+  // Background Check
+  backgroundCheckStatus   String @default("not_started")
+  backgroundCheckProvider String? // checkr, sterling, manual
+  backgroundCheckId       String? // External provider ID
+  backgroundCheckDate     DateTime? @db.Timestamp(6)
+  backgroundCheckExpires  DateTime? @db.Timestamp(6)
+  backgroundCheckResult   String? // clear, consider, suspended
+  backgroundCheckData     Json? @db.Json
+  backgroundCheckRejectionReason String?
+  
+  // Tax Information
+  taxIdStatus       String @default("not_started")
+  taxIdType         String? // ein, ssn
+  taxIdLast4        String? // Last 4 digits only
+  taxIdVerifiedAt   DateTime? @db.Timestamp(6)
+  taxIdRejectionReason String?
+  
+  // Bank Account Verification (for payouts)
+  bankAccountStatus    String @default("not_started")
+  bankAccountVerified  Boolean @default(false)
+  bankAccountVerifiedAt DateTime? @db.Timestamp(6)
+  stripeAccountId      String?
+  
+  // Admin Review
+  reviewedBy       String? @db.Uuid // Admin user ID
+  reviewedAt       DateTime? @db.Timestamp(6)
+  reviewNotes      String?
+  
+  // Verification Badges
+  badges           String[] @default([]) // verified, licensed, insured, background_checked, top_rated
+  
+  // Timestamps
+  createdAt        DateTime @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime @updatedAt @db.Timestamp(6)
+  
+  // Relations
+  contractor       ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  reviewer         User? @relation("VerificationReviewer", fields: [reviewedBy], references: [id])
+  
+  @@index([contractorId])
+  @@index([verificationStatus])
+  @@index([identityStatus])
+  @@index([licenseStatus])
+  @@index([insuranceStatus])
+  @@index([backgroundCheckStatus])
+}
+
+// ContractorVerificationDocument - Store uploaded verification documents
+model ContractorVerificationDocument {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId  String   @db.Uuid
+  
+  documentType  String // identity, license, insurance, tax_form, other
+  documentName  String
+  documentUrl   String
+  fileSize      Int? // bytes
+  mimeType      String?
+  
+  status        String @default("pending") // pending, approved, rejected
+  reviewedBy    String? @db.Uuid
+  reviewedAt    DateTime? @db.Timestamp(6)
+  reviewNotes   String?
+  
+  uploadedAt    DateTime @default(now()) @db.Timestamp(6)
+  expiresAt     DateTime? @db.Timestamp(6)
+  
+  // Relations
+  contractor    ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  reviewer      User? @relation("DocumentReviewer", fields: [reviewedBy], references: [id])
+  
+  @@index([contractorId])
+  @@index([documentType])
+  @@index([status])
+}
+
+// SavedSearch - Store user's saved search criteria
+model SavedSearch {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @db.Uuid
+  name        String   // User-defined name for the search
+  
+  // Search Criteria (stored as JSON)
+  criteria    Json     @db.Json
+  
+  // Notification Settings
+  emailAlerts Boolean  @default(false) // Send email when new contractors match
+  alertFrequency String @default("daily") // daily, weekly, instant
+  lastAlertSent DateTime? @db.Timestamp(6)
+  
+  // Metadata
+  resultCount Int      @default(0) // Last known result count
+  lastViewed  DateTime? @db.Timestamp(6)
+  viewCount   Int      @default(0)
+  
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @db.Timestamp(6)
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([emailAlerts])
+}
+
+// FavoriteContractor - Store user's favorite contractors
+model FavoriteContractor {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @db.Uuid
+  contractorId String   @db.Uuid
+  
+  // Optional Notes
+  notes        String?
+  tags         String[] @default([]) // Custom tags like "plumber", "reliable", etc
+  
+  // Metadata
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  
+  // Relations
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractor   ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, contractorId]) // Prevent duplicate favorites
+  @@index([userId])
+  @@index([contractorId])
+}
+
+// ContractorPortfolioItem - Showcase completed work
+model ContractorPortfolioItem {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String   @db.Uuid
+  
+  // Project Details
+  title        String
+  description  String
+  category     String   // kitchen, bathroom, roofing, etc
+  
+  // Media
+  images       String[] @default([]) // Array of image URLs
+  videoUrl     String?
+  
+  // Project Info
+  projectDate  DateTime? @db.Timestamp(6)
+  location     String?  // City, State
+  budget       Decimal? @db.Decimal(12, 2)
+  duration     Int?     // Days
+  
+  // Tags & Skills
+  tags         String[] @default([])
+  skills       String[] @default([])
+  
+  // Visibility
+  featured     Boolean  @default(false)
+  isPublic     Boolean  @default(true)
+  
+  // Engagement
+  viewCount    Int      @default(0)
+  likeCount    Int      @default(0)
+  
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime @updatedAt @db.Timestamp(6)
+  
+  // Relations
+  contractor   ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  
+  @@index([contractorId])
+  @@index([category])
+  @@index([featured])
+  @@index([isPublic])
+}
+
+// ContractorReview - Customer reviews and ratings
+model ContractorReview {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String   @db.Uuid
+  customerId   String   @db.Uuid
+  jobId        String?  @db.Uuid // Optional link to job
+  
+  // Rating (1-5 stars)
+  overallRating      Decimal @db.Decimal(2, 1)
+  qualityRating      Decimal? @db.Decimal(2, 1)
+  communicationRating Decimal? @db.Decimal(2, 1)
+  timelinessRating   Decimal? @db.Decimal(2, 1)
+  professionalismRating Decimal? @db.Decimal(2, 1)
+  valueRating        Decimal? @db.Decimal(2, 1)
+  
+  // Review Content
+  title        String?
+  comment      String
+  pros         String[] @default([])
+  cons         String[] @default([])
+  
+  // Project Details
+  projectType  String?
+  projectCost  Decimal? @db.Decimal(12, 2)
+  
+  // Media
+  images       String[] @default([])
+  
+  // Verification
+  verified     Boolean  @default(false) // Verified purchase/job
+  
+  // Response
+  contractorResponse String?
+  respondedAt        DateTime? @db.Timestamp(6)
+  
+  // Engagement
+  helpfulCount Int      @default(0)
+  
+  // Status
+  status       String   @default("published") // published, flagged, removed
+  
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime @updatedAt @db.Timestamp(6)
+  
+  // Relations
+  contractor   ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  customer     User              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  helpfulVotes ReviewHelpful[]
+  
+  @@index([contractorId])
+  @@index([customerId])
+  @@index([overallRating])
+  @@index([verified])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ReviewHelpful - Track helpful votes on reviews
+model ReviewHelpful {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId  String   @db.Uuid
+  userId    String   @db.Uuid
+  
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  
+  review    ContractorReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@index([userId])
+}

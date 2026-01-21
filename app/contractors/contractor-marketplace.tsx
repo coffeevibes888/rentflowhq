@@ -150,7 +150,7 @@ export default function ContractorMarketplace({
       {/* Hero Section */}
       <div className="pt-8 pb-12">
         <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-center mb-4 text-black">
+          <h1 className="text-4xl md:text-5xl font-bold text-center mb-4 bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent">
             Contractor Marketplace
           </h1>
           <p className="text-xl text-center text-black font-semibold mb-8 max-w-2xl mx-auto">
@@ -163,7 +163,7 @@ export default function ContractorMarketplace({
           <div className="flex justify-center mb-8">
             <div className="bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 rounded-xl p-1 flex gap-1 border border-black">
               <Button
-                variant={view === 'contractors' ? 'default' : 'ghost'}
+                // variant={view === 'contractors' ? 'default' : 'ghost'}
                 className={view === 'contractors'
                   ? 'bg-white text-blue-600 hover:bg-white/90 font-bold'
                   : 'text-white hover:bg-white/20 font-bold'}
@@ -173,9 +173,9 @@ export default function ContractorMarketplace({
                 Find Contractors
               </Button>
               <Button
-                variant={view === 'jobs' ? 'default' : 'ghost'}
+                // variant={view === 'jobs' ? 'default' : 'ghost'}
                 className={view === 'jobs'
-                  ? 'bg-white text-blue-600 hover:bg-white/90 font-bold'
+                  ? 'bg-slate-400 text-white hover:bg-white/90 font-bold'
                   : 'text-white hover:bg-white/20 font-bold'}
                 onClick={() => handleViewChange('jobs')}
               >
@@ -203,7 +203,7 @@ export default function ContractorMarketplace({
               {specialty && (
                 <Link
                   href="/contractors"
-                  className="px-4 py-1.5 rounded-full bg-slate-100 border border-black text-slate-900 hover:bg-slate-200 text-sm font-bold transition-all"
+                  className="px-4 py-1.5 rounded-full bg-gradient-to-r from-sky-500 via-violet-600 to-amber-200 border border-black text-slate-900 hover:bg-slate-200 text-sm font-bold transition-all"
                 >
                   ✕ Clear Filter
                 </Link>
@@ -220,7 +220,7 @@ export default function ContractorMarketplace({
                     className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all border ${
                       isActive
                         ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white border-black shadow-lg font-bold'
-                        : 'bg-slate-100 text-black font-bold hover:bg-slate-200 border-black'
+                        : 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white font-bold hover:text-black hover:bg-blue-300 border-black shadow-2xl'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -241,22 +241,18 @@ export default function ContractorMarketplace({
               <div className="flex gap-2">
                 <Link href={`/contractors?${new URLSearchParams({ ...searchParams, sort: 'rating' }).toString()}`}>
                   <Button
-                    variant={sort === 'rating' ? 'default' : 'outline'}
+                    variant={sort === 'rating' ? 'brand' : 'surface'}
                     size="sm"
-                    className={sort === 'rating'
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 font-bold border border-black shadow-lg'
-                      : 'bg-slate-100 text-black border-black hover:bg-slate-200 font-bold'}
+                    className="font-bold"
                   >
                     Top Rated
                   </Button>
                 </Link>
                 <Link href={`/contractors?${new URLSearchParams({ ...searchParams, sort: 'jobs' }).toString()}`}>
                   <Button
-                    variant={sort === 'jobs' ? 'default' : 'outline'}
+                    variant={sort === 'jobs' ? 'brand' : 'surface'}
                     size="sm"
-                    className={sort === 'jobs'
-                      ? 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 text-white hover:opacity-90 font-bold border border-black shadow-lg'
-                      : 'bg-slate-100 text-black border-black hover:bg-slate-200 font-bold'}
+                    className="font-bold"
                   >
                     Most Jobs
                   </Button>
@@ -272,7 +268,7 @@ export default function ContractorMarketplace({
                     <h3 className="text-xl font-bold text-slate-900 mb-2">No contractors found</h3>
                     <p className="text-slate-600 font-semibold mb-4">Try adjusting your search or browse all categories</p>
                     <Link href="/contractors">
-                      <Button className="bg-slate-100 text-black border border-black hover:bg-slate-200 font-bold">View All Contractors</Button>
+                      <Button variant="surface" className="font-bold">View All Contractors</Button>
                     </Link>
                   </div>
                 </CardContent>
@@ -280,8 +276,8 @@ export default function ContractorMarketplace({
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {contractors.map((contractor) => (
-                  <Link key={contractor.id} href={`/${contractor.slug || contractor.id}`}>
-                    <Card className="h-full bg-white border border-black hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group">
+                  <Link key={contractor.id} href={`/contractors/${contractor.slug || contractor.id}`}>
+                    <Card className="h-full bg-white border border-black shadow-2xl hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group">
                       {/* Image Section - aspect-[4/3] to match listing cards */}
                       <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500 to-cyan-500">
                         {contractor.user?.image ? (
@@ -413,7 +409,7 @@ export default function ContractorMarketplace({
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {openJobs.map((job) => (
                   <Link key={job.id} href={`/contractors/jobs/${job.id}`}>
-                    <Card className="h-full bg-white border border-black overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer group">
+                    <Card className="h-full bg-white border border-black shadow-2xl overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer group">
                       {/* Image/Media Section */}
                       <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-200">
                         {job.media && job.media.length > 0 ? (
@@ -540,7 +536,7 @@ export default function ContractorMarketplace({
             ✓ Free to use • Only $1 fee per payment or cashout
           </p>
           <Link href={view === 'contractors' ? '/sign-up?role=contractor' : '/admin/contractors'}>
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-slate-50 font-bold shadow-lg">
+            <Button size="lg" variant="brand" className="font-bold">
               {view === 'contractors' ? 'Join as a Contractor' : 'Post a Job'}
             </Button>
           </Link>

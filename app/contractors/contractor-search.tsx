@@ -26,7 +26,7 @@ export default function ContractorSearch({ initialQuery, initialSpecialty }: Con
 
   return (
     <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
-      <div className="flex flex-col md:flex-row gap-2 bg-white border border-black rounded-xl p-2 shadow-2xl">
+      <div className="flex flex-col md:flex-row gap-2 bg-slate-400 border border-black rounded-xl p-2 shadow-2xl">
         <div className="flex-1 flex items-center gap-2 px-4 py-2 bg-slate-100 border border-black rounded-lg">
           <Search className="h-5 w-5 text-slate-700" />
           <input
@@ -50,7 +50,8 @@ export default function ContractorSearch({ initialQuery, initialSpecialty }: Con
         <Button 
           type="submit"
           size="lg"
-          className="bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 hover:opacity-90 text-white font-bold px-8 shadow-lg"
+          variant="brand"
+          className="font-bold px-8 border border-black"
         >
           Search
         </Button>

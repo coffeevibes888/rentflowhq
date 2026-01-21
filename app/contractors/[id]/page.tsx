@@ -116,10 +116,10 @@ export default async function ContractorProfilePage({ params }: Props) {
     const canHire = session?.user?.role === 'admin' || session?.user?.role === 'landlord' || session?.user?.role === 'property_manager';
 
     return (
-      <div className="min-h-screen bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600">
-        <div className="pt-6">
+      <div className="min-h-screen bg-white">
+        <div className="pt-6 bg-white">
           <div className="max-w-6xl mx-auto px-4 py-6">
-            <Link href="/contractors" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-4">
+            <Link href="/contractors" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
               <ArrowLeft className="h-4 w-4" />
               Back to Contractors
             </Link>
@@ -295,11 +295,11 @@ export default async function ContractorProfilePage({ params }: Props) {
   const canHire = session?.user?.role === 'admin' || session?.user?.role === 'landlord' || session?.user?.role === 'property_manager';
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="pt-6">
+      <div className="pt-6 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <Link href="/contractors" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-4">
+          <Link href="/contractors" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
             <ArrowLeft className="h-4 w-4" />
             Back to Contractors
           </Link>
@@ -311,7 +311,7 @@ export default async function ContractorProfilePage({ params }: Props) {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Card */}
-            <Card className="overflow-hidden bg-white/90 backdrop-blur-sm border-white/20">
+            <Card className="overflow-hidden bg-gradient-to-br from-blue-50 via-cyan-50 to-violet-50 border-2 border-slate-200 shadow-lg">
               <div className="h-32 bg-gradient-to-r from-blue-500 to-cyan-500 relative">
                 {profile.coverPhoto && (
                   <img src={profile.coverPhoto} alt="" className="w-full h-full object-cover" />
@@ -339,7 +339,7 @@ export default async function ContractorProfilePage({ params }: Props) {
                     <div className="flex items-center gap-3 mb-2">
                       <h1 className="text-2xl font-bold text-slate-900">{name}</h1>
                       {profile.identityVerified && (
-                        <span className="px-2 py-1 rounded bg-emerald-100 text-emerald-700 text-xs font-medium flex items-center gap-1">
+                        <span className="px-2 py-1 rounded bg-gradient-to-r from-sky-300 via-cyan-300 to-indigo-600 text-emerald-700 text-xs font-medium flex items-center gap-1">
                           <Shield className="h-3 w-3" /> Verified Pro
                         </span>
                       )}
@@ -376,7 +376,7 @@ export default async function ContractorProfilePage({ params }: Props) {
             </Card>
 
             {/* About */}
-            <Card className="bg-white/90 backdrop-blur-sm border-white/20">
+            <Card className="bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50 border-2 border-slate-200 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-slate-900">About</CardTitle>
               </CardHeader>
@@ -389,7 +389,7 @@ export default async function ContractorProfilePage({ params }: Props) {
             </Card>
 
             {/* Specialties */}
-            <Card className="bg-white/90 backdrop-blur-sm border-white/20">
+            <Card className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border-2 border-slate-200 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-slate-900">Services Offered</CardTitle>
               </CardHeader>
@@ -410,7 +410,7 @@ export default async function ContractorProfilePage({ params }: Props) {
 
             {/* Portfolio */}
             {profile.portfolioImages.length > 0 && (
-              <Card className="bg-white/90 backdrop-blur-sm border-white/20">
+              <Card className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-slate-200 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-slate-900">Portfolio</CardTitle>
                 </CardHeader>
@@ -431,7 +431,7 @@ export default async function ContractorProfilePage({ params }: Props) {
 
             {/* Reviews */}
             {profile.reviews.length > 0 && (
-              <Card className="bg-white/90 backdrop-blur-sm border-white/20">
+              <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 border-2 border-slate-200 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-slate-900">Reviews</CardTitle>
                 </CardHeader>
@@ -473,7 +473,7 @@ export default async function ContractorProfilePage({ params }: Props) {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact Card */}
-            <Card className="sticky top-6 bg-white/90 backdrop-blur-sm border-white/20">
+            <Card className="sticky top-6 bg-gradient-to-br from-indigo-50 via-blue-50 to-sky-50 border-2 border-slate-200 shadow-lg">
               <CardContent className="p-6">
                 {profile.hourlyRate && (
                   <div className="text-center mb-4 pb-4 border-b">

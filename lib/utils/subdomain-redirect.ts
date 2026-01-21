@@ -136,7 +136,7 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
       case 'superAdmin':
         return '/super-admin';
       case 'contractor':
-        return '/contractor';
+        return '/contractor/dashboard';
       case 'homeowner':
         return '/homeowner/dashboard';
       case 'agent':
