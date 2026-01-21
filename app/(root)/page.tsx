@@ -144,7 +144,7 @@ const Homepage = async () => {
 
                         <div className='mt-3 flex items-center justify-between text-[11px] text-slate-500'>
                           <span>{property.type}</span>
-                          <span>Professionally managed</span>
+                          <span>Professionally Managed</span>
                         </div>
 
                         <div className='mt-4 flex gap-2'>
