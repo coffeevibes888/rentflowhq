@@ -105,7 +105,7 @@ const Homepage = async () => {
           <div className='max-w-6xl mx-auto rounded-3xl border border-slate-200 bg-white p-6 md:p-8 text-slate-900 shadow-xl'>
             {properties.length === 0 ? (
               <div className='rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-600'>
-                No properties are currently available for this landlord. Please check back soon.
+                No properties are currently Available For Fhis Landlord. Please check back soon.
               </div>
             ) : (
               <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
