@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { auth } from '@/auth';
 import ContactContractorButton from './contact-button';
+import BookingButtons from './booking-buttons';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -501,6 +502,17 @@ export default async function ContractorProfilePage({ params }: Props) {
                       contractorId={profile.id} 
                       contractorName={name} 
                     />
+                    <BookingButtons
+                      contractorId={profile.id}
+                      contractorName={name}
+                      instantBookingEnabled={profile.instantBookingEnabled}
+                      displayName={profile.displayName}
+                      businessName={profile.businessName}
+                      depositRequired={profile.depositRequired}
+                      depositAmount={profile.depositAmount}
+                      cancellationPolicy={profile.cancellationPolicy}
+                      cancellationHours={profile.cancellationHours}
+                    />
                     {canHire && (
                       <Button variant="outline" className="w-full" asChild>
                         <Link href={`/admin/contractors/hire/${profile.id}`}>
@@ -511,10 +523,23 @@ export default async function ContractorProfilePage({ params }: Props) {
                     )}
                   </div>
                 ) : (
-                  <ContactContractorButton 
-                    contractorId={profile.id} 
-                    contractorName={name} 
-                  />
+                  <div className="space-y-3">
+                    <ContactContractorButton 
+                      contractorId={profile.id} 
+                      contractorName={name} 
+                    />
+                    <BookingButtons
+                      contractorId={profile.id}
+                      contractorName={name}
+                      instantBookingEnabled={profile.instantBookingEnabled}
+                      displayName={profile.displayName}
+                      businessName={profile.businessName}
+                      depositRequired={profile.depositRequired}
+                      depositAmount={profile.depositAmount}
+                      cancellationPolicy={profile.cancellationPolicy}
+                      cancellationHours={profile.cancellationHours}
+                    />
+                  </div>
                 )}
 
                 <div className="mt-6 pt-6 border-t space-y-3">

@@ -2,6 +2,15 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 
+// Register ts-node early for TypeScript file support
+require('ts-node').register({
+  project: './tsconfig.json',
+  transpileOnly: true,
+  compilerOptions: {
+    module: 'commonjs',
+  },
+});
+
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
 const port = process.env.PORT || 3000;
@@ -21,11 +30,9 @@ app.prepare().then(async () => {
     }
   });
 
-  // Initialize WebSocket server - use require with ts-node for TypeScript compatibility
+  // Initialize WebSocket server
   try {
-    // Register ts-node for TypeScript compilation
-    require('ts-node/register');
-    const { initializeWebSocketServer } = require('./lib/websocket-server');
+    const { initializeWebSocketServer } = require('./lib/websocket-server.ts');
     initializeWebSocketServer(server);
   } catch (error) {
     console.error('Failed to initialize WebSocket server:', error);
@@ -33,7 +40,7 @@ app.prepare().then(async () => {
 
   // Initialize event-driven system (replaces cron jobs)
   try {
-    const { initializeEventSystem } = require('./lib/event-system');
+    const { initializeEventSystem } = require('./lib/event-system/index.ts');
     await initializeEventSystem();
   } catch (error) {
     console.error('Failed to initialize event system:', error);
