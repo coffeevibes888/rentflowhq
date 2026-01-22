@@ -25,7 +25,7 @@ app.prepare().then(async () => {
   try {
     // Register ts-node for TypeScript compilation
     require('ts-node/register');
-    const { initializeWebSocketServer } = require('./lib/websocket-server.ts');
+    const { initializeWebSocketServer } = require('./lib/websocket-server');
     initializeWebSocketServer(server);
   } catch (error) {
     console.error('Failed to initialize WebSocket server:', error);
@@ -33,7 +33,7 @@ app.prepare().then(async () => {
 
   // Initialize event-driven system (replaces cron jobs)
   try {
-    const { initializeEventSystem } = require('./lib/event-system/index.ts');
+    const { initializeEventSystem } = require('./lib/event-system');
     await initializeEventSystem();
   } catch (error) {
     console.error('Failed to initialize event system:', error);

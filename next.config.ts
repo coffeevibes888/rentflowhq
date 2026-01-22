@@ -42,36 +42,8 @@ const nextConfig: NextConfig = {
     },
     // Speed up dev server
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', 'date-fns'],
-    turbo: {
-      // Enable Turbopack for faster builds (Next.js 14+)
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
   },
-  // Optimize webpack for faster dev builds
-  webpack: (config, { dev, isServer }) => {
-    if (dev) {
-      // Faster source maps in development
-      config.devtool = 'eval-cheap-module-source-map';
-      
-      // Reduce the number of chunks
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'async',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-          },
-        },
-      };
-    }
-    return config;
-  },
+  turbopack: {},
   async headers() {
     return [
       {

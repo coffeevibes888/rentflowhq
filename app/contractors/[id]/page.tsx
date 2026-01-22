@@ -67,11 +67,11 @@ export default async function ContractorProfilePage({ params }: Props) {
       user: {
         select: { id: true, name: true, image: true, createdAt: true },
       },
-      reviews: {
+      reviewsReceived: {
         orderBy: { createdAt: 'desc' },
         take: 5,
         include: {
-          reviewer: {
+          customer: {
             select: { name: true, image: true },
           },
         },
@@ -430,25 +430,25 @@ export default async function ContractorProfilePage({ params }: Props) {
             )}
 
             {/* Reviews */}
-            {profile.reviews.length > 0 && (
+            {profile.reviewsReceived.length > 0 && (
               <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 border-2 border-slate-200 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-slate-900">Reviews</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {profile.reviews.map((review) => (
+                    {profile.reviewsReceived.map((review) => (
                       <div key={review.id} className="p-4 rounded-lg bg-slate-50">
                         <div className="flex items-center gap-3 mb-2">
-                          {review.reviewer.image ? (
-                            <img src={review.reviewer.image} alt="" className="w-10 h-10 rounded-full" />
+                          {review.customer.image ? (
+                            <img src={review.customer.image} alt="" className="w-10 h-10 rounded-full" />
                           ) : (
                             <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-medium">
-                              {review.reviewer.name?.charAt(0) || '?'}
+                              {review.customer.name?.charAt(0) || '?'}
                             </div>
                           )}
                           <div>
-                            <p className="font-medium text-slate-900">{review.reviewer.name}</p>
+                            <p className="font-medium text-slate-900">{review.customer.name}</p>
                             <div className="flex items-center gap-1">
                               {[...Array(5)].map((_, i) => (
                                 <Star 
