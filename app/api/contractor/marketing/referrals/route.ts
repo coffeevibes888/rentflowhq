@@ -74,7 +74,6 @@ export async function POST(request: Request) {
         referredEmail: body.referredEmail,
         referredPhone: body.referredPhone,
         status: 'pending',
-        notes: body.notes,
       },
       include: {
         referrer: {
@@ -119,7 +118,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { referralId, status, convertedValue, notes } = body;
+    const { referralId, status, jobValue } = body;
 
     const referral = await prisma.contractorReferral.update({
       where: {
@@ -128,8 +127,7 @@ export async function PATCH(request: Request) {
       },
       data: {
         status,
-        convertedValue,
-        notes,
+        jobValue,
         convertedAt: status === 'converted' ? new Date() : undefined,
       },
     });
@@ -139,7 +137,7 @@ export async function PATCH(request: Request) {
       referralId: referral.id,
       contractorId: contractorProfile.id,
       status: referral.status,
-      convertedValue: referral.convertedValue,
+      jobValue: referral.jobValue,
     });
 
     return NextResponse.json({ referral });

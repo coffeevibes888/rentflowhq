@@ -1,183 +1,157 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { ContractorInvoicingService } from '@/lib/services/contractor-invoicing';
 import { prisma } from '@/db/prisma';
 
-/**
- * GET /api/contractor/invoices/[id]
- * Get a specific invoice
- */
+// GET - Get invoice by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await auth();
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get contractor profile
-    const contractor = await prisma.contractorProfile.findUnique({
+    const contractorProfile = await prisma.contractorProfile.findUnique({
       where: { userId: session.user.id },
       select: { id: true },
     });
 
-    if (!contractor) {
-      return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
+    if (!contractorProfile) {
+      return NextResponse.json(
+        { error: 'Contractor profile not found' },
+        { status: 404 }
+      );
     }
 
-    const invoice = await ContractorInvoicingService.getInvoice(params.id);
+    const invoice = await prisma.contractorInvoice.findFirst({
+      where: {
+        id: params.id,
+        contractorId: contractorProfile.id,
+      },
+      include: {
+        payments: true,
+      },
+    });
 
     if (!invoice) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    // Verify invoice belongs to contractor
-    if (invoice.contractorId !== contractor.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    return NextResponse.json(invoice);
-  } catch (error: any) {
+    return NextResponse.json({ invoice });
+  } catch (error) {
     console.error('Error fetching invoice:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch invoice' },
+      { error: 'Failed to fetch invoice' },
       { status: 500 }
     );
   }
 }
 
-/**
- * PATCH /api/contractor/invoices/[id]
- * Update an invoice (only drafts)
- */
-export async function PATCH(
+// PUT - Update invoice
+export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await auth();
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get contractor profile
-    const contractor = await prisma.contractorProfile.findUnique({
+    const contractorProfile = await prisma.contractorProfile.findUnique({
       where: { userId: session.user.id },
       select: { id: true },
     });
 
-    if (!contractor) {
-      return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
-    }
-
-    // Verify invoice belongs to contractor
-    const existingInvoice = await prisma.contractorInvoice.findUnique({
-      where: { id: params.id },
-      select: { contractorId: true, status: true },
-    });
-
-    if (!existingInvoice) {
-      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
-    }
-
-    if (existingInvoice.contractorId !== contractor.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    if (!contractorProfile) {
+      return NextResponse.json(
+        { error: 'Contractor profile not found' },
+        { status: 404 }
+      );
     }
 
     const body = await request.json();
-    const { lineItems, taxRate, notes, terms, dueDate, depositPaid } = body;
-
-    // Validate line items if provided
-    if (lineItems) {
-      if (!Array.isArray(lineItems) || lineItems.length === 0) {
-        return NextResponse.json(
-          { error: 'lineItems must be a non-empty array' },
-          { status: 400 }
-        );
-      }
-
-      for (const item of lineItems) {
-        if (!item.description || typeof item.quantity !== 'number' || typeof item.unitPrice !== 'number') {
-          return NextResponse.json(
-            { error: 'Invalid line item format' },
-            { status: 400 }
-          );
-        }
-        if (!['labor', 'material', 'other'].includes(item.type)) {
-          return NextResponse.json(
-            { error: 'Invalid line item type. Must be: labor, material, or other' },
-            { status: 400 }
-          );
-        }
-      }
-    }
-
-    const invoice = await ContractorInvoicingService.updateInvoice(params.id, {
+    const {
       lineItems,
+      subtotal,
       taxRate,
+      taxAmount,
+      total,
+      dueDate,
       notes,
       terms,
-      dueDate: dueDate ? new Date(dueDate) : undefined,
-      depositPaid,
+      status,
+    } = body;
+
+    const invoice = await prisma.contractorInvoice.update({
+      where: {
+        id: params.id,
+        contractorId: contractorProfile.id,
+      },
+      data: {
+        lineItems: lineItems || undefined,
+        subtotal: subtotal !== undefined ? subtotal : undefined,
+        taxRate: taxRate !== undefined ? taxRate : undefined,
+        taxAmount: taxAmount !== undefined ? taxAmount : undefined,
+        total: total !== undefined ? total : undefined,
+        amountDue: total !== undefined ? total : undefined,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        notes: notes !== undefined ? notes : undefined,
+        terms: terms !== undefined ? terms : undefined,
+        status: status || undefined,
+      },
     });
 
-    return NextResponse.json(invoice);
-  } catch (error: any) {
+    return NextResponse.json({ invoice });
+  } catch (error) {
     console.error('Error updating invoice:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update invoice' },
+      { error: 'Failed to update invoice' },
       { status: 500 }
     );
   }
 }
 
-/**
- * DELETE /api/contractor/invoices/[id]
- * Delete an invoice (only drafts)
- */
+// DELETE - Delete invoice
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await auth();
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get contractor profile
-    const contractor = await prisma.contractorProfile.findUnique({
+    const contractorProfile = await prisma.contractorProfile.findUnique({
       where: { userId: session.user.id },
       select: { id: true },
     });
 
-    if (!contractor) {
-      return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
+    if (!contractorProfile) {
+      return NextResponse.json(
+        { error: 'Contractor profile not found' },
+        { status: 404 }
+      );
     }
 
-    // Verify invoice belongs to contractor
-    const existingInvoice = await prisma.contractorInvoice.findUnique({
-      where: { id: params.id },
-      select: { contractorId: true },
+    await prisma.contractorInvoice.delete({
+      where: {
+        id: params.id,
+        contractorId: contractorProfile.id,
+      },
     });
 
-    if (!existingInvoice) {
-      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
-    }
-
-    if (existingInvoice.contractorId !== contractor.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    await ContractorInvoicingService.deleteInvoice(params.id);
-
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting invoice:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete invoice' },
+      { error: 'Failed to delete invoice' },
       { status: 500 }
     );
   }

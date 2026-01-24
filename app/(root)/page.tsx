@@ -105,7 +105,7 @@ const Homepage = async () => {
           <div className='max-w-6xl mx-auto rounded-3xl border border-slate-200 bg-white p-6 md:p-8 text-slate-900 shadow-xl'>
             {properties.length === 0 ? (
               <div className='rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-600'>
-                No properties are currently Available For Fhis Landlord. Please check back soon.
+                No properties are currently Available For This Landlord. Please check back soon.
               </div>
             ) : (
               <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
@@ -213,7 +213,7 @@ const Homepage = async () => {
               </div>
               
               <div className='relative rounded-2xl md:rounded-3xl border border-black shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200'>
-                <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
+                <div className='absolute inset-0 bg-linear-to-r from-cyan-400 via-sky-400 to-blue-300' />
                 <div className='relative p-4 md:p-6 flex flex-col'>
                   {/* Header */}
                   <div className='flex items-center justify-between mb-4'>
@@ -222,7 +222,7 @@ const Homepage = async () => {
                   
                   {/* Top Action Cards - Light Theme */}
                   <div className='grid grid-cols-3 gap-2 md:gap-3 mb-3'>
-                    <div className='rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
+                    <div className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
                       <div className='flex items-center justify-between'>
                         <span className='text-[9px] md:text-[11px] text-black font-semibold'>Share Listings</span>
                         <svg className='h-3 w-3 md:h-4 md:w-4 text-emerald-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' /></svg>

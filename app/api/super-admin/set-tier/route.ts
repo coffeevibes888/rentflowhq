@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
       tier,
       features: tierConfig.features,
       unitLimit: tierConfig.unitLimit,
-      noCashoutFees: tierConfig.noCashoutFees,
       periodEnd: periodEnd.toISOString(),
       isGranted: isGrant || false,
     });
@@ -137,7 +136,6 @@ export async function GET(request: NextRequest) {
         name: config.name,
         price: config.price,
         unitLimit: config.unitLimit,
-        noCashoutFees: config.noCashoutFees,
       })),
       currentUserLandlordId: currentUserLandlord?.id || null,
       currentUserTier: currentUserLandlord?.subscription?.tier || currentUserLandlord?.subscriptionTier || 'free',
@@ -198,10 +196,10 @@ export async function DELETE(request: NextRequest) {
     await prisma.landlord.update({
       where: { id: landlordId },
       data: {
-        subscriptionTier: 'free',
+        subscriptionTier: 'starter',
         subscriptionStatus: 'active',
-        freeBackgroundChecks: freeTier.features.freeBackgroundChecks,
-        freeEmploymentVerification: freeTier.features.freeEmploymentVerification,
+        freeBackgroundChecks: starterTier.features.freeBackgroundChecks,
+        freeEmploymentVerification: starterTier.features.freeEmploymentVerification,
       },
     });
 

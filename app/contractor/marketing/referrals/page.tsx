@@ -56,69 +56,69 @@ export default async function ReferralsPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/contractor/marketing">
-          <Button variant="outline" size="icon" className="border-white/20 text-white hover:bg-white/10">
+          <Button variant="outline" size="icon" className="border-gray-300 text-gray-900 hover:bg-gray-100">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-white">Referral Management</h1>
-          <p className="text-white/70 mt-1">Track and manage customer referrals</p>
+          <h1 className="text-2xl font-bold text-blue-600">Referral Management</h1>
+          <p className="text-gray-600 mt-1">Track and manage customer referrals</p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="border-2 border-gray-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-violet-500/20">
-                <Users className="h-5 w-5 text-violet-300" />
+              <div className="p-2 rounded-lg bg-violet-100">
+                <Users className="h-5 w-5 text-violet-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.total}</p>
-                <p className="text-sm text-white/70">Total Referrals</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm text-gray-600">Total Referrals</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="border-2 border-gray-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-500/20">
-                <TrendingUp className="h-5 w-5 text-emerald-300" />
+              <div className="p-2 rounded-lg bg-emerald-100">
+                <TrendingUp className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.converted}</p>
-                <p className="text-sm text-white/70">Converted ({conversionRate}%)</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.converted}</p>
+                <p className="text-sm text-gray-600">Converted ({conversionRate}%)</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="border-2 border-gray-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-cyan-500/20">
-                <DollarSign className="h-5 w-5 text-cyan-300" />
+              <div className="p-2 rounded-lg bg-cyan-100">
+                <DollarSign className="h-5 w-5 text-cyan-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">${stats.totalValue.toLocaleString()}</p>
-                <p className="text-sm text-white/70">Total Value</p>
+                <p className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">Total Value</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="border-2 border-gray-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/20">
-                <Users className="h-5 w-5 text-amber-300" />
+              <div className="p-2 rounded-lg bg-amber-100">
+                <Users className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.pending}</p>
-                <p className="text-sm text-white/70">Pending</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+                <p className="text-sm text-gray-600">Pending</p>
               </div>
             </div>
           </CardContent>
@@ -126,16 +126,16 @@ export default async function ReferralsPage() {
       </div>
 
       {/* Referrals List */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+      <Card className="border-2 border-gray-200 bg-white shadow-sm">
         <CardHeader>
-          <CardTitle className="text-white">All Referrals</CardTitle>
+          <CardTitle className="text-gray-900">All Referrals</CardTitle>
         </CardHeader>
         <CardContent>
           {referrals.length === 0 ? (
             <div className="text-center py-12">
-              <Users className="h-16 w-16 mx-auto text-white/30 mb-4" />
-              <p className="text-white/70 mb-2">No referrals yet</p>
-              <p className="text-sm text-white/50">
+              <Users className="h-16 w-16 mx-auto text-gray-900/30 mb-4" />
+              <p className="text-gray-600 mb-2">No referrals yet</p>
+              <p className="text-sm text-gray-400">
                 Encourage your customers to refer friends and family
               </p>
             </div>
@@ -144,26 +144,26 @@ export default async function ReferralsPage() {
               {referrals.map((referral) => (
                 <div
                   key={referral.id}
-                  className="p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                  className="p-4 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-white">{referral.referredName}</h4>
+                        <h4 className="font-semibold text-gray-900">{referral.referredName}</h4>
                         <Badge className={statusColors[referral.status]}>
                           {referral.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-white/60">
+                      <p className="text-sm text-gray-500">
                         Referred by {referral.referrer.name}
                       </p>
                     </div>
                     {referral.convertedValue && (
                       <div className="text-right">
-                        <p className="text-lg font-bold text-emerald-300">
+                        <p className="text-lg font-bold text-emerald-600">
                           ${referral.convertedValue.toLocaleString()}
                         </p>
-                        <p className="text-xs text-white/60">Job Value</p>
+                        <p className="text-xs text-gray-500">Job Value</p>
                       </div>
                     )}
                   </div>
@@ -171,27 +171,27 @@ export default async function ReferralsPage() {
                   <div className="grid md:grid-cols-3 gap-3 text-sm">
                     {referral.referredEmail && (
                       <div>
-                        <span className="text-white/60">Email: </span>
-                        <span className="text-white">{referral.referredEmail}</span>
+                        <span className="text-gray-500">Email: </span>
+                        <span className="text-gray-900">{referral.referredEmail}</span>
                       </div>
                     )}
                     {referral.referredPhone && (
                       <div>
-                        <span className="text-white/60">Phone: </span>
-                        <span className="text-white">{referral.referredPhone}</span>
+                        <span className="text-gray-500">Phone: </span>
+                        <span className="text-gray-900">{referral.referredPhone}</span>
                       </div>
                     )}
                     <div>
-                      <span className="text-white/60">Date: </span>
-                      <span className="text-white">
+                      <span className="text-gray-500">Date: </span>
+                      <span className="text-gray-900">
                         {new Date(referral.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
 
                   {referral.notes && (
-                    <div className="mt-3 pt-3 border-t border-white/10">
-                      <p className="text-sm text-white/70">{referral.notes}</p>
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-sm text-gray-600">{referral.notes}</p>
                     </div>
                   )}
                 </div>

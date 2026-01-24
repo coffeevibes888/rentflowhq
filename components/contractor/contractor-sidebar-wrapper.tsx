@@ -45,7 +45,7 @@ export function ContractorSidebarWrapper({ children }: ContractorSidebarWrapperP
     <ContractorSidebarContext.Provider value={{ isCollapsed }}>
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r border-white/10 glass-effect-dark py-6 gap-6 transition-all duration-300 ease-in-out relative group/sidebar',
+          'hidden md:flex flex-col border-r-2 border-black shadow-xl glass-effect-dark py-6 gap-6 transition-all duration-300 ease-in-out relative group/sidebar',
           isCollapsed ? 'w-[72px] px-3' : 'w-72 px-4'
         )}
       >

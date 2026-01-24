@@ -192,7 +192,7 @@ export default function ContractorEstimatesPage() {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <Card className="bg-white/90 backdrop-blur-sm border-white/20">
+        <Card className="bg-white/90 backdrop-blur-sm border-gray-300">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-slate-900">
               {isTemplate ? 'Create Template' : 'New Estimate'}
@@ -328,7 +328,7 @@ export default function ContractorEstimatesPage() {
 
       {/* Templates Section */}
       {templates.length > 0 && (
-        <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+        <Card className="bg-white/80 backdrop-blur-sm border-gray-300">
           <CardHeader>
             <CardTitle className="text-slate-900 flex items-center gap-2">
               <FileText className="h-5 w-5 text-violet-600" />
@@ -374,7 +374,7 @@ export default function ContractorEstimatesPage() {
       )}
 
       {/* Estimates List */}
-      <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+      <Card className="bg-white/80 backdrop-blur-sm border-gray-300">
         <CardHeader>
           <CardTitle className="text-slate-900">Your Estimates</CardTitle>
         </CardHeader>
@@ -444,13 +444,13 @@ export default function ContractorEstimatesPage() {
       </Card>
 
       {/* Tips Card */}
-      <Card className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-white/20 shadow-xl">
+      <Card className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-gray-300 shadow-xl">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
-            <FileText className="h-8 w-8 text-white shrink-0" />
+            <FileText className="h-8 w-8 text-gray-900 shrink-0" />
             <div>
-              <h3 className="font-semibold text-white mb-2">Tips for Great Estimates</h3>
-              <ul className="text-sm text-white/90 space-y-1">
+              <h3 className="font-semibold text-gray-900 mb-2">Tips for Great Estimates</h3>
+              <ul className="text-sm text-gray-900/90 space-y-1">
                 <li>• Be detailed about materials and labor costs</li>
                 <li>• Include a timeline for completion</li>
                 <li>• Save templates for common jobs to speed up quoting</li>

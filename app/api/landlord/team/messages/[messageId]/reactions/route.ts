@@ -58,6 +58,19 @@ export async function POST(
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
+    // TODO: MessageReaction model needs to be added to schema
+    // For now, return a not implemented response
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Message reactions feature not yet implemented. MessageReaction model needs to be added to Prisma schema.' 
+      },
+      { status: 501 } // Not Implemented
+    );
+
+    /* 
+    // This code will work once MessageReaction model is added to schema:
+    
     // Check if reaction already exists
     const existingReaction = await prisma.messageReaction.findFirst({
       where: {
@@ -92,6 +105,7 @@ export async function POST(
         action: 'added',
       });
     }
+    */
   } catch (error) {
     console.error('Failed to toggle reaction:', error);
     return NextResponse.json(

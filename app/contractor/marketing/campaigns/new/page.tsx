@@ -53,42 +53,42 @@ export default function NewCampaignPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/contractor/marketing">
-          <Button variant="outline" size="icon" className="border-white/20 text-white hover:bg-white/10">
+          <Button variant="outline" size="icon" className="border-slate-400 text-slate-900 hover:bg-white/20 font-bold">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-white">Create Campaign</h1>
-          <p className="text-white/70 mt-1">Send emails or SMS to your customers</p>
+          <h1 className="text-2xl font-bold text-blue-600">Create Campaign</h1>
+          <p className="text-gray-600 mt-1">Send emails or SMS to your customers</p>
         </div>
       </div>
 
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+      <Card className="border-2 border-gray-200 bg-white shadow-sm">
         <CardHeader>
-          <CardTitle className="text-white">Campaign Details</CardTitle>
+          <CardTitle className="text-gray-900">Campaign Details</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-white">Campaign Name</Label>
+                <Label htmlFor="name" className="text-slate-900 font-bold">Campaign Name</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Spring Promotion 2026"
                   required
-                  className="bg-white/5 border-white/20 text-white placeholder:text-white/40"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500 focus:ring-blue-600"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type" className="text-white">Campaign Type</Label>
+                <Label htmlFor="type" className="text-slate-900 font-bold">Campaign Type</Label>
                 <Select
                   value={formData.type}
                   onValueChange={(value) => setFormData({ ...formData, type: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                  <SelectTrigger className="bg-white border-slate-300 text-slate-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -101,20 +101,20 @@ export default function NewCampaignPage() {
 
             {formData.type === 'email' && (
               <div className="space-y-2">
-                <Label htmlFor="subject" className="text-white">Email Subject</Label>
+                <Label htmlFor="subject" className="text-slate-900 font-bold">Email Subject</Label>
                 <Input
                   id="subject"
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                   placeholder="Special Offer Just for You!"
                   required
-                  className="bg-white/5 border-white/20 text-white placeholder:text-white/40"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500 focus:ring-blue-600"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="message" className="text-white">Message</Label>
+              <Label htmlFor="message" className="text-slate-900 font-bold">Message</Label>
               <Textarea
                 id="message"
                 value={formData.message}
@@ -123,21 +123,21 @@ export default function NewCampaignPage() {
                 rows={8}
                 required
                 maxLength={formData.type === 'sms' ? 160 : undefined}
-                className="bg-white/5 border-white/20 text-white placeholder:text-white/40"
+                className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500 focus:ring-blue-600"
               />
               {formData.type === 'sms' && (
-                <p className="text-sm text-white/60">{formData.message.length}/160 characters</p>
+                <p className="text-sm text-slate-600">{formData.message.length}/160 characters</p>
               )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="targetAudience" className="text-white">Target Audience</Label>
+                <Label htmlFor="targetAudience" className="text-slate-900 font-bold">Target Audience</Label>
                 <Select
                   value={formData.targetAudience}
                   onValueChange={(value) => setFormData({ ...formData, targetAudience: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                  <SelectTrigger className="bg-white border-slate-300 text-slate-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -150,13 +150,13 @@ export default function NewCampaignPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="scheduledFor" className="text-white">Schedule For (Optional)</Label>
+                <Label htmlFor="scheduledFor" className="text-slate-900 font-bold">Schedule For (Optional)</Label>
                 <Input
                   id="scheduledFor"
                   type="datetime-local"
                   value={formData.scheduledFor}
                   onChange={(e) => setFormData({ ...formData, scheduledFor: e.target.value })}
-                  className="bg-white/5 border-white/20 text-white"
+                  className="bg-white border-slate-300 text-slate-900 focus:ring-blue-600"
                 />
               </div>
             </div>
@@ -165,13 +165,13 @@ export default function NewCampaignPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-violet-600 hover:bg-violet-700 text-white"
+                className="bg-violet-600 hover:bg-violet-700 text-gray-900"
               >
                 <Send className="h-4 w-4 mr-2" />
                 {loading ? 'Creating...' : formData.scheduledFor ? 'Schedule Campaign' : 'Send Now'}
               </Button>
               <Link href="/contractor/marketing">
-                <Button type="button" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                <Button type="button" variant="outline" className="border-gray-300 text-gray-900 hover:bg-gray-100">
                   Cancel
                 </Button>
               </Link>

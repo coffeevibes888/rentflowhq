@@ -103,6 +103,7 @@
     "@prisma/client": "^7.0.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/bcryptjs": "^2.4.6",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/imap": "^0.8.42",
     "@types/jest": "^29.5.14",
     "@types/jsbarcode": "^3.11.4",

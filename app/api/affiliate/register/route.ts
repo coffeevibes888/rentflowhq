@@ -135,7 +135,6 @@ export async function POST(request: NextRequest) {
         affiliateName: affiliate.name,
         referralCode: affiliate.code,
         referralLink,
-        commissionStarter: Number(affiliate.commissionBasic),
         commissionPro: Number(affiliate.commissionPro),
         commissionEnterprise: Number(affiliate.commissionEnterprise),
       });

@@ -59,14 +59,14 @@ export default async function ContractorLandlordsPage() {
           <h1 className="text-3xl font-bold text-black">My Landlords</h1>
           <p className="text-black/70 mt-1">Property managers you work with</p>
         </div>
-        <Button variant="outline" className="border-white/20 bg-white/90 hover:bg-white text-black">
+        <Button variant="outline" className="border-gray-300 bg-white/90 hover:bg-white text-black">
           <Plus className="h-4 w-4 mr-2" />
           Enter Invite Code
         </Button>
       </div>
 
       {landlordData.length === 0 ? (
-        <Card className="bg-white/90 backdrop-blur-sm border-white/20">
+        <Card className="bg-white/90 backdrop-blur-sm border-gray-300">
           <CardContent className="py-12">
             <div className="text-center">
               <Building2 className="h-16 w-16 mx-auto text-slate-400 mb-4" />
@@ -84,7 +84,7 @@ export default async function ContractorLandlordsPage() {
       ) : (
         <div className="grid gap-4">
           {landlordData.map((contractor) => (
-            <Card key={contractor.id} className="bg-white/90 backdrop-blur-sm border-white/20">
+            <Card key={contractor.id} className="bg-white/90 backdrop-blur-sm border-gray-300">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -156,7 +156,7 @@ export default async function ContractorLandlordsPage() {
             <input
               type="text"
               placeholder="Enter 6-character code"
-              className="flex-1 px-4 py-2 rounded-lg bg-white/90 border border-white/20 text-black placeholder:text-slate-500 focus:outline-none focus:border-violet-500"
+              className="flex-1 px-4 py-2 rounded-lg bg-white/90 border border-gray-300 text-black placeholder:text-slate-500 focus:outline-none focus:border-violet-500"
             />
             <Button className="bg-violet-600 hover:bg-violet-500">
               Connect

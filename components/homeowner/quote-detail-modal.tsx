@@ -139,26 +139,23 @@ export function QuoteDetailModal({ quote, open, onOpenChange, onQuoteUpdated }: 
 
   if (showCounterOffer) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Send Counter Offer</DialogTitle>
-          </DialogHeader>
-          <CounterOfferForm
-            quote={quote}
-            onSuccess={() => {
-              setShowCounterOffer(false);
-              onOpenChange(false);
-              onQuoteUpdated?.();
-              toast({
-                title: 'Counter Offer Sent!',
-                description: 'The contractor will be notified of your counter offer.',
-              });
-            }}
-            onCancel={() => setShowCounterOffer(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      <CounterOfferForm
+        quote={quote}
+        isOpen={open}
+        onClose={() => {
+          setShowCounterOffer(false);
+          onOpenChange(false);
+        }}
+        onSuccess={() => {
+          setShowCounterOffer(false);
+          onOpenChange(false);
+          onQuoteUpdated?.();
+          toast({
+            title: 'Counter Offer Sent!',
+            description: 'The contractor will be notified of your counter offer.',
+          });
+        }}
+      />
     );
   }
 

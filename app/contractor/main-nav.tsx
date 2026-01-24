@@ -32,24 +32,24 @@ const ContractorMainNav = ({
             href={item.href}
             title={item.title}
             className={cn(
-              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
+              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 border-b border-black',
               isActive 
-                ? 'bg-gradient-to-r from-violet-600/90 to-purple-600/90 text-white shadow-lg shadow-violet-500/20' 
-                : 'hover:bg-white/20'
+                ? 'bg-gradient-to-r from-violet-600/90 to-purple-600/90 text-gray-900 shadow-lg shadow-violet-500/20' 
+                : 'hover:bg-gradient-to-r hover:from-violet-100 hover:to-purple-100 hover:shadow-md hover:scale-105'
             )}
           >
             <Icon className={cn(
               'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
-              isActive ? 'text-white' : '!text-black'
+              isActive ? 'text-gray-900' : '!text-black'
             )} />
             <div className='flex flex-col min-w-0 nav-text-content'>
               <span className={cn(
                 'text-sm truncate',
-                isActive ? 'text-white font-semibold' : '!text-black !font-semibold'
+                isActive ? 'text-gray-900 font-semibold' : '!text-black !font-semibold'
               )}>{item.title}</span>
               <span className={cn(
                 'text-[11px] truncate',
-                isActive ? 'text-violet-200' : '!text-black/60'
+                isActive ? 'text-violet-700' : '!text-black/60'
               )}>{item.description}</span>
             </div>
           </Link>

@@ -45,10 +45,10 @@ export const contractorNavLinks: ContractorNavLink[] = [
     icon: Users,
   },
   {
-    title: 'Employees',
+    title: 'Team Hub',
     description: 'Team management',
-    href: '/contractor/employees',
-    icon: UserCircle,
+    href: '/contractor/team',
+    icon: Users,
   },
   {
     title: 'Calendar',

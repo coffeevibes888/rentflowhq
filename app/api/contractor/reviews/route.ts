@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       const job = await prisma.homeownerWorkOrder.findFirst({
         where: {
           id: jobId,
-          customerId: session.user.id,
+          homeownerId: session.user.id,
           status: 'completed',
         },
       });
@@ -193,8 +193,8 @@ export async function POST(request: NextRequest) {
     await prisma.contractorProfile.update({
       where: { id: contractorId },
       data: {
-        rating: avgRating._avg.overallRating || null,
-        reviewCount: avgRating._count,
+        avgRating: avgRating._avg.overallRating ? Number(avgRating._avg.overallRating) : 0,
+        totalReviews: avgRating._count,
       },
     });
 

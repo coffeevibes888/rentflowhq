@@ -87,7 +87,14 @@ const SettingsOverview = ({
   const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons);
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>(initialPromoCodes);
 
-  const [couponForm, setCouponForm] = useState({
+  const [couponForm, setCouponForm] = useState<{
+    code: string;
+    description: string;
+    discountType: 'percentage' | 'fixed';
+    discountValue: string;
+    minOrderAmount: string;
+    maxUses: string;
+  }>({
     code: '',
     description: '',
     discountType: 'percentage',
@@ -96,7 +103,14 @@ const SettingsOverview = ({
     maxUses: '',
   });
 
-  const [promoForm, setPromoForm] = useState({
+  const [promoForm, setPromoForm] = useState<{
+    code: string;
+    description: string;
+    discountType: 'percentage' | 'fixed';
+    discountValue: string;
+    minOrderAmount: string;
+    maxUses: string;
+  }>({
     code: '',
     description: '',
     discountType: 'percentage',
@@ -497,7 +511,7 @@ const SettingsOverview = ({
             <select
               value={couponForm.discountType}
               onChange={(e) =>
-                setCouponForm({ ...couponForm, discountType: e.target.value })
+                setCouponForm({ ...couponForm, discountType: e.target.value as 'percentage' | 'fixed' })
               }
               className='px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-orange-400'
             >
@@ -623,7 +637,7 @@ const SettingsOverview = ({
             <select
               value={promoForm.discountType}
               onChange={(e) =>
-                setPromoForm({ ...promoForm, discountType: e.target.value })
+                setPromoForm({ ...promoForm, discountType: e.target.value as 'percentage' | 'fixed' })
               }
               className='px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-pink-400'
             >

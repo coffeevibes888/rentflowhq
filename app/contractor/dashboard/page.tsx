@@ -1,430 +1,484 @@
+import { Metadata } from 'next';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
-import { Wrench, ClipboardList, DollarSign, Building2, Clock, TrendingUp, Briefcase, Gavel, MapPin } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import {
+  TrendingUp,
+  FileText,
+  Briefcase,
+  DollarSign,
+  Users,
+  Star,
+  CheckCircle,
+} from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
+import { DashboardQuickActions } from '@/components/contractor/dashboard-quick-actions';
+
+export const metadata: Metadata = {
+  title: 'Contractor Dashboard',
+};
 
 export default async function ContractorDashboardPage() {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return redirect('/sign-in');
+    redirect('/sign-in');
   }
 
-  if (session.user.role !== 'contractor') {
-    return redirect('/');
-  }
-
-  // Get contractor profile(s) - a contractor can work with multiple landlords
-  const contractors = await prisma.contractor.findMany({
+  // Get contractor profile
+  const contractorProfile = await prisma.contractorProfile.findUnique({
     where: { userId: session.user.id },
-    include: {
-      landlord: {
-        select: { id: true, name: true, companyName: true }
-      },
-      workOrders: {
-        where: { status: { in: ['assigned', 'in_progress'] } },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          property: { select: { name: true, address: true } },
-        },
-      },
-      _count: {
-        select: { workOrders: true },
-      },
+    select: {
+      id: true,
+      businessName: true,
+      displayName: true,
+      subscriptionTier: true,
+      avgRating: true,
+      totalReviews: true,
+      completedJobs: true,
     },
   });
 
-  // Aggregate stats across all landlord relationships
-  const activeWorkOrders = contractors.reduce((sum, c) => sum + c.workOrders.length, 0);
-  const totalJobs = contractors.reduce((sum, c) => sum + c._count.workOrders, 0);
-  const landlordCount = contractors.length;
+  if (!contractorProfile) {
+    redirect('/onboarding/contractor');
+  }
 
-  // Get all active work orders for display
-  const allActiveOrders = contractors.flatMap(c => 
-    c.workOrders.map(wo => ({ ...wo, landlordName: c.landlord.companyName || c.landlord.name }))
-  ).slice(0, 5);
+  const contractorId = contractorProfile.id;
 
-  // Calculate earnings (completed work orders)
-  const completedOrders = await prisma.workOrder.findMany({
-    where: {
-      contractorId: { in: contractors.map(c => c.id) },
-      status: 'completed',
-    },
-    select: { agreedPrice: true, actualCost: true },
-  });
+  // Date ranges
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
 
-  const totalEarnings = completedOrders.reduce((sum, o) => 
-    sum + Number(o.actualCost || o.agreedPrice || 0), 0
-  );
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-  // Get contractor's bids
-  const myBids = await prisma.workOrderBid.findMany({
-    where: {
-      contractorId: { in: contractors.map(c => c.id) },
-      status: 'pending',
-    },
-    include: {
-      workOrder: {
-        select: {
-          id: true,
-          title: true,
-          budgetMin: true,
-          budgetMax: true,
-          property: { select: { name: true } },
-          landlord: { select: { name: true, companyName: true } },
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-  });
-
-  // Get new leads
-  const leads = await prisma.contractorLeadMatch.findMany({
-    where: {
-      contractorId: { in: contractors.map(c => c.id) },
-      status: { in: ['pending', 'matching', 'new'] },
-    },
-    include: {
-      lead: true,
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-  });
-
-  // Get count of open jobs in marketplace (both landlord and homeowner jobs)
-  const [landlordOpenJobs, homeownerOpenJobs] = await Promise.all([
-    prisma.workOrder.count({
+  // Fetch dashboard stats
+  const [
+    // Leads
+    leadsThisWeek,
+    leadsThisMonth,
+    hotLeads,
+    
+    // Jobs
+    activeJobs,
+    completedJobsThisMonth,
+    
+    // Quotes
+    pendingQuotes,
+    quotesThisWeek,
+    
+    // Revenue
+    revenueThisMonth,
+    revenueThisYear,
+    
+    // Team
+    activeEmployees,
+    
+    // Recent activity
+    recentLeads,
+    recentJobs,
+  ] = await Promise.all([
+    // Leads this week
+    prisma.contractorLeadMatch.count({
       where: {
-        isOpenBid: true,
-        status: 'open',
+        contractorId,
+        createdAt: { gte: startOfWeek },
+        status: { in: ['pending', 'sent', 'viewed'] },
       },
     }),
-    prisma.homeownerWorkOrder.count({
+    
+    // Leads this month
+    prisma.contractorLeadMatch.count({
       where: {
-        isOpenBid: true,
-        status: 'open',
+        contractorId,
+        createdAt: { gte: startOfMonth },
       },
+    }),
+    
+    // Hot leads (high priority, not responded)
+    prisma.contractorLead.count({
+      where: {
+        priority: 'hot',
+        matches: {
+          some: {
+            contractorId,
+            status: { in: ['pending', 'sent', 'viewed'] },
+          },
+        },
+      },
+    }),
+    
+    // Active jobs
+    prisma.contractorJob.count({
+      where: {
+        contractorId,
+        status: { in: ['approved', 'scheduled', 'in_progress'] },
+      },
+    }),
+    
+    // Completed jobs this month
+    prisma.contractorJob.count({
+      where: {
+        contractorId,
+        status: 'completed',
+        actualEndDate: { gte: startOfMonth },
+      },
+    }),
+    
+    // Pending quotes
+    prisma.contractorQuote.count({
+      where: {
+        contractorId: contractorId,
+        status: 'pending',
+      },
+    }),
+    
+    // Quotes sent this week
+    prisma.contractorQuote.count({
+      where: {
+        contractorId: contractorId,
+        createdAt: { gte: startOfWeek },
+      },
+    }),
+    
+    // Revenue this month
+    prisma.contractorJob.aggregate({
+      where: {
+        contractorId,
+        status: { in: ['completed', 'invoiced', 'paid'] },
+        actualEndDate: { gte: startOfMonth },
+      },
+      _sum: { actualCost: true },
+    }),
+    
+    // Revenue this year
+    prisma.contractorJob.aggregate({
+      where: {
+        contractorId,
+        status: { in: ['completed', 'invoiced', 'paid'] },
+        actualEndDate: { gte: startOfYear },
+      },
+      _sum: { actualCost: true },
+    }),
+    
+    // Active employees
+    prisma.contractorEmployee.count({
+      where: {
+        contractorId,
+        status: 'active',
+      },
+    }),
+    
+    // Recent leads (last 5)
+    prisma.contractorLeadMatch.findMany({
+      where: { contractorId },
+      include: {
+        lead: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    }),
+    
+    // Recent jobs (last 5)
+    prisma.contractorJob.findMany({
+      where: { contractorId },
+      include: {
+        customer: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
     }),
   ]);
-  const openJobsCount = landlordOpenJobs + homeownerOpenJobs;
 
-  const stats = [
-    {
-      title: 'Active Jobs',
-      value: activeWorkOrders,
-      icon: ClipboardList,
-      href: '/contractor/work-orders',
-    },
-    {
-      title: 'Total Jobs',
-      value: totalJobs,
-      icon: Wrench,
-      href: '/contractor/work-orders',
-    },
-    {
-      title: 'Landlords',
-      value: landlordCount,
-      icon: Building2,
-      href: '/contractor/landlords',
-    },
-    {
-      title: 'Total Earnings',
-      value: formatCurrency(totalEarnings),
-      icon: DollarSign,
-      href: '/contractor/payouts',
-    },
-  ];
+  const revenueMonth = Number(revenueThisMonth._sum.actualCost || 0);
+  const revenueYear = Number(revenueThisYear._sum.actualCost || 0);
+
+  // Calculate conversion rate
+  const conversionRate = leadsThisMonth > 0 
+    ? ((completedJobsThisMonth / leadsThisMonth) * 100).toFixed(1)
+    : '0.0';
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">
-            Welcome back, {session.user.name?.split(' ')[0] || 'Contractor'}!
-          </h1>
-          <p className="text-white/70 mt-1">Here&apos;s an overview of your work</p>
-        </div>
-        <div className="flex gap-3">
-          <Link href="/marketplace/jobs">
-            <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/20">
-              <Briefcase className="h-4 w-4 mr-2" />
-              Browse Jobs
-            </Button>
-          </Link>
-          <Link href="/contractor/profile">
-            <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-              View Profile
-            </Button>
-          </Link>
+    <div className='w-full space-y-6'>
+      <div>
+        <h1 className='text-2xl font-bold text-blue-600 mb-1'>
+          Contractor Dashboard
+        </h1>
+        <p className='text-sm text-gray-600'>
+          Marketplace performance and business overview
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className='relative rounded-2xl border-2 border-black shadow-xl overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-br from-cyan-400 via-blue-400 to-blue-500' />
+        <div className='relative p-6'>
+          <div className='flex items-center justify-between mb-4'>
+            <h3 className='text-lg font-bold text-black'>Your Dashboard</h3>
+            <span className='text-xs text-black bg-white/30 px-2 py-1 rounded-full font-semibold'>
+              Live
+            </span>
+          </div>
+
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
+            {/* Leads This Week */}
+            <Link
+              href='/contractor/leads'
+              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-xs text-black font-medium'>Leads This Week</div>
+                <TrendingUp className='h-4 w-4 text-black' />
+              </div>
+              <div className='text-3xl font-bold text-black'>{leadsThisWeek}</div>
+              <div className='text-xs text-black'>
+                {hotLeads} hot leads
+              </div>
+            </Link>
+
+            {/* Active Jobs */}
+            <Link
+              href='/contractor/jobs'
+              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-xs text-black font-medium'>Active Jobs</div>
+                <Briefcase className='h-4 w-4 text-black' />
+              </div>
+              <div className='text-3xl font-bold text-black'>{activeJobs}</div>
+              <div className='text-xs text-black'>
+                {completedJobsThisMonth} completed this month
+              </div>
+            </Link>
+
+            {/* Pending Quotes */}
+            <Link
+              href='/contractor/operations?tab=estimates'
+              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-xs text-black font-medium'>Pending Quotes</div>
+                <FileText className='h-4 w-4 text-black' />
+              </div>
+              <div className='text-3xl font-bold text-black'>{pendingQuotes}</div>
+              <div className='text-xs text-black'>
+                {quotesThisWeek} sent this week
+              </div>
+            </Link>
+
+            {/* Revenue This Month */}
+            <Link
+              href='/contractor/finance'
+              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-xs text-black font-medium'>Revenue (Month)</div>
+                <DollarSign className='h-4 w-4 text-black' />
+              </div>
+              <div className='text-3xl font-bold text-black'>
+                {formatCurrency(revenueMonth)}
+              </div>
+              <div className='text-xs text-black'>
+                {formatCurrency(revenueYear)} YTD
+              </div>
+            </Link>
+
+            {/* Team Members */}
+            <Link
+              href='/contractor/team'
+              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-xs text-black font-medium'>Team Members</div>
+                <Users className='h-4 w-4 text-black' />
+              </div>
+              <div className='text-3xl font-bold text-black'>{activeEmployees}</div>
+              <div className='text-xs text-black'>Active employees</div>
+            </Link>
+
+            {/* Conversion Rate */}
+            <div className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2'>
+              <div className='flex items-center justify-between'>
+                <div className='text-xs text-black font-medium'>Conversion Rate</div>
+                <CheckCircle className='h-4 w-4 text-black' />
+              </div>
+              <div className='text-3xl font-bold text-black'>{conversionRate}%</div>
+              <div className='text-xs text-black'>
+                Leads to jobs
+              </div>
+            </div>
+
+            {/* Rating */}
+            <Link
+              href='/contractor/profile'
+              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-xs text-black font-medium'>Your Rating</div>
+                <Star className='h-4 w-4 text-yellow-500' />
+              </div>
+              <div className='text-3xl font-bold text-black'>
+                {contractorProfile.avgRating.toFixed(1)} ⭐
+              </div>
+              <div className='text-xs text-black'>
+                {contractorProfile.totalReviews} reviews
+              </div>
+            </Link>
+
+            {/* Marketplace Link */}
+            <Link
+              href='/contractors?view=jobs'
+              className='rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 border border-white/20 p-4 space-y-2 hover:from-orange-500 hover:to-amber-600 transition-all'
+            >
+              <div className='flex items-center justify-between'>
+                <div className='text-xs text-black font-medium'>Browse Jobs</div>
+                <Briefcase className='h-4 w-4 text-black' />
+              </div>
+              <div className='text-3xl font-bold text-black'>Marketplace</div>
+              <div className='text-xs text-black'>Find new work</div>
+            </Link>
+          </div>
+
+          {/* Summary Bar */}
+          <div className='mt-4 rounded-xl bg-cyan-500/30 backdrop-blur-sm border border-white/20 p-4'>
+            <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
+              <div className='space-y-1'>
+                <div className='text-xs text-black font-medium uppercase tracking-wide'>
+                  Leads (Month)
+                </div>
+                <div className='text-lg font-bold text-black'>{leadsThisMonth}</div>
+              </div>
+              <div className='space-y-1'>
+                <div className='text-xs text-black font-medium uppercase tracking-wide'>
+                  Jobs Done
+                </div>
+                <div className='text-lg font-bold text-black'>
+                  {contractorProfile.completedJobs}
+                </div>
+              </div>
+              <div className='space-y-1'>
+                <div className='text-xs text-black font-medium uppercase tracking-wide'>
+                  Avg Rating
+                </div>
+                <div className='text-lg font-bold text-black'>
+                  {contractorProfile.avgRating.toFixed(1)} / 5.0
+                </div>
+              </div>
+              <div className='space-y-1'>
+                <div className='text-xs text-black font-medium uppercase tracking-wide'>
+                  Team Size
+                </div>
+                <div className='text-lg font-bold text-black'>{activeEmployees}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Link key={stat.title} href={stat.href}>
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
-                <CardContent className="p-4 lg:p-6">
-                  <div className="flex items-center gap-3 lg:gap-4">
-                    <div className="p-2 lg:p-3 rounded-lg bg-white/20">
-                      <Icon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl lg:text-3xl font-bold text-white">{stat.value}</p>
-                      <p className="text-xs lg:text-sm text-white/70">{stat.title}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
+      {/* Quick Actions */}
+      <div>
+        <h2 className='text-lg font-semibold text-gray-900 mb-3'>Quick Actions</h2>
+        <DashboardQuickActions />
       </div>
 
-      {/* Open Jobs Banner */}
-      {openJobsCount > 0 && (
-        <Link href="/marketplace/jobs">
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer">
-            <CardContent className="p-4 lg:p-6 flex items-center justify-between">
-              <div className="flex items-center gap-3 lg:gap-4">
-                <div className="p-2 lg:p-3 rounded-lg bg-white/20">
-                  <Briefcase className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-white text-lg lg:text-xl">{openJobsCount} Open Jobs Available</p>
-                  <p className="text-sm lg:text-base text-white/70">Browse and bid on new opportunities</p>
-                </div>
-              </div>
-              <Badge className="bg-white/20 text-white hover:bg-white/30 text-sm lg:text-base px-3 lg:px-4 py-1 lg:py-2">Browse Jobs →</Badge>
-            </CardContent>
-          </Card>
-        </Link>
-      )}
-
-      {/* New Leads Banner */}
-      {leads.length > 0 && (
-        <Card className="bg-gradient-to-r from-violet-600/20 to-indigo-600/20 backdrop-blur-md border-violet-500/30">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-white flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-violet-400" />
-              New Leads ({leads.length})
-            </CardTitle>
-            <Link href="/contractor/leads" className="text-sm text-violet-300 hover:text-violet-200">
+      {/* Recent Activity */}
+      <div className='grid gap-4 md:grid-cols-2'>
+        {/* Recent Leads */}
+        <div className='rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm'>
+          <div className='flex items-center justify-between mb-4'>
+            <h3 className='text-base font-semibold text-gray-900'>Recent Leads</h3>
+            <Link href='/contractor/leads' className='text-sm text-blue-600 hover:text-blue-700 font-medium'>
               View all →
             </Link>
-          </CardHeader>
-          <CardContent>
-             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {leads.map((match) => (
-                    <Link key={match.id} href={`/contractor/leads/${match.lead.id}`}>
-                        <div className="p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer">
-                            <div className="flex justify-between items-start mb-2">
-                                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
-                                    New Lead
-                                </Badge>
-                                <span className="text-xs text-white/50">{new Date(match.createdAt).toLocaleDateString()}</span>
-                            </div>
-                            <h4 className="font-semibold text-white mb-1">{match.lead.projectType}</h4>
-                            <p className="text-sm text-white/70 line-clamp-2 mb-3">{match.lead.projectDescription}</p>
-                            <div className="flex items-center gap-2 text-xs text-white/50">
-                                <MapPin className="h-3 w-3" />
-                                {match.lead.propertyCity || 'Unknown'}, {match.lead.propertyState || ''}
-                            </div>
-                        </div>
-                    </Link>
-                ))}
-             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Main Content Grid - 3 columns on large screens */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Active Work Orders - spans 2 columns on large screens */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white">Active Work Orders</CardTitle>
-            <Link href="/contractor/work-orders" className="text-sm text-cyan-300 hover:text-cyan-200">
-              View all →
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {allActiveOrders.length === 0 ? (
-              <div className="text-center py-8 lg:py-12">
-                <ClipboardList className="h-12 w-12 lg:h-16 lg:w-16 mx-auto text-white/30 mb-4" />
-                <p className="text-white/70 text-lg">No active work orders</p>
-                <p className="text-sm text-white/50 mt-1">
-                  Work orders will appear here when assigned
-                </p>
-              </div>
+          </div>
+          <div className='space-y-2'>
+            {recentLeads.length === 0 ? (
+              <p className='text-sm text-gray-500 text-center py-8'>No leads yet</p>
             ) : (
-              <div className="space-y-3">
-                {allActiveOrders.map((order) => (
-                  <Link
-                    key={order.id}
-                    href={`/contractor/work-orders/${order.id}`}
-                    className="flex items-center justify-between p-3 lg:p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-white truncate">{order.title}</p>
-                      <p className="text-sm text-white/60 truncate">
-                        {order.property.name} • {order.landlordName}
+              recentLeads.map((match) => (
+                <Link
+                  key={match.id}
+                  href={`/contractor/leads/${match.lead.id}`}
+                  className='block p-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors'
+                >
+                  <div className='flex items-start justify-between'>
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-sm font-medium text-gray-900 truncate'>
+                        {match.lead.projectTitle || match.lead.projectType}
+                      </p>
+                      <p className='text-xs text-gray-500 mt-0.5'>
+                        {match.lead.propertyCity}, {match.lead.propertyState}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-emerald-300 font-medium">
-                        {formatCurrency(Number(order.agreedPrice || 0))}
-                      </span>
-                      <Badge className={
-                        order.status === 'assigned' 
-                          ? 'bg-amber-500/30 text-amber-200' 
-                          : 'bg-blue-500/30 text-blue-200'
-                      }>
-                        {order.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* My Bids */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
-              <Gavel className="h-5 w-5 text-cyan-300" />
-              My Pending Bids
-            </CardTitle>
-            <Link href="/marketplace/jobs" className="text-sm text-cyan-300 hover:text-cyan-200">
-              Find more →
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {myBids.length === 0 ? (
-              <div className="text-center py-8">
-                <Gavel className="h-12 w-12 mx-auto text-white/30 mb-4" />
-                <p className="text-white/70">No pending bids</p>
-                <p className="text-sm text-white/50 mt-1">
-                  Browse open jobs and submit bids
-                </p>
-                <Link href="/marketplace/jobs">
-                  <Badge className="mt-4 bg-white/20 text-white hover:bg-white/30 cursor-pointer">
-                    Browse Open Jobs
-                  </Badge>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {myBids.map((bid) => (
-                  <div
-                    key={bid.id}
-                    className="p-3 rounded-lg bg-white/5 border border-white/10"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-white truncate">{bid.workOrder.title}</p>
-                        <p className="text-sm text-white/60 truncate">
-                          {bid.workOrder.property.name}
-                        </p>
-                      </div>
-                      <Badge className="bg-amber-500/30 text-amber-200">Pending</Badge>
-                    </div>
-                    <div className="flex items-center justify-between mt-2 text-sm">
-                      <span className="text-white/60">
-                        Budget: {bid.workOrder.budgetMin && bid.workOrder.budgetMax 
-                          ? `${formatCurrency(Number(bid.workOrder.budgetMin))} - ${formatCurrency(Number(bid.workOrder.budgetMax))}`
-                          : 'TBD'}
-                      </span>
-                      <span className="font-semibold text-cyan-300">
-                        Your bid: {formatCurrency(Number(bid.amount))}
-                      </span>
-                    </div>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ml-2 ${
+                        match.lead.priority === 'hot'
+                          ? 'bg-red-100 text-red-700'
+                          : match.lead.priority === 'warm'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}
+                    >
+                      {match.lead.priority}
+                    </span>
                   </div>
-                ))}
-              </div>
+                </Link>
+              ))
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      {/* Quick Actions - Full width grid */}
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <Link href="/marketplace/jobs">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
-              <CardContent className="p-4 lg:p-6 text-center">
-                <Briefcase className="h-8 w-8 lg:h-10 lg:w-10 mx-auto text-white mb-2" />
-                <p className="text-sm lg:text-base font-medium text-white">Browse Jobs</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/contractor/work-orders">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
-              <CardContent className="p-4 lg:p-6 text-center">
-                <ClipboardList className="h-8 w-8 lg:h-10 lg:w-10 mx-auto text-white mb-2" />
-                <p className="text-sm lg:text-base font-medium text-white">Work Orders</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/contractor/estimates">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
-              <CardContent className="p-4 lg:p-6 text-center">
-                <TrendingUp className="h-8 w-8 lg:h-10 lg:w-10 mx-auto text-white mb-2" />
-                <p className="text-sm lg:text-base font-medium text-white">Estimates</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/contractor/time-tracking">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
-              <CardContent className="p-4 lg:p-6 text-center">
-                <Clock className="h-8 w-8 lg:h-10 lg:w-10 mx-auto text-white mb-2" />
-                <p className="text-sm lg:text-base font-medium text-white">Track Time</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/contractor/portfolio">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
-              <CardContent className="p-4 lg:p-6 text-center">
-                <Wrench className="h-8 w-8 lg:h-10 lg:w-10 mx-auto text-white mb-2" />
-                <p className="text-sm lg:text-base font-medium text-white">Portfolio</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/contractor/payouts">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
-              <CardContent className="p-4 lg:p-6 text-center">
-                <DollarSign className="h-8 w-8 lg:h-10 lg:w-10 mx-auto text-white mb-2" />
-                <p className="text-sm lg:text-base font-medium text-white">Payouts</p>
-              </CardContent>
-            </Card>
-          </Link>
+        {/* Recent Jobs */}
+        <div className='rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm'>
+          <div className='flex items-center justify-between mb-4'>
+            <h3 className='text-base font-semibold text-gray-900'>Recent Jobs</h3>
+            <Link href='/contractor/jobs' className='text-sm text-blue-600 hover:text-blue-700 font-medium'>
+              View all →
+            </Link>
+          </div>
+          <div className='space-y-2'>
+            {recentJobs.length === 0 ? (
+              <p className='text-sm text-gray-500 text-center py-8'>No jobs yet</p>
+            ) : (
+              recentJobs.map((job) => (
+                <Link
+                  key={job.id}
+                  href={`/contractor/jobs/${job.id}`}
+                  className='block p-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors'
+                >
+                  <div className='flex items-start justify-between'>
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-sm font-medium text-gray-900 truncate'>{job.title}</p>
+                      <p className='text-xs text-gray-500 mt-0.5'>
+                        {job.customer?.name || 'No customer'}
+                      </p>
+                    </div>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ml-2 ${
+                        job.status === 'completed'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : job.status === 'in_progress'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}
+                    >
+                      {job.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Not Connected Notice */}
-      {contractors.length === 0 && (
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4 lg:p-6">
-            <p className="text-white">
-              <strong>Welcome!</strong> Browse available jobs in the marketplace or wait for property managers and homeowners to find you. 
-              Make sure your profile is complete to increase your visibility.
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

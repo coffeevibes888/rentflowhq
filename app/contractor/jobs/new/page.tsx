@@ -36,8 +36,8 @@ export default async function NewJobPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white">Create New Job</h1>
-        <p className="text-white/70 mt-1">Add a new project to your pipeline</p>
+        <h1 className="text-2xl font-bold text-blue-600">Create New Job</h1>
+        <p className="text-gray-600 mt-1">Add a new project to your pipeline</p>
       </div>
 
       <JobForm customers={customers} employees={employees} />

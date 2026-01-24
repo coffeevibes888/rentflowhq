@@ -13,9 +13,9 @@ export default async function AffiliatesPage() {
   // Get affiliates with stats
   let affiliates: any[] = [];
   let totalReferrals = 0;
-  let pendingCommissions = { _sum: { commissionAmount: null } };
-  let approvedCommissions = { _sum: { commissionAmount: null } };
-  let totalPaid = { _sum: { amount: null } };
+  let pendingCommissions: any = { _sum: { commissionAmount: null } };
+  let approvedCommissions: any = { _sum: { commissionAmount: null } };
+  let totalPaid: any = { _sum: { amount: null } };
   let recentReferrals: any[] = [];
 
   try {

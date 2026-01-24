@@ -48,46 +48,46 @@ export default async function ContractorWorkOrdersPage() {
 
       {/* Status Summary */}
       <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-amber-50 border-amber-200">
+        <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
           <CardContent className="p-4 flex items-center gap-3">
-            <AlertCircle className="h-8 w-8 text-amber-600" />
+            <AlertCircle className="h-8 w-8 text-slate-900" />
             <div>
               <p className="text-2xl font-bold text-slate-900">{statusGroups.pending.length}</p>
-              <p className="text-xs text-amber-700">Pending</p>
+              <p className="text-xs text-slate-700">Pending</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
           <CardContent className="p-4 flex items-center gap-3">
-            <Clock className="h-8 w-8 text-blue-600" />
+            <Clock className="h-8 w-8 text-slate-900" />
             <div>
               <p className="text-2xl font-bold text-slate-900">{statusGroups.inProgress.length}</p>
-              <p className="text-xs text-blue-700">In Progress</p>
+              <p className="text-xs text-slate-700">In Progress</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-emerald-50 border-emerald-200">
+        <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
           <CardContent className="p-4 flex items-center gap-3">
-            <CheckCircle className="h-8 w-8 text-emerald-600" />
+            <CheckCircle className="h-8 w-8 text-slate-900" />
             <div>
               <p className="text-2xl font-bold text-slate-900">{statusGroups.completed.length}</p>
-              <p className="text-xs text-emerald-700">Completed</p>
+              <p className="text-xs text-slate-700">Completed</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Work Orders List */}
-      <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+      <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
         <CardHeader>
           <CardTitle className="text-slate-900">All Work Orders</CardTitle>
         </CardHeader>
         <CardContent>
           {workOrders.length === 0 ? (
             <div className="text-center py-12">
-              <ClipboardList className="h-16 w-16 mx-auto text-slate-300 mb-4" />
-              <p className="text-slate-500 text-lg">No work orders yet</p>
-              <p className="text-sm text-slate-400 mt-1">
+              <ClipboardList className="h-16 w-16 mx-auto text-slate-400 mb-4" />
+              <p className="text-slate-700 text-lg">No work orders yet</p>
+              <p className="text-sm text-slate-600 mt-1">
                 Work orders will appear here when property managers assign jobs to you
               </p>
             </div>
@@ -97,7 +97,7 @@ export default async function ContractorWorkOrdersPage() {
                 <Link
                   key={order.id}
                   href={`/contractor/work-orders/${order.id}`}
-                  className="block p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
+                  className="block p-4 rounded-lg bg-white/30 hover:bg-white/40 transition-colors border border-slate-300"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -113,13 +113,13 @@ export default async function ContractorWorkOrdersPage() {
                           {order.priority}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-500 truncate">{order.description}</p>
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-sm text-slate-700 truncate">{order.description}</p>
+                      <p className="text-xs text-slate-600 mt-1">
                         {order.property.name} • {order.landlord.companyName || order.landlord.name}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-lg font-bold text-emerald-600">
+                      <p className="text-lg font-bold text-green-700">
                         {order.agreedPrice ? formatCurrency(Number(order.agreedPrice)) : 'TBD'}
                       </p>
                       <span className={`

@@ -67,14 +67,14 @@ export default async function ContractorPayoutsPage() {
 
       {/* Earnings Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-white/20 shadow-xl">
+        <Card className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-gray-300 shadow-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80">Total Earnings</p>
-                <p className="text-3xl font-bold text-white mt-1">{formatCurrency(totalEarnings)}</p>
+                <p className="text-sm text-gray-900/80">Total Earnings</p>
+                <p className="text-2xl font-bold text-blue-600 mt-1">{formatCurrency(totalEarnings)}</p>
               </div>
-              <TrendingUp className="h-10 w-10 text-white/80" />
+              <TrendingUp className="h-10 w-10 text-gray-900/80" />
             </div>
           </CardContent>
         </Card>
@@ -126,7 +126,7 @@ export default async function ContractorPayoutsPage() {
       )}
 
       {/* Payment History */}
-      <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+      <Card className="bg-white/80 backdrop-blur-sm border-gray-300">
         <CardHeader>
           <CardTitle className="text-slate-900">Payment History</CardTitle>
         </CardHeader>

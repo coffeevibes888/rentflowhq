@@ -154,18 +154,18 @@ export default function TimeClockPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white">Time Clock</h1>
-        <p className="text-white/70 mt-1">Clock in and out of jobs</p>
+        <h1 className="text-2xl font-bold text-blue-600">Time Clock</h1>
+        <p className="text-gray-600 mt-1">Clock in and out of jobs</p>
       </div>
 
       {/* Current Time */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+      <Card className="border-2 border-gray-200 bg-white shadow-sm">
         <CardContent className="p-8 text-center">
-          <Clock className="h-12 w-12 mx-auto text-violet-300 mb-4" />
-          <p className="text-5xl font-bold text-white mb-2">
+          <Clock className="h-12 w-12 mx-auto text-violet-600 mb-4" />
+          <p className="text-5xl font-bold text-gray-900 mb-2">
             {currentTime.toLocaleTimeString()}
           </p>
-          <p className="text-white/70">
+          <p className="text-gray-600">
             {currentTime.toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -177,9 +177,9 @@ export default function TimeClockPage() {
       </Card>
 
       {/* Status */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+      <Card className="border-2 border-gray-200 bg-white shadow-sm">
         <CardHeader>
-          <CardTitle className="text-white flex items-center justify-between">
+          <CardTitle className="text-gray-900 flex items-center justify-between">
             <span>Status</span>
             {currentEntry ? (
               <Badge className="bg-emerald-500/30 text-emerald-200">
@@ -196,25 +196,25 @@ export default function TimeClockPage() {
           {currentEntry ? (
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-white/70 mb-1">Current Job</p>
-                <p className="text-white font-semibold">
+                <p className="text-sm text-gray-600 mb-1">Current Job</p>
+                <p className="text-gray-900 font-semibold">
                   {jobs.find(j => j.id === currentEntry.jobId)?.title || 'Unknown Job'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-white/70 mb-1">Time Elapsed</p>
-                <p className="text-3xl font-bold text-violet-300">
+                <p className="text-sm text-gray-600 mb-1">Time Elapsed</p>
+                <p className="text-3xl font-bold text-violet-600">
                   {getElapsedTime()}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-white/70 mb-1">Clocked In At</p>
-                <p className="text-white">
+                <p className="text-sm text-gray-600 mb-1">Clocked In At</p>
+                <p className="text-gray-900">
                   {new Date(currentEntry.clockIn).toLocaleTimeString()}
                 </p>
               </div>
               {location && (
-                <div className="flex items-center gap-2 text-sm text-white/60">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
                   <MapPin className="h-4 w-4" />
                   <span>GPS Location Tracked</span>
                 </div>
@@ -223,13 +223,13 @@ export default function TimeClockPage() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-white/70 mb-2">
+                <label className="block text-sm text-slate-900 mb-2 font-bold">
                   Select Job
                 </label>
                 <select
                   value={selectedJob}
                   onChange={(e) => setSelectedJob(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
                   <option value="">Choose a job...</option>
                   {jobs.map((job) => (
@@ -240,7 +240,7 @@ export default function TimeClockPage() {
                 </select>
               </div>
               {location && (
-                <div className="flex items-center gap-2 text-sm text-emerald-300">
+                <div className="flex items-center gap-2 text-sm text-emerald-600">
                   <MapPin className="h-4 w-4" />
                   <span>GPS Location Ready</span>
                 </div>
@@ -251,13 +251,13 @@ export default function TimeClockPage() {
       </Card>
 
       {/* Actions */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+      <Card className="border-2 border-gray-200 bg-white shadow-sm">
         <CardContent className="p-6">
           {currentEntry ? (
             <Button
               onClick={handleClockOut}
               disabled={loading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-6 text-lg"
+              className="w-full bg-red-600 hover:bg-red-700 text-gray-900 py-6 text-lg"
             >
               {loading ? (
                 <Loader2 className="h-6 w-6 mr-2 animate-spin" />
@@ -270,7 +270,7 @@ export default function TimeClockPage() {
             <Button
               onClick={handleClockIn}
               disabled={loading || !selectedJob}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-6 text-lg"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-gray-900 py-6 text-lg"
             >
               {loading ? (
                 <Loader2 className="h-6 w-6 mr-2 animate-spin" />

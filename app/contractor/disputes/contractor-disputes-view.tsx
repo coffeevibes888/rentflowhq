@@ -69,7 +69,7 @@ export default function ContractorDisputesView({ disputes }: ContractorDisputesV
           <p className="text-slate-600 mt-1">File and track dispute cases</p>
         </div>
         <Link href="/contractor/disputes/new">
-          <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white">
+          <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-gray-900">
             <Plus className="h-4 w-4 mr-2" />
             File a Dispute
           </Button>
@@ -108,7 +108,7 @@ export default function ContractorDisputesView({ disputes }: ContractorDisputesV
       </div>
 
       {/* Disputes List */}
-      <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+      <Card className="bg-white/80 backdrop-blur-sm border-gray-300">
         <CardHeader>
           <CardTitle className="text-slate-900">Your Disputes</CardTitle>
         </CardHeader>

@@ -47,11 +47,11 @@ export async function GET(request: Request) {
         units: {
           select: {
             id: true,
-            unitNumber: true,
+            name: true,
             bedrooms: true,
             bathrooms: true,
-            rent: true,
-            status: true,
+            rentAmount: true,
+            isAvailable: true,
           },
         },
       },

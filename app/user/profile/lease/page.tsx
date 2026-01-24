@@ -38,7 +38,15 @@ export default async function UserProfileLeasePage() {
   // For a fully executed lease, we want the landlord's signed PDF (which includes both signatures)
   // Otherwise fall back to tenant's signed PDF
   // Cast to include new signature data fields
-  const signatureRequests = lease?.signatureRequests as Array<typeof lease.signatureRequests[0] & {
+  const signatureRequests = lease?.signatureRequests as Array<{
+    id: string;
+    role: string;
+    status: string;
+    recipientName: string;
+    recipientEmail: string;
+    signerName: string | null;
+    signedAt: Date | null;
+    signedPdfUrl: string | null;
     signatureDataUrl?: string | null;
     initialsDataUrl?: string | null;
   }> | undefined;
@@ -51,23 +59,6 @@ export default async function UserProfileLeasePage() {
   const rawPdfUrl = signedRequest?.signedPdfUrl || null;
   // Use proxy API for PDF viewing (handles authentication properly for iframes)
   const signedPdfUrl = rawPdfUrl && lease ? `/api/leases/${lease.id}/pdf` : null;
-  
-  // Build signatures array for display
-  const signatures: { name: string; role: string; signedAt: Date | null }[] = [];
-  if (tenantSignedRequest?.signedAt) {
-    signatures.push({
-      name: tenantSignedRequest.signerName || tenantSignedRequest.recipientName,
-      role: 'Tenant',
-      signedAt: tenantSignedRequest.signedAt,
-    });
-  }
-  if (landlordSignedRequest?.signedAt) {
-    signatures.push({
-      name: landlordSignedRequest.signerName || landlordSignedRequest.recipientName,
-      role: 'Landlord',
-      signedAt: landlordSignedRequest.signedAt,
-    });
-  }
   
   // Check if tenant needs to sign
   const tenantSignatureRequest = lease?.signatureRequests?.find(
@@ -222,7 +213,6 @@ export default async function UserProfileLeasePage() {
                 <LeaseViewer 
                   leaseHtml={leaseHtml} 
                   signedPdfUrl={signedPdfUrl} 
-                  signatures={signatures}
                   triggerLabel='View lease' 
                 />
                 <SignButton leaseId={lease.id} />

@@ -13,7 +13,7 @@ export default function ContractorLayout({
 }>) {
   return (
     <SessionProviderWrapper>
-      <div className='flex min-h-screen flex-col bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600'>
+      <div className='flex min-h-screen flex-col bg-white'>
         <Header />
         <div className='flex flex-1'>
           {/* Collapsible Sidebar */}

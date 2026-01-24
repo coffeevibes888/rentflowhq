@@ -55,11 +55,11 @@ export default async function CustomersPage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Customers</h1>
-          <p className="text-white/70 mt-1">Manage your customer relationships</p>
+          <h1 className="text-3xl font-bold text-slate-900">Customers</h1>
+          <p className="text-slate-600 mt-1">Manage your customer relationships</p>
         </div>
         <Link href="/contractor/customers/new">
-          <Button className="bg-violet-600 hover:bg-violet-700 text-white">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-gray-900">
             <Plus className="h-4 w-4 mr-2" />
             Add Customer
           </Button>
@@ -68,45 +68,45 @@ export default async function CustomersPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
           <CardContent className="p-4">
-            <p className="text-2xl font-bold text-white">{stats.total}</p>
-            <p className="text-sm text-white/70">Total Customers</p>
+            <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+            <p className="text-sm text-slate-700">Total Customers</p>
           </CardContent>
         </Card>
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
           <CardContent className="p-4">
-            <p className="text-2xl font-bold text-emerald-300">{stats.active}</p>
-            <p className="text-sm text-white/70">Active</p>
+            <p className="text-2xl font-bold text-slate-900">{stats.active}</p>
+            <p className="text-sm text-slate-700">Active</p>
           </CardContent>
         </Card>
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
           <CardContent className="p-4">
-            <p className="text-2xl font-bold text-amber-300">{stats.leads}</p>
-            <p className="text-sm text-white/70">Leads</p>
+            <p className="text-2xl font-bold text-slate-900">{stats.leads}</p>
+            <p className="text-sm text-slate-700">Leads</p>
           </CardContent>
         </Card>
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
           <CardContent className="p-4">
-            <p className="text-2xl font-bold text-gray-300">{stats.inactive}</p>
-            <p className="text-sm text-white/70">Inactive</p>
+            <p className="text-2xl font-bold text-slate-900">{stats.inactive}</p>
+            <p className="text-sm text-slate-700">Inactive</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Search & Filters */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+      <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
         <CardContent className="p-4">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/50" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-700" />
               <input
                 type="text"
                 placeholder="Search customers..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/20 border border-slate-300 text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
-            <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+            <Button variant="outline" className="border-slate-400 text-slate-900 hover:bg-white/20 font-bold">
               <Filter className="h-4 w-4 mr-2" />
               Filters
             </Button>
@@ -115,16 +115,16 @@ export default async function CustomersPage() {
       </Card>
 
       {/* Customers List */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+      <Card className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300 border-black shadow-2xl overflow-hidden backdrop-blur-md">
         <CardHeader>
-          <CardTitle className="text-white">All Customers</CardTitle>
+          <CardTitle className="text-slate-900">All Customers</CardTitle>
         </CardHeader>
         <CardContent>
           {customers.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-white/70 text-lg mb-4">No customers yet</p>
+              <p className="text-slate-700 text-lg mb-4">No customers yet</p>
               <Link href="/contractor/customers/new">
-                <Button className="bg-violet-600 hover:bg-violet-700 text-white">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-gray-900">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Your First Customer
                 </Button>
@@ -136,11 +136,11 @@ export default async function CustomersPage() {
                 <Link
                   key={customer.id}
                   href={`/contractor/customers/${customer.id}`}
-                  className="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                  className="block p-4 rounded-lg bg-white/30 hover:bg-white/40 transition-colors border border-slate-300"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white truncate">{customer.name}</h3>
+                      <h3 className="font-semibold text-slate-900 truncate">{customer.name}</h3>
                       <Badge className={`${statusColors[customer.status]} mt-1`}>
                         {customer.status}
                       </Badge>
@@ -149,27 +149,27 @@ export default async function CustomersPage() {
 
                   <div className="space-y-2 text-sm">
                     {customer.email && (
-                      <div className="flex items-center gap-2 text-white/60">
+                      <div className="flex items-center gap-2 text-slate-700">
                         <Mail className="h-3 w-3" />
                         <span className="truncate">{customer.email}</span>
                       </div>
                     )}
                     {customer.phone && (
-                      <div className="flex items-center gap-2 text-white/60">
+                      <div className="flex items-center gap-2 text-slate-700">
                         <Phone className="h-3 w-3" />
                         <span>{customer.phone}</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-white/60">
+                    <div className="flex items-center gap-2 text-slate-700">
                       <Briefcase className="h-3 w-3" />
                       <span>{customer._count.jobs} jobs</span>
                     </div>
                   </div>
 
                   {Number(customer.totalSpent) > 0 && (
-                    <div className="mt-3 pt-3 border-t border-white/10">
-                      <p className="text-sm text-white/60">Lifetime Value</p>
-                      <p className="text-lg font-semibold text-emerald-300">
+                    <div className="mt-3 pt-3 border-t border-slate-300">
+                      <p className="text-sm text-slate-700">Lifetime Value</p>
+                      <p className="text-lg font-semibold text-green-700">
                         {formatCurrency(Number(customer.totalSpent))}
                       </p>
                     </div>

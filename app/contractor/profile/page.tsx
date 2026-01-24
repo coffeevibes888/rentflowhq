@@ -21,18 +21,18 @@ export default async function ContractorProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white">My Profile</h1>
-        <p className="text-white/70 mt-1">Manage your public profile and branding</p>
+        <h1 className="text-2xl font-bold text-blue-600">My Profile</h1>
+        <p className="text-gray-600 mt-1">Manage your public profile and branding</p>
       </div>
 
-      <Card className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 border-white/20">
+      <Card className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 border-gray-300">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center">
-              <Palette className="h-6 w-6 text-white" />
+              <Palette className="h-6 w-6 text-gray-900" />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-white mb-2">Contractor Marketplace Profile</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Contractor Marketplace Profile</h2>
               <p className="text-violet-100 mb-4">
                 Create your public profile to appear in the contractor marketplace. 
                 Clients will be able to view your portfolio, read reviews, and request quotes.

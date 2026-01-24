@@ -53,7 +53,9 @@ export default async function TeamPage() {
   }
 
   // Determine subscription tier from the consistent subscription data source
-  const tier = subscriptionData.currentTier || normalizeTier(subscriptionData.tier);
+  const tier = subscriptionData.success 
+    ? subscriptionData.currentTier 
+    : 'starter';
 
   // Get current user's team role
   const { getCurrentUserTeamRole } = await import('@/lib/actions/team.actions');

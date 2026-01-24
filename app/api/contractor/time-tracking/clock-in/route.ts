@@ -33,18 +33,24 @@ export async function POST(request: Request) {
     }
 
     // Create time entry
+    const timeEntryData: any = {
+      contractorId: contractorProfile.id,
+      jobId: body.jobId,
+      clockIn: new Date(),
+      status: 'pending',
+    };
+
+    // Only add clockInLocation if location data is provided
+    if (body.location) {
+      timeEntryData.clockInLocation = {
+        lat: body.location.lat,
+        lng: body.location.lng,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
     const entry = await prisma.contractorTimeEntry.create({
-      data: {
-        contractorId: contractorProfile.id,
-        jobId: body.jobId,
-        clockIn: new Date(),
-        clockInLocation: body.location ? {
-          lat: body.location.lat,
-          lng: body.location.lng,
-          timestamp: new Date().toISOString(),
-        } : null,
-        status: 'pending',
-      },
+      data: timeEntryData,
     });
 
     await eventBus.emit('contractor.time.clock_in', {

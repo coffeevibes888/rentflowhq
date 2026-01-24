@@ -30,7 +30,7 @@ import {
 import Link from 'next/link';
 import { ContractorSpecialtiesSelector } from '@/components/contractor/specialties-selector';
 import { ContractorServiceAreasInput } from '@/components/contractor/service-areas-input';
-import { ContractorPortfolioGallery } from '@/components/contractor/portfolio-gallery';
+import { PortfolioGallery } from '@/components/contractor/portfolio-gallery';
 
 export const metadata: Metadata = {
   title: 'Branding & Profile | Contractor Dashboard',
@@ -74,7 +74,7 @@ export default async function ContractorBrandingPage({
           <div className="max-w-2xl mx-auto">
             <Card className="bg-amber-500/10 border-amber-400/30">
               <CardContent className="p-6 text-center">
-                <h1 className="text-2xl font-bold text-white mb-4">Profile Setup Required</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">Profile Setup Required</h1>
                 <p className="text-slate-300 mb-4">
                   {profileResult.message || 'Unable to load your contractor profile. This feature may require a database migration.'}
                 </p>
@@ -147,7 +147,7 @@ export default async function ContractorBrandingPage({
         )}
 
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Branding & Profile</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Branding & Profile</h1>
           <p className="text-sm text-slate-300">
             Customize your public marketplace profile to attract more clients.
           </p>
@@ -161,11 +161,11 @@ export default async function ContractorBrandingPage({
           </div>
           
           <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 ring-2 ring-white/20">
+            <div className="h-12 w-12 rounded-xl bg-white/10 text-gray-900 flex items-center justify-center shrink-0 ring-2 ring-white/20">
               <Link2 className="h-6 w-6" />
             </div>
             <div className="flex-1 space-y-1">
-              <h2 className="text-xl font-bold text-white">Your Marketplace Profile</h2>
+              <h2 className="text-xl font-bold text-gray-900">Your Marketplace Profile</h2>
               <p className="text-sm text-violet-100">
                 This is your public profile where clients can view your work, read reviews, and request quotes. Share this link to get more business!
               </p>
@@ -173,8 +173,8 @@ export default async function ContractorBrandingPage({
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex-1 bg-white/10 rounded-lg px-4 py-3 border border-white/20">
-              <p className="text-white font-mono text-sm truncate">{publicProfileUrl}</p>
+            <div className="flex-1 bg-white/10 rounded-lg px-4 py-3 border border-gray-300">
+              <p className="text-gray-900 font-mono text-sm truncate">{publicProfileUrl}</p>
             </div>
             <div className="flex gap-2">
               <Link
@@ -187,7 +187,7 @@ export default async function ContractorBrandingPage({
               </Link>
               <Button
                 variant="outline"
-                className="border-white/30 text-white hover:bg-white/10"
+                className="border-white/30 text-gray-900 hover:bg-gray-100"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Copy Link
@@ -196,7 +196,7 @@ export default async function ContractorBrandingPage({
           </div>
 
           {!profile.isPublic && (
-            <div className="rounded-lg bg-amber-500/20 border border-amber-400/40 p-3">
+            <div className="rounded-lg bg-amber-100 border border-amber-400/40 p-3">
               <p className="text-sm text-amber-100 font-medium">
                 ⚠️ Your profile is currently hidden. Enable public visibility below to appear in the marketplace.
               </p>
@@ -205,18 +205,18 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Marketplace Visibility Status */}
-        <section className="rounded-xl bg-slate-800/50 border border-white/10 p-6 space-y-4">
+        <section className="rounded-xl bg-slate-800/50 border border-gray-200 p-6 space-y-4">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <Eye className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Marketplace Visibility</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Marketplace Visibility</h2>
               <p className="text-sm text-slate-300">Control whether your profile appears in the contractor marketplace.</p>
             </div>
           </div>
 
-          <div className={`rounded-lg p-4 ${profile.isPublic && profile.acceptingNewWork ? 'bg-emerald-500/20 border border-emerald-400/30' : 'bg-amber-500/20 border border-amber-400/30'}`}>
+          <div className={`rounded-lg p-4 ${profile.isPublic && profile.acceptingNewWork ? 'bg-emerald-100 border border-emerald-400/30' : 'bg-amber-100 border border-amber-400/30'}`}>
             <div className="flex items-center gap-3 mb-3">
               <div className={`h-3 w-3 rounded-full ${profile.isPublic && profile.acceptingNewWork ? 'bg-emerald-400' : 'bg-amber-400'}`} />
               <span className={`font-semibold ${profile.isPublic && profile.acceptingNewWork ? 'text-emerald-200' : 'text-amber-200'}`}>
@@ -225,13 +225,13 @@ export default async function ContractorBrandingPage({
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <span className={profile.isPublic ? 'text-emerald-300' : 'text-red-300'}>
+                <span className={profile.isPublic ? 'text-emerald-600' : 'text-red-600'}>
                   {profile.isPublic ? '✓' : '✗'}
                 </span>
                 <span className="text-slate-300">Public Profile: {profile.isPublic ? 'Enabled' : 'Disabled'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className={profile.acceptingNewWork ? 'text-emerald-300' : 'text-red-300'}>
+                <span className={profile.acceptingNewWork ? 'text-emerald-600' : 'text-red-600'}>
                   {profile.acceptingNewWork ? '✓' : '✗'}
                 </span>
                 <span className="text-slate-300">Accepting New Work: {profile.acceptingNewWork ? 'Yes' : 'No'}</span>
@@ -251,9 +251,9 @@ export default async function ContractorBrandingPage({
                 name="isPublic"
                 value="true"
                 defaultChecked={profile.isPublic}
-                className="h-5 w-5 rounded border-white/20 bg-slate-900/50 text-violet-500 focus:ring-violet-500"
+                className="h-5 w-5 rounded border-gray-300 bg-slate-900/50 text-violet-500 focus:ring-violet-500"
               />
-              <span className="text-white">Public Profile</span>
+              <span className="text-gray-900">Public Profile</span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -261,9 +261,9 @@ export default async function ContractorBrandingPage({
                 name="acceptingNewWork"
                 value="true"
                 defaultChecked={profile.acceptingNewWork}
-                className="h-5 w-5 rounded border-white/20 bg-slate-900/50 text-violet-500 focus:ring-violet-500"
+                className="h-5 w-5 rounded border-gray-300 bg-slate-900/50 text-violet-500 focus:ring-violet-500"
               />
-              <span className="text-white">Accepting New Work</span>
+              <span className="text-gray-900">Accepting New Work</span>
             </label>
             <Button type="submit" className="bg-violet-500 hover:bg-violet-400">
               Update Visibility
@@ -272,19 +272,19 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Profile Photo Section */}
-        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
+        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-gray-200 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <Camera className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Profile Photo</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Profile Photo</h2>
               <p className="text-sm text-slate-200">Your profile photo appears on your marketplace card and profile page.</p>
             </div>
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="relative h-24 w-24 rounded-full border-4 border-white/20 overflow-hidden bg-slate-900/50">
+            <div className="relative h-24 w-24 rounded-full border-4 border-gray-300 overflow-hidden bg-slate-900/50">
               {profile.profilePhoto ? (
                 <img src={profile.profilePhoto} alt="Profile" className="h-full w-full object-cover" />
               ) : (
@@ -298,7 +298,7 @@ export default async function ContractorBrandingPage({
                 type="file"
                 name="profilePhoto"
                 accept="image/jpeg,image/png,image/webp"
-                className="block w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
+                className="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-gray-900 hover:file:bg-white/20"
                 required
               />
               <Button type="submit" className="bg-violet-500 hover:bg-violet-400">
@@ -309,19 +309,19 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Cover Photo Section */}
-        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
+        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-gray-200 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <ImageIcon className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Cover Photo</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Cover Photo</h2>
               <p className="text-sm text-slate-200">A banner image that appears at the top of your profile page.</p>
             </div>
           </div>
 
           <div className="space-y-4">
-            <div className="relative h-40 rounded-lg border-2 border-dashed border-white/20 overflow-hidden bg-slate-900/50">
+            <div className="relative h-40 rounded-lg border-2 border-dashed border-gray-300 overflow-hidden bg-slate-900/50">
               {profile.coverPhoto ? (
                 <img src={profile.coverPhoto} alt="Cover" className="h-full w-full object-cover" />
               ) : (
@@ -335,7 +335,7 @@ export default async function ContractorBrandingPage({
                 type="file"
                 name="coverPhoto"
                 accept="image/jpeg,image/png,image/webp"
-                className="block flex-1 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
+                className="block flex-1 text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-gray-900 hover:file:bg-white/20"
                 required
               />
               <Button type="submit" className="bg-violet-500 hover:bg-violet-400">
@@ -346,93 +346,93 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Business Info Section */}
-        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
+        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-gray-200 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <Briefcase className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Business Information</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Business Information</h2>
               <p className="text-sm text-slate-200">Tell clients about your business and services.</p>
             </div>
           </div>
 
           <form action={handleProfileUpdate} className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Business Name</label>
+              <label className="block text-sm font-medium text-gray-900">Business Name</label>
               <Input
                 name="businessName"
                 defaultValue={profile.businessName}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="Your Business Name"
                 required
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Display Name</label>
+              <label className="block text-sm font-medium text-gray-900">Display Name</label>
               <Input
                 name="displayName"
                 defaultValue={profile.displayName}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="How you want to be called"
                 required
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="block text-sm font-medium text-white">Tagline</label>
+              <label className="block text-sm font-medium text-gray-900">Tagline</label>
               <Input
                 name="tagline"
                 defaultValue={profile.tagline || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="Licensed Plumber - 15 Years Experience"
                 maxLength={200}
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Email</label>
+              <label className="block text-sm font-medium text-gray-900">Email</label>
               <Input
                 name="email"
                 type="email"
                 defaultValue={profile.email}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 required
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Phone</label>
+              <label className="block text-sm font-medium text-gray-900">Phone</label>
               <Input
                 name="phone"
                 defaultValue={profile.phone || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="(555) 123-4567"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Website</label>
+              <label className="block text-sm font-medium text-gray-900">Website</label>
               <Input
                 name="website"
                 defaultValue={profile.website || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="https://yourwebsite.com"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Years of Experience</label>
+              <label className="block text-sm font-medium text-gray-900">Years of Experience</label>
               <Input
                 name="yearsExperience"
                 type="number"
                 defaultValue={profile.yearsExperience || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 min={0}
                 max={100}
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="block text-sm font-medium text-white">Bio</label>
+              <label className="block text-sm font-medium text-gray-900">Bio</label>
               <Textarea
                 name="bio"
                 defaultValue={profile.bio || ''}
-                className="bg-slate-900/50 border-white/20 text-white min-h-[120px]"
+                className="bg-slate-900/50 border-gray-300 text-gray-900 min-h-[120px]"
                 placeholder="Tell clients about your experience, specialties, and what makes you different..."
                 maxLength={2000}
               />
@@ -446,43 +446,43 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Location & Service Area */}
-        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
+        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-gray-200 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <MapPin className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Location & Service Area</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Location & Service Area</h2>
               <p className="text-sm text-slate-200">Where you're based and areas you serve.</p>
             </div>
           </div>
 
           <form action={handleProfileUpdate} className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">City</label>
+              <label className="block text-sm font-medium text-gray-900">City</label>
               <Input
                 name="baseCity"
                 defaultValue={profile.baseCity || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="Las Vegas"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">State</label>
+              <label className="block text-sm font-medium text-gray-900">State</label>
               <Input
                 name="baseState"
                 defaultValue={profile.baseState || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="NV"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Service Radius (miles)</label>
+              <label className="block text-sm font-medium text-gray-900">Service Radius (miles)</label>
               <Input
                 name="serviceRadius"
                 type="number"
                 defaultValue={profile.serviceRadius || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 min={0}
                 max={500}
                 placeholder="25"
@@ -495,7 +495,7 @@ export default async function ContractorBrandingPage({
             </div>
           </form>
 
-          <div className="pt-4 border-t border-white/10">
+          <div className="pt-4 border-t border-gray-200">
             <ContractorServiceAreasInput 
               currentAreas={profile.serviceAreas || []} 
             />
@@ -503,13 +503,13 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Specialties */}
-        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
+        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-gray-200 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <Palette className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Specialties</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Specialties</h2>
               <p className="text-sm text-slate-200">Select the services you offer.</p>
             </div>
           </div>
@@ -520,44 +520,44 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Credentials */}
-        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
+        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-gray-200 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <Shield className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Credentials & Verification</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Credentials & Verification</h2>
               <p className="text-sm text-slate-200">Add your license and insurance info to build trust.</p>
             </div>
           </div>
 
           <form action={handleProfileUpdate} className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">License Number</label>
+              <label className="block text-sm font-medium text-gray-900">License Number</label>
               <Input
                 name="licenseNumber"
                 defaultValue={profile.licenseNumber || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="Enter your license number"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">License State</label>
+              <label className="block text-sm font-medium text-gray-900">License State</label>
               <Input
                 name="licenseState"
                 defaultValue={profile.licenseState || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="NV"
               />
             </div>
             <div className="md:col-span-2 flex flex-wrap gap-3">
-              <div className={`px-3 py-2 rounded-lg text-sm font-medium ${profile.insuranceVerified ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30' : 'bg-slate-900/50 text-slate-400 border border-white/10'}`}>
+              <div className={`px-3 py-2 rounded-lg text-sm font-medium ${profile.insuranceVerified ? 'bg-emerald-100 text-emerald-200 border border-emerald-400/30' : 'bg-slate-900/50 text-slate-400 border border-gray-200'}`}>
                 {profile.insuranceVerified ? '✓ Insurance Verified' : '○ Insurance Not Verified'}
               </div>
-              <div className={`px-3 py-2 rounded-lg text-sm font-medium ${profile.backgroundChecked ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30' : 'bg-slate-900/50 text-slate-400 border border-white/10'}`}>
+              <div className={`px-3 py-2 rounded-lg text-sm font-medium ${profile.backgroundChecked ? 'bg-emerald-100 text-emerald-200 border border-emerald-400/30' : 'bg-slate-900/50 text-slate-400 border border-gray-200'}`}>
                 {profile.backgroundChecked ? '✓ Background Checked' : '○ Background Not Checked'}
               </div>
-              <div className={`px-3 py-2 rounded-lg text-sm font-medium ${profile.identityVerified ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30' : 'bg-slate-900/50 text-slate-400 border border-white/10'}`}>
+              <div className={`px-3 py-2 rounded-lg text-sm font-medium ${profile.identityVerified ? 'bg-emerald-100 text-emerald-200 border border-emerald-400/30' : 'bg-slate-900/50 text-slate-400 border border-gray-200'}`}>
                 {profile.identityVerified ? '✓ Identity Verified' : '○ Identity Not Verified'}
               </div>
             </div>
@@ -570,28 +570,28 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Portfolio Gallery */}
-        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
+        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-gray-200 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <ImageIcon className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Portfolio Gallery</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Portfolio Gallery</h2>
               <p className="text-sm text-slate-200">Showcase your best work to attract clients. Up to 12 images.</p>
             </div>
           </div>
 
-          <ContractorPortfolioGallery 
-            images={profile.portfolioImages || []} 
+          <PortfolioGallery 
+            items={profile.portfolioImages || []} 
           />
 
-          <form action={handlePortfolioUpload} className="flex items-center gap-3 pt-4 border-t border-white/10">
+          <form action={handlePortfolioUpload} className="flex items-center gap-3 pt-4 border-t border-gray-200">
             <input
               type="file"
               name="portfolioImages"
               accept="image/jpeg,image/png,image/webp"
               multiple
-              className="block flex-1 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
+              className="block flex-1 text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-gray-900 hover:file:bg-white/20"
               required
             />
             <Button type="submit" className="bg-violet-500 hover:bg-violet-400">
@@ -603,11 +603,11 @@ export default async function ContractorBrandingPage({
         {/* Why Choose Me - Feature Cards */}
         <section className="rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 border-2 border-violet-400/50 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <Star className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Why Choose Me? Cards</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Why Choose Me? Cards</h2>
               <p className="text-sm text-slate-200">Customize the 6 feature cards that appear on your public profile page. Tell clients why they should hire you!</p>
             </div>
           </div>
@@ -615,103 +615,103 @@ export default async function ContractorBrandingPage({
           <form action={handleProfileUpdate} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Card 1 */}
-              <div className="rounded-lg border border-white/20 bg-white/5 p-4 space-y-3">
-                <p className="text-sm font-medium text-violet-200">Card 1</p>
+              <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 space-y-3">
+                <p className="text-sm font-medium text-violet-700">Card 1</p>
                 <Input
                   name="featureCard1Title"
                   defaultValue={profile.featureCard1Title || 'Quality Workmanship'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Title"
                 />
                 <Textarea
                   name="featureCard1Description"
                   defaultValue={profile.featureCard1Description || 'Professional results backed by years of experience.'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Description"
                   rows={2}
                 />
               </div>
               {/* Card 2 */}
-              <div className="rounded-lg border border-white/20 bg-white/5 p-4 space-y-3">
-                <p className="text-sm font-medium text-violet-200">Card 2</p>
+              <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 space-y-3">
+                <p className="text-sm font-medium text-violet-700">Card 2</p>
                 <Input
                   name="featureCard2Title"
                   defaultValue={profile.featureCard2Title || 'Transparent Pricing'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Title"
                 />
                 <Textarea
                   name="featureCard2Description"
                   defaultValue={profile.featureCard2Description || 'Upfront quotes with no hidden fees.'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Description"
                   rows={2}
                 />
               </div>
               {/* Card 3 */}
-              <div className="rounded-lg border border-white/20 bg-white/5 p-4 space-y-3">
-                <p className="text-sm font-medium text-violet-200">Card 3</p>
+              <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 space-y-3">
+                <p className="text-sm font-medium text-violet-700">Card 3</p>
                 <Input
                   name="featureCard3Title"
                   defaultValue={profile.featureCard3Title || 'Licensed & Insured'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Title"
                 />
                 <Textarea
                   name="featureCard3Description"
                   defaultValue={profile.featureCard3Description || 'Fully licensed and insured for your protection.'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Description"
                   rows={2}
                 />
               </div>
               {/* Card 4 */}
-              <div className="rounded-lg border border-white/20 bg-white/5 p-4 space-y-3">
-                <p className="text-sm font-medium text-violet-200">Card 4</p>
+              <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 space-y-3">
+                <p className="text-sm font-medium text-violet-700">Card 4</p>
                 <Input
                   name="featureCard4Title"
                   defaultValue={profile.featureCard4Title || 'On-Time Service'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Title"
                 />
                 <Textarea
                   name="featureCard4Description"
                   defaultValue={profile.featureCard4Description || 'Punctual and reliable. We show up when promised.'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Description"
                   rows={2}
                 />
               </div>
               {/* Card 5 */}
-              <div className="rounded-lg border border-white/20 bg-white/5 p-4 space-y-3">
-                <p className="text-sm font-medium text-violet-200">Card 5</p>
+              <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 space-y-3">
+                <p className="text-sm font-medium text-violet-700">Card 5</p>
                 <Input
                   name="featureCard5Title"
                   defaultValue={profile.featureCard5Title || 'Easy Communication'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Title"
                 />
                 <Textarea
                   name="featureCard5Description"
                   defaultValue={profile.featureCard5Description || 'Quick responses and clear updates throughout.'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Description"
                   rows={2}
                 />
               </div>
               {/* Card 6 */}
-              <div className="rounded-lg border border-white/20 bg-white/5 p-4 space-y-3">
-                <p className="text-sm font-medium text-violet-200">Card 6</p>
+              <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 space-y-3">
+                <p className="text-sm font-medium text-violet-700">Card 6</p>
                 <Input
                   name="featureCard6Title"
                   defaultValue={profile.featureCard6Title || 'Professional Service'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Title"
                 />
                 <Textarea
                   name="featureCard6Description"
                   defaultValue={profile.featureCard6Description || 'Clean, courteous, and professional from start to finish.'}
-                  className="bg-slate-900/50 border-white/20 text-white"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900"
                   placeholder="Description"
                   rows={2}
                 />
@@ -726,11 +726,11 @@ export default async function ContractorBrandingPage({
         {/* Subdomain Settings */}
         <section className="rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 border-2 border-emerald-400/50 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <Link2 className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Custom Branded Page (Optional)</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Custom Branded Page (Optional)</h2>
               <p className="text-sm text-slate-200">
                 Create a custom branded landing page separate from your marketplace profile. 
                 Great for sharing on business cards or marketing materials.
@@ -740,18 +740,18 @@ export default async function ContractorBrandingPage({
 
           <form action={handleProfileUpdate} className="space-y-4">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Custom URL</label>
+              <label className="block text-sm font-medium text-gray-900">Custom URL</label>
               <div className="flex items-center gap-2">
-                <span className="text-white/70 text-sm">propertyflowhq.com/c/</span>
+                <span className="text-gray-600 text-sm">propertyflowhq.com/c/</span>
                 <Input
                   name="subdomain"
                   defaultValue={profile.subdomain || ''}
-                  className="bg-slate-900/50 border-white/20 text-white flex-1"
+                  className="bg-slate-900/50 border-gray-300 text-gray-900 flex-1"
                   placeholder="your-business-name"
                   pattern="[a-z0-9-]+"
                 />
               </div>
-              <p className="text-xs text-white/60">Lowercase letters, numbers, and hyphens only</p>
+              <p className="text-xs text-gray-500">Lowercase letters, numbers, and hyphens only</p>
             </div>
             <Button type="submit" className="bg-emerald-500 hover:bg-emerald-400">
               Save Custom URL
@@ -759,8 +759,8 @@ export default async function ContractorBrandingPage({
           </form>
 
           {profile.subdomain && (
-            <div className="pt-4 border-t border-white/20">
-              <p className="text-sm text-white mb-2">Your custom branded page is live at:</p>
+            <div className="pt-4 border-t border-gray-300">
+              <p className="text-sm text-gray-900 mb-2">Your custom branded page is live at:</p>
               <a 
                 href={`${baseUrl}/c/${profile.subdomain}`}
                 target="_blank"
@@ -774,48 +774,48 @@ export default async function ContractorBrandingPage({
         </section>
 
         {/* Pricing */}
-        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-white/10 p-6 space-y-4 shadow-2xl">
+        <section className="rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border border-gray-200 p-6 space-y-4 shadow-2xl">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-white/10 text-white flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-white/10 text-gray-900 flex items-center justify-center">
               <Star className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">Pricing & Availability</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Pricing & Availability</h2>
               <p className="text-sm text-slate-200">Set your rates and availability status.</p>
             </div>
           </div>
 
           <form action={handleProfileUpdate} className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Hourly Rate ($)</label>
+              <label className="block text-sm font-medium text-gray-900">Hourly Rate ($)</label>
               <Input
                 name="hourlyRate"
                 type="number"
                 defaultValue={profile.hourlyRate ? Number(profile.hourlyRate) : ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 min={0}
                 step={0.01}
                 placeholder="75.00"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Minimum Job Size ($)</label>
+              <label className="block text-sm font-medium text-gray-900">Minimum Job Size ($)</label>
               <Input
                 name="minimumJobSize"
                 type="number"
                 defaultValue={profile.minimumJobSize ? Number(profile.minimumJobSize) : ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 min={0}
                 step={0.01}
                 placeholder="100.00"
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="block text-sm font-medium text-white">Availability Notes</label>
+              <label className="block text-sm font-medium text-gray-900">Availability Notes</label>
               <Textarea
                 name="availabilityNotes"
                 defaultValue={profile.availabilityNotes || ''}
-                className="bg-slate-900/50 border-white/20 text-white"
+                className="bg-slate-900/50 border-gray-300 text-gray-900"
                 placeholder="e.g., Available weekdays 8am-6pm, emergency calls accepted"
                 maxLength={500}
               />
@@ -837,7 +837,7 @@ export default async function ContractorBrandingPage({
         <div className="max-w-2xl mx-auto">
           <Card className="bg-red-500/10 border-red-400/30">
             <CardContent className="p-6 text-center">
-              <h1 className="text-2xl font-bold text-white mb-4">Something went wrong</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
               <p className="text-slate-300 mb-4">
                 {error?.message || 'An unexpected error occurred while loading the profile page.'}
               </p>

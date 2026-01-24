@@ -40,8 +40,7 @@ export async function POST(
     await prisma.notification.update({
       where: { id },
       data: {
-        read: true,
-        readAt: new Date(),
+        isRead: true,
       },
     });
 

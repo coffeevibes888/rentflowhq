@@ -1,203 +1,215 @@
+import { Metadata } from 'next';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
-import Link from 'next/link';
+import { JobsMobileList, JobsDesktopTable } from '@/components/contractor/jobs-list';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, LayoutGrid, List } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { Plus, Filter } from 'lucide-react';
+import Link from 'next/link';
 
-export default async function ContractorJobsPage() {
+export const metadata: Metadata = {
+  title: 'Jobs | Contractor Dashboard',
+};
+
+export default async function ContractorJobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; search?: string }>;
+}) {
   const session = await auth();
 
-  if (!session?.user?.id || session.user.role !== 'contractor') {
-    return redirect('/sign-in');
+  if (!session?.user?.id) {
+    redirect('/sign-in');
   }
 
   // Get contractor profile
   const contractorProfile = await prisma.contractorProfile.findUnique({
     where: { userId: session.user.id },
+    select: { id: true, businessName: true },
   });
 
   if (!contractorProfile) {
-    return redirect('/contractor/profile');
+    redirect('/onboarding/contractor');
   }
 
-  // Get all jobs
-  const jobs = await prisma.contractorJob.findMany({
-    where: { contractorId: contractorProfile.id },
+  const params = await searchParams;
+  const statusFilter = params.status;
+  const searchQuery = params.search;
+
+  // Build where clause
+  const where: any = {
+    contractorId: contractorProfile.id,
+  };
+
+  if (statusFilter && statusFilter !== 'all') {
+    where.status = statusFilter;
+  }
+
+  if (searchQuery) {
+    where.OR = [
+      { title: { contains: searchQuery, mode: 'insensitive' } },
+      { jobNumber: { contains: searchQuery, mode: 'insensitive' } },
+      { description: { contains: searchQuery, mode: 'insensitive' } },
+    ];
+  }
+
+  // Fetch jobs
+  const jobsRaw = await prisma.contractorJob.findMany({
+    where,
     include: {
       customer: {
         select: {
-          id: true,
           name: true,
           email: true,
-          phone: true,
-        },
-      },
-      _count: {
-        select: {
-          timeEntries: true,
-          expenses: true,
         },
       },
     },
     orderBy: { createdAt: 'desc' },
   });
 
-  // Calculate stats
-  const stats = {
-    total: jobs.length,
-    active: jobs.filter(j => ['scheduled', 'in_progress'].includes(j.status)).length,
-    quoted: jobs.filter(j => j.status === 'quoted').length,
-    completed: jobs.filter(j => j.status === 'completed').length,
-  };
+  // Serialize jobs to convert Decimal to number
+  const jobs = jobsRaw.map((job) => ({
+    ...job,
+    estimatedCost: job.estimatedCost ? Number(job.estimatedCost) : null,
+    actualCost: job.actualCost ? Number(job.actualCost) : null,
+    laborCost: job.laborCost ? Number(job.laborCost) : null,
+    materialCost: job.materialCost ? Number(job.materialCost) : null,
+    profitMargin: job.profitMargin ? Number(job.profitMargin) : null,
+  }));
 
-  const statusColors: Record<string, string> = {
-    quoted: 'bg-amber-500/30 text-amber-200',
-    approved: 'bg-green-500/30 text-green-200',
-    scheduled: 'bg-blue-500/30 text-blue-200',
-    in_progress: 'bg-violet-500/30 text-violet-200',
-    on_hold: 'bg-orange-500/30 text-orange-200',
-    completed: 'bg-emerald-500/30 text-emerald-200',
-    invoiced: 'bg-cyan-500/30 text-cyan-200',
-    paid: 'bg-green-600/30 text-green-300',
-    canceled: 'bg-red-500/30 text-red-200',
-  };
+  // Get status counts
+  const [
+    allCount,
+    quotedCount,
+    approvedCount,
+    scheduledCount,
+    inProgressCount,
+    completedCount,
+    onHoldCount,
+  ] = await Promise.all([
+    prisma.contractorJob.count({ where: { contractorId: contractorProfile.id } }),
+    prisma.contractorJob.count({
+      where: { contractorId: contractorProfile.id, status: 'quoted' },
+    }),
+    prisma.contractorJob.count({
+      where: { contractorId: contractorProfile.id, status: 'approved' },
+    }),
+    prisma.contractorJob.count({
+      where: { contractorId: contractorProfile.id, status: 'scheduled' },
+    }),
+    prisma.contractorJob.count({
+      where: { contractorId: contractorProfile.id, status: 'in_progress' },
+    }),
+    prisma.contractorJob.count({
+      where: { contractorId: contractorProfile.id, status: 'completed' },
+    }),
+    prisma.contractorJob.count({
+      where: { contractorId: contractorProfile.id, status: 'on_hold' },
+    }),
+  ]);
+
+  const statusFilters = [
+    { label: 'All Jobs', value: 'all', count: allCount },
+    { label: 'Quoted', value: 'quoted', count: quotedCount },
+    { label: 'Approved', value: 'approved', count: approvedCount },
+    { label: 'Scheduled', value: 'scheduled', count: scheduledCount },
+    { label: 'In Progress', value: 'in_progress', count: inProgressCount },
+    { label: 'Completed', value: 'completed', count: completedCount },
+    { label: 'On Hold', value: 'on_hold', count: onHoldCount },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className='w-full space-y-4 sm:space-y-6'>
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
         <div>
-          <h1 className="text-3xl font-bold text-white">Jobs</h1>
-          <p className="text-white/70 mt-1">Manage all your projects and jobs</p>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-black mb-1'>
+            Jobs
+          </h1>
+          <p className='text-xs sm:text-sm text-black'>
+            Manage your projects from quote to completion
+          </p>
         </div>
-        <div className="flex gap-3">
-          <Link href="/contractor/jobs/new">
-            <Button className="bg-violet-600 hover:bg-violet-700 text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              New Job
-            </Button>
-          </Link>
-        </div>
+        <Link href='/contractor/leads'>
+          <Button className='bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-gray-900 border-2 border-black shadow-xl'>
+            <Plus className='h-4 w-4 mr-2' />
+            New Job from Lead
+          </Button>
+        </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-white">{stats.total}</p>
-            <p className="text-sm text-white/70">Total Jobs</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-violet-300">{stats.active}</p>
-            <p className="text-sm text-white/70">Active</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-amber-300">{stats.quoted}</p>
-            <p className="text-sm text-white/70">Quoted</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-emerald-300">{stats.completed}</p>
-            <p className="text-sm text-white/70">Completed</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters & Search */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/50" />
-              <input
-                type="text"
-                placeholder="Search jobs..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
-            </div>
-            <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" className="border-white/20 text-white hover:bg-white/10">
-                <List className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="border-white/20 text-white hover:bg-white/10">
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </div>
+      {/* Status Filters */}
+      <div className='relative rounded-xl border-2 border-black shadow-xl overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-r from-violet-100 to-purple-100' />
+        <div className='relative p-3 sm:p-4'>
+          <div className='flex items-center gap-2 mb-3'>
+            <Filter className='h-4 w-4 text-black' />
+            <h3 className='text-sm font-bold text-black'>Filter by Status</h3>
           </div>
-        </CardContent>
-      </Card>
+          <div className='flex flex-wrap gap-2'>
+            {statusFilters.map((filter) => {
+              const isActive = !statusFilter
+                ? filter.value === 'all'
+                : statusFilter === filter.value;
+
+              return (
+                <Link
+                  key={filter.value}
+                  href={`/contractor/jobs${filter.value !== 'all' ? `?status=${filter.value}` : ''}`}
+                >
+                  <Button
+                    variant={isActive ? 'default' : 'outline'}
+                    size='sm'
+                    className={
+                      isActive
+                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-gray-900 border-2 border-black'
+                        : 'bg-white text-black border-2 border-black hover:bg-violet-50'
+                    }
+                  >
+                    {filter.label}
+                    <span
+                      className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${
+                        isActive ? 'bg-white/20' : 'bg-black/10'
+                      }`}
+                    >
+                      {filter.count}
+                    </span>
+                  </Button>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* Jobs List */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
-        <CardHeader>
-          <CardTitle className="text-white">All Jobs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {jobs.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-white/70 text-lg mb-4">No jobs yet</p>
-              <Link href="/contractor/jobs/new">
-                <Button className="bg-violet-600 hover:bg-violet-700 text-white">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Job
-                </Button>
-              </Link>
+      <div className='relative rounded-xl border-2 border-black shadow-xl overflow-hidden bg-white'>
+        <div className='p-4'>
+          <JobsMobileList jobs={jobs} />
+          <JobsDesktopTable jobs={jobs} />
+        </div>
+      </div>
+
+      {/* Empty State */}
+      {jobs.length === 0 && (
+        <div className='relative rounded-xl border-2 border-black shadow-xl overflow-hidden'>
+          <div className='absolute inset-0 bg-gradient-to-r from-violet-100 to-purple-100' />
+          <div className='relative p-8 text-center'>
+            <div className='w-16 h-16 mx-auto mb-4 rounded-full bg-white border-2 border-black flex items-center justify-center'>
+              <Plus className='h-8 w-8 text-violet-600' />
             </div>
-          ) : (
-            <div className="space-y-3">
-              {jobs.map((job) => (
-                <Link
-                  key={job.id}
-                  href={`/contractor/jobs/${job.id}`}
-                  className="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-white truncate">{job.title}</h3>
-                        <Badge className={statusColors[job.status] || 'bg-gray-500/30 text-gray-200'}>
-                          {job.status.replace('_', ' ')}
-                        </Badge>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-white/60">
-                        <span className="font-mono">{job.jobNumber}</span>
-                        {job.customer && <span>{job.customer.name}</span>}
-                        {job.jobType && <span>{job.jobType}</span>}
-                        {job.address && <span>{job.address}</span>}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {job.estimatedCost && (
-                        <p className="text-lg font-semibold text-emerald-300">
-                          {formatCurrency(Number(job.estimatedCost))}
-                        </p>
-                      )}
-                      {job.estimatedStartDate && (
-                        <p className="text-sm text-white/60">
-                          Start: {new Date(job.estimatedStartDate).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            <h3 className='text-lg font-bold text-black mb-2'>No jobs yet</h3>
+            <p className='text-sm text-black/70 mb-4'>
+              Start by responding to leads from the marketplace and converting them to jobs.
+            </p>
+            <Link href='/contractor/leads'>
+              <Button className='bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-gray-900 border-2 border-black'>
+                View Leads
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

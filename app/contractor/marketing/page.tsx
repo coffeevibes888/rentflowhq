@@ -54,18 +54,18 @@ export default async function MarketingPage() {
   const openRate = stats.totalSent > 0 ? ((stats.totalOpened / stats.totalSent) * 100).toFixed(1) : '0';
 
   const statusColors: Record<string, string> = {
-    draft: 'bg-gray-500/30 text-gray-200',
-    scheduled: 'bg-blue-500/30 text-blue-200',
-    sending: 'bg-violet-500/30 text-violet-200',
-    sent: 'bg-emerald-500/30 text-emerald-200',
-    paused: 'bg-amber-500/30 text-amber-200',
+    draft: 'bg-gray-100 text-gray-700 border-gray-300',
+    scheduled: 'bg-blue-100 text-blue-700 border-blue-300',
+    sending: 'bg-violet-100 text-violet-700 border-violet-300',
+    sent: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    paused: 'bg-amber-100 text-amber-700 border-amber-300',
   };
 
   const referralStatusColors: Record<string, string> = {
-    pending: 'bg-amber-500/30 text-amber-200',
-    contacted: 'bg-blue-500/30 text-blue-200',
-    converted: 'bg-emerald-500/30 text-emerald-200',
-    lost: 'bg-red-500/30 text-red-200',
+    pending: 'bg-amber-100 text-amber-700 border-amber-300',
+    contacted: 'bg-blue-100 text-blue-700 border-blue-300',
+    converted: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    lost: 'bg-red-100 text-red-700 border-red-300',
   };
 
   return (
@@ -73,12 +73,12 @@ export default async function MarketingPage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Marketing Hub</h1>
-          <p className="text-white/70 mt-1">Grow your business with campaigns and referrals</p>
+          <h1 className="text-2xl font-bold text-blue-600">Marketing Hub</h1>
+          <p className="text-sm text-gray-600 mt-1">Grow your business with campaigns and referrals</p>
         </div>
         <div className="flex gap-3">
           <Link href="/contractor/marketing/campaigns/new">
-            <Button className="bg-violet-600 hover:bg-violet-700 text-white">
+            <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-gray-900 border-2 border-black shadow-lg">
               <Plus className="h-4 w-4 mr-2" />
               New Campaign
             </Button>
@@ -88,81 +88,73 @@ export default async function MarketingPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-violet-500/20">
-                <Send className="h-5 w-5 text-violet-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.totalCampaigns}</p>
-                <p className="text-sm text-white/70">Total Campaigns</p>
-              </div>
+        <div className="rounded-xl border-2 border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-violet-100">
+              <Send className="h-5 w-5 text-violet-600" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalCampaigns}</p>
+              <p className="text-sm text-gray-600">Total Campaigns</p>
+            </div>
+          </div>
+        </div>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-500/20">
-                <Mail className="h-5 w-5 text-emerald-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{openRate}%</p>
-                <p className="text-sm text-white/70">Open Rate</p>
-              </div>
+        <div className="rounded-xl border-2 border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-100">
+              <Mail className="h-5 w-5 text-emerald-600" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{openRate}%</p>
+              <p className="text-sm text-gray-600">Open Rate</p>
+            </div>
+          </div>
+        </div>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-cyan-500/20">
-                <Users className="h-5 w-5 text-cyan-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.totalReferrals}</p>
-                <p className="text-sm text-white/70">Total Referrals</p>
-              </div>
+        <div className="rounded-xl border-2 border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-cyan-100">
+              <Users className="h-5 w-5 text-cyan-600" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalReferrals}</p>
+              <p className="text-sm text-gray-600">Total Referrals</p>
+            </div>
+          </div>
+        </div>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/20">
-                <TrendingUp className="h-5 w-5 text-amber-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.convertedReferrals}</p>
-                <p className="text-sm text-white/70">Converted</p>
-              </div>
+        <div className="rounded-xl border-2 border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-100">
+              <TrendingUp className="h-5 w-5 text-amber-600" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.convertedReferrals}</p>
+              <p className="text-sm text-gray-600">Converted</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Campaigns */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white">Recent Campaigns</CardTitle>
+        <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
+          <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Recent Campaigns</h3>
             <Link href="/contractor/marketing/campaigns">
-              <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+              <Button variant="outline" size="sm" className="border-2 border-gray-300 hover:bg-gray-50">
                 View All
               </Button>
             </Link>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-5">
             {campaigns.length === 0 ? (
               <div className="text-center py-8">
-                <Mail className="h-12 w-12 mx-auto text-white/30 mb-4" />
-                <p className="text-white/70 mb-4">No campaigns yet</p>
+                <Mail className="h-12 w-12 mx-auto text-gray-600 mb-4" />
+                <p className="text-gray-600 mb-4">No campaigns yet</p>
                 <Link href="/contractor/marketing/campaigns/new">
-                  <Button className="bg-violet-600 hover:bg-violet-700 text-white">
+                  <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-gray-900">
                     Create First Campaign
                   </Button>
                 </Link>
@@ -173,25 +165,25 @@ export default async function MarketingPage() {
                   <Link
                     key={campaign.id}
                     href={`/contractor/marketing/campaigns/${campaign.id}`}
-                    className="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                    className="block p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-white">{campaign.name}</h4>
+                          <h4 className="font-semibold text-gray-900">{campaign.name}</h4>
                           <Badge className={statusColors[campaign.status]}>
                             {campaign.status}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          {campaign.type === 'email' && <Mail className="h-3 w-3 text-white/60" />}
-                          {campaign.type === 'sms' && <MessageSquare className="h-3 w-3 text-white/60" />}
-                          <span className="text-sm text-white/60">{campaign.type.toUpperCase()}</span>
+                          {campaign.type === 'email' && <Mail className="h-3 w-3 text-gray-500" />}
+                          {campaign.type === 'sms' && <MessageSquare className="h-3 w-3 text-gray-500" />}
+                          <span className="text-sm text-gray-500">{campaign.type.toUpperCase()}</span>
                         </div>
                       </div>
                     </div>
                     {campaign.status === 'sent' && (
-                      <div className="flex gap-4 text-sm text-white/60 mt-2">
+                      <div className="flex gap-4 text-sm text-gray-600 mt-2">
                         <span>Sent: {campaign.sent}</span>
                         <span>Opened: {campaign.opened}</span>
                         <span>Clicked: {campaign.clicked}</span>
@@ -201,25 +193,25 @@ export default async function MarketingPage() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Referrals */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white">Recent Referrals</CardTitle>
+        <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
+          <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Recent Referrals</h3>
             <Link href="/contractor/marketing/referrals">
-              <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+              <Button variant="outline" size="sm" className="border-2 border-gray-300 hover:bg-gray-50">
                 View All
               </Button>
             </Link>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-5">
             {referrals.length === 0 ? (
               <div className="text-center py-8">
-                <Users className="h-12 w-12 mx-auto text-white/30 mb-4" />
-                <p className="text-white/70 mb-2">No referrals yet</p>
-                <p className="text-sm text-white/50">
+                <Users className="h-12 w-12 mx-auto text-gray-600 mb-4" />
+                <p className="text-gray-600 mb-2">No referrals yet</p>
+                <p className="text-sm text-gray-500">
                   Encourage customers to refer friends and family
                 </p>
               </div>
@@ -228,12 +220,12 @@ export default async function MarketingPage() {
                 {referrals.map((referral) => (
                   <div
                     key={referral.id}
-                    className="p-4 rounded-lg bg-white/5 border border-white/10"
+                    className="p-4 rounded-lg bg-gray-50 border border-gray-200"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-white">{referral.referredName}</h4>
-                        <p className="text-sm text-white/60">
+                        <h4 className="font-semibold text-gray-900">{referral.referredName}</h4>
+                        <p className="text-sm text-gray-600">
                           Referred by {referral.referrer.name}
                         </p>
                       </div>
@@ -242,58 +234,52 @@ export default async function MarketingPage() {
                       </Badge>
                     </div>
                     {referral.referredEmail && (
-                      <p className="text-sm text-white/60">{referral.referredEmail}</p>
+                      <p className="text-sm text-gray-600">{referral.referredEmail}</p>
                     )}
                     {referral.referredPhone && (
-                      <p className="text-sm text-white/60">{referral.referredPhone}</p>
+                      <p className="text-sm text-gray-600">{referral.referredPhone}</p>
                     )}
                   </div>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
-        <CardHeader>
-          <CardTitle className="text-white">Marketing Tools</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
+        <div className="p-5 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Marketing Tools</h3>
+        </div>
+        <div className="p-5">
           <div className="grid md:grid-cols-3 gap-4">
             <Link href="/contractor/marketing/campaigns/new">
-              <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer h-full">
-                <CardContent className="p-6 text-center">
-                  <Mail className="h-10 w-10 mx-auto text-violet-300 mb-3" />
-                  <h3 className="font-semibold text-white mb-2">Email Campaign</h3>
-                  <p className="text-sm text-white/60">Send emails to your customers</p>
-                </CardContent>
-              </Card>
+              <div className="rounded-lg bg-gray-50 border-2 border-gray-200 hover:border-blue-300 hover:bg-gray-100 transition-all cursor-pointer h-full p-6 text-center">
+                <Mail className="h-10 w-10 mx-auto text-violet-600 mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-2">Email Campaign</h3>
+                <p className="text-sm text-gray-600">Send emails to your customers</p>
+              </div>
             </Link>
 
             <Link href="/contractor/marketing/campaigns/new?type=sms">
-              <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer h-full">
-                <CardContent className="p-6 text-center">
-                  <MessageSquare className="h-10 w-10 mx-auto text-emerald-300 mb-3" />
-                  <h3 className="font-semibold text-white mb-2">SMS Campaign</h3>
-                  <p className="text-sm text-white/60">Send text messages to customers</p>
-                </CardContent>
-              </Card>
+              <div className="rounded-lg bg-gray-50 border-2 border-gray-200 hover:border-blue-300 hover:bg-gray-100 transition-all cursor-pointer h-full p-6 text-center">
+                <MessageSquare className="h-10 w-10 mx-auto text-emerald-600 mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-2">SMS Campaign</h3>
+                <p className="text-sm text-gray-600">Send text messages to customers</p>
+              </div>
             </Link>
 
             <Link href="/contractor/marketing/referrals">
-              <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer h-full">
-                <CardContent className="p-6 text-center">
-                  <Users className="h-10 w-10 mx-auto text-cyan-300 mb-3" />
-                  <h3 className="font-semibold text-white mb-2">Referral Program</h3>
-                  <p className="text-sm text-white/60">Track customer referrals</p>
-                </CardContent>
-              </Card>
+              <div className="rounded-lg bg-gray-50 border-2 border-gray-200 hover:border-blue-300 hover:bg-gray-100 transition-all cursor-pointer h-full p-6 text-center">
+                <Users className="h-10 w-10 mx-auto text-cyan-600 mb-3" />
+                <h3 className="font-semibold text-gray-900 mb-2">Referral Program</h3>
+                <p className="text-sm text-gray-600">Track customer referrals</p>
+              </div>
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

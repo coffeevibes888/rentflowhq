@@ -35,17 +35,23 @@ export async function POST(request: Request) {
     const clockOut = new Date();
     const duration = Math.floor((clockOut.getTime() - entry.clockIn.getTime()) / 60000); // minutes
 
+    const updateData: any = {
+      clockOut,
+      duration,
+    };
+
+    // Only add clockOutLocation if location data is provided
+    if (body.location) {
+      updateData.clockOutLocation = {
+        lat: body.location.lat,
+        lng: body.location.lng,
+        timestamp: clockOut.toISOString(),
+      };
+    }
+
     const updatedEntry = await prisma.contractorTimeEntry.update({
       where: { id: entry.id },
-      data: {
-        clockOut,
-        duration,
-        clockOutLocation: body.location ? {
-          lat: body.location.lat,
-          lng: body.location.lng,
-          timestamp: clockOut.toISOString(),
-        } : null,
-      },
+      data: updateData,
     });
 
     await eventBus.emit('contractor.time.clock_out', {

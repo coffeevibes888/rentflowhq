@@ -33,28 +33,28 @@ export default async function ContractorPortfolioPage() {
 
       {/* Upload Options */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-white/80 backdrop-blur-sm border-white/20 hover:border-violet-400/60 transition-colors cursor-pointer">
+        <Card className="bg-white/80 backdrop-blur-sm border-gray-300 hover:border-violet-400/60 transition-colors cursor-pointer">
           <CardContent className="p-6 text-center">
             <Camera className="h-10 w-10 mx-auto text-violet-600 mb-3" />
             <h3 className="font-semibold text-slate-900 mb-1">Take Photo</h3>
             <p className="text-xs text-slate-500">Capture work in progress</p>
           </CardContent>
         </Card>
-        <Card className="bg-white/80 backdrop-blur-sm border-white/20 hover:border-blue-400/60 transition-colors cursor-pointer">
+        <Card className="bg-white/80 backdrop-blur-sm border-gray-300 hover:border-blue-400/60 transition-colors cursor-pointer">
           <CardContent className="p-6 text-center">
             <Video className="h-10 w-10 mx-auto text-blue-600 mb-3" />
             <h3 className="font-semibold text-slate-900 mb-1">Record Video</h3>
             <p className="text-xs text-slate-500">Show your process</p>
           </CardContent>
         </Card>
-        <Card className="bg-white/80 backdrop-blur-sm border-white/20 hover:border-emerald-400/60 transition-colors cursor-pointer">
+        <Card className="bg-white/80 backdrop-blur-sm border-gray-300 hover:border-emerald-400/60 transition-colors cursor-pointer">
           <CardContent className="p-6 text-center">
             <ImageIcon className="h-10 w-10 mx-auto text-emerald-600 mb-3" />
             <h3 className="font-semibold text-slate-900 mb-1">Upload Images</h3>
             <p className="text-xs text-slate-500">From your device</p>
           </CardContent>
         </Card>
-        <Card className="bg-white/80 backdrop-blur-sm border-white/20 hover:border-amber-400/60 transition-colors cursor-pointer">
+        <Card className="bg-white/80 backdrop-blur-sm border-gray-300 hover:border-amber-400/60 transition-colors cursor-pointer">
           <CardContent className="p-6 text-center">
             <FolderOpen className="h-10 w-10 mx-auto text-amber-600 mb-3" />
             <h3 className="font-semibold text-slate-900 mb-1">Before/After</h3>
@@ -64,7 +64,7 @@ export default async function ContractorPortfolioPage() {
       </div>
 
       {/* Portfolio Grid */}
-      <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+      <Card className="bg-white/80 backdrop-blur-sm border-gray-300">
         <CardHeader>
           <CardTitle className="text-slate-900">Work Documentation</CardTitle>
         </CardHeader>
@@ -94,7 +94,7 @@ export default async function ContractorPortfolioPage() {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <p className="text-white text-sm font-medium">{item.title}</p>
+                    <p className="text-gray-900 text-sm font-medium">{item.title}</p>
                   </div>
                 </div>
               ))}
@@ -104,10 +104,10 @@ export default async function ContractorPortfolioPage() {
       </Card>
 
       {/* Tips */}
-      <Card className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-white/20 shadow-xl">
+      <Card className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-gray-300 shadow-xl">
         <CardContent className="p-6">
-          <h3 className="font-semibold text-white mb-3">📸 Documentation Tips</h3>
-          <ul className="text-sm text-white/90 space-y-2">
+          <h3 className="font-semibold text-gray-900 mb-3">📸 Documentation Tips</h3>
+          <ul className="text-sm text-gray-900/90 space-y-2">
             <li>• Take "before" photos when you arrive at a job</li>
             <li>• Document any existing damage or issues</li>
             <li>• Capture progress photos during the work</li>

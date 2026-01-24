@@ -140,12 +140,12 @@ export default function LeadsClient({
 
   const getUrgencyColor = (urgency: string) => {
     const colors: Record<string, string> = {
-      emergency: 'bg-red-500 text-white',
-      urgent: 'bg-orange-500 text-white',
-      normal: 'bg-blue-500 text-white',
-      flexible: 'bg-slate-500 text-white',
+      emergency: 'bg-red-500 text-gray-900',
+      urgent: 'bg-orange-500 text-gray-900',
+      normal: 'bg-blue-500 text-gray-900',
+      flexible: 'bg-slate-500 text-gray-900',
     };
-    return colors[urgency] || 'bg-slate-500 text-white';
+    return colors[urgency] || 'bg-slate-500 text-gray-900';
   };
 
   return (
@@ -153,23 +153,23 @@ export default function LeadsClient({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-blue-600 flex items-center gap-2">
             <Inbox className="h-8 w-8" />
             Lead Inbox
           </h1>
-          <p className="text-white/70 mt-1">Manage your project leads and send quotes</p>
+          <p className="text-gray-600 mt-1">Manage your project leads and send quotes</p>
         </div>
 
         {/* Credit Balance */}
         {leadCredit && (
-          <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 border-0 text-white">
+          <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 border-0 text-gray-900">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
                   <Sparkles className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-sm text-white/80">Lead Credits</p>
+                  <p className="text-sm text-gray-900/80">Lead Credits</p>
                   <p className="text-2xl font-bold">{leadCredit.balance}</p>
                 </div>
               </div>
@@ -180,57 +180,57 @@ export default function LeadsClient({
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="border-2 border-gray-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/20">
-                <Clock className="h-5 w-5 text-amber-300" />
+              <div className="p-2 rounded-lg bg-amber-100">
+                <Clock className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.pending}</p>
-                <p className="text-sm text-white/70">Pending</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+                <p className="text-sm text-gray-600">Pending</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="border-2 border-gray-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-indigo-500/20">
                 <CheckCircle2 className="h-5 w-5 text-indigo-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.responded}</p>
-                <p className="text-sm text-white/70">Responded</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.responded}</p>
+                <p className="text-sm text-gray-600">Responded</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="border-2 border-gray-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-purple-500/20">
                 <FileText className="h-5 w-5 text-purple-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.quoted}</p>
-                <p className="text-sm text-white/70">Quoted</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.quoted}</p>
+                <p className="text-sm text-gray-600">Quoted</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="border-2 border-gray-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-500/20">
-                <TrendingUp className="h-5 w-5 text-emerald-300" />
+              <div className="p-2 rounded-lg bg-emerald-100">
+                <TrendingUp className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.won}</p>
-                <p className="text-sm text-white/70">Won</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.won}</p>
+                <p className="text-sm text-gray-600">Won</p>
               </div>
             </div>
           </CardContent>
@@ -238,17 +238,17 @@ export default function LeadsClient({
       </div>
 
       {/* Filters */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+      <Card className="border-2 border-gray-200 bg-white shadow-sm">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search leads..."
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                  className="pl-10 bg-white/10 border-gray-300 text-gray-900 placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -257,7 +257,7 @@ export default function LeadsClient({
                 variant={selectedStatus === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedStatus('all')}
-                className={selectedStatus === 'all' ? '' : 'border-white/20 text-white hover:bg-white/10'}
+                className={selectedStatus === 'all' ? '' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}
               >
                 All
               </Button>
@@ -265,7 +265,7 @@ export default function LeadsClient({
                 variant={selectedStatus === 'pending' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedStatus('pending')}
-                className={selectedStatus === 'pending' ? '' : 'border-white/20 text-white hover:bg-white/10'}
+                className={selectedStatus === 'pending' ? '' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}
               >
                 Pending
               </Button>
@@ -273,7 +273,7 @@ export default function LeadsClient({
                 variant={selectedStatus === 'quoted' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedStatus('quoted')}
-                className={selectedStatus === 'quoted' ? '' : 'border-white/20 text-white hover:bg-white/10'}
+                className={selectedStatus === 'quoted' ? '' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}
               >
                 Quoted
               </Button>
@@ -285,12 +285,12 @@ export default function LeadsClient({
       {/* Leads List */}
       <div className="space-y-4">
         {filteredLeads.length === 0 ? (
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="border-2 border-gray-200 bg-white shadow-sm">
             <CardContent className="py-16">
               <div className="text-center">
-                <Inbox className="h-16 w-16 mx-auto text-white/30 mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">No leads found</h3>
-                <p className="text-white/70">
+                <Inbox className="h-16 w-16 mx-auto text-gray-900/30 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No leads found</h3>
+                <p className="text-gray-600">
                   {searchQuery || selectedStatus !== 'all'
                     ? 'Try adjusting your filters'
                     : 'New leads will appear here'}
@@ -306,7 +306,7 @@ export default function LeadsClient({
             return (
               <Card
                 key={match.id}
-                className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-colors"
+                className="border-2 border-gray-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-colors"
               >
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row gap-6">
@@ -315,7 +315,7 @@ export default function LeadsClient({
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <h3 className="font-bold text-xl text-white">
+                            <h3 className="font-bold text-xl text-gray-900">
                               {lead.projectTitle || lead.projectType}
                             </h3>
                             <Badge className={`${getStatusColor(match.status)} border`}>
@@ -325,19 +325,19 @@ export default function LeadsClient({
                               {lead.urgency}
                             </Badge>
                           </div>
-                          <p className="text-white/80 text-sm mb-2">
+                          <p className="text-gray-900/80 text-sm mb-2">
                             {lead.customerName} • {lead.customerEmail}
                           </p>
                         </div>
                       </div>
 
-                      <p className="text-white/90 leading-relaxed">
+                      <p className="text-gray-900/90 leading-relaxed">
                         {lead.projectDescription}
                       </p>
 
                       <div className="grid md:grid-cols-3 gap-3 text-sm">
                         {lead.budgetMin && lead.budgetMax && (
-                          <div className="flex items-center gap-2 text-white/80">
+                          <div className="flex items-center gap-2 text-gray-900/80">
                             <DollarSign className="h-4 w-4 text-emerald-400" />
                             <span>
                               {formatCurrency(Number(lead.budgetMin))} - {formatCurrency(Number(lead.budgetMax))}
@@ -345,13 +345,13 @@ export default function LeadsClient({
                           </div>
                         )}
                         {lead.timeline && (
-                          <div className="flex items-center gap-2 text-white/80">
+                          <div className="flex items-center gap-2 text-gray-900/80">
                             <Calendar className="h-4 w-4 text-blue-400" />
                             <span className="capitalize">{lead.timeline.replace('_', ' ')}</span>
                           </div>
                         )}
                         {lead.propertyCity && lead.propertyState && (
-                          <div className="flex items-center gap-2 text-white/80">
+                          <div className="flex items-center gap-2 text-gray-900/80">
                             <MapPin className="h-4 w-4 text-violet-400" />
                             <span>
                               {lead.propertyCity}, {lead.propertyState}
@@ -368,7 +368,7 @@ export default function LeadsClient({
                               style={{ width: `${match.matchScore}%` }}
                             />
                           </div>
-                          <span className="text-white/70">{match.matchScore}% match</span>
+                          <span className="text-gray-600">{match.matchScore}% match</span>
                         </div>
                       )}
                     </div>
@@ -393,7 +393,7 @@ export default function LeadsClient({
                             onClick={() => handleRejectLead(match.id)}
                             disabled={isProcessing}
                             variant="outline"
-                            className="w-full border-white/20 text-white hover:bg-white/10"
+                            className="w-full border-gray-300 text-gray-900 hover:bg-gray-100"
                           >
                             <XCircle className="h-4 w-4 mr-2" />
                             Decline
@@ -412,22 +412,22 @@ export default function LeadsClient({
                       {match.status === 'quoted' && (
                         <div className="bg-purple-500/20 border border-purple-400/30 rounded-lg p-3 text-center">
                           <FileText className="h-6 w-6 text-purple-300 mx-auto mb-1" />
-                          <p className="text-sm font-semibold text-white">Quote Sent</p>
-                          <p className="text-xs text-white/70 mt-1">
+                          <p className="text-sm font-semibold text-gray-900">Quote Sent</p>
+                          <p className="text-xs text-gray-600 mt-1">
                             {formatCurrency(Number(match.quoteAmount))}
                           </p>
                         </div>
                       )}
 
                       {match.status === 'won' && (
-                        <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 text-center">
-                          <TrendingUp className="h-6 w-6 text-emerald-300 mx-auto mb-1" />
-                          <p className="text-sm font-semibold text-white">Won!</p>
+                        <div className="bg-emerald-100 border border-emerald-400/30 rounded-lg p-3 text-center">
+                          <TrendingUp className="h-6 w-6 text-emerald-600 mx-auto mb-1" />
+                          <p className="text-sm font-semibold text-gray-900">Won!</p>
                         </div>
                       )}
 
                       {match.leadCost && (
-                        <div className="text-xs text-white/60 text-center">
+                        <div className="text-xs text-gray-500 text-center">
                           Lead cost: {formatCurrency(Number(match.leadCost))}
                         </div>
                       )}

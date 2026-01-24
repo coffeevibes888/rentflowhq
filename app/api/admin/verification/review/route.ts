@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
             action === 'approve'
               ? `Your ${field} verification has been approved!`
               : `Your ${field} verification was rejected. ${notes || 'Please resubmit.'}`,
-          read: false,
+          actionUrl: '/contractor/verification',
         },
       });
     } catch (error) {

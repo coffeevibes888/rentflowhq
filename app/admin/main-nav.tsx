@@ -60,10 +60,10 @@ const MainNav = ({
             href={item.href}
             title={item.title}
             className={cn(
-              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 overflow-hidden',
+              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 overflow-hidden border-b border-black',
               isActive 
                 ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-blue-500/20' 
-                : 'hover:bg-white/30'
+                : 'hover:bg-gradient-to-r hover:from-cyan-100 hover:to-blue-100 hover:shadow-md hover:scale-105'
             )}
           >
             <Icon className={cn(

@@ -38,8 +38,16 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // Convert File to Buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     // Upload to Cloudinary using service
-    const result = await depositService.uploadEvidence(file);
+    const result = await depositService.uploadEvidence(
+      buffer,
+      file.name,
+      file.type
+    );
 
     return NextResponse.json({
       success: true,
