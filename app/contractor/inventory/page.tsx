@@ -11,9 +11,12 @@ import {
   Plus,
   Download,
   Search,
+  Lock,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { InventoryList } from '@/components/contractor/inventory-list';
+import { canAccessFeature } from '@/lib/services/contractor-feature-gate';
 
 export default async function InventoryPage() {
   const session = await auth();
@@ -24,11 +27,56 @@ export default async function InventoryPage() {
 
   const contractorProfile = await prisma.contractorProfile.findUnique({
     where: { userId: session.user.id },
-    select: { id: true, businessName: true },
+    select: { 
+      id: true, 
+      businessName: true,
+      subscriptionTier: true,
+    },
   });
 
   if (!contractorProfile) {
     redirect('/onboarding/contractor');
+  }
+
+  // Check inventory feature access
+  const featureAccess = await canAccessFeature(contractorProfile.id, 'inventory');
+  
+  if (!featureAccess.allowed) {
+    return (
+      <main className="w-full px-4 py-10 md:px-0">
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/10 p-8 text-center">
+            <Lock className="h-12 w-12 text-green-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-semibold text-white mb-2">Inventory Management</h1>
+            <p className="text-slate-300 mb-6">
+              Inventory management is available on the Pro plan. Upgrade to track materials, 
+              manage stock levels, and optimize your supply chain.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center mb-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                📦 Stock Tracking
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                🔔 Low Stock Alerts
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                💰 Cost Management
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                📊 Usage Reports
+              </div>
+            </div>
+            <Link
+              href="/contractor/settings/subscription"
+              className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+            >
+              <Zap className="h-5 w-5" />
+              Upgrade to Pro
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   // Fetch inventory items

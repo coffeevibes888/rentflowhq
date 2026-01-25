@@ -3,10 +3,16 @@ import { prisma } from '@/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { sendContractorLeadNotification, sendCustomerLeadConfirmation } from '@/lib/services/marketplace-email';
 import { dbTriggers } from '@/lib/event-system';
+import { canAccessFeature, checkLimit } from '@/lib/services/contractor-feature-gate';
+import { incrementLeadCount, decrementLeadCount } from '@/lib/services/contractor-usage-tracker';
+import { createNotification } from '@/lib/services/contractor-notification-service';
 
 /**
  * Create a new contractor lead
  * POST /api/contractor/leads
+ * 
+ * Feature Gate: Requires 'leadManagement' feature (Pro or Enterprise tier)
+ * Limit: Pro tier limited to 100 active leads, Enterprise unlimited
  */
 export async function POST(req: NextRequest) {
   try {
@@ -58,6 +64,39 @@ export async function POST(req: NextRequest) {
         where: { id: finalContractorId },
         select: { id: true, email: true, businessName: true, displayName: true }
       });
+    }
+
+    // Feature gate check: If contractor is specified, check their lead management access
+    if (finalContractorId) {
+      const featureAccess = await canAccessFeature(finalContractorId, 'leadManagement');
+      if (!featureAccess.allowed) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Feature locked',
+            message: 'Lead management requires Pro plan or higher',
+            requiredTier: 'pro',
+            currentTier: featureAccess.tier,
+          },
+          { status: 403 }
+        );
+      }
+
+      // Check lead limit
+      const limitCheck = await checkLimit(finalContractorId, 'activeLeads');
+      if (!limitCheck.allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Limit reached',
+            message: `Lead limit reached (${limitCheck.current}/${limitCheck.limit}). Upgrade to add more leads.`,
+            current: limitCheck.current,
+            limit: limitCheck.limit,
+            requiredTier: 'enterprise',
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Calculate lead score based on completeness and quality signals
@@ -121,6 +160,9 @@ export async function POST(req: NextRequest) {
     // If preselected contractor, create match immediately
     if (finalContractorId) {
       await createLeadMatch(lead.id, finalContractorId, true);
+      
+      // Increment lead count for usage tracking
+      await incrementLeadCount(finalContractorId);
       
       // Notify Contractor
       if (selectedContractor) {

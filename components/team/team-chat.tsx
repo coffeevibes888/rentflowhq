@@ -101,6 +101,7 @@ interface TeamChatProps {
   teamMembers?: TeamMemberData[];
   canManageTeam?: boolean;
   onRolesClick?: () => void;
+  apiPrefix?: string; // 'landlord' or 'contractor'
 }
 
 const STATUS_COLORS = {
@@ -117,6 +118,7 @@ export function TeamChat({
   teamMembers: initialTeamMembers = [],
   canManageTeam = false,
   onRolesClick,
+  apiPrefix = 'landlord',
 }: TeamChatProps) {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
@@ -131,7 +133,7 @@ export function TeamChat({
   const loadChannels = useCallback(async () => {
     try {
       console.log('Loading channels...');
-      const res = await fetch('/api/landlord/team/channels');
+      const res = await fetch(`/api/${apiPrefix}/team/channels`);
       const data = await res.json();
       console.log('Channels response:', data);
       if (data.success && data.channels && data.channels.length > 0) {
@@ -151,7 +153,7 @@ export function TeamChat({
       setActiveChannel(null);
       setChannelLoadError('Failed to load chat channels');
     }
-  }, []);
+  }, [apiPrefix]);
 
   // Load channels on mount
   useEffect(() => {
@@ -188,7 +190,7 @@ export function TeamChat({
   useEffect(() => {
     const loadMembers = async () => {
       try {
-        const res = await fetch('/api/landlord/team/members');
+        const res = await fetch(`/api/${apiPrefix}/team/members`);
         const data = await res.json();
         if (data.success && data.members) {
           setTeamMembersData(data.members);
@@ -213,7 +215,7 @@ export function TeamChat({
       }
     };
     loadMembers();
-  }, [currentUser]);
+  }, [currentUser, apiPrefix]);
 
   // WebSocket integration
   const {

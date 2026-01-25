@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
         type: 'express',
         email: contractor.email || session.user.email || undefined,
         capabilities: {
+          card_payments: { requested: true },
           transfers: { requested: true },
         },
         business_type: 'individual',
@@ -146,6 +147,7 @@ export async function POST(req: NextRequest) {
         type: 'express',
         email: contractor.email || session.user.email || undefined,
         capabilities: {
+          card_payments: { requested: true },
           transfers: { requested: true },
         },
         metadata: {

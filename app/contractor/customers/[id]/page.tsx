@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Mail, Phone, MapPin, Briefcase, DollarSign } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, MapPin, Briefcase, DollarSign, Lock, Zap } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { JobStatusBadge } from '@/components/contractor/job-status-badge';
 
@@ -27,6 +27,36 @@ export default async function CustomerDetailPage({
 
   if (!contractorProfile) {
     return redirect('/contractor/profile');
+  }
+
+  // Determine subscription tier
+  const tier = contractorProfile.subscriptionTier || 'starter';
+
+  // Check if CRM feature is available
+  const hasCRMAccess = tier === 'pro' || tier === 'enterprise';
+
+  if (!hasCRMAccess) {
+    return (
+      <main className="w-full px-4 py-10 md:px-0">
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/10 p-8 text-center">
+            <Lock className="h-12 w-12 text-violet-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-semibold text-white mb-2">Customer CRM</h1>
+            <p className="text-slate-300 mb-6">
+              Customer relationship management features are available on the Pro plan. 
+              Upgrade to manage customers, track communication history, and grow your business.
+            </p>
+            <Link
+              href="/contractor/settings/subscription"
+              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+            >
+              <Zap className="h-5 w-5" />
+              Upgrade to Pro
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   const customer = await prisma.contractorCustomer.findFirst({

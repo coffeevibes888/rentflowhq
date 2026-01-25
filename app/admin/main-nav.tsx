@@ -51,7 +51,10 @@ const MainNav = ({
     >
       {visibleLinks.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname.startsWith(item.href);
+        // Special handling for dashboard - exact match only
+        const isActive = item.href === '/admin/overview' 
+          ? pathname === '/admin/overview'
+          : pathname.startsWith(item.href);
         const showProBadge = item.proOnly && !isPro;
 
         return (

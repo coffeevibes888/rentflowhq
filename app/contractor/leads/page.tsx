@@ -3,6 +3,9 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { LeadsKanban } from '@/components/contractor/leads-kanban';
+import { canAccessFeature } from '@/lib/services/contractor-feature-gate';
+import { Lock, Zap } from 'lucide-react';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Leads | Contractor Dashboard',
@@ -27,6 +30,47 @@ export default async function ContractorLeadsPage() {
 
   if (!contractorProfile) {
     redirect('/onboarding/contractor');
+  }
+
+  // Check lead management feature access
+  const featureAccess = await canAccessFeature(contractorProfile.id, 'leadManagement');
+  
+  if (!featureAccess.allowed) {
+    return (
+      <main className="w-full px-4 py-10 md:px-0">
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 p-8 text-center">
+            <Lock className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-semibold text-white mb-2">Lead Management</h1>
+            <p className="text-slate-300 mb-6">
+              Lead management is available on the Pro plan. Upgrade to track leads, 
+              manage your pipeline, and convert more opportunities into jobs.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center mb-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                📊 Lead Pipeline
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                🎯 Lead Scoring
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                📈 Conversion Tracking
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                ✉️ Follow-up Reminders
+              </div>
+            </div>
+            <Link
+              href="/contractor/settings/subscription"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+            >
+              <Zap className="h-5 w-5" />
+              Upgrade to Pro
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   // Fetch all lead matches for this contractor

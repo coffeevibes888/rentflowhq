@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { NextResponse } from 'next/server';
 import { eventBus } from '@/lib/event-system';
+import { decrementJobCount } from '@/lib/services/contractor-usage-tracker';
 
 // GET - Get single job
 export async function GET(
@@ -146,6 +147,11 @@ export async function PATCH(
         newStatus: job.status,
         jobNumber: job.jobNumber,
       });
+
+      // Decrement job count when job is completed or archived
+      if (body.status === 'completed' || body.status === 'archived') {
+        await decrementJobCount(contractorProfile.id);
+      }
     }
 
     return NextResponse.json({ job });

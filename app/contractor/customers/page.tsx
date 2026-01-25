@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, Mail, Phone, Briefcase } from 'lucide-react';
+import { Plus, Search, Filter, Mail, Phone, Briefcase, Lock, Zap } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { checkLimit } from '@/lib/services/contractor-feature-gate';
+import { CustomersHeader } from '@/components/contractor/customers-header';
 
 export default async function CustomersPage() {
   const session = await auth();
@@ -23,6 +25,36 @@ export default async function CustomersPage() {
     return redirect('/contractor/profile');
   }
 
+  // Determine subscription tier
+  const tier = contractorProfile.subscriptionTier || 'starter';
+
+  // Check if CRM feature is available
+  const hasCRMAccess = tier === 'pro' || tier === 'enterprise';
+
+  if (!hasCRMAccess) {
+    return (
+      <main className="w-full px-4 py-10 md:px-0">
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/10 p-8 text-center">
+            <Lock className="h-12 w-12 text-violet-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-semibold text-white mb-2">Customer CRM</h1>
+            <p className="text-slate-300 mb-6">
+              Customer relationship management features are available on the Pro plan. 
+              Upgrade to manage customers, track communication history, and grow your business.
+            </p>
+            <Link
+              href="/contractor/settings/subscription"
+              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+            >
+              <Zap className="h-5 w-5" />
+              Upgrade to Pro
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const customers = await prisma.contractorCustomer.findMany({
     where: { contractorId: contractorProfile.id },
     include: {
@@ -34,6 +66,9 @@ export default async function CustomersPage() {
     },
     orderBy: { createdAt: 'desc' },
   });
+
+  // Get subscription limit info
+  const limitInfo = await checkLimit(contractorProfile.id, 'customers');
 
   // Calculate stats
   const stats = {
@@ -53,18 +88,7 @@ export default async function CustomersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Customers</h1>
-          <p className="text-slate-600 mt-1">Manage your customer relationships</p>
-        </div>
-        <Link href="/contractor/customers/new">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-gray-900">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Customer
-          </Button>
-        </Link>
-      </div>
+      <CustomersHeader limitInfo={limitInfo} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

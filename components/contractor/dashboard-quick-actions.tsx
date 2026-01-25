@@ -76,7 +76,7 @@ export function DashboardQuickActions() {
       {/* Browse Jobs */}
       <Button
         onClick={() => router.push('/contractors?view=jobs')}
-        className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-2 border-black shadow-xl'
+        className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-blue-600 via-blue-400 to-indigo-600 border border-black shadow-2xl'
       >
         <Briefcase className='h-6 w-6' />
         <span className='text-sm font-semibold'>Browse Jobs</span>
@@ -85,7 +85,7 @@ export function DashboardQuickActions() {
       {/* Create Quote */}
       <Button
         onClick={() => router.push('/contractor/leads')}
-        className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-2 border-black shadow-xl'
+        className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-blue-600 via-blue-400 to-indigo-600 border border-black shadow-2xl'
       >
         <FileText className='h-6 w-6' />
         <span className='text-sm font-semibold'>Create Quote</span>
@@ -95,7 +95,7 @@ export function DashboardQuickActions() {
       <Dialog open={isClockDialogOpen} onOpenChange={setIsClockDialogOpen}>
         <DialogTrigger asChild>
           <Button
-            className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-2 border-black shadow-xl'
+            className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-blue-600 via-blue-400 to-indigo-600 border border-black shadow-2xl'
           >
             <Clock className='h-6 w-6' />
             <span className='text-sm font-semibold'>Clock In/Out</span>
@@ -134,7 +134,7 @@ export function DashboardQuickActions() {
       {/* View Leads */}
       <Button
         onClick={() => router.push('/contractor/leads')}
-        className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-2 border-black shadow-xl'
+        className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-blue-600 via-blue-400 to-indigo-600 border border-black shadow-2xl'
       >
         <TrendingUp className='h-6 w-6' />
         <span className='text-sm font-semibold'>View Leads</span>

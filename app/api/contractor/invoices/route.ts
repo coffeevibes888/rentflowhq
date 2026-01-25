@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { checkLimit } from '@/lib/services/contractor-feature-gate';
+import { incrementInvoiceCount } from '@/lib/services/contractor-usage-tracker';
+import { runBackgroundOps, runMonthlyResetOnly } from '@/lib/middleware/contractor-background-ops';
+import { 
+  SubscriptionLimitError, 
+  formatSubscriptionError, 
+  logSubscriptionError 
+} from '@/lib/errors/subscription-errors';
 
 // GET - List invoices
 export async function GET(request: NextRequest) {
@@ -22,6 +30,9 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    // Run background operations
+    await runBackgroundOps(contractorProfile.id);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -65,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     const contractorProfile = await prisma.contractorProfile.findUnique({
       where: { userId: session.user.id },
-      select: { id: true },
+      select: { id: true, subscriptionTier: true },
     });
 
     if (!contractorProfile) {
@@ -73,6 +84,29 @@ export async function POST(request: NextRequest) {
         { error: 'Contractor profile not found' },
         { status: 404 }
       );
+    }
+
+    // Run monthly reset before creating invoice (ensures counters are accurate)
+    await runMonthlyResetOnly(contractorProfile.id);
+
+    // Check subscription limit for invoices per month
+    const limitCheck = await checkLimit(contractorProfile.id, 'invoicesPerMonth');
+    if (!limitCheck.allowed) {
+      const error = new SubscriptionLimitError(
+        'invoices per month',
+        limitCheck.current,
+        limitCheck.limit,
+        contractorProfile.subscriptionTier || 'starter'
+      );
+      
+      logSubscriptionError(error, {
+        contractorId: contractorProfile.id,
+        feature: 'invoicesPerMonth',
+        action: 'create_invoice',
+      });
+      
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
     }
 
     const body = await request.json();
@@ -128,9 +162,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Increment invoice count after successful creation
+    await incrementInvoiceCount(contractorProfile.id);
+
     return NextResponse.json({ invoice }, { status: 201 });
   } catch (error) {
+    // Handle subscription errors
+    if (error instanceof SubscriptionLimitError) {
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
+    }
+    
     console.error('Error creating invoice:', error);
+    logSubscriptionError(error, {
+      action: 'create_invoice',
+      error: 'unexpected_error',
+    });
     return NextResponse.json(
       { error: 'Failed to create invoice' },
       { status: 500 }

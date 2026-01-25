@@ -218,21 +218,18 @@ export default async function ContractorDashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className='relative rounded-2xl border-2 border-black shadow-xl overflow-hidden'>
+      <div className='relative rounded-2xl border border-black shadow-xl overflow-hidden'>
         <div className='absolute inset-0 bg-gradient-to-br from-cyan-400 via-blue-400 to-blue-500' />
         <div className='relative p-6'>
           <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-lg font-bold text-black'>Your Dashboard</h3>
-            <span className='text-xs text-black bg-white/30 px-2 py-1 rounded-full font-semibold'>
-              Live
-            </span>
+            <h3 className='text-lg font-bold text-white'>Your Dashboard</h3>
           </div>
 
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
             {/* Leads This Week */}
             <Link
               href='/contractor/leads'
-              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+              className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-xs text-black font-medium'>Leads This Week</div>
@@ -247,7 +244,7 @@ export default async function ContractorDashboardPage() {
             {/* Active Jobs */}
             <Link
               href='/contractor/jobs'
-              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+              className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-xs text-black font-medium'>Active Jobs</div>
@@ -262,7 +259,7 @@ export default async function ContractorDashboardPage() {
             {/* Pending Quotes */}
             <Link
               href='/contractor/operations?tab=estimates'
-              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+              className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-xs text-black font-medium'>Pending Quotes</div>
@@ -277,7 +274,7 @@ export default async function ContractorDashboardPage() {
             {/* Revenue This Month */}
             <Link
               href='/contractor/finance'
-              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+              className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-xs text-black font-medium'>Revenue (Month)</div>
@@ -294,7 +291,7 @@ export default async function ContractorDashboardPage() {
             {/* Team Members */}
             <Link
               href='/contractor/team'
-              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+              className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-xs text-black font-medium'>Team Members</div>
@@ -305,7 +302,7 @@ export default async function ContractorDashboardPage() {
             </Link>
 
             {/* Conversion Rate */}
-            <div className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2'>
+            <div className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
               <div className='flex items-center justify-between'>
                 <div className='text-xs text-black font-medium'>Conversion Rate</div>
                 <CheckCircle className='h-4 w-4 text-black' />
@@ -319,7 +316,7 @@ export default async function ContractorDashboardPage() {
             {/* Rating */}
             <Link
               href='/contractor/profile'
-              className='rounded-xl bg-cyan-500/40 backdrop-blur-sm border border-white/20 p-4 space-y-2 hover:bg-cyan-500/50 transition-all'
+              className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-xs text-black font-medium'>Your Rating</div>
@@ -336,7 +333,7 @@ export default async function ContractorDashboardPage() {
             {/* Marketplace Link */}
             <Link
               href='/contractors?view=jobs'
-              className='rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 border border-white/20 p-4 space-y-2 hover:from-orange-500 hover:to-amber-600 transition-all'
+              className='rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-xs text-black font-medium'>Browse Jobs</div>
@@ -348,7 +345,7 @@ export default async function ContractorDashboardPage() {
           </div>
 
           {/* Summary Bar */}
-          <div className='mt-4 rounded-xl bg-cyan-500/30 backdrop-blur-sm border border-white/20 p-4'>
+          <div className='mt-4 rounded-xl bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 md:p-4 space-y-1 shadow-2xl border border-slate-100'>
             <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
               <div className='space-y-1'>
                 <div className='text-xs text-black font-medium uppercase tracking-wide'>
@@ -392,22 +389,22 @@ export default async function ContractorDashboardPage() {
       {/* Recent Activity */}
       <div className='grid gap-4 md:grid-cols-2'>
         {/* Recent Leads */}
-        <div className='rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm'>
+        <div className='rounded-xl border border-black bg-white p-5 shadow-sm'>
           <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-base font-semibold text-gray-900'>Recent Leads</h3>
+            <h3 className='text-base font-semibold text-black'>Recent Leads</h3>
             <Link href='/contractor/leads' className='text-sm text-blue-600 hover:text-blue-700 font-medium'>
               View all →
             </Link>
           </div>
           <div className='space-y-2'>
             {recentLeads.length === 0 ? (
-              <p className='text-sm text-gray-500 text-center py-8'>No leads yet</p>
+              <p className='text-sm text-blue-700 text-center py-8'>No leads yet</p>
             ) : (
               recentLeads.map((match) => (
                 <Link
                   key={match.id}
                   href={`/contractor/leads/${match.lead.id}`}
-                  className='block p-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors'
+                  className='block p-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-black transition-colors'
                 >
                   <div className='flex items-start justify-between'>
                     <div className='flex-1 min-w-0'>
@@ -437,7 +434,7 @@ export default async function ContractorDashboardPage() {
         </div>
 
         {/* Recent Jobs */}
-        <div className='rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm'>
+        <div className='rounded-xl border border-black bg-white p-5 shadow-sm'>
           <div className='flex items-center justify-between mb-4'>
             <h3 className='text-base font-semibold text-gray-900'>Recent Jobs</h3>
             <Link href='/contractor/jobs' className='text-sm text-blue-600 hover:text-blue-700 font-medium'>
@@ -446,7 +443,7 @@ export default async function ContractorDashboardPage() {
           </div>
           <div className='space-y-2'>
             {recentJobs.length === 0 ? (
-              <p className='text-sm text-gray-500 text-center py-8'>No jobs yet</p>
+              <p className='text-sm text-blue-700 text-center py-8'>No jobs yet</p>
             ) : (
               recentJobs.map((job) => (
                 <Link

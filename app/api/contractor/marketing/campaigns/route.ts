@@ -2,8 +2,10 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { NextResponse } from 'next/server';
 import { eventBus } from '@/lib/event-system';
+import { canAccessFeature } from '@/lib/services/contractor-feature-gate';
 
 // GET - List all campaigns
+// Feature Gate: Requires 'marketing' feature (Pro or Enterprise tier)
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -19,6 +21,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
     }
 
+    // Check marketing feature access
+    const featureAccess = await canAccessFeature(contractorProfile.id, 'marketing');
+    if (!featureAccess.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Feature locked',
+          message: featureAccess.reason || 'Marketing features require Pro plan or higher',
+          requiredTier: 'pro',
+          currentTier: featureAccess.tier,
+          feature: 'marketing'
+        },
+        { status: 403 }
+      );
+    }
+
     const campaigns = await prisma.contractorMarketingCampaign.findMany({
       where: { contractorId: contractorProfile.id },
       orderBy: { createdAt: 'desc' },
@@ -32,6 +49,7 @@ export async function GET(request: Request) {
 }
 
 // POST - Create new campaign
+// Feature Gate: Requires 'marketing' feature (Pro or Enterprise tier)
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -45,6 +63,21 @@ export async function POST(request: Request) {
 
     if (!contractorProfile) {
       return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
+    }
+
+    // Check marketing feature access
+    const featureAccess = await canAccessFeature(contractorProfile.id, 'marketing');
+    if (!featureAccess.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Feature locked',
+          message: featureAccess.reason || 'Marketing features require Pro plan or higher',
+          requiredTier: 'pro',
+          currentTier: featureAccess.tier,
+          feature: 'marketing'
+        },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();

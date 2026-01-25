@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Palette, AlertTriangle } from 'lucide-react';
+import { DashboardUsageWidget } from '@/components/contractor/subscription/DashboardUsageWidget';
 
 export default async function ContractorProfilePage() {
   const session = await auth();
@@ -24,6 +25,9 @@ export default async function ContractorProfilePage() {
         <h1 className="text-2xl font-bold text-blue-600">My Profile</h1>
         <p className="text-gray-600 mt-1">Manage your public profile and branding</p>
       </div>
+
+      {/* Subscription Usage Widget */}
+      <DashboardUsageWidget />
 
       <Card className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 border-gray-300">
         <CardContent className="p-6">

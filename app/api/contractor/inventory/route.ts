@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { canAccessFeature, checkLimit } from '@/lib/services/contractor-feature-gate';
+import { incrementInventoryCount, decrementInventoryCount } from '@/lib/services/contractor-usage-tracker';
+import { runBackgroundOps } from '@/lib/middleware/contractor-background-ops';
+import { 
+  FeatureLockedError,
+  SubscriptionLimitError,
+  formatSubscriptionError, 
+  logSubscriptionError 
+} from '@/lib/errors/subscription-errors';
 
 // GET - List inventory items
+// Feature Gate: Requires 'inventory' feature (Pro or Enterprise tier)
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -21,6 +31,17 @@ export async function GET(request: NextRequest) {
         { error: 'Contractor profile not found' },
         { status: 404 }
       );
+    }
+
+    // Run background operations
+    await runBackgroundOps(contractorProfile.id);
+
+    // Check inventory feature access
+    const featureAccess = await canAccessFeature(contractorProfile.id, 'inventory');
+    if (!featureAccess.allowed) {
+      const error = new FeatureLockedError('inventory', 'pro', featureAccess.tier);
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
     }
 
     const { searchParams } = new URL(request.url);
@@ -58,6 +79,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ items });
   } catch (error) {
+    if (error instanceof FeatureLockedError) {
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
+    }
+    
     console.error('Error fetching inventory:', error);
     return NextResponse.json(
       { error: 'Failed to fetch inventory' },
@@ -67,6 +93,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Add inventory item
+// Feature Gate: Requires 'inventory' feature (Pro or Enterprise tier)
+// Limit: Pro tier limited to 200 items, Enterprise unlimited
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -77,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     const contractorProfile = await prisma.contractorProfile.findUnique({
       where: { userId: session.user.id },
-      select: { id: true },
+      select: { id: true, subscriptionTier: true },
     });
 
     if (!contractorProfile) {
@@ -85,6 +113,40 @@ export async function POST(request: NextRequest) {
         { error: 'Contractor profile not found' },
         { status: 404 }
       );
+    }
+
+    // Run background operations
+    await runBackgroundOps(contractorProfile.id);
+
+    // Check inventory feature access
+    const featureAccess = await canAccessFeature(contractorProfile.id, 'inventory');
+    if (!featureAccess.allowed) {
+      const error = new FeatureLockedError('inventory', 'pro', featureAccess.tier);
+      logSubscriptionError(error, {
+        contractorId: contractorProfile.id,
+        feature: 'inventory',
+        action: 'create_inventory_item',
+      });
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
+    }
+
+    // Check inventory item limit
+    const limitCheck = await checkLimit(contractorProfile.id, 'inventoryItems');
+    if (!limitCheck.allowed) {
+      const error = new SubscriptionLimitError(
+        'inventory items',
+        limitCheck.current,
+        limitCheck.limit,
+        contractorProfile.subscriptionTier || 'starter'
+      );
+      logSubscriptionError(error, {
+        contractorId: contractorProfile.id,
+        feature: 'inventoryItems',
+        action: 'create_inventory_item',
+      });
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
     }
 
     const body = await request.json();
@@ -147,9 +209,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Increment inventory count for usage tracking
+    await incrementInventoryCount(contractorProfile.id);
+
     return NextResponse.json({ item }, { status: 201 });
   } catch (error) {
+    if (error instanceof FeatureLockedError || error instanceof SubscriptionLimitError) {
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
+    }
+    
     console.error('Error creating inventory item:', error);
+    logSubscriptionError(error, {
+      action: 'create_inventory_item',
+      error: 'unexpected_error',
+    });
     return NextResponse.json(
       { error: 'Failed to create inventory item' },
       { status: 500 }

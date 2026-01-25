@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { UpgradeModal } from '@/components/contractor/subscription/UpgradeModal';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Customer {
   id: string;
@@ -32,6 +34,14 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{
+    current: number;
+    limit: number;
+    remaining: number;
+    percentage: number;
+    tier: string;
+  } | null>(null);
 
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
@@ -54,6 +64,28 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
     status: initialData?.status || 'quoted',
   });
 
+  // Fetch limit info on mount
+  useEffect(() => {
+    const fetchLimitInfo = async () => {
+      try {
+        const response = await fetch('/api/contractor/subscription/check-limit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feature: 'activeJobs' }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setLimitInfo(data);
+        }
+      } catch (error) {
+        console.error('Error fetching limit info:', error);
+      }
+    };
+
+    fetchLimitInfo();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -73,21 +105,28 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to create job');
+      const data = await response.json();
 
-      const { job } = await response.json();
+      if (!response.ok) {
+        // Check if it's a subscription limit error
+        if (data.error === 'SUBSCRIPTION_LIMIT_REACHED') {
+          setShowUpgradeModal(true);
+          return;
+        }
+        throw new Error(data.error || 'Failed to create job');
+      }
 
       toast({
         title: 'Success!',
         description: 'Job created successfully',
       });
 
-      router.push(`/contractor/jobs/${job.id}`);
+      router.push(`/contractor/jobs/${data.job.id}`);
     } catch (error) {
       console.error('Error creating job:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create job',
+        description: error instanceof Error ? error.message : 'Failed to create job',
         variant: 'destructive',
       });
     } finally {
@@ -98,6 +137,57 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <div className="grid gap-6">
+        {/* Limit Warning Banner */}
+        {limitInfo && limitInfo.limit !== -1 && (
+          <Alert className={`${
+            limitInfo.remaining === 0
+              ? 'bg-red-500/10 border-red-500/50'
+              : limitInfo.percentage >= 80
+              ? 'bg-yellow-500/10 border-yellow-500/50'
+              : 'bg-blue-500/10 border-blue-500/50'
+          }`}>
+            <AlertCircle className={`h-4 w-4 ${
+              limitInfo.remaining === 0
+                ? 'text-red-500'
+                : limitInfo.percentage >= 80
+                ? 'text-yellow-500'
+                : 'text-blue-500'
+            }`} />
+            <AlertDescription className="text-white">
+              {limitInfo.remaining === 0 ? (
+                <>
+                  You've reached your limit of {limitInfo.limit} active jobs.{' '}
+                  <button
+                    type="button"
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="underline font-semibold hover:text-violet-400"
+                  >
+                    Upgrade to Pro
+                  </button>{' '}
+                  for 50 jobs/month.
+                </>
+              ) : limitInfo.percentage >= 80 ? (
+                <>
+                  You're using {limitInfo.current} of {limitInfo.limit} active jobs ({limitInfo.percentage}%).{' '}
+                  Consider{' '}
+                  <button
+                    type="button"
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="underline font-semibold hover:text-violet-400"
+                  >
+                    upgrading
+                  </button>{' '}
+                  to avoid interruptions.
+                </>
+              ) : (
+                <>
+                  You have {limitInfo.remaining} of {limitInfo.limit} active jobs remaining this month.
+                </>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Basic Info */}
         <Card className="bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader>
@@ -373,6 +463,27 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
           </Button>
         </div>
       </div>
+
+      {/* Upgrade Modal */}
+      {limitInfo && (
+        <UpgradeModal
+          open={showUpgradeModal}
+          onOpenChange={setShowUpgradeModal}
+          feature="active jobs"
+          currentTier={limitInfo.tier}
+          requiredTier="pro"
+          currentLimit={limitInfo.limit}
+          requiredLimit={50}
+          benefits={[
+            '50 active jobs per month',
+            'Team management for up to 6 members',
+            'CRM features with customer portal',
+            'Lead management (100 active leads)',
+            'Basic inventory tracking (200 items)',
+            'Advanced scheduling and reporting',
+          ]}
+        />
+      )}
     </form>
   );
 }

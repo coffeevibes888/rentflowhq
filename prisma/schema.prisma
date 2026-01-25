@@ -3514,10 +3514,12 @@ model ContractorProfile {
   outlookCalendarId    String?
 
   // Subscription
-  subscriptionTier     String? // 'starter', 'pro', 'enterprise'
+  subscriptionTier     String?   @default("starter") // 'starter', 'pro', 'enterprise'
   stripeSubscriptionId String?
   stripeCustomerId     String?
-  subscriptionStatus   String    @default("none") // none, active, past_due, canceled
+  subscriptionStatus   String    @default("active") // active, past_due, canceled, trialing
+  currentPeriodStart   DateTime? @db.Timestamp(6)
+  currentPeriodEnd     DateTime? @db.Timestamp(6)
   subscriptionEndsAt   DateTime? @db.Timestamp(6)
 
   // Subdomain & Branding (mirrors landlord subdomain)
@@ -3610,11 +3612,54 @@ model ContractorProfile {
   reviewsReceived ContractorReview[]
   favoriteBy      FavoriteContractor[]
 
+  // Usage Tracking (Subscription Tiers)
+  usageTracking ContractorUsageTracking?
+
   @@index([slug])
   @@index([rankScore])
   @@index([avgRating])
   @@index([isPublic, acceptingNewWork])
   @@index([baseCity, baseState])
+}
+
+// ContractorUsageTracking - Tracks usage metrics for subscription tier enforcement
+model ContractorUsageTracking {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @unique @db.Uuid
+
+  // Monthly counters (reset each billing period)
+  activeJobsCount   Int @default(0)
+  invoicesThisMonth Int @default(0)
+
+  // Cumulative counters
+  totalCustomers    Int @default(0)
+  teamMembersCount  Int @default(0)
+  inventoryCount    Int @default(0)
+  equipmentCount    Int @default(0)
+  activeLeadsCount  Int @default(0)
+
+  // Metadata
+  lastResetDate DateTime @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt
+
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@index([contractorId])
+}
+
+// ContractorNotification - Notifications for contractors about limits, upgrades, etc.
+model ContractorNotification {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String   @db.Uuid
+  type         String // limit_warning, limit_reached, upgrade_prompt
+  feature      String // jobs, invoices, customers, team_members, inventory, equipment, leads
+  message      String
+  actionUrl    String?
+  read         Boolean  @default(false)
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([contractorId, read])
+  @@index([createdAt])
 }
 
 // ============= PROPERTY-SPECIFIC FEE SETTINGS =============

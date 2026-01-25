@@ -2,6 +2,14 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { NextResponse } from 'next/server';
 import { eventBus } from '@/lib/event-system';
+import { checkLimit } from '@/lib/services/contractor-feature-gate';
+import { incrementJobCount } from '@/lib/services/contractor-usage-tracker';
+import { runBackgroundOps } from '@/lib/middleware/contractor-background-ops';
+import { 
+  SubscriptionLimitError, 
+  formatSubscriptionError, 
+  logSubscriptionError 
+} from '@/lib/errors/subscription-errors';
 
 // GET - List all jobs for contractor
 export async function GET(request: Request) {
@@ -18,6 +26,9 @@ export async function GET(request: Request) {
     if (!contractorProfile) {
       return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
     }
+
+    // Run background operations (daily check, monthly reset)
+    await runBackgroundOps(contractorProfile.id);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -72,6 +83,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
     }
 
+    // Run background operations (ensures monthly reset happens before checking limits)
+    await runBackgroundOps(contractorProfile.id);
+
+    // Check subscription limit for active jobs
+    const limitCheck = await checkLimit(contractorProfile.id, 'activeJobs');
+    if (!limitCheck.allowed) {
+      const error = new SubscriptionLimitError(
+        'active jobs',
+        limitCheck.current,
+        limitCheck.limit,
+        contractorProfile.subscriptionTier || 'starter'
+      );
+      
+      logSubscriptionError(error, {
+        contractorId: contractorProfile.id,
+        feature: 'activeJobs',
+        action: 'create_job',
+      });
+      
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
+    }
+
     const body = await request.json();
 
     // Generate job number
@@ -121,6 +155,9 @@ export async function POST(request: Request) {
       },
     });
 
+    // Increment job count after successful creation
+    await incrementJobCount(contractorProfile.id);
+
     // Emit event for job creation
     await eventBus.emit('contractor.job.created', {
       jobId: job.id,
@@ -133,7 +170,17 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ job }, { status: 201 });
   } catch (error) {
+    // Handle subscription errors
+    if (error instanceof SubscriptionLimitError) {
+      const formatted = formatSubscriptionError(error);
+      return NextResponse.json(formatted.body, { status: formatted.status });
+    }
+    
     console.error('Error creating job:', error);
+    logSubscriptionError(error, {
+      action: 'create_job',
+      error: 'unexpected_error',
+    });
     return NextResponse.json({ error: 'Failed to create job' }, { status: 500 });
   }
 }

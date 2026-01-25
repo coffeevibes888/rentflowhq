@@ -25,7 +25,10 @@ export default function AdminMobileDrawer() {
         <div className='px-3 sm:px-4 py-2 space-y-1 overflow-y-auto'>
           {adminNavLinks.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname.startsWith(item.href);
+            // Special handling for dashboard - exact match only
+            const isActive = item.href === '/admin/overview'
+              ? pathname === '/admin/overview'
+              : pathname.startsWith(item.href);
 
             return (
               <DrawerClose asChild key={item.href}>

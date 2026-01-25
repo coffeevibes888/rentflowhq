@@ -11,9 +11,12 @@ import {
   Plus,
   Download,
   Search,
+  Lock,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { EquipmentList } from '@/components/contractor/equipment-list';
+import { canAccessFeature } from '@/lib/services/contractor-feature-gate';
 
 export default async function EquipmentPage() {
   const session = await auth();
@@ -24,11 +27,56 @@ export default async function EquipmentPage() {
 
   const contractorProfile = await prisma.contractorProfile.findUnique({
     where: { userId: session.user.id },
-    select: { id: true, businessName: true },
+    select: { 
+      id: true, 
+      businessName: true,
+      subscriptionTier: true,
+    },
   });
 
   if (!contractorProfile) {
     redirect('/onboarding/contractor');
+  }
+
+  // Check equipment feature access
+  const featureAccess = await canAccessFeature(contractorProfile.id, 'equipment');
+  
+  if (!featureAccess.allowed) {
+    return (
+      <main className="w-full px-4 py-10 md:px-0">
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-red-500/10 p-8 text-center">
+            <Lock className="h-12 w-12 text-orange-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-semibold text-white mb-2">Equipment Management</h1>
+            <p className="text-slate-300 mb-6">
+              Equipment management is available on the Pro plan. Upgrade to track tools, 
+              manage maintenance schedules, and optimize equipment utilization.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center mb-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                🔧 Equipment Tracking
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                📅 Maintenance Schedules
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                👷 Assignment Tracking
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+                💵 Asset Management
+              </div>
+            </div>
+            <Link
+              href="/contractor/settings/subscription"
+              className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+            >
+              <Zap className="h-5 w-5" />
+              Upgrade to Pro
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   // Fetch equipment

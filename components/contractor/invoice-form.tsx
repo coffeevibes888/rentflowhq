@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Save, Send } from 'lucide-react';
+import { Plus, Trash2, Save, Send, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { UpgradeModal } from '@/components/contractor/subscription/UpgradeModal';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type LineItem = {
   id: string;
@@ -22,6 +24,14 @@ export function InvoiceForm({ invoice, mode }: InvoiceFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{
+    current: number;
+    limit: number;
+    remaining: number;
+    percentage: number;
+    tier: string;
+  } | null>(null);
 
   // Form state
   const [customerId, setCustomerId] = useState(invoice?.customerId || '');
@@ -39,6 +49,30 @@ export function InvoiceForm({ invoice, mode }: InvoiceFormProps) {
       { id: '1', description: '', quantity: 1, unitPrice: 0, type: 'labor' },
     ]
   );
+
+  // Fetch limit info on mount (only for create mode)
+  useEffect(() => {
+    if (mode === 'create') {
+      const fetchLimitInfo = async () => {
+        try {
+          const response = await fetch('/api/contractor/subscription/check-limit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feature: 'invoicesPerMonth' }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setLimitInfo(data);
+          }
+        } catch (error) {
+          console.error('Error fetching limit info:', error);
+        }
+      };
+
+      fetchLimitInfo();
+    }
+  }, [mode]);
 
   // Calculate totals
   const subtotal = lineItems.reduce(
@@ -126,7 +160,16 @@ export function InvoiceForm({ invoice, mode }: InvoiceFormProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save invoice');
+        const data = await response.json();
+        
+        // Check if it's a subscription limit error
+        if (data.error === 'SUBSCRIPTION_LIMIT_REACHED') {
+          setShowUpgradeModal(true);
+          setLoading(false);
+          return;
+        }
+        
+        throw new Error(data.error || 'Failed to save invoice');
       }
 
       const data = await response.json();
@@ -152,6 +195,63 @@ export function InvoiceForm({ invoice, mode }: InvoiceFormProps) {
         <div className="rounded-lg bg-red-50 border-2 border-red-200 p-4">
           <p className="text-sm text-red-600">{error}</p>
         </div>
+      )}
+
+      {/* Limit Warning Banner */}
+      {mode === 'create' && limitInfo && limitInfo.limit !== -1 && (
+        <Alert className={`${
+          limitInfo.remaining === 0
+            ? 'bg-red-50 border-red-500'
+            : limitInfo.percentage >= 80
+            ? 'bg-yellow-50 border-yellow-500'
+            : 'bg-blue-50 border-blue-500'
+        }`}>
+          <AlertCircle className={`h-4 w-4 ${
+            limitInfo.remaining === 0
+              ? 'text-red-500'
+              : limitInfo.percentage >= 80
+              ? 'text-yellow-500'
+              : 'text-blue-500'
+          }`} />
+          <AlertDescription className={`${
+            limitInfo.remaining === 0
+              ? 'text-red-700'
+              : limitInfo.percentage >= 80
+              ? 'text-yellow-700'
+              : 'text-blue-700'
+          }`}>
+            {limitInfo.remaining === 0 ? (
+              <>
+                You've reached your limit of {limitInfo.limit} invoices this month.{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="underline font-semibold hover:opacity-80"
+                >
+                  Upgrade to Pro
+                </button>{' '}
+                for unlimited invoices.
+              </>
+            ) : limitInfo.percentage >= 80 ? (
+              <>
+                You're using {limitInfo.current} of {limitInfo.limit} invoices this month ({limitInfo.percentage}%).{' '}
+                Consider{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="underline font-semibold hover:opacity-80"
+                >
+                  upgrading
+                </button>{' '}
+                to avoid interruptions.
+              </>
+            ) : (
+              <>
+                You have {limitInfo.remaining} of {limitInfo.limit} invoices remaining this month.
+              </>
+            )}
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Customer Information */}
@@ -401,6 +501,27 @@ export function InvoiceForm({ invoice, mode }: InvoiceFormProps) {
           {loading ? 'Sending...' : 'Save & Send'}
         </Button>
       </div>
+
+      {/* Upgrade Modal */}
+      {limitInfo && (
+        <UpgradeModal
+          open={showUpgradeModal}
+          onOpenChange={setShowUpgradeModal}
+          feature="invoices"
+          currentTier={limitInfo.tier}
+          requiredTier="pro"
+          currentLimit={limitInfo.limit}
+          requiredLimit={-1}
+          benefits={[
+            'Unlimited invoices per month',
+            'Recurring invoice templates',
+            'Advanced payment tracking',
+            'Team management for up to 6 members',
+            'CRM features with customer portal',
+            'Lead management (100 active leads)',
+          ]}
+        />
+      )}
     </div>
   );
 }

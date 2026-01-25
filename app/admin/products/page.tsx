@@ -100,26 +100,42 @@ const AdminProductsPage = async (props: {
   return (
     <div className='w-full space-y-4'>
       <div className='space-y-4'>
-        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
-          <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3'>
-            <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50'>Properties</h1>
-            {searchText && (
-              <div className='text-xs sm:text-sm text-slate-300/80'>
-                Filtered by <i>&quot;{searchText}&quot;</i>{' '}
-                <Link href='/admin/products'>
-                  <Button variant='outline' size='sm' className='border-white/10 text-slate-200/90 hover:bg-slate-900/80 h-7 text-xs'>
-                    Remove Filter
-                  </Button>
-                </Link>
-              </div>
-            )}
+        <div className='flex flex-col gap-3'>
+          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+            <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3'>
+              <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50'>Properties</h1>
+              {searchText && (
+                <div className='text-xs sm:text-sm text-slate-300/80'>
+                  Filtered by <i>&quot;{searchText}&quot;</i>{' '}
+                  <Link href='/admin/products'>
+                    <Button variant='outline' size='sm' className='border-white/10 text-slate-200/90 hover:bg-slate-900/80 h-7 text-xs'>
+                      Remove Filter
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-          <div className='flex gap-2'>
-            <Button asChild className='w-full sm:w-auto text-sm bg-violet-600 hover:bg-violet-500 text-white'>
-              <Link href='/admin/tenants/add'>Add Tenant</Link>
+          
+          {/* Mobile-optimized action buttons */}
+          <div className='flex flex-col sm:flex-row gap-2 w-full'>
+            <Button 
+              asChild 
+              className='w-full sm:w-auto text-sm sm:text-base bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 sm:py-2 touch-manipulation'
+              data-tour="add-property"
+            >
+              <Link href='/admin/products/new'>
+                <span className='text-base sm:text-sm'>+ Add Property</span>
+              </Link>
             </Button>
-            <Button asChild variant='default' className='w-full sm:w-auto text-sm' data-tour="add-property">
-              <Link href='/admin/products/new'>Add Property</Link>
+            <Button 
+              asChild 
+              variant='outline'
+              className='w-full sm:w-auto text-sm sm:text-base border-white/20 text-slate-200 hover:bg-slate-800/50 font-semibold py-3 sm:py-2 touch-manipulation'
+            >
+              <Link href='/admin/tenants/add'>
+                <span className='text-base sm:text-sm'>+ Add Tenant</span>
+              </Link>
             </Button>
           </div>
         </div>

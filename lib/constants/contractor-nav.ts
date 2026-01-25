@@ -15,6 +15,8 @@ import {
   Calendar,
   UserCircle,
   Megaphone,
+  Package,
+  Wrench,
   LucideIcon 
 } from 'lucide-react';
 
@@ -23,6 +25,8 @@ export interface ContractorNavLink {
   description: string;
   href: string;
   icon: LucideIcon;
+  requiredTier?: 'pro' | 'enterprise'; // Optional: if set, feature requires this tier or higher
+  locked?: boolean; // Will be set dynamically based on user's tier
 }
 
 export const contractorNavLinks: ContractorNavLink[] = [
@@ -43,12 +47,14 @@ export const contractorNavLinks: ContractorNavLink[] = [
     description: 'Customer CRM',
     href: '/contractor/customers',
     icon: Users,
+    requiredTier: 'pro', // CRM features require Pro or Enterprise
   },
   {
     title: 'Team Hub',
     description: 'Team management',
     href: '/contractor/team',
     icon: Users,
+    requiredTier: 'pro', // Team management requires Pro or Enterprise
   },
   {
     title: 'Calendar',
@@ -91,6 +97,20 @@ export const contractorNavLinks: ContractorNavLink[] = [
     description: 'Log hours and track jobs',
     href: '/contractor/time-tracking',
     icon: Clock,
+  },
+  {
+    title: 'Inventory',
+    description: 'Materials & supplies',
+    href: '/contractor/inventory',
+    icon: Package,
+    requiredTier: 'pro', // Inventory tracking requires Pro or Enterprise
+  },
+  {
+    title: 'Equipment',
+    description: 'Tools & machinery',
+    href: '/contractor/equipment',
+    icon: Wrench,
+    requiredTier: 'pro', // Equipment tracking requires Pro or Enterprise
   },
   {
     title: 'My Work',

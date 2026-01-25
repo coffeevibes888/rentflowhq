@@ -2,9 +2,11 @@ import { Metadata } from 'next';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
-import { Download, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, DollarSign, Lock, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
+import Link from 'next/link';
+import { canAccessFeature } from '@/lib/services/contractor-feature-gate';
 
 export const metadata: Metadata = {
   title: 'Financial Reports',
@@ -19,12 +21,23 @@ export default async function ReportsPage() {
 
   const contractorProfile = await prisma.contractorProfile.findUnique({
     where: { userId: session.user.id },
-    select: { id: true, businessName: true },
+    select: { 
+      id: true, 
+      businessName: true,
+      subscriptionTier: true,
+    },
   });
 
   if (!contractorProfile) {
     redirect('/onboarding/contractor');
   }
+
+  // Check if contractor has access to advanced analytics
+  const advancedAnalyticsAccess = await canAccessFeature(contractorProfile.id, 'advancedAnalytics');
+  const hasAdvancedAnalytics = advancedAnalyticsAccess.allowed;
+  
+  // Basic reports are available to all tiers
+  const tier = contractorProfile.subscriptionTier || 'starter';
 
   // Date ranges
   const now = new Date();
@@ -278,6 +291,57 @@ export default async function ReportsPage() {
           </div>
         </div>
       </div>
+
+      {/* Advanced Analytics Section - Enterprise Only */}
+      {!hasAdvancedAnalytics && (
+        <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-blue-500/10 p-8 text-center">
+          <Lock className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+          <h3 className="text-2xl font-semibold text-white mb-2">Advanced Analytics</h3>
+          <p className="text-slate-300 mb-6 max-w-2xl mx-auto">
+            Unlock powerful insights with custom dashboards, forecasting, trend analysis, 
+            and advanced reporting features. Available on the Enterprise plan.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center mb-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+              📊 Custom Dashboards
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+              📈 Revenue Forecasting
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+              🎯 Performance Tracking
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
+              📉 Trend Analysis
+            </div>
+          </div>
+          <Link
+            href="/contractor/settings/subscription"
+            className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+          >
+            <Zap className="h-5 w-5" />
+            Upgrade to Enterprise
+          </Link>
+        </div>
+      )}
+
+      {hasAdvancedAnalytics && (
+        <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-900">Advanced Analytics</h3>
+              <span className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">
+                ENTERPRISE
+              </span>
+            </div>
+          </div>
+          <div className="p-6">
+            <p className="text-gray-600 text-center py-8">
+              Advanced analytics features coming soon...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

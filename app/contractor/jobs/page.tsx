@@ -131,7 +131,7 @@ export default async function ContractorJobsPage({
           </p>
         </div>
         <Link href='/contractor/leads'>
-          <Button className='bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-gray-900 border-2 border-black shadow-xl'>
+          <Button className=' bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 hover:from-violet-700 hover:to-purple-700 text-gray-900 border border-black shadow-2xl'>
             <Plus className='h-4 w-4 mr-2' />
             New Job from Lead
           </Button>
@@ -139,8 +139,8 @@ export default async function ContractorJobsPage({
       </div>
 
       {/* Status Filters */}
-      <div className='relative rounded-xl border-2 border-black shadow-xl overflow-hidden'>
-        <div className='absolute inset-0 bg-gradient-to-r from-violet-100 to-purple-100' />
+      <div className='relative rounded-xl border border-black shadow-2xl overflow-hidden'>
+        <div className='absolute inset-0 bg-linear-to-r from-cyan-400 via-sky-400 to-blue-300 shadow-2xl' />
         <div className='relative p-3 sm:p-4'>
           <div className='flex items-center gap-2 mb-3'>
             <Filter className='h-4 w-4 text-black' />
@@ -162,14 +162,14 @@ export default async function ContractorJobsPage({
                     size='sm'
                     className={
                       isActive
-                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-gray-900 border-2 border-black'
-                        : 'bg-white text-black border-2 border-black hover:bg-violet-50'
+                        ? ' text-black bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black shadow-2xl'
+                        : ' text-black bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black shadow-2xl'
                     }
                   >
                     {filter.label}
                     <span
                       className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${
-                        isActive ? 'bg-white/20' : 'bg-black/10'
+                        isActive ? 'text-black' : 'bg-black/10'
                       }`}
                     >
                       {filter.count}
@@ -183,7 +183,7 @@ export default async function ContractorJobsPage({
       </div>
 
       {/* Jobs List */}
-      <div className='relative rounded-xl border-2 border-black shadow-xl overflow-hidden bg-white'>
+      <div className='relative rounded-xl border border-black shadow-2xl overflow-hidden bg-blue-300'>
         <div className='p-4'>
           <JobsMobileList jobs={jobs} />
           <JobsDesktopTable jobs={jobs} />
@@ -192,8 +192,8 @@ export default async function ContractorJobsPage({
 
       {/* Empty State */}
       {jobs.length === 0 && (
-        <div className='relative rounded-xl border-2 border-black shadow-xl overflow-hidden'>
-          <div className='absolute inset-0 bg-gradient-to-r from-violet-100 to-purple-100' />
+        <div className='relative rounded-xl border border-black shadow-xl overflow-hidden'>
+          <div className='absolute inset-0 bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500' />
           <div className='relative p-8 text-center'>
             <div className='w-16 h-16 mx-auto mb-4 rounded-full bg-white border-2 border-black flex items-center justify-center'>
               <Plus className='h-8 w-8 text-violet-600' />

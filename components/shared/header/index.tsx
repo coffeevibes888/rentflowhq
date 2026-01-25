@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import Menu from "./menu";
 import AdminMobileDrawer from '@/components/admin/admin-mobile-drawer';
+import ContractorMobileDrawer from '@/components/contractor/contractor-mobile-drawer';
+import AgentMobileDrawer from '@/components/agent/agent-mobile-drawer';
 import { getCategoryTree } from '@/lib/actions/product.actions';
 import { prisma } from '@/db/prisma';
 import { headers } from 'next/headers';
@@ -22,13 +24,20 @@ const Header = async () => {
   const displayName = landlord?.name || 'Property Flow HQ';
   const session = await auth();
   const isAuthenticated = Boolean(session?.user);
+  const userRole = session?.user?.role;
 
   return ( 
     <header className="w-full text-black font-semibold">
       <div className="wrapper flex items-center justify-between md:hidden h-16 relative overflow-visible">
         {isAuthenticated && (
           <div className="flex items-center">
-            <AdminMobileDrawer />
+            {userRole === 'contractor' ? (
+              <ContractorMobileDrawer />
+            ) : userRole === 'agent' ? (
+              <AgentMobileDrawer />
+            ) : (userRole === 'landlord' || userRole === 'admin' || userRole === 'superAdmin' || userRole === 'property_manager') ? (
+              <AdminMobileDrawer />
+            ) : null}
           </div>
         )}
 

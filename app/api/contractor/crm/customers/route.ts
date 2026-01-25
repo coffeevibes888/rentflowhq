@@ -11,6 +11,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { ContractorCRMService } from '@/lib/services/contractor-crm';
+import { canAccessFeature, FeatureLockedError } from '@/lib/services/contractor-feature-gate';
 
 /**
  * GET /api/contractor/crm/customers
@@ -22,6 +23,8 @@ import { ContractorCRMService } from '@/lib/services/contractor-crm';
  * - tags: comma-separated list of tags
  * 
  * Returns: { success: boolean, customers: Customer[] }
+ * 
+ * Feature Gate: Requires 'crm' feature (Pro or Enterprise tier)
  */
 export async function GET(req: NextRequest) {
   try {
@@ -44,6 +47,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         { error: 'Contractor profile not found' },
         { status: 404 }
+      );
+    }
+
+    // Check CRM feature access
+    const featureAccess = await canAccessFeature(contractor.id, 'crm');
+    if (!featureAccess.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Feature locked',
+          message: featureAccess.reason || 'CRM features require Pro plan or higher',
+          requiredTier: 'pro',
+          currentTier: featureAccess.tier,
+          feature: 'crm'
+        },
+        { status: 403 }
       );
     }
 

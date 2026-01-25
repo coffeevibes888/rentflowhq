@@ -3,17 +3,47 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  MessageSquare, Users, Calendar, Clock, 
-  FileText, Crown, Briefcase
+  MessageSquare, Users, Calendar, Briefcase, 
+  Clock, FileText, DollarSign, Crown
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { TeamChat } from '@/components/team/team-chat';
-import { ContractorTeamMembersTab } from './team-hub/team-members-tab';
+import { TeamMembersTab } from './team-hub/team-members-tab';
+import { HiringTab } from './team-hub/hiring-tab';
+
+// Lazy load enterprise-only components
+import dynamic from 'next/dynamic';
+
+const ScheduleTab = dynamic(() => import('./team-ops/schedule-tab'), { 
+  loading: () => <TabLoadingState />,
+  ssr: false 
+});
+const TimeTrackingTab = dynamic(() => import('./team-ops/time-tracking-tab'), { 
+  loading: () => <TabLoadingState />,
+  ssr: false 
+});
+const TimesheetsTab = dynamic(() => import('./team-ops/timesheets-tab'), { 
+  loading: () => <TabLoadingState />,
+  ssr: false 
+});
+// Payroll commented out until third-party payroll API integration
+// const PayrollTab = dynamic(() => import('./team-ops/payroll-tab'), { 
+//   loading: () => <TabLoadingState />,
+//   ssr: false 
+// });
+
+function TabLoadingState() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin h-8 w-8 border-2 border-violet-500 border-t-transparent rounded-full" />
+    </div>
+  );
+}
 
 interface TeamMemberData {
   id: string;
   userId: string;
-  role: 'owner' | 'admin' | 'member';
+  role: 'owner' | 'admin' | 'property_manager' | 'leasing_agent' | 'showing_agent' | 'maintenance_tech' | 'accountant' | 'employee';
   status: 'pending' | 'active' | 'inactive';
   invitedEmail?: string;
   permissions: string[];
@@ -37,6 +67,13 @@ interface TeamHubProps {
   contractorId: string;
   teamMembers: TeamMemberData[];
   subscriptionTier: 'starter' | 'pro' | 'enterprise';
+  currentUserRole?: string;
+  canManageTeam?: boolean;
+  features?: {
+    teamManagement?: boolean;
+    teamCommunications?: boolean;
+    teamOperations?: boolean;
+  };
 }
 
 export function TeamHub({ 
@@ -44,23 +81,27 @@ export function TeamHub({
   contractorId, 
   teamMembers, 
   subscriptionTier,
+  currentUserRole = 'member',
+  canManageTeam = false,
 }: TeamHubProps) {
   const [activeTab, setActiveTab] = useState('chat');
   const isEnterprise = subscriptionTier === 'enterprise';
   const isPro = subscriptionTier === 'pro' || subscriptionTier === 'enterprise';
   const activeMembers = teamMembers.filter(m => m.status === 'active');
+  const isOwner = currentUserRole === 'owner';
+
+  const handleRolesClick = () => {
+    setActiveTab('members');
+  };
 
   return (
     <div className="flex flex-col bg-slate-900/40 rounded-2xl border border-white/10">
       {/* Header */}
       <div className="flex-shrink-0 px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-              <Briefcase className="h-7 w-7 text-violet-400" />
-              Team Hub
-            </h1>
-            <p className="text-slate-300 mt-1 text-sm sm:text-base">
+            <h1 className="text-xl sm:text-2xl font-semibold text-white">Team Hub</h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               {isEnterprise 
                 ? 'Manage unlimited team members, communicate, and run operations'
                 : isPro
@@ -69,89 +110,116 @@ export function TeamHub({
               }
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-violet-500/20 text-violet-300 border-violet-500/30">
-              {activeMembers.length} Active {activeMembers.length === 1 ? 'Member' : 'Members'}
+          {isEnterprise && (
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 self-start sm:self-auto">
+              <Crown className="h-3 w-3 mr-1" />
+              Enterprise
             </Badge>
-            {isEnterprise && (
-              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
-                <Crown className="h-3 w-3 mr-1" />
-                Enterprise
-              </Badge>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <div className="flex-shrink-0 px-4 sm:px-6 pt-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 bg-slate-800/50 p-1">
-            <TabsTrigger value="chat" className="flex items-center gap-2 text-xs sm:text-sm">
+        <div className="flex-shrink-0 px-3 sm:px-6 py-3 sm:py-4 border-b border-white/5 bg-slate-900/30 overflow-x-auto">
+          <TabsList className="inline-flex h-auto p-1 bg-slate-800/60 border border-white/10 rounded-xl gap-1 min-w-max">
+            {/* Always available tabs */}
+            <TabsTrigger
+              value="chat"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
+            >
               <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">Chat</span>
+              <span>Chat</span>
             </TabsTrigger>
-            <TabsTrigger value="members" className="flex items-center gap-2 text-xs sm:text-sm">
+            
+            <TabsTrigger
+              value="members"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
+            >
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Members</span>
+              <span>Members</span>
+              <Badge variant="secondary" className="ml-1 bg-white/10 text-xs">
+                {activeMembers.length}
+              </Badge>
             </TabsTrigger>
-            {isEnterprise && (
+
+            {/* Pro+ tabs */}
+            {isPro && (
               <>
-                <TabsTrigger value="schedule" className="flex items-center gap-2 text-xs sm:text-sm">
+                <div className="w-px h-6 bg-white/10 mx-1 self-center hidden sm:block" />
+                
+                <TabsTrigger
+                  value="schedule"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
+                >
                   <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Schedule</span>
+                  <span>Schedule</span>
                 </TabsTrigger>
-                <TabsTrigger value="time-tracking" className="flex items-center gap-2 text-xs sm:text-sm">
+                
+                <TabsTrigger
+                  value="time"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
+                >
                   <Clock className="h-4 w-4" />
-                  <span className="hidden sm:inline">Time</span>
+                  <span>Time</span>
                 </TabsTrigger>
-                <TabsTrigger value="timesheets" className="flex items-center gap-2 text-xs sm:text-sm">
+                
+                <TabsTrigger
+                  value="timesheets"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg text-slate-300 text-sm"
+                >
                   <FileText className="h-4 w-4" />
-                  <span className="hidden sm:inline">Timesheets</span>
+                  <span>Timesheets</span>
                 </TabsTrigger>
               </>
             )}
           </TabsList>
         </div>
 
-        <div className="flex-1 overflow-auto">
-          <TabsContent value="chat" className="mt-0 p-4 sm:p-6">
-            <TeamChat
-              currentUser={currentUser}
-              landlordId={contractorId}
-              teamMembers={teamMembers}
-              isFullPage={true}
-            />
+        {/* Tab Content */}
+        <div className="flex-1">
+          <TabsContent value="chat" className="h-full mt-0 flex flex-col">
+            <div className="flex-1 min-h-0">
+              <TeamChat
+                currentUser={currentUser}
+                landlordId={contractorId}
+                isFullPage={true}
+                teamMembers={teamMembers}
+                canManageTeam={canManageTeam}
+                onRolesClick={handleRolesClick}
+                apiPrefix="contractor"
+              />
+            </div>
           </TabsContent>
 
-          <TabsContent value="members" className="mt-0 p-4 sm:p-6">
-            <ContractorTeamMembersTab
-              contractorId={contractorId}
-              teamMembers={teamMembers}
-              subscriptionTier={subscriptionTier}
-            />
+          <TabsContent value="members" className="mt-0">
+            <div className="p-4 sm:p-6">
+              <TeamMembersTab 
+                members={teamMembers} 
+                isEnterprise={isEnterprise}
+                canManageTeam={canManageTeam}
+                currentUserRole={currentUserRole}
+              />
+            </div>
           </TabsContent>
 
-          {isEnterprise && (
+          {isPro && (
             <>
-              <TabsContent value="schedule" className="mt-0 p-4 sm:p-6">
-                <div className="text-center py-12">
-                  <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-300">Schedule management coming soon</p>
+              <TabsContent value="schedule" className="mt-0">
+                <div className="p-3 sm:p-6">
+                  <ScheduleTab />
                 </div>
               </TabsContent>
 
-              <TabsContent value="time-tracking" className="mt-0 p-4 sm:p-6">
-                <div className="text-center py-12">
-                  <Clock className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-300">Time tracking coming soon</p>
+              <TabsContent value="time" className="mt-0">
+                <div className="p-4 sm:p-6">
+                  <TimeTrackingTab />
                 </div>
               </TabsContent>
 
-              <TabsContent value="timesheets" className="mt-0 p-4 sm:p-6">
-                <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-300">Timesheets coming soon</p>
+              <TabsContent value="timesheets" className="mt-0">
+                <div className="p-4 sm:p-6">
+                  <TimesheetsTab />
                 </div>
               </TabsContent>
             </>

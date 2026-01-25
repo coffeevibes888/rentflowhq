@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { canAccessFeature, checkLimit } from '@/lib/services/contractor-feature-gate';
+import { incrementEquipmentCount, decrementEquipmentCount } from '@/lib/services/contractor-usage-tracker';
 
 // GET - List equipment
+// Feature Gate: Requires 'equipment' feature (Pro or Enterprise tier)
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -20,6 +23,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Contractor profile not found' },
         { status: 404 }
+      );
+    }
+
+    // Check equipment feature access
+    const featureAccess = await canAccessFeature(contractorProfile.id, 'equipment');
+    if (!featureAccess.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Feature locked',
+          message: featureAccess.reason || 'Equipment management requires Pro plan or higher',
+          requiredTier: 'pro',
+          currentTier: featureAccess.tier,
+          feature: 'equipment'
+        },
+        { status: 403 }
       );
     }
 
@@ -60,6 +78,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Add equipment
+// Feature Gate: Requires 'equipment' feature (Pro or Enterprise tier)
+// Limit: Pro tier limited to 20 items, Enterprise unlimited
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -77,6 +97,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Contractor profile not found' },
         { status: 404 }
+      );
+    }
+
+    // Check equipment feature access
+    const featureAccess = await canAccessFeature(contractorProfile.id, 'equipment');
+    if (!featureAccess.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Feature locked',
+          message: featureAccess.reason || 'Equipment management requires Pro plan or higher',
+          requiredTier: 'pro',
+          currentTier: featureAccess.tier,
+          feature: 'equipment'
+        },
+        { status: 403 }
+      );
+    }
+
+    // Check equipment item limit
+    const limitCheck = await checkLimit(contractorProfile.id, 'equipmentItems');
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Limit reached',
+          message: `Equipment limit reached (${limitCheck.current}/${limitCheck.limit}). Upgrade to Enterprise for unlimited equipment.`,
+          current: limitCheck.current,
+          limit: limitCheck.limit,
+          requiredTier: 'enterprise',
+        },
+        { status: 403 }
       );
     }
 
@@ -128,6 +178,9 @@ export async function POST(request: NextRequest) {
         assignedToId: assignedToId || null,
       },
     });
+
+    // Increment equipment count for usage tracking
+    await incrementEquipmentCount(contractorProfile.id);
 
     return NextResponse.json({ equipment }, { status: 201 });
   } catch (error) {
