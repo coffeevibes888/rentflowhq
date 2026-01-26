@@ -94,28 +94,9 @@ export function WalletDashboard() {
     loadData();
   }, []);
 
-  const handleSetupPayouts = async () => {
-    try {
-      const res = await fetch('/api/landlord/stripe/onboard');
-      const data = await res.json();
-      
-      if (data.success && data.clientSecret) {
-        // Redirect to Stripe Connect onboarding
-        window.location.href = `/admin/payouts/setup?session=${data.clientSecret}`;
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Setup Failed',
-          description: data.message || 'Could not start payout setup',
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to start payout setup',
-      });
-    }
+  const handleSetupPayouts = () => {
+    // Redirect to payouts setup page with embedded onboarding
+    window.location.href = '/admin/payouts/setup';
   };
 
   if (isLoading) {

@@ -2,11 +2,16 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Wallet, DollarSign, CreditCard, TrendingUp, ArrowUpRight } from 'lucide-react';
+import { Wallet, DollarSign, CreditCard, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { StripeConnectButton } from '@/components/contractor/stripe-connect-button';
+import { OnboardingSuccessAlert } from '@/components/contractor/onboarding-success-alert';
 
-export default async function ContractorPayoutsPage() {
+export default async function ContractorPayoutsPage({
+  searchParams,
+}: {
+  searchParams: { onboarding?: string };
+}) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -65,6 +70,11 @@ export default async function ContractorPayoutsPage() {
         <p className="text-slate-600 mt-1">Track your earnings and payments</p>
       </div>
 
+      {/* Onboarding Success Message */}
+      {searchParams.onboarding === 'complete' && (
+        <OnboardingSuccessAlert />
+      )}
+
       {/* Earnings Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 border-gray-300 shadow-xl">
@@ -116,10 +126,7 @@ export default async function ContractorPayoutsPage() {
                   </p>
                 </div>
               </div>
-              <Button className="bg-violet-600 hover:bg-violet-500">
-                <ArrowUpRight className="h-4 w-4 mr-2" />
-                Connect Bank
-              </Button>
+              <StripeConnectButton />
             </div>
           </CardContent>
         </Card>
