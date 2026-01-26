@@ -32,7 +32,7 @@ export async function GET() {
     }
 
     // Find contractor
-    const contractor = await prisma.contractor.findFirst({
+    const contractor = await prisma.contractorProfile.findFirst({
       where: { userId: session.user.id },
       select: {
         id: true,

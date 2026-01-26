@@ -5,6 +5,7 @@
  * Run with: npx tsx scripts/verify-all-stripe-connect.ts
  */
 
+import 'dotenv/config';
 import { prisma } from '../db/prisma';
 import Stripe from 'stripe';
 

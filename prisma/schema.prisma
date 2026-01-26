@@ -3522,6 +3522,11 @@ model ContractorProfile {
   currentPeriodEnd     DateTime? @db.Timestamp(6)
   subscriptionEndsAt   DateTime? @db.Timestamp(6)
 
+  // Stripe Connect for Payouts
+  stripeConnectAccountId  String?
+  stripeOnboardingStatus  String? // pending, active, invalid
+  isPaymentReady          Boolean @default(false)
+
   // Subdomain & Branding (mirrors landlord subdomain)
   subdomain  String?  @unique // contractor's custom subdomain
   logoUrl    String?

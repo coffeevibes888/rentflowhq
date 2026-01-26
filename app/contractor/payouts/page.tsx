@@ -23,7 +23,7 @@ export default async function ContractorPayoutsPage({
   }
 
   // Get contractor profiles
-  const contractors = await prisma.contractor.findMany({
+  const contractors = await prisma.contractorProfile.findMany({
     where: { userId: session.user.id },
     select: { 
       id: true, 

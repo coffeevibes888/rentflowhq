@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     const stripe = new Stripe(stripeSecretKey);
 
     // Find contractor profile for this user
-    const contractor = await prisma.contractor.findFirst({
+    const contractor = await prisma.contractorProfile.findFirst({
       where: { userId: session.user.id },
     });
 
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
       connectAccountId = account.id;
 
       // Update contractor with Connect account ID
-      await prisma.contractor.update({
+      await prisma.contractorProfile.update({
         where: { id: contractor.id },
         data: {
           stripeConnectAccountId: connectAccountId,
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-    const contractor = await prisma.contractor.findFirst({
+    const contractor = await prisma.contractorProfile.findFirst({
       where: { userId: session.user.id },
     });
 
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
 
       connectAccountId = account.id;
 
-      await prisma.contractor.update({
+      await prisma.contractorProfile.update({
         where: { id: contractor.id },
         data: {
           stripeConnectAccountId: connectAccountId,

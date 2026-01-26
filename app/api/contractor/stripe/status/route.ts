@@ -13,7 +13,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const contractor = await prisma.contractor.findFirst({
+    const contractor = await prisma.contractorProfile.findFirst({
       where: { userId: session.user.id },
     });
 
@@ -52,7 +52,7 @@ export async function GET() {
       // Update local status
       const isPaymentReady = isOnboarded && canReceivePayouts;
       if (contractor.isPaymentReady !== isPaymentReady || contractor.stripeOnboardingStatus !== status) {
-        await prisma.contractor.update({
+        await prisma.contractorProfile.update({
           where: { id: contractor.id },
           data: { 
             stripeOnboardingStatus: status,
