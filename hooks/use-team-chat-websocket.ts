@@ -61,7 +61,9 @@ export function useTeamChatWebSocket({
 
     // Prevent multiple simultaneous connection attempts
     if (wsRef.current?.readyState === WebSocket.CONNECTING) {
-      console.log('WebSocket already connecting, skipping...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('WebSocket already connecting, skipping...');
+      }
       return;
     }
 
@@ -71,11 +73,15 @@ export function useTeamChatWebSocket({
       const host = window.location.host;
       const wsUrl = `${protocol}//${host}/api/websocket/team-chat?token=${encodeURIComponent(session.user.id)}`;
       
-      console.log('Connecting to WebSocket:', wsUrl);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Connecting to WebSocket:', wsUrl);
+      }
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
-        console.log('WebSocket connected');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('WebSocket connected');
+        }
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
         onConnectionChange?.(true);
@@ -122,30 +128,40 @@ export function useTeamChatWebSocket({
       };
 
       wsRef.current.onclose = (event) => {
-        console.log('WebSocket disconnected:', event.code, event.reason);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('WebSocket disconnected:', event.code, event.reason);
+        }
         setIsConnected(false);
         onConnectionChange?.(false);
 
-        // Attempt to reconnect if not a normal closure and not too many attempts
-        if (event.code !== 1000 && reconnectAttemptsRef.current < maxReconnectAttempts) {
+        // Don't attempt to reconnect if it's a normal closure or if we've never successfully connected
+        // This prevents endless reconnection attempts when the WebSocket server isn't running
+        if (event.code !== 1000 && reconnectAttemptsRef.current > 0 && reconnectAttemptsRef.current < maxReconnectAttempts) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
-          console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1})`);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1})`);
+          }
           
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttemptsRef.current++;
             connect();
           }, delay);
-        } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-          console.log('Max reconnection attempts reached, giving up');
         }
       };
 
       wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        // Silently handle WebSocket errors - they're expected when the server isn't running
+        // Only log in development
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('WebSocket connection failed (this is normal if WebSocket server is not running)');
+        }
       };
 
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
+      // Silently handle connection errors - WebSocket server may not be running
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to create WebSocket connection (this is normal if WebSocket server is not running)');
+      }
     }
   }, [session?.user?.id, onNewMessage, onMessageReaction, onUserTyping, onUserStopTyping, onConnectionChange]);
 

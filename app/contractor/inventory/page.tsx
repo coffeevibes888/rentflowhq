@@ -101,7 +101,7 @@ export default async function InventoryPage() {
   }
 
   // Fetch inventory items
-  const items = await prisma.contractorInventoryItem.findMany({
+  const rawItems = await prisma.contractorInventoryItem.findMany({
     where: { contractorId: contractorProfile.id },
     include: {
       vendor: {
@@ -114,6 +114,13 @@ export default async function InventoryPage() {
     },
     orderBy: { name: 'asc' },
   });
+
+  // Serialize Decimal types for client component
+  const items = rawItems.map(item => ({
+    ...item,
+    unitCost: Number(item.unitCost),
+    costPerUnit: Number(item.costPerUnit),
+  }));
 
   // Calculate stats
   const totalItems = items.length;

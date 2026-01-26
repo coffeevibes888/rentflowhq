@@ -284,12 +284,15 @@ export function TeamChat({
           console.log('Loaded messages:', data.messages.length);
           setMessages(data.messages || []);
         } else if (isMounted) {
-          console.error('Failed to load messages:', data.message);
+          // Silently handle channel not found - it may not exist yet
+          if (data.message !== 'Channel not found') {
+            console.error('Failed to load messages:', data.message);
+          }
           setMessages([]);
         }
       } catch (error) {
         if (isMounted) {
-          console.error('Failed to load messages:', error);
+          // Silently handle errors - channel may not exist yet
           setMessages([]);
         }
       }
@@ -397,9 +400,16 @@ export function TeamChat({
           console.log('WebSocket not connected, relying on server broadcast');
         }
       } else {
-        // Show error message
-        console.error('Failed to send message:', data.message);
-        alert('Failed to send message: ' + (data.message || 'Unknown error'));
+        // If channel not found, try to reload channels and retry
+        if (data.message === 'Channel not found') {
+          console.log('Channel not found, reloading channels...');
+          await loadChannels();
+          alert('Channel was not found. Please try sending your message again.');
+        } else {
+          // Show error message
+          console.error('Failed to send message:', data.message);
+          alert('Failed to send message: ' + (data.message || 'Unknown error'));
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);

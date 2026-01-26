@@ -75,12 +75,6 @@ export const contractorNavLinks: ContractorNavLink[] = [
     icon: BarChart3,
   },
   {
-    title: 'Browse Jobs',
-    description: 'Find open jobs & bid',
-    href: '/contractors?view=jobs',
-    icon: Briefcase,
-  },
-  {
     title: 'Work Orders',
     description: 'View and manage jobs',
     href: '/contractor/work-orders',
@@ -91,12 +85,6 @@ export const contractorNavLinks: ContractorNavLink[] = [
     description: 'Create and send quotes',
     href: '/contractor/estimates',
     icon: Calculator,
-  },
-  {
-    title: 'Time Tracking',
-    description: 'Log hours and track jobs',
-    href: '/contractor/time-tracking',
-    icon: Clock,
   },
   {
     title: 'Inventory',
@@ -113,28 +101,10 @@ export const contractorNavLinks: ContractorNavLink[] = [
     requiredTier: 'pro', // Equipment tracking requires Pro or Enterprise
   },
   {
-    title: 'My Work',
-    description: 'Photos, videos & documentation',
-    href: '/contractor/portfolio',
-    icon: Camera,
-  },
-  {
-    title: 'My Landlords',
-    description: 'Property managers you work with',
-    href: '/contractor/landlords',
-    icon: Building2,
-  },
-  {
-    title: 'Payouts',
-    description: 'Earnings and payment history',
-    href: '/contractor/payouts',
-    icon: Wallet,
-  },
-  {
-    title: 'Disputes',
-    description: 'File or view disputes',
-    href: '/contractor/disputes',
-    icon: Scale,
+    title: 'My Business',
+    description: 'Portfolio, relationships & more',
+    href: '/contractor/business',
+    icon: Briefcase,
   },
   {
     title: 'My Profile',

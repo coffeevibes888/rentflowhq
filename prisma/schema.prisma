@@ -3598,6 +3598,13 @@ model ContractorProfile {
   roles                 ContractorRole[]
   communications        ContractorCommunication[]
   inventoryItems        ContractorInventoryItem[]
+  inventoryUsage        ContractorInventoryUsage[]
+  inventoryReorders     ContractorInventoryReorder[]
+  inventoryReceiving    ContractorInventoryReceiving[]
+  trucks                ContractorTruck[]
+  truckInventory        ContractorTruckInventory[]
+  truckLoads            ContractorTruckLoad[]
+  jobMaterials          ContractorJobMaterial[]
   equipment             ContractorEquipment[]
   vendors               ContractorVendor[]
   timeOffRequests       ContractorTimeOff[]
@@ -4481,6 +4488,9 @@ model ContractorJob {
   jobMilestones   ContractorJobMilestone[]
   jobNotes        ContractorJobNote[]
   incidentReports ContractorIncidentReport[]
+  inventoryUsage  ContractorInventoryUsage[]
+  materials       ContractorJobMaterial[]
+  truckLoads      ContractorTruckLoad[]
 
   @@index([contractorId])
   @@index([customerId])
@@ -4554,6 +4564,10 @@ model ContractorEmployee {
   employeeCertifications ContractorCertification[]
   incidentReports        ContractorIncidentReport[]
   equipmentAssignments   ContractorEquipment[]     @relation("EquipmentAssignments")
+  assignedTrucks         ContractorTruck[]
+  truckLoadsPerformed    ContractorTruckLoad[]     @relation("TruckLoadEmployee")
+  inventoryReceived      ContractorInventoryReceiving[] @relation("InventoryReceivedBy")
+  truckInventoryLoaded   ContractorTruckInventory[] @relation("TruckInventoryLoadedBy")
 
   @@index([contractorId])
   @@index([roleId])
@@ -5461,10 +5475,18 @@ model ContractorInventoryItem {
   unitCost     Decimal @default(0) @db.Decimal(10, 2)
   costPerUnit  Decimal @default(0) @db.Decimal(10, 2) // Alias for backward compatibility
 
+  // Multi-location tracking
+  warehouseQuantity Int @default(0) // In warehouse
+  truckQuantity     Int @default(0) // On trucks (sum of all trucks)
+  reservedQuantity  Int @default(0) // Reserved for jobs
+
   // Reordering
   reorderPoint Int? // Alert when quantity drops below this
   reorderLevel Int? // Alias for backward compatibility
   reorderQty   Int? // Quantity to reorder
+  autoReorder  Boolean @default(false) // Automatically create reorder when low
+  lastReorderDate DateTime? @db.Timestamp(6)
+  reorderFrequency String? // weekly, biweekly, monthly, as_needed
 
   // Supplier (legacy fields)
   supplier    String?
@@ -5474,6 +5496,21 @@ model ContractorInventoryItem {
   location String? // warehouse, truck 1, job site, etc.
   qrCode   String? // Generated QR code for scanning
   barcode  String?
+  
+  // Warehouse organization
+  warehouseZone   String? // Zone A, Zone B, etc.
+  warehouseAisle  String? // Aisle 1, 2, 3
+  warehouseShelf  String? // Shelf A, B, C
+  warehouseBin    String? // Bin 1, 2, 3
+
+  // Usage tracking
+  averageMonthlyUsage Int? // Calculated from usage history
+  lastUsedDate DateTime? @db.Timestamp(6)
+  lastReceivedDate DateTime? @db.Timestamp(6)
+
+  // Job planning
+  standardJobQuantity Int? // Default quantity needed per job
+  isConsumable Boolean @default(true) // True for items that get used up
 
   // Metadata
   notes String?
@@ -5485,11 +5522,266 @@ model ContractorInventoryItem {
   // Relations
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   vendor     ContractorVendor? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  usageHistory ContractorInventoryUsage[]
+  reorderHistory ContractorInventoryReorder[]
+  truckInventory ContractorTruckInventory[]
+  jobMaterials ContractorJobMaterial[]
+  receivingHistory ContractorInventoryReceiving[]
 
   @@index([contractorId])
   @@index([vendorId])
   @@index([category])
   @@index([qrCode])
+  @@index([barcode])
+  @@index([quantity])
+  @@index([warehouseZone])
+}
+
+// ContractorInventoryUsage - Track inventory usage over time
+model ContractorInventoryUsage {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+  itemId       String @db.Uuid
+  jobId        String? @db.Uuid
+
+  quantityUsed Int
+  usedDate     DateTime @default(now()) @db.Timestamp(6)
+  notes        String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  // Relations
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  job        ContractorJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@index([contractorId])
+  @@index([itemId])
+  @@index([jobId])
+  @@index([usedDate])
+}
+
+// ContractorInventoryReorder - Track reorder history
+model ContractorInventoryReorder {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+  itemId       String @db.Uuid
+  vendorId     String? @db.Uuid
+
+  quantityOrdered Int
+  unitCost        Decimal @db.Decimal(10, 2)
+  totalCost       Decimal @db.Decimal(10, 2)
+  
+  status          String @default("pending") // pending, ordered, received, cancelled
+  orderDate       DateTime @default(now()) @db.Timestamp(6)
+  expectedDate    DateTime? @db.Timestamp(6)
+  receivedDate    DateTime? @db.Timestamp(6)
+  
+  orderNumber     String?
+  trackingNumber  String?
+  notes           String?
+  autoGenerated   Boolean @default(false) // Was this auto-generated?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  vendor     ContractorVendor? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  receivingRecords ContractorInventoryReceiving[]
+
+  @@index([contractorId])
+  @@index([itemId])
+  @@index([vendorId])
+  @@index([status])
+  @@index([orderDate])
+}
+
+// ContractorTruck - Track company vehicles/trucks
+model ContractorTruck {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+
+  name         String // Truck 1, Van A, etc.
+  vehicleType  String // truck, van, trailer
+  licensePlate String?
+  vin          String?
+  
+  status       String @default("active") // active, maintenance, retired
+  
+  // Capacity
+  maxWeight    Int? // pounds
+  maxVolume    Int? // cubic feet
+  
+  // Assignment
+  assignedDriverId String? @db.Uuid
+  currentJobId     String? @db.Uuid
+  
+  // Maintenance
+  lastServiceDate  DateTime? @db.Timestamp(6)
+  nextServiceDate  DateTime? @db.Timestamp(6)
+  odometerReading  Int?
+  
+  notes String?
+  
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  assignedDriver ContractorEmployee? @relation(fields: [assignedDriverId], references: [id], onDelete: SetNull)
+  inventory ContractorTruckInventory[]
+  loadHistory ContractorTruckLoad[]
+
+  @@index([contractorId])
+  @@index([assignedDriverId])
+  @@index([status])
+}
+
+// ContractorTruckInventory - Real-time truck inventory
+model ContractorTruckInventory {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+  truckId      String @db.Uuid
+  itemId       String @db.Uuid
+
+  quantity     Int
+  loadedAt     DateTime @default(now()) @db.Timestamp(6)
+  loadedBy     String? @db.Uuid // Employee who loaded it
+  
+  status       String @default("loaded") // loaded, in_use, returned
+  
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  truck      ContractorTruck @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  loadedByEmployee ContractorEmployee? @relation("TruckInventoryLoadedBy", fields: [loadedBy], references: [id], onDelete: SetNull)
+
+  @@unique([truckId, itemId])
+  @@index([contractorId])
+  @@index([truckId])
+  @@index([itemId])
+  @@index([status])
+}
+
+// ContractorTruckLoad - Track loading/unloading events
+model ContractorTruckLoad {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+  truckId      String @db.Uuid
+  jobId        String? @db.Uuid
+
+  type         String // load, unload, restock
+  items        Json   @db.Json // Array of {itemId, quantity, scanned}
+  
+  loadedBy     String? @db.Uuid
+  loadedAt     DateTime @default(now()) @db.Timestamp(6)
+  
+  notes        String?
+  
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  // Relations
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  truck      ContractorTruck @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  job        ContractorJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  loadedByEmployee ContractorEmployee? @relation("TruckLoadEmployee", fields: [loadedBy], references: [id], onDelete: SetNull)
+
+  @@index([contractorId])
+  @@index([truckId])
+  @@index([jobId])
+  @@index([loadedAt])
+}
+
+// ContractorJobMaterial - Materials needed/used for a job
+model ContractorJobMaterial {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+  jobId        String @db.Uuid
+  itemId       String @db.Uuid
+
+  // Planning
+  quantityNeeded   Int
+  quantityReserved Int @default(0)
+  quantityLoaded   Int @default(0)
+  quantityUsed     Int @default(0)
+  quantityReturned Int @default(0)
+  
+  status String @default("planned") // planned, reserved, loaded, in_use, completed
+  
+  // Tracking
+  reservedAt DateTime? @db.Timestamp(6)
+  loadedAt   DateTime? @db.Timestamp(6)
+  usedAt     DateTime? @db.Timestamp(6)
+  
+  // Cost tracking
+  unitCostAtTime Decimal @db.Decimal(10, 2) // Cost when reserved
+  totalCost      Decimal @db.Decimal(10, 2) // quantityUsed * unitCostAtTime
+  
+  notes String?
+  
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  job        ContractorJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, itemId])
+  @@index([contractorId])
+  @@index([jobId])
+  @@index([itemId])
+  @@index([status])
+}
+
+// ContractorInventoryReceiving - Track items received into warehouse
+model ContractorInventoryReceiving {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+  itemId       String @db.Uuid
+  reorderId    String? @db.Uuid
+
+  quantityReceived Int
+  quantityExpected Int?
+  
+  receivedBy   String? @db.Uuid
+  receivedAt   DateTime @default(now()) @db.Timestamp(6)
+  
+  // Location assigned
+  warehouseZone  String?
+  warehouseAisle String?
+  warehouseShelf String?
+  warehouseBin   String?
+  
+  // Quality check
+  qualityChecked Boolean @default(false)
+  qualityStatus  String? // passed, failed, partial
+  damageNotes    String?
+  
+  // Documents
+  poNumber       String?
+  invoiceNumber  String?
+  packingSlip    String?
+  
+  notes String?
+  
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  // Relations
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  reorder    ContractorInventoryReorder? @relation(fields: [reorderId], references: [id], onDelete: SetNull)
+  receivedByEmployee ContractorEmployee? @relation("InventoryReceivedBy", fields: [receivedBy], references: [id], onDelete: SetNull)
+
+  @@index([contractorId])
+  @@index([itemId])
+  @@index([reorderId])
+  @@index([receivedAt])
 }
 
 // ContractorEquipment - Tools, vehicles, and equipment tracking
@@ -5588,6 +5880,7 @@ model ContractorVendor {
   // Relations
   contractor     ContractorProfile         @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   inventoryItems ContractorInventoryItem[]
+  reorders       ContractorInventoryReorder[]
 
   @@index([contractorId])
   @@index([category])

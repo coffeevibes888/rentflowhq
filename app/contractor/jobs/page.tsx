@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { JobsMobileList, JobsDesktopTable } from '@/components/contractor/jobs-list';
 import { Button } from '@/components/ui/button';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -130,12 +130,23 @@ export default async function ContractorJobsPage({
             Manage your projects from quote to completion
           </p>
         </div>
-        <Link href='/contractor/leads'>
-          <Button className=' bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 hover:from-violet-700 hover:to-purple-700 text-gray-900 border border-black shadow-2xl'>
-            <Plus className='h-4 w-4 mr-2' />
-            New Job from Lead
-          </Button>
-        </Link>
+        <div className='flex gap-2'>
+          <Link href='/contractors?view=jobs'>
+            <Button 
+              variant='outline'
+              className='bg-white hover:bg-gray-50 text-gray-900 border-2 border-black shadow-lg'
+            >
+              <Briefcase className='h-4 w-4 mr-2' />
+              Browse Jobs
+            </Button>
+          </Link>
+          <Link href='/contractor/leads'>
+            <Button className='bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 hover:from-violet-700 hover:to-purple-700 text-gray-900 border border-black shadow-2xl'>
+              <Plus className='h-4 w-4 mr-2' />
+              New Job from Lead
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Status Filters */}
