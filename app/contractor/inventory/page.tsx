@@ -38,6 +38,27 @@ export default async function InventoryPage() {
     redirect('/onboarding/contractor');
   }
 
+  // Ensure usage tracking exists
+  const usageTracking = await prisma.contractorUsageTracking.findUnique({
+    where: { contractorId: contractorProfile.id },
+  });
+
+  if (!usageTracking) {
+    // Create usage tracking if it doesn't exist
+    await prisma.contractorUsageTracking.create({
+      data: {
+        contractorId: contractorProfile.id,
+        activeJobsCount: 0,
+        invoicesThisMonth: 0,
+        totalCustomers: 0,
+        teamMembersCount: 0,
+        inventoryCount: 0,
+        equipmentCount: 0,
+        activeLeadsCount: 0,
+      },
+    });
+  }
+
   // Check inventory feature access
   const featureAccess = await canAccessFeature(contractorProfile.id, 'inventory');
   

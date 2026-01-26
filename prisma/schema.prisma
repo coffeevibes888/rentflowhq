@@ -3667,6 +3667,57 @@ model ContractorNotification {
   @@index([createdAt])
 }
 
+// ============= CONTRACTOR TEAM CHAT =============
+
+// Contractor team communication channels (Slack-like)
+model ContractorTeamChannel {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String   @db.Uuid
+  name         String
+  description  String?
+  type         String   @default("public") // public, private, direct
+  createdById  String   @db.Uuid
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime @updatedAt
+
+  messages ContractorTeamMessage[]
+  members  ContractorTeamChannelMember[]
+
+  @@index([contractorId])
+}
+
+model ContractorTeamChannelMember {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  channelId  String    @db.Uuid
+  userId     String    @db.Uuid
+  role       String    @default("member") // admin, member
+  lastReadAt DateTime? @db.Timestamp(6)
+  joinedAt   DateTime  @default(now()) @db.Timestamp(6)
+
+  channel ContractorTeamChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+  @@index([channelId])
+  @@index([userId])
+}
+
+model ContractorTeamMessage {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  channelId   String    @db.Uuid
+  senderId    String    @db.Uuid
+  content     String
+  attachments String[]  @default([])
+  isEdited    Boolean   @default(false)
+  editedAt    DateTime? @db.Timestamp(6)
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+
+  channel ContractorTeamChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([channelId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
 // ============= PROPERTY-SPECIFIC FEE SETTINGS =============
 
 // Property-specific fee overrides - allows customizing fees per property
