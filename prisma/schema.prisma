@@ -5447,23 +5447,26 @@ model ContractorCommunication {
 model ContractorInventoryItem {
   id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   contractorId String @db.Uuid
+  vendorId     String? @db.Uuid
 
   // Item details
   name        String
   sku         String?
-  category    String // plumbing, electrical, lumber, hardware, etc.
+  category    String? // plumbing, electrical, lumber, hardware, etc.
   description String?
 
   // Inventory
-  quantity    Int     @default(0)
-  unit        String // each, box, gallon, foot, etc.
-  costPerUnit Decimal @db.Decimal(10, 2)
+  quantity     Int     @default(0)
+  unit         String  @default("each") // each, box, gallon, foot, etc.
+  unitCost     Decimal @default(0) @db.Decimal(10, 2)
+  costPerUnit  Decimal @default(0) @db.Decimal(10, 2) // Alias for backward compatibility
 
   // Reordering
-  reorderLevel Int? // Alert when quantity drops below this
+  reorderPoint Int? // Alert when quantity drops below this
+  reorderLevel Int? // Alias for backward compatibility
   reorderQty   Int? // Quantity to reorder
 
-  // Supplier
+  // Supplier (legacy fields)
   supplier    String?
   supplierSku String?
 
@@ -5481,8 +5484,10 @@ model ContractorInventoryItem {
 
   // Relations
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  vendor     ContractorVendor? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
+  @@index([vendorId])
   @@index([category])
   @@index([qrCode])
 }
@@ -5581,7 +5586,8 @@ model ContractorVendor {
   updatedAt DateTime @updatedAt
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor     ContractorProfile         @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  inventoryItems ContractorInventoryItem[]
 
   @@index([contractorId])
   @@index([category])
