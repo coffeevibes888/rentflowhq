@@ -30,7 +30,7 @@ export default function VerifyEmail({
             <Heading className='text-2xl font-bold'>Verify Your Email</Heading>
             <Section className='my-4'>
               <Text className='text-gray-600'>
-                Welcome to Rocken My Vibe! Please verify your email address to
+                Welcome to Property Flow HQ! Please verify your email address to
                 complete your registration.
               </Text>
             </Section>

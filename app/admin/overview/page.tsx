@@ -1,14 +1,7 @@
 import { Metadata } from 'next';
 import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
-import {
-  Building2,
-  FileText,
-  Wrench,
-  DollarSign,
-  Wallet,
-  MessageCircle,
-} from 'lucide-react';
+import { Building2, FileText, Wrench, DollarSign, Wallet, MessageCircle} from 'lucide-react';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';

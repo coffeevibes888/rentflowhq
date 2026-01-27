@@ -124,7 +124,7 @@ export default function NotificationEmail({
               {landlord.name}
             </Heading>
             <Text style={{ fontSize: '14px', color: '#64748b', margin: '5px 0 0' }}>
-              Property Management
+              Property Flow HQ
             </Text>
           </Section>
 

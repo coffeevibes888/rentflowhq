@@ -99,8 +99,7 @@ export default function UpgradeReminderEmail({
 
           <Text style={footerText}>
             If you have any questions about upgrading, please contact our support
-            team. We&apos;re here to help you grow your property management
-            business.
+            team. We&apos;re here to help you grow your business with Property Flow HQ.
           </Text>
         </Container>
       </Body>
