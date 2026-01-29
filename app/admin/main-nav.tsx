@@ -63,21 +63,21 @@ const MainNav = ({
             href={item.href}
             title={item.title}
             className={cn(
-              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 overflow-hidden border-b border-black',
+              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 overflow-hidden border border-black',
               isActive 
-                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-blue-500/20' 
-                : 'hover:bg-gradient-to-r hover:from-cyan-100 hover:to-blue-100 hover:shadow-md hover:scale-105'
+                ? 'bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 text-black shadow-2xl' 
+                : 'hover:bg-gradient-to-r hover:from-sky-400 hover:via-cyan-200 hover:to-sky-400 hover:shadow-xl hover:scale-105'
             )}
           >
             <Icon className={cn(
               'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
-              isActive ? 'text-white' : '!text-black'
+              isActive ? 'text-black' : '!text-black'
             )} />
             <div className='flex flex-col min-w-0 flex-1 overflow-hidden'>
               <div className="flex items-center gap-1.5">
                 <span className={cn(
                   'text-sm truncate',
-                  isActive ? 'text-white font-semibold' : '!text-black !font-semibold'
+                  isActive ? 'text-black font-bold' : '!text-black !font-semibold'
                 )}>{item.title}</span>
                 {showProBadge && (
                   <span className="shrink-0 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wide">
@@ -88,7 +88,7 @@ const MainNav = ({
               </div>
               <span className={cn(
                 'text-[11px] truncate',
-                isActive ? 'text-violet-200' : '!text-black/60'
+                isActive ? 'text-blue-800' : '!text-black/60'
               )}>{item.description}</span>
             </div>
           </Link>

@@ -189,7 +189,7 @@ export default function ResumeBuilderClient() {
     const response = await fetch('/api/super-admin/resume/generate-pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resume, template }),
+      body: JSON.stringify({ resume, template, sidebarColor }),
     });
 
     const blob = await response.blob();

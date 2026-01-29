@@ -30,10 +30,10 @@ export default async function TenantsPage() {
       </div>
 
       {tenants.length === 0 ? (
-        <div className="text-center py-12 rounded-lg border border-white/10 bg-slate-900/60">
-          <Users className="mx-auto h-12 w-12 text-slate-400 mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">No Tenants Yet</h3>
-          <p className="text-slate-400 mb-4 text-sm">
+        <div className="text-center py-12 rounded-lg border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 shadow-2xl">
+          <Users className="mx-auto h-12 w-12 text-blue-600 mb-4" />
+          <h3 className="text-lg font-medium text-black mb-2">No Tenants Yet</h3>
+          <p className="text-black/70 mb-4 text-sm">
             Add your first tenant to get started.
           </p>
           <Link href="/admin/tenants/add">
@@ -51,14 +51,14 @@ export default async function TenantsPage() {
               <Link
                 key={`${tenant.id}-${tenant.leaseId}`}
                 href={`/admin/leases/${tenant.leaseId}`}
-                className="block rounded-lg border border-white/10 bg-slate-900/60 p-3 transition-all active:scale-[0.99]"
+                className="block rounded-lg border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 transition-all active:scale-[0.99] shadow-2xl"
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-white truncate">
+                    <p className="text-sm font-medium text-black truncate">
                       {tenant.name}
                     </p>
-                    <p className="text-[10px] text-slate-400 truncate">
+                    <p className="text-[10px] text-blue-800 truncate">
                       {tenant.email}
                     </p>
                   </div>
@@ -75,25 +75,25 @@ export default async function TenantsPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                  <div className="rounded bg-slate-900/40 p-1.5 border border-white/5">
-                    <span className="text-slate-400 block">Property</span>
-                    <span className="text-slate-100 truncate block">
+                  <div className="rounded bg-white/40 p-1.5 border border-black/10">
+                    <span className="text-black/70 font-semibold block">Property</span>
+                    <span className="text-black font-bold truncate block">
                       {tenant.propertyName}
                     </span>
                   </div>
-                  <div className="rounded bg-slate-900/40 p-1.5 border border-white/5">
-                    <span className="text-slate-400 block">Unit</span>
-                    <span className="text-slate-100">{tenant.unitName}</span>
+                  <div className="rounded bg-white/40 p-1.5 border border-black/10">
+                    <span className="text-black/70 font-semibold block">Unit</span>
+                    <span className="text-black font-bold">{tenant.unitName}</span>
                   </div>
-                  <div className="rounded bg-slate-900/40 p-1.5 border border-white/5">
-                    <span className="text-slate-400 block">Rent</span>
-                    <span className="text-slate-100">
+                  <div className="rounded bg-white/40 p-1.5 border border-black/10">
+                    <span className="text-black/70 font-semibold block">Rent</span>
+                    <span className="text-black font-bold">
                       ${tenant.rentAmount.toLocaleString()}/mo
                     </span>
                   </div>
-                  <div className="rounded bg-slate-900/40 p-1.5 border border-white/5">
-                    <span className="text-slate-400 block">Since</span>
-                    <span className="text-slate-100">
+                  <div className="rounded bg-white/40 p-1.5 border border-black/10">
+                    <span className="text-black/70 font-semibold block">Since</span>
+                    <span className="text-black font-bold">
                       {new Date(tenant.startDate).toLocaleDateString()}
                     </span>
                   </div>
@@ -103,26 +103,26 @@ export default async function TenantsPage() {
           </div>
 
           {/* Desktop Table */}
-          <div className="hidden md:block rounded-lg border border-white/10 bg-slate-900/60 shadow-sm overflow-hidden">
+          <div className="hidden md:block rounded-lg border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 shadow-2xl overflow-hidden">
             <table className="min-w-full text-xs">
-              <thead className="bg-slate-900/80 border-b border-white/10">
+              <thead className="bg-white/40 border-b border-black">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium text-slate-200/90">
+                  <th className="px-3 py-2 text-left font-medium text-black">
                     Tenant
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-slate-200/90">
+                  <th className="px-3 py-2 text-left font-medium text-black">
                     Property / Unit
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-slate-200/90">
+                  <th className="px-3 py-2 text-left font-medium text-black">
                     Rent
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-slate-200/90">
+                  <th className="px-3 py-2 text-left font-medium text-black">
                     Lease Start
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-slate-200/90">
+                  <th className="px-3 py-2 text-left font-medium text-black">
                     Status
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-slate-200/90">
+                  <th className="px-3 py-2 text-left font-medium text-black">
                     Action
                   </th>
                 </tr>
@@ -131,21 +131,21 @@ export default async function TenantsPage() {
                 {tenants.map((tenant) => (
                   <tr
                     key={`${tenant.id}-${tenant.leaseId}`}
-                    className="border-t border-white/10"
+                    className="border-t border-black/10"
                   >
-                    <td className="px-3 py-2 text-slate-200">
+                    <td className="px-3 py-2 text-black">
                       {tenant.name}
-                      <span className="block text-[10px] text-slate-400">
+                      <span className="block text-[10px] text-blue-800">
                         {tenant.email}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-slate-200">
+                    <td className="px-3 py-2 text-black">
                       {tenant.propertyName} • {tenant.unitName}
                     </td>
-                    <td className="px-3 py-2 text-slate-200">
+                    <td className="px-3 py-2 text-black">
                       ${tenant.rentAmount.toLocaleString()}/mo
                     </td>
-                    <td className="px-3 py-2 text-slate-400">
+                    <td className="px-3 py-2 text-black/70">
                       {new Date(tenant.startDate).toLocaleDateString()}
                     </td>
                     <td className="px-3 py-2">

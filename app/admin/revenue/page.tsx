@@ -173,57 +173,56 @@ export default async function RentManagementPage() {
     <main className='w-full space-y-4'>
       {/* Header */}
       <div>
-        <p className='text-[10px] uppercase tracking-[0.15em] text-violet-200/70'>Rent Management</p>
-        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-white'>Rents Overview</h1>
-        <p className='text-slate-300/80 text-xs mt-0.5'>Current month rent status across all active leases.</p>
+        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-black'>Rents Overview</h1>
+        <p className='text-black/70 text-xs mt-0.5'>Current month rent status across all active leases.</p>
       </div>
 
       {/* Summary Stats */}
-      <div className='relative rounded-xl sm:rounded-2xl border border-white/10 shadow-xl overflow-hidden backdrop-blur-md'>
-        <div className='absolute inset-0 bg-blue-700' />
+      <div className='relative rounded-xl sm:rounded-2xl border border-black shadow-2xl overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
         <div className='relative p-3 sm:p-4 md:p-6'>
           <div className='flex items-center justify-between mb-3'>
-            <h3 className='text-sm sm:text-base font-bold text-white'>Monthly Summary</h3>
-            <span className='text-[10px] text-violet-200/80 bg-white/5 px-1.5 py-0.5 rounded-full ring-1 ring-white/10'>
+            <h3 className='text-sm sm:text-base font-bold text-black'>Monthly Summary</h3>
+            <span className='text-[10px] text-black bg-white/30 px-1.5 py-0.5 rounded-full ring-1 ring-black/20 font-semibold'>
               {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
             </span>
           </div>
 
           <div className='grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4'>
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl'>
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-emerald-100'>Collected</div>
-                <CheckCircle2 className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Collected</div>
+                <CheckCircle2 className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{formatCurrency(totalCollected)}</div>
-              <div className='text-[9px] sm:text-[10px] text-emerald-100'>{paidThisMonth.length} payments</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{formatCurrency(totalCollected)}</div>
+              <div className='text-[9px] sm:text-[10px] text-blue-800 font-semibold'>{paidThisMonth.length} payments</div>
             </div>
 
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl'>
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-amber-100'>Late</div>
-                <Clock className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Late</div>
+                <Clock className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{formatCurrency(totalLate)}</div>
-              <div className='text-[9px] sm:text-[10px] text-amber-100'>{lateThisMonth.length} overdue</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{formatCurrency(totalLate)}</div>
+              <div className='text-[9px] sm:text-[10px] text-blue-800 font-semibold'>{lateThisMonth.length} overdue</div>
             </div>
 
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl'>
               <div className='flex items-center justify-between'>
                 <div className='text-[10px] sm:text-xs text-black font-bold'>Move-in</div>
                 <Users className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
               </div>
               <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{formatCurrency(pendingMoveIn)}</div>
-              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{Object.keys(moveInByTenant).length} tenants</div>
+              <div className='text-[9px] sm:text-[10px] text-blue-800 font-semibold'>{Object.keys(moveInByTenant).length} tenants</div>
             </div>
 
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-purple-500 to-violet-600 border border-white/10 p-2.5 sm:p-3 md:p-4 space-y-1 backdrop-blur-sm shadow-xl'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 shadow-2xl'>
               <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-violet-100'>Partial</div>
-                <AlertCircle className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/90' />
+                <div className='text-[10px] sm:text-xs text-black font-bold'>Partial</div>
+                <AlertCircle className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-600' />
               </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{partialPayments.length}</div>
-              <div className='text-[9px] sm:text-[10px] text-violet-100'>incomplete</div>
+              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{partialPayments.length}</div>
+              <div className='text-[9px] sm:text-[10px] text-blue-800 font-semibold'>incomplete</div>
             </div>
           </div>
         </div>
@@ -233,8 +232,8 @@ export default async function RentManagementPage() {
         {Object.keys(moveInByTenant).length > 0 && (
           <section className='space-y-3'>
             <div>
-              <h2 className='text-sm sm:text-base font-semibold text-white'>Pending Move-in Payments</h2>
-              <p className='text-[10px] sm:text-xs text-slate-400'>First month, last month rent, and security deposits.</p>
+              <h2 className='text-sm sm:text-base font-semibold text-black'>Pending Move-in Payments</h2>
+              <p className='text-[10px] sm:text-xs text-black/70'>First month, last month rent, and security deposits.</p>
             </div>
             <div className='grid gap-3 md:grid-cols-2 lg:grid-cols-3'>
               {Object.values(moveInByTenant).map((group) => {
@@ -249,42 +248,42 @@ export default async function RentManagementPage() {
                 return (
                   <div
                     key={group.tenant?.id || group.payments[0]?.id}
-                    className='rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 p-3 sm:p-4 space-y-3'
+                    className='rounded-lg sm:rounded-xl border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 sm:p-4 space-y-3 shadow-2xl'
                   >
                     <div className='flex items-start justify-between'>
                       <div className='min-w-0 flex-1'>
-                        <p className='font-semibold text-white text-sm truncate'>{group.tenant?.name || 'Tenant'}</p>
-                        <p className='text-[10px] text-slate-500 truncate'>{unitLabel}</p>
+                        <p className='font-semibold text-black text-sm truncate'>{group.tenant?.name || 'Tenant'}</p>
+                        <p className='text-[10px] text-blue-800 truncate'>{unitLabel}</p>
                       </div>
-                      <span className='inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-medium text-amber-300 border border-amber-400/30 shrink-0'>
+                      <span className='inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-medium text-amber-700 border border-amber-600 shrink-0'>
                         Pending
                       </span>
                     </div>
 
-                    <div className='rounded bg-slate-800/60 p-2 space-y-1.5 text-xs'>
+                    <div className='rounded bg-white/40 p-2 space-y-1.5 text-xs border border-black/10'>
                       <div className='flex items-center justify-between'>
-                        <span className='text-slate-400'>First month</span>
-                        <span className='text-white font-medium'>
+                        <span className='text-black/70 font-semibold'>First month</span>
+                        <span className='text-black font-bold'>
                           {firstMonth ? formatCurrency(Number(firstMonth.amount)) : '—'}
                         </span>
                       </div>
                       <div className='flex items-center justify-between'>
-                        <span className='text-slate-400'>Last month</span>
-                        <span className='text-white font-medium'>
+                        <span className='text-black/70 font-semibold'>Last month</span>
+                        <span className='text-black font-bold'>
                           {lastMonth ? formatCurrency(Number(lastMonth.amount)) : '—'}
                         </span>
                       </div>
                       <div className='flex items-center justify-between'>
-                        <span className='text-slate-400'>Security</span>
-                        <span className='text-white font-medium'>
+                        <span className='text-black/70 font-semibold'>Security</span>
+                        <span className='text-black font-bold'>
                           {securityDeposit ? formatCurrency(Number(securityDeposit.amount)) : '—'}
                         </span>
                       </div>
                     </div>
 
-                    <div className='pt-2 border-t border-white/10 flex items-center justify-between'>
-                      <span className='text-xs text-slate-400'>Total due</span>
-                      <span className='text-base sm:text-lg font-bold text-white'>{formatCurrency(totalDue)}</span>
+                    <div className='pt-2 border-t border-black/20 flex items-center justify-between'>
+                      <span className='text-xs text-black/70 font-semibold'>Total due</span>
+                      <span className='text-base sm:text-lg font-bold text-black'>{formatCurrency(totalDue)}</span>
                     </div>
                   </div>
                 );
@@ -296,26 +295,26 @@ export default async function RentManagementPage() {
         {/* Paid This Month */}
         <section className='space-y-3'>
           <div>
-            <h2 className='text-sm sm:text-base font-semibold text-white'>Paid This Month</h2>
-            <p className='text-[10px] sm:text-xs text-slate-400'>Rent payments successfully collected.</p>
+            <h2 className='text-sm sm:text-base font-semibold text-black'>Paid This Month</h2>
+            <p className='text-[10px] sm:text-xs text-black/70'>Rent payments successfully collected.</p>
           </div>
-          <div className='rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 overflow-hidden'>
+          <div className='rounded-lg sm:rounded-xl border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 overflow-hidden shadow-2xl'>
             {paidThisMonth.length === 0 ? (
               <div className='px-4 py-8 text-center'>
-                <CheckCircle2 className='w-8 h-8 text-slate-600 mx-auto mb-2' />
-                <p className='text-slate-400 text-xs'>No rent payments recorded as paid this month yet.</p>
+                <CheckCircle2 className='w-8 h-8 text-emerald-600 mx-auto mb-2' />
+                <p className='text-black/70 text-xs'>No rent payments recorded as paid this month yet.</p>
               </div>
             ) : (
-              <div className='divide-y divide-white/5'>
+              <div className='divide-y divide-black/10'>
                 {paidThisMonth.map((p) => (
                   <div key={p.id} className='px-3 py-3 flex items-center justify-between gap-3'>
                     <div className='flex-1 min-w-0'>
-                      <p className='font-medium text-white truncate text-sm'>{p.tenant?.name || 'Tenant'}</p>
-                      <p className='text-[10px] text-slate-400 truncate'>{formatUnitLabel(p)}</p>
+                      <p className='font-medium text-black truncate text-sm'>{p.tenant?.name || 'Tenant'}</p>
+                      <p className='text-[10px] text-blue-800 truncate'>{formatUnitLabel(p)}</p>
                     </div>
                     <div className='text-right shrink-0'>
-                      <p className='font-semibold text-emerald-400 text-sm'>{formatCurrency(Number(p.amount))}</p>
-                      <p className='text-[9px] text-slate-500'>
+                      <p className='font-semibold text-emerald-600 text-sm'>{formatCurrency(Number(p.amount))}</p>
+                      <p className='text-[9px] text-black/60'>
                         Due {new Date(p.dueDate).toLocaleDateString()}
                       </p>
                     </div>
@@ -329,17 +328,17 @@ export default async function RentManagementPage() {
         {/* Late This Month */}
         <section className='space-y-3'>
           <div>
-            <h2 className='text-sm sm:text-base font-semibold text-white'>Late This Month</h2>
-            <p className='text-[10px] sm:text-xs text-slate-400'>Overdue rent payments requiring attention.</p>
+            <h2 className='text-sm sm:text-base font-semibold text-black'>Late This Month</h2>
+            <p className='text-[10px] sm:text-xs text-black/70'>Overdue rent payments requiring attention.</p>
           </div>
-          <div className='rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 overflow-hidden'>
+          <div className='rounded-lg sm:rounded-xl border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 overflow-hidden shadow-2xl'>
             {lateThisMonth.length === 0 ? (
               <div className='px-4 py-8 text-center'>
                 <CheckCircle2 className='w-8 h-8 text-emerald-600 mx-auto mb-2' />
-                <p className='text-slate-400 text-xs'>No tenants marked late so far this month. Great job!</p>
+                <p className='text-black/70 text-xs'>No tenants marked late so far this month. Great job!</p>
               </div>
             ) : (
-              <div className='divide-y divide-white/5'>
+              <div className='divide-y divide-black/10'>
                 {lateThisMonth.map((p) => {
                   const rent = Number(p.lease.rentAmount);
                   const amt = Number(p.amount);
@@ -348,17 +347,17 @@ export default async function RentManagementPage() {
                   return (
                     <div key={p.id} className='px-3 py-3 flex items-center justify-between gap-2'>
                       <div className='flex-1 min-w-0'>
-                        <p className='font-medium text-white truncate text-sm'>{p.tenant?.name || 'Tenant'}</p>
-                        <p className='text-[10px] text-slate-400 truncate'>{formatUnitLabel(p)}</p>
+                        <p className='font-medium text-black truncate text-sm'>{p.tenant?.name || 'Tenant'}</p>
+                        <p className='text-[10px] text-blue-800 truncate'>{formatUnitLabel(p)}</p>
                       </div>
                       <div className='flex items-center gap-2 shrink-0'>
                         <div className='text-right'>
-                          <p className='font-semibold text-red-400 text-sm'>{formatCurrency(amountOwed > 0 ? amountOwed : rent)}</p>
-                          <p className='text-[9px] text-slate-500'>
+                          <p className='font-semibold text-red-600 text-sm'>{formatCurrency(amountOwed > 0 ? amountOwed : rent)}</p>
+                          <p className='text-[9px] text-black/60'>
                             Due {new Date(p.dueDate).toLocaleDateString()}
                           </p>
                         </div>
-                        <span className='inline-flex items-center rounded-full bg-red-500/20 px-1.5 py-0.5 text-[8px] font-medium text-red-300 border border-red-400/30 uppercase'>
+                        <span className='inline-flex items-center rounded-full bg-red-500/20 px-1.5 py-0.5 text-[8px] font-medium text-red-700 border border-red-600 uppercase'>
                           {p.status}
                         </span>
                       </div>
@@ -374,11 +373,11 @@ export default async function RentManagementPage() {
         {partialPayments.length > 0 && (
           <section className='space-y-3'>
             <div>
-              <h2 className='text-sm sm:text-base font-semibold text-white'>Partial Payments</h2>
-              <p className='text-[10px] sm:text-xs text-slate-400'>Payments less than the full rent amount.</p>
+              <h2 className='text-sm sm:text-base font-semibold text-black'>Partial Payments</h2>
+              <p className='text-[10px] sm:text-xs text-black/70'>Payments less than the full rent amount.</p>
             </div>
-            <div className='rounded-lg sm:rounded-xl border border-white/10 bg-slate-900/60 overflow-hidden'>
-              <div className='divide-y divide-white/5'>
+            <div className='rounded-lg sm:rounded-xl border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 overflow-hidden shadow-2xl'>
+              <div className='divide-y divide-black/10'>
                 {partialPayments.map((p) => {
                   const rent = Number(p.lease.rentAmount);
                   const amt = Number(p.amount);
@@ -387,17 +386,17 @@ export default async function RentManagementPage() {
                   return (
                     <div key={p.id} className='px-3 py-3 flex items-center justify-between gap-2'>
                       <div className='flex-1 min-w-0'>
-                        <p className='font-medium text-white truncate text-sm'>{p.tenant?.name || 'Tenant'}</p>
-                        <p className='text-[10px] text-slate-400 truncate'>{formatUnitLabel(p)}</p>
+                        <p className='font-medium text-black truncate text-sm'>{p.tenant?.name || 'Tenant'}</p>
+                        <p className='text-[10px] text-blue-800 truncate'>{formatUnitLabel(p)}</p>
                       </div>
                       <div className='flex items-center gap-3 shrink-0'>
                         <div className='text-right'>
-                          <p className='text-[9px] text-slate-500'>Paid</p>
-                          <p className='font-medium text-emerald-400 text-xs'>{formatCurrency(amt)}</p>
+                          <p className='text-[9px] text-black/60'>Paid</p>
+                          <p className='font-medium text-emerald-600 text-xs'>{formatCurrency(amt)}</p>
                         </div>
                         <div className='text-right'>
-                          <p className='text-[9px] text-slate-500'>Remaining</p>
-                          <p className='font-semibold text-amber-400 text-xs'>{formatCurrency(remaining)}</p>
+                          <p className='text-[9px] text-black/60'>Remaining</p>
+                          <p className='font-semibold text-amber-600 text-xs'>{formatCurrency(remaining)}</p>
                         </div>
                       </div>
                     </div>

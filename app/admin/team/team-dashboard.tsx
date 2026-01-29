@@ -168,7 +168,7 @@ export function TeamDashboard({ members: initialMembers }: TeamDashboardProps) {
       </div>
 
       {/* Active Members */}
-      <div className="rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl overflow-hidden">
+      <div className="rounded-2xl border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 shadow-2xl overflow-hidden">
         <div className="p-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Active Members</h2>
         </div>
@@ -244,7 +244,7 @@ export function TeamDashboard({ members: initialMembers }: TeamDashboardProps) {
 
       {/* Pending Invitations */}
       {pendingMembers.length > 0 && (
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-xl overflow-hidden">
+        <div className="rounded-2xl border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 shadow-2xl overflow-hidden">
           <div className="p-4 border-b border-amber-500/20">
             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
               <Clock className="h-5 w-5 text-amber-400" />

@@ -38,6 +38,26 @@ export async function signInWithCredentials(
       password: formData.get('password'),
     });
 
+    // Check if user exists and email is verified
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email },
+      select: { id: true, role: true, emailVerified: true },
+    });
+
+    if (!dbUser) {
+      return { success: false, message: 'Invalid email or password' };
+    }
+
+    // Block sign-in if email not verified
+    if (!dbUser.emailVerified) {
+      return { 
+        success: false, 
+        message: 'Please verify your email before signing in. Check your inbox for the verification link.',
+        requiresVerification: true,
+        email: user.email,
+      };
+    }
+
     // Sign in the user
     const result = await signIn('credentials', {
       ...user,
@@ -46,16 +66,6 @@ export async function signInWithCredentials(
 
     if (!result || result.error) {
       return { success: false, message: 'Invalid email or password' };
-    }
-
-    // Get the authenticated user to determine redirect
-    const authenticatedUser = await prisma.user.findUnique({
-      where: { email: user.email },
-      select: { id: true, role: true },
-    });
-
-    if (!authenticatedUser) {
-      return { success: false, message: 'User not found' };
     }
 
     // Check if there's a specific callback URL provided (and it's not just '/')
@@ -71,8 +81,8 @@ export async function signInWithCredentials(
     const redirectUrl = callbackUrl 
       ? callbackUrl 
       : await getSubdomainRedirectUrl(
-          authenticatedUser.role,
-          authenticatedUser.id
+          dbUser.role,
+          dbUser.id
         );
 
     redirect(redirectUrl);
@@ -155,57 +165,23 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       signupMethod: 'Email',
     }).catch(console.error);
 
+    // Send verification email - REQUIRED before sign-in
     await sendVerificationEmailToken(user.email);
 
-    await signIn('credentials', {
+    // Log signup event
+    logAuthEvent('AUTH_SIGNUP', {
+      userId: createdUser.id,
       email: user.email,
-      password: plainPassword,
-      redirect: false,
-    });
+      role: roleValue,
+      success: true,
+    }).catch(console.error);
 
-    // Check if user came from a property application flow
-    const propertySlug = formData.get('propertySlug');
-    
-    // If tenant signed up from a property, redirect them back to the application page
-    if (roleValue === 'tenant' && propertySlug && typeof propertySlug === 'string' && propertySlug.trim().length > 0) {
-      // Redirect back to the application page with the property slug
-      redirect(`/application?property=${encodeURIComponent(propertySlug.trim())}`);
-    }
-
-    // Check if user is a landlord/property manager - redirect to subscription page
-    if (roleValue === 'landlord' || roleValue === 'property_manager') {
-      // Create landlord record immediately
-      await getOrCreateCurrentLandlord();
-      
-      // Mark onboarding as completed since we're going straight to subscription
-      await prisma.user.update({
-        where: { id: createdUser.id },
-        data: { onboardingCompleted: true },
-      });
-      
-      // Redirect to subscription page to choose plan
-      redirect(`/onboarding/landlord/subscription`);
-    }
-
-    const rawCallbackUrl = formData.get('callbackUrl');
-    if (rawCallbackUrl && typeof rawCallbackUrl === 'string' && rawCallbackUrl.trim().length > 0) {
-      redirect(rawCallbackUrl);
-    }
-
-    // For sign-up, use subdomain redirect logic but send to onboarding for landlords
-    const redirectUrl = await getSubdomainRedirectUrl(roleValue, createdUser.id);
-    
-    // Override for landlords - send to onboarding instead of admin dashboard
-    if ((roleValue === 'landlord' || roleValue === 'property_manager') && redirectUrl === '/admin/overview') {
-      redirect('/onboarding/role');
-    }
-    
-    // For tenants, check if they need onboarding before going to their page
-    if (roleValue === 'tenant' && redirectUrl.includes('/user')) {
-      redirect('/user/profile');
-    }
-    
-    redirect(redirectUrl || '/');
+    // DO NOT sign in automatically - require email verification first
+    return {
+      success: true,
+      message: 'Account created! Please check your email to verify your account before signing in.',
+      requiresVerification: true,
+    };
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;

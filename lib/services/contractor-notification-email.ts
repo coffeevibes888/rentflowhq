@@ -1,19 +1,17 @@
 /**
  * Contractor Notification Email Service
  * 
- * Handles sending subscription-related emails to contractors using Resend.
+ * Handles sending subscription-related emails to contractors using queue system.
+ * OPTIMIZED: All emails are queued for async delivery to reduce CPU usage.
  */
 
-import { Resend } from 'resend';
-import { render } from '@react-email/render';
+import { EmailQueue } from '@/lib/queue/email-queue';
 import ContractorLimitWarningEmail from '@/email/templates/contractor-limit-warning';
 import ContractorLimitReachedEmail from '@/email/templates/contractor-limit-reached';
 import ContractorFeatureLockedEmail from '@/email/templates/contractor-feature-locked';
 import ContractorUpgradeConfirmationEmail from '@/email/templates/contractor-upgrade-confirmation';
 import { CONTRACTOR_TIERS } from '@/lib/config/contractor-subscription-tiers';
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
 const senderEmail = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
 const APP_NAME = 'Property Flow HQ';
 
@@ -110,8 +108,10 @@ export async function sendLimitWarningEmail(data: LimitWarningEmailData): Promis
   try {
     const upgradeUrl = getUpgradeUrl();
 
-    const emailHtml = await render(
-      ContractorLimitWarningEmail({
+    await EmailQueue.send({
+      to: data.contractorEmail,
+      subject: `Approaching Your ${data.featureDisplayName} Limit (${data.percentage}%)`,
+      react: ContractorLimitWarningEmail({
         contractorName: data.contractorName,
         feature: data.feature,
         featureDisplayName: data.featureDisplayName,
@@ -122,25 +122,14 @@ export async function sendLimitWarningEmail(data: LimitWarningEmailData): Promis
         nextTier: data.nextTier,
         nextTierLimit: data.nextTierLimit,
         upgradeUrl,
-      })
-    );
-
-    const { data: emailData, error } = await resend.emails.send({
+      }),
       from: `${APP_NAME} <${senderEmail}>`,
-      to: data.contractorEmail,
-      subject: `Approaching Your ${data.featureDisplayName} Limit (${data.percentage}%)`,
-      html: emailHtml,
-      replyTo: senderEmail,
+      priority: 7, // High priority
     });
 
-    if (error) {
-      console.error('Error sending limit warning email:', error);
-      throw new Error(`Failed to send limit warning email: ${error.message}`);
-    }
-
-    console.log('Limit warning email sent successfully:', emailData?.id);
+    console.log('Limit warning email queued successfully');
   } catch (error) {
-    console.error('Error in sendLimitWarningEmail:', error);
+    console.error('Error queueing limit warning email:', error);
     throw error;
   }
 }
@@ -152,8 +141,10 @@ export async function sendLimitReachedEmail(data: LimitReachedEmailData): Promis
   try {
     const upgradeUrl = getUpgradeUrl();
 
-    const emailHtml = await render(
-      ContractorLimitReachedEmail({
+    await EmailQueue.send({
+      to: data.contractorEmail,
+      subject: `${data.featureDisplayName} Limit Reached - Upgrade to Continue`,
+      react: ContractorLimitReachedEmail({
         contractorName: data.contractorName,
         feature: data.feature,
         featureDisplayName: data.featureDisplayName,
@@ -163,25 +154,14 @@ export async function sendLimitReachedEmail(data: LimitReachedEmailData): Promis
         nextTierLimit: data.nextTierLimit,
         nextTierPrice: data.nextTierPrice,
         upgradeUrl,
-      })
-    );
-
-    const { data: emailData, error } = await resend.emails.send({
+      }),
       from: `${APP_NAME} <${senderEmail}>`,
-      to: data.contractorEmail,
-      subject: `${data.featureDisplayName} Limit Reached - Upgrade to Continue`,
-      html: emailHtml,
-      replyTo: senderEmail,
+      priority: 8, // Higher priority
     });
 
-    if (error) {
-      console.error('Error sending limit reached email:', error);
-      throw new Error(`Failed to send limit reached email: ${error.message}`);
-    }
-
-    console.log('Limit reached email sent successfully:', emailData?.id);
+    console.log('Limit reached email queued successfully');
   } catch (error) {
-    console.error('Error in sendLimitReachedEmail:', error);
+    console.error('Error queueing limit reached email:', error);
     throw error;
   }
 }
@@ -193,8 +173,10 @@ export async function sendFeatureLockedEmail(data: FeatureLockedEmailData): Prom
   try {
     const upgradeUrl = getUpgradeUrl();
 
-    const emailHtml = await render(
-      ContractorFeatureLockedEmail({
+    await EmailQueue.send({
+      to: data.contractorEmail,
+      subject: `Unlock ${data.featureDisplayName} with ${data.requiredTier}`,
+      react: ContractorFeatureLockedEmail({
         contractorName: data.contractorName,
         feature: data.feature,
         featureDisplayName: data.featureDisplayName,
@@ -202,25 +184,14 @@ export async function sendFeatureLockedEmail(data: FeatureLockedEmailData): Prom
         requiredTier: data.requiredTier,
         requiredTierPrice: data.requiredTierPrice,
         upgradeUrl,
-      })
-    );
-
-    const { data: emailData, error } = await resend.emails.send({
+      }),
       from: `${APP_NAME} <${senderEmail}>`,
-      to: data.contractorEmail,
-      subject: `Unlock ${data.featureDisplayName} with ${data.requiredTier}`,
-      html: emailHtml,
-      replyTo: senderEmail,
+      priority: 6,
     });
 
-    if (error) {
-      console.error('Error sending feature locked email:', error);
-      throw new Error(`Failed to send feature locked email: ${error.message}`);
-    }
-
-    console.log('Feature locked email sent successfully:', emailData?.id);
+    console.log('Feature locked email queued successfully');
   } catch (error) {
-    console.error('Error in sendFeatureLockedEmail:', error);
+    console.error('Error queueing feature locked email:', error);
     throw error;
   }
 }
@@ -232,8 +203,10 @@ export async function sendUpgradeConfirmationEmail(data: UpgradeConfirmationEmai
   try {
     const dashboardUrl = getDashboardUrl();
 
-    const emailHtml = await render(
-      ContractorUpgradeConfirmationEmail({
+    await EmailQueue.send({
+      to: data.contractorEmail,
+      subject: `Welcome to ${data.newTier}! Your Upgrade is Complete`,
+      react: ContractorUpgradeConfirmationEmail({
         contractorName: data.contractorName,
         previousTier: data.previousTier,
         newTier: data.newTier,
@@ -241,25 +214,14 @@ export async function sendUpgradeConfirmationEmail(data: UpgradeConfirmationEmai
         billingPeriod: data.billingPeriod,
         effectiveDate: data.effectiveDate,
         dashboardUrl,
-      })
-    );
-
-    const { data: emailData, error } = await resend.emails.send({
+      }),
       from: `${APP_NAME} <${senderEmail}>`,
-      to: data.contractorEmail,
-      subject: `Welcome to ${data.newTier}! Your Upgrade is Complete`,
-      html: emailHtml,
-      replyTo: senderEmail,
+      priority: 9, // Highest priority
     });
 
-    if (error) {
-      console.error('Error sending upgrade confirmation email:', error);
-      throw new Error(`Failed to send upgrade confirmation email: ${error.message}`);
-    }
-
-    console.log('Upgrade confirmation email sent successfully:', emailData?.id);
+    console.log('Upgrade confirmation email queued successfully');
   } catch (error) {
-    console.error('Error in sendUpgradeConfirmationEmail:', error);
+    console.error('Error queueing upgrade confirmation email:', error);
     throw error;
   }
 }

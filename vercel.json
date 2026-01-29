@@ -1,8 +1,21 @@
 {
-  "functions": {
-    "app/api/sign/[token]/route.ts": {
-      "maxDuration": 60,
-      "memory": 1024
+  "crons": [
+    {
+      "path": "/api/cron/process-jobs",
+      "schedule": "* * * * *"
     }
+  ],
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    },
+    "app/api/cron/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "env": {
+    "UPSTASH_REDIS_REST_URL": "@upstash-redis-rest-url",
+    "UPSTASH_REDIS_REST_TOKEN": "@upstash-redis-rest-token",
+    "CRON_SECRET": "@cron-secret"
   }
 }
