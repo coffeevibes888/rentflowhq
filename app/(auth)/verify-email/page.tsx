@@ -53,7 +53,7 @@ export default function VerifyEmailPage() {
             <h1 className='text-xl font-semibold mb-2'>Email Verified!</h1>
             <p className='text-gray-600 mb-6'>{message}</p>
             <Button asChild className='w-full'>
-              <Link href='/sign-in'>Sign In</Link>
+              <Link href='/sign-in?verified=true'>Continue to Sign In</Link>
             </Button>
           </>
         )}

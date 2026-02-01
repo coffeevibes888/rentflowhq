@@ -64,6 +64,39 @@ export async function getSubdomainRedirectUrl(userRole: string, userId: string):
       if (landlordOwned) return '/admin/overview';
     }
 
+    // Check if landlord needs to complete subscription
+    if ((role === 'landlord' || role === 'property_manager') && userId) {
+      const landlord = await prisma.landlord.findFirst({
+        where: { ownerUserId: userId },
+        select: { 
+          id: true,
+          subscriptionStatus: true,
+          stripeSubscriptionId: true,
+          subscription: {
+            select: {
+              status: true,
+              stripeSubscriptionId: true,
+            },
+          },
+        },
+      });
+
+      if (landlord) {
+        const hasActiveSubscription = 
+          landlord.stripeSubscriptionId || 
+          landlord.subscription?.stripeSubscriptionId ||
+          landlord.subscriptionStatus === 'trialing' ||
+          landlord.subscriptionStatus === 'active' ||
+          landlord.subscription?.status === 'trialing' ||
+          landlord.subscription?.status === 'active';
+
+        // Redirect to subscription page if no active subscription
+        if (!hasActiveSubscription) {
+          return '/onboarding/landlord/subscription';
+        }
+      }
+    }
+
     const currentSlug = await getLandlordSlugFromPath();
 
     // If user is on a landlord portal path (e.g., /love-your-god/sign-in)
