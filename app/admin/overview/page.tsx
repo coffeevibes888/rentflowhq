@@ -253,7 +253,7 @@ const AdminOverviewPage = async (props: {
       </div>
 
       {/* Stats Cards - Clickable on mobile */}
-      <div className='relative rounded-xl sm:rounded-2xl border-2 border-black shadow-xl overflow-hidden'>
+      <div className='relative rounded-xl sm:rounded-2xl border border-black shadow-xl overflow-hidden'>
         <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
         <div className='relative p-3 sm:p-4 md:p-6'>
           <div className='flex items-center justify-between mb-3'>
@@ -272,7 +272,7 @@ const AdminOverviewPage = async (props: {
 
             <Link
               href='/admin/products'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-[10px] sm:text-xs text-black font-bold'>Total Units</div>
@@ -284,7 +284,7 @@ const AdminOverviewPage = async (props: {
 
             <Link
               href='/admin/revenue'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-[10px] sm:text-xs text-black font-bold'>Rent This Month</div>
@@ -296,7 +296,7 @@ const AdminOverviewPage = async (props: {
 
             <Link
               href='/admin/maintenance'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-[10px] sm:text-xs text-black font-bold'>Maintenance</div>
@@ -308,7 +308,7 @@ const AdminOverviewPage = async (props: {
 
             <Link
               href='/admin/applications'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-[10px] sm:text-xs text-black font-bold'>Applications</div>
@@ -320,7 +320,7 @@ const AdminOverviewPage = async (props: {
 
             <Link
               href='/admin/payouts'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-[10px] sm:text-xs text-black font-bold'>Available Balance</div>
@@ -332,7 +332,7 @@ const AdminOverviewPage = async (props: {
 
             <Link
               href={isAdmin ? '/admin/messages' : '/admin/tenant-messages'}
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-2 border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
             >
               <div className='flex items-center justify-between'>
                 <div className='text-[10px] sm:text-xs text-black font-bold'>Messages</div>
@@ -343,7 +343,7 @@ const AdminOverviewPage = async (props: {
             </Link>
           </div>
 
-          <div className='mt-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-2.5 sm:p-3 md:p-4 border-2 border-black'>
+          <div className='mt-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-2.5 sm:p-3 md:p-4 border border-black'>
             <div className='grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4'>
               <div className='space-y-0.5'>
                 <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Occupied</div>
@@ -366,35 +366,7 @@ const AdminOverviewPage = async (props: {
         </div>
       </div>
 
-      {/* Mobile Navigation Cards - Show all sidebar links on mobile (excluding duplicates from stat cards) */}
-      <div className='md:hidden space-y-3'>
-        <div className='grid gap-2'>
-          {adminNavLinks
-            .filter((item) => {
-              // Filter out links that are already shown in the stat cards above
-              const statCardLinks = ['/admin/products', '/admin/applications', '/admin/maintenance'];
-              return !statCardLinks.includes(item.href);
-            })
-            .map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className='rounded-lg border-2 border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 flex items-start gap-2.5 hover:border-slate-700 transition-colors cursor-pointer active:scale-[0.98] shadow-xl'
-                >
-                  <div className='h-8 w-8 rounded-lg bg-white/30 text-blue-600 flex items-center justify-center shrink-0 ring-1 ring-black/20'>
-                    <Icon className='h-4 w-4' />
-                  </div>
-                  <div className='flex flex-col gap-0.5 min-w-0'>
-                    <span className='text-sm font-bold text-black'>{item.title}</span>
-                    <span className='text-[10px] text-black font-semibold truncate'>{item.description}</span>
-                  </div>
-                </Link>
-              );
-            })}
-        </div>
-      </div>
+
     </div>
   );
 };

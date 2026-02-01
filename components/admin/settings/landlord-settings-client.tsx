@@ -119,48 +119,43 @@ export function LandlordSettingsClient({ landlord, isPro, isEnterprise = false, 
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-6 gap-1 bg-slate-900/60 border border-white/10 p-1 rounded-xl h-auto">
+        <TabsList className="w-full justify-around rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
           <TabsTrigger 
             value="profile" 
-            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+            className="data-[state=active]:bg-transparent data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
           >
-            <User className="w-4 h-4" />
-            <span className="hidden sm:inline">Profile</span>
+            <User className="w-4 h-4 text-black" />
+            <span className="hidden sm:inline text-black">Profile</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="banking" 
-            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
-          >
-            <Building2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Banking</span>
-          </TabsTrigger>
+        
+          
           <TabsTrigger 
             value="security" 
             className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
           >
-            <Shield className="w-4 h-4" />
-            <span className="hidden sm:inline">Security</span>
+            <Shield className="w-4 h-4 text-black" />
+            <span className="hidden sm:inline text-black">Security</span>
           </TabsTrigger>
           <TabsTrigger 
             value="notifications" 
-            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+            className="data-[state=active]:bg-transparent data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
           >
-            <Bell className="w-4 h-4" />
-            <span className="hidden sm:inline">Notifications</span>
+            <Bell className="w-4 h-4 text-black" />
+            <span className="hidden sm:inline text-black">Notifications</span>
           </TabsTrigger>
           <TabsTrigger 
             value="fees" 
-            className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
+            className="data-[state=active]:bg-transparent data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
           >
-            <DollarSign className="w-4 h-4" />
-            <span className="hidden sm:inline">Fees</span>
+            <DollarSign className="w-4 h-4 text-black" />
+            <span className="hidden sm:inline text-black">Fees</span>
           </TabsTrigger>
           <TabsTrigger 
             value="help" 
             className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-lg px-3 py-2.5 text-sm whitespace-nowrap flex items-center justify-center gap-2"
           >
-            <HelpCircle className="w-4 h-4" />
-            <span className="hidden sm:inline">Help</span>
+            <HelpCircle className="w-4 h-4 text-black" />
+            <span className="hidden sm:inline text-black">Help</span>
           </TabsTrigger>
         </TabsList>
 

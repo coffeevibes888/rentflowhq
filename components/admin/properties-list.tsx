@@ -58,7 +58,7 @@ export function PropertiesMobileList({ properties }: PropertiesListProps) {
           <div 
             key={property.id} 
             onClick={() => handleCardClick(property.id)}
-            className='block rounded-xl border border-white/10 bg-slate-900/60 p-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer active:scale-[0.98]'
+            className='block rounded-xl border border-black bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer active:scale-[0.98]'
           >
             <div className='flex gap-3'>
               <div className='flex-shrink-0'>
@@ -68,23 +68,23 @@ export function PropertiesMobileList({ properties }: PropertiesListProps) {
                     alt={property.name}
                     width={72}
                     height={72}
-                    className='rounded-lg object-cover w-[72px] h-[72px]'
+                    className='rounded-lg object-cover w-[72px] h-[72px] bg-blue-800'
                   />
                 ) : (
-                  <div className='w-[72px] h-[72px] bg-slate-800 rounded-lg flex items-center justify-center text-slate-500 text-xs'>
+                  <div className='w-[72px] h-[72px] bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 rounded-lg flex items-center justify-center text-black text-xs'>
                     No Image
                   </div>
                 )}
               </div>
               <div className='flex-1 min-w-0'>
-                <h3 className='text-base font-semibold text-slate-50 truncate'>{property.name}</h3>
-                <p className='text-xs text-slate-400 mt-0.5'>{property.type}</p>
+                <h3 className='text-base font-semibold text-black truncate'>{property.name}</h3>
+                <p className='text-xs text-black mt-0.5'>{property.type}</p>
                 <div className='flex items-center gap-3 mt-2'>
-                  <div className='text-sm font-medium text-emerald-400'>
+                  <div className='text-sm font-medium text-emerald-800'>
                     {property.lowestRent > 0 ? formatCurrency(property.lowestRent) : '—'}
                     <span className='text-xs text-slate-400 font-normal'>/mo</span>
                   </div>
-                  <div className='text-xs text-slate-400'>
+                  <div className='text-xs text-black'>
                     {property.availableUnitsCount} available
                   </div>
                 </div>
@@ -135,7 +135,7 @@ export function PropertiesDesktopTable({ properties }: PropertiesListProps) {
         <TableBody>
           {properties.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className='text-center text-slate-400 py-8'>
+              <TableCell colSpan={6} className='text-center text-black py-8'>
                 No properties found. Add your first property to get started.
               </TableCell>
             </TableRow>
@@ -143,7 +143,7 @@ export function PropertiesDesktopTable({ properties }: PropertiesListProps) {
           {properties.map((property) => (
             <TableRow 
               key={property.id} 
-              className='group cursor-pointer hover:bg-slate-800/60'
+              className='group cursor-pointer hover:bg-slate-800/60 bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 text-black border border-black'
               onClick={() => handleRowClick(property.id)}
             >
               <TableCell>
@@ -156,21 +156,21 @@ export function PropertiesDesktopTable({ properties }: PropertiesListProps) {
                     className='rounded-lg object-cover group-hover:ring-2 group-hover:ring-violet-400 transition-all'
                   />
                 ) : (
-                  <div className='w-20 h-20 bg-slate-800 rounded-lg flex items-center justify-center text-slate-500 text-sm group-hover:ring-2 group-hover:ring-violet-400 transition-all'>
+                  <div className='w-20 h-20 bg-slate-800 rounded-lg flex items-center justify-center text-black text-sm group-hover:ring-2 group-hover:ring-violet-400 transition-all'>
                     No Image
                   </div>
                 )}
               </TableCell>
-              <TableCell className='text-slate-200'>
+              <TableCell className='text-black'>
                 {property.name}
               </TableCell>
-              <TableCell className='text-right text-slate-200'>
+              <TableCell className='text-right text-black'>
                 {property.lowestRent > 0 ? formatCurrency(property.lowestRent) : '—'}
               </TableCell>
-              <TableCell className='text-slate-300'>
+              <TableCell className='text-black'>
                 {property.type}
               </TableCell>
-              <TableCell className='text-slate-300' onClick={(e) => e.stopPropagation()}>
+              <TableCell className='text-black' onClick={(e) => e.stopPropagation()}>
                 <PropertyUnitsList
                   propertyId={property.id}
                   units={property.units}

@@ -43,7 +43,7 @@ const AdminSettingsPage = async ({ searchParams }: AdminSettingsPageProps) => {
   if (!landlord) {
     return (
       <main className="w-full space-y-4">
-        <h1 className="text-xl sm:text-2xl font-semibold text-white">Settings</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold text-black">Settings</h1>
         <p className="text-sm text-black">Unable to load settings. Please try again.</p>
       </main>
     );
@@ -52,7 +52,7 @@ const AdminSettingsPage = async ({ searchParams }: AdminSettingsPageProps) => {
   return (
     <main className="w-full space-y-4">
       <div className="space-y-1">
-        <h1 className="text-xl sm:text-2xl font-semibold text-white">Settings</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold text-black">Settings</h1>
         <p className="text-[10px] sm:text-xs text-black">
           Manage your profile, notifications, fees, and get help
         </p>

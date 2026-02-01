@@ -48,10 +48,16 @@ export default function NotificationBell({ isAdmin }: { isAdmin: boolean }) {
         setNotifications(data.notifications || []);
         setUnreadCount(data.unreadCount || 0);
       } else {
-        console.error('Failed to fetch notifications:', response.status, await response.text());
+        // Only log error if user is authenticated (not a 401)
+        if (response.status !== 401) {
+          console.error('Failed to fetch notifications:', response.status, await response.text());
+        }
       }
     } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+      // Silently fail if not authenticated
+      if (session?.user?.id && status === 'authenticated') {
+        console.error('Failed to fetch notifications:', error);
+      }
     } finally {
       setLoading(false);
     }

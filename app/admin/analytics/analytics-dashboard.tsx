@@ -272,7 +272,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       <div className='space-y-6'>
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
           {[...Array(4)].map((_, i) => (
-            <div key={i} className='rounded-2xl bg-gradient-to-br from-violet-900/60 to-indigo-900/60 border border-violet-500/20 p-5 animate-pulse'>
+            <div key={i} className='rounded-2xl bg-gradient-to-r from-fuchsia-500 to-cyan-500 border border-violet-500/20 p-5 animate-pulse'>
               <div className='h-4 bg-white/10 rounded w-3/4 mb-3'></div>
               <div className='h-8 bg-white/10 rounded w-1/2'></div>
             </div>
@@ -330,7 +330,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       </div>
 
       {/* Portfolio Overview Stats - Like Property Dashboard */}
-      <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+      <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
         <div className='flex items-center justify-between mb-4'>
           <h2 className='text-lg font-semibold text-white'>Portfolio Overview</h2>
           <span className='text-xs text-violet-300 bg-violet-500/20 px-2 py-1 rounded-full'>Live</span>
@@ -338,7 +338,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
         
         <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
           {/* Rent Collected */}
-          <div className='rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/20 p-4'>
+          <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
             <div className='flex items-center justify-between mb-2'>
               <span className='text-xs text-cyan-200 uppercase tracking-wide'>Rent Collected</span>
               <DollarSign className='h-4 w-4 text-cyan-300' />
@@ -348,7 +348,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           </div>
 
           {/* Total Expenses */}
-          <div className='rounded-xl bg-gradient-to-br from-rose-500/20 to-pink-600/20 border border-rose-400/20 p-4'>
+          <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
             <div className='flex items-center justify-between mb-2'>
               <span className='text-xs text-rose-200 uppercase tracking-wide'>Expenses</span>
               <Wrench className='h-4 w-4 text-rose-300' />
@@ -358,7 +358,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           </div>
 
           {/* Net Cash Flow */}
-          <div className='rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-600/20 border border-emerald-400/20 p-4'>
+          <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
             <div className='flex items-center justify-between mb-2'>
               <span className='text-xs text-emerald-200 uppercase tracking-wide'>Net Cash Flow</span>
               <LineChart className='h-4 w-4 text-emerald-300' />
@@ -370,7 +370,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           </div>
 
           {/* Portfolio Health */}
-          <div className='rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-400/20 p-4'>
+          <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
             <div className='flex items-center justify-between mb-2'>
               <span className='text-xs text-amber-200 uppercase tracking-wide'>Portfolio Health</span>
               <Activity className='h-4 w-4 text-amber-300' />
@@ -385,39 +385,39 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
 
       {/* Quick Stats Row */}
       <div className='grid grid-cols-2 md:grid-cols-5 gap-4'>
-        <div className='rounded-xl bg-gradient-to-br from-violet-900/60 to-indigo-900/60 border border-violet-500/20 p-4'>
+        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
           <div className='flex items-center gap-2 mb-2'>
-            <Building2 className='h-4 w-4 text-violet-300' />
-            <span className='text-xs text-violet-200 uppercase'>Properties</span>
+            <Building2 className='h-4 w-4 text-black' />
+            <span className='text-xs text-black font-bold uppercase'>Properties</span>
           </div>
           <div className='text-xl font-bold text-white'>{data.totalProperties}</div>
         </div>
-        <div className='rounded-xl bg-gradient-to-br from-violet-900/60 to-indigo-900/60 border border-violet-500/20 p-4'>
+        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
           <div className='flex items-center gap-2 mb-2'>
-            <Home className='h-4 w-4 text-violet-300' />
-            <span className='text-xs text-violet-200 uppercase'>Units</span>
+            <Home className='h-4 w-4 text-black' />
+            <span className='text-xs text-black uppercase'>Units</span>
           </div>
           <div className='text-xl font-bold text-white'>{data.totalUnits}</div>
-          <div className='text-xs text-violet-300'>{data.occupiedUnits} occupied</div>
+          <div className='text-xs text-black'>{data.occupiedUnits} occupied</div>
         </div>
-        <div className='rounded-xl bg-gradient-to-br from-violet-900/60 to-indigo-900/60 border border-violet-500/20 p-4'>
+        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
           <div className='flex items-center gap-2 mb-2'>
-            <Users className='h-4 w-4 text-violet-300' />
-            <span className='text-xs text-violet-200 uppercase'>Tenants</span>
+            <Users className='h-4 w-4 text-black' />
+            <span className='text-xs text-black font-bold uppercase'>Tenants</span>
           </div>
           <div className='text-xl font-bold text-white'>{data.totalTenants}</div>
         </div>
-        <div className='rounded-xl bg-gradient-to-br from-violet-900/60 to-indigo-900/60 border border-violet-500/20 p-4'>
+        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
           <div className='flex items-center gap-2 mb-2'>
-            <Percent className='h-4 w-4 text-violet-300' />
-            <span className='text-xs text-violet-200 uppercase'>Occupancy</span>
+            <Percent className='h-4 w-4 text-black' />
+            <span className='text-xs text-blackfont-bold uppercase'>Occupancy</span>
           </div>
           <div className='text-xl font-bold text-white'>{formatPct(data.physicalOccupancy)}</div>
         </div>
-        <div className='rounded-xl bg-gradient-to-br from-violet-900/60 to-indigo-900/60 border border-violet-500/20 p-4'>
+        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
           <div className='flex items-center gap-2 mb-2'>
-            <DollarSign className='h-4 w-4 text-violet-300' />
-            <span className='text-xs text-violet-200 uppercase'>Avg Rent</span>
+            <DollarSign className='h-4 w-4 text-black' />
+            <span className='text-xs text-black font-bold uppercase'>Avg Rent</span>
           </div>
           <div className='text-xl font-bold text-white'>{formatMoney(data.averageRent)}</div>
         </div>
@@ -426,7 +426,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       {/* Tabs Section */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
-          <TabsList className='bg-violet-900/50 border border-violet-500/20'>
+          <TabsList className='bg-gradient-to-r from-blue-200 to-cyan-200 border border-violet-500/20'>
             <TabsTrigger triggerValue='overview'>Overview</TabsTrigger>
             <TabsTrigger triggerValue='properties'>Properties</TabsTrigger>
             <TabsTrigger triggerValue='market'>Market</TabsTrigger>
@@ -449,37 +449,37 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
         <TabsContent contentValue='overview' className='space-y-6 mt-6'>
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
             {/* Occupancy Card */}
-            <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
               <h3 className='text-lg font-semibold text-white mb-1'>Occupancy</h3>
-              <p className='text-xs text-violet-300 mb-4'>Physical vs economic (this month)</p>
+              <p className='text-xs text-black mb-4'>Physical vs economic (this month)</p>
               
               <div className='grid grid-cols-2 gap-3 mb-4'>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>Physical</div>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                  <div className='text-xs text-white uppercase'>Physical</div>
                   <div className='text-xl font-bold text-white'>{formatPct(data.physicalOccupancy)}</div>
                 </div>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
                   <div className='text-xs text-violet-300 uppercase'>Economic</div>
                   <div className='text-xl font-bold text-white'>{formatPct(data.economicOccupancy)}</div>
                 </div>
               </div>
               
-              <div className='rounded-lg bg-rose-500/10 border border-rose-500/30 p-3 flex items-center justify-between'>
+              <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
                 <div>
-                  <div className='text-xs text-rose-300 uppercase'>Vacancy Loss (Month)</div>
-                  <div className='text-xl font-bold text-rose-400'>-{formatMoney(data.vacancyLossThisMonth)}</div>
+                  <div className='text-xs text-rose-800 uppercase'>Vacancy Loss (Month)</div>
+                  <div className='text-xl font-bold text-white'>-{formatMoney(data.vacancyLossThisMonth)}</div>
                 </div>
-                <ShieldAlert className='h-5 w-5 text-rose-400' />
+                <ShieldAlert className='h-5 w-5 text-rose-800' />
               </div>
             </div>
 
             {/* Expenses Card */}
-            <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
               <h3 className='text-lg font-semibold text-white mb-1'>Expenses</h3>
-              <p className='text-xs text-violet-300 mb-4'>Breakdown (this month)</p>
+              <p className='text-xs text-black mb-4'>Breakdown (this month)</p>
               
               {!data.expensesRecordedThisMonth ? (
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-4 text-sm text-violet-200'>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
                   No expenses recorded this period
                 </div>
               ) : (
@@ -494,11 +494,11 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
               )}
 
               <div className='grid grid-cols-2 gap-3'>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
                   <div className='text-xs text-violet-300 uppercase'>Maintenance</div>
                   <div className='text-lg font-bold text-white'>{formatMoney(data.maintenanceCostsThisMonth)}</div>
                 </div>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
                   <div className='text-xs text-violet-300 uppercase'>Platform Fees</div>
                   <div className='text-lg font-bold text-white'>{formatMoney(data.platformFeesThisMonth)}</div>
                 </div>
@@ -506,9 +506,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             </div>
 
             {/* Tenant Quality Card */}
-            <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
               <h3 className='text-lg font-semibold text-white mb-1'>Tenant Quality</h3>
-              <p className='text-xs text-violet-300 mb-4'>On-time & behavior signals</p>
+              <p className='text-xs text-black mb-4'>On-time & behavior signals</p>
               
               <div className='grid grid-cols-3 gap-2 mb-4'>
                 <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
@@ -542,26 +542,26 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           {/* Second Row - Maintenance & Vacancy */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             {/* Maintenance Analytics */}
-            <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
               <h3 className='text-lg font-semibold text-white mb-1'>Maintenance Analytics</h3>
-              <p className='text-xs text-violet-300 mb-4'>Costs + speed + repeat issues</p>
+              <p className='text-xs text-black mb-4'>Costs + speed + repeat issues</p>
               
               <div className='grid grid-cols-4 gap-2 mb-4'>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>Cost/Unit</div>
-                  <div className='text-lg font-bold text-white'>{formatMoney(data.maintenanceAnalytics.costPerUnit)}</div>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                  <div className='text-xs text-white uppercase'>Cost/Unit</div>
+                  <div className='text-lg font-bold text-black'>{formatMoney(data.maintenanceAnalytics.costPerUnit)}</div>
                 </div>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>Total Cost</div>
-                  <div className='text-lg font-bold text-white'>{formatMoney(data.maintenanceAnalytics.totalCost)}</div>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                  <div className='text-xs text-white uppercase'>Total Cost</div>
+                  <div className='text-lg font-bold text-black'>{formatMoney(data.maintenanceAnalytics.totalCost)}</div>
                 </div>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>Avg Resolve</div>
-                  <div className='text-lg font-bold text-white'>{data.maintenanceAnalytics.avgResolutionTimeDays.toFixed(1)}d</div>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                  <div className='text-xs text-white uppercase'>Avg Resolve</div>
+                  <div className='text-lg font-bold text-black'>{data.maintenanceAnalytics.avgResolutionTimeDays.toFixed(1)}d</div>
                 </div>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>Emergency</div>
-                  <div className='text-lg font-bold text-rose-400'>{formatPct(data.maintenanceAnalytics.emergencyRatio)}</div>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                  <div className='text-xs text-white uppercase'>Emergency</div>
+                  <div className='text-lg font-bold text-black'>{formatPct(data.maintenanceAnalytics.emergencyRatio)}</div>
                 </div>
               </div>
 
@@ -579,26 +579,26 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             </div>
 
             {/* Vacancy Analytics */}
-            <div className='rounded-2xl bg-gradient-to-br from-violet-900/80 to-indigo-900/80 border border-violet-500/20 p-6'>
+            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
               <h3 className='text-lg font-semibold text-white mb-1'>Vacancy Analytics</h3>
-              <p className='text-xs text-violet-300 mb-4'>Days vacant + cost impact</p>
+              <p className='text-xs text-black mb-4'>Days vacant + cost impact</p>
               
               <div className='grid grid-cols-2 gap-3 mb-4'>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>Avg Days Vacant</div>
-                  <div className='text-xl font-bold text-white'>{data.vacancyAnalytics.avgDaysVacant.toFixed(1)}</div>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                  <div className='text-xs text-white uppercase'>Avg Days Vacant</div>
+                  <div className='text-xl font-bold text-black'>{data.vacancyAnalytics.avgDaysVacant.toFixed(1)}</div>
                 </div>
-                <div className='rounded-lg bg-rose-500/10 border border-rose-500/30 p-3'>
-                  <div className='text-xs text-rose-300 uppercase'>Vacancy Cost (YTD)</div>
-                  <div className='text-xl font-bold text-rose-400'>-{formatMoney(data.vacancyAnalytics.vacancyCostYtd)}</div>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                  <div className='text-xs text-white uppercase'>Vacancy Cost (YTD)</div>
+                  <div className='text-xl font-bold text-black'>-{formatMoney(data.vacancyAnalytics.vacancyCostYtd)}</div>
                 </div>
               </div>
 
               {data.vacancyAnalytics.currentVacantUnits.length > 0 && (
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase mb-2'>Currently Vacant</div>
+                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                  <div className='text-xs text-white uppercase mb-2'>Currently Vacant</div>
                   {data.vacancyAnalytics.currentVacantUnits.slice(0, 4).map((u) => (
-                    <div key={u.unitId} className='flex items-center justify-between text-xs text-violet-200'>
+                    <div key={u.unitId} className='flex items-center justify-between text-xs text-black'>
                       <span>Unit ...{u.unitId.slice(-4)}</span>
                       <span className='text-amber-400'>{u.daysVacant} days</span>
                     </div>

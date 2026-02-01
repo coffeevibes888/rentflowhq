@@ -284,8 +284,8 @@ export function TeamChat({
           console.log('Loaded messages:', data.messages.length);
           setMessages(data.messages || []);
         } else if (isMounted) {
-          // Silently handle channel not found - it may not exist yet
-          if (data.message !== 'Channel not found') {
+          // Silently handle channel not found or auth errors - they may not exist yet or user may not be authenticated
+          if (data.message !== 'Channel not found' && !res.status.toString().startsWith('4')) {
             console.error('Failed to load messages:', data.message);
           }
           setMessages([]);

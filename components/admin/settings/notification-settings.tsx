@@ -74,7 +74,7 @@ export function NotificationSettings() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3 sm:p-4">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <div className="flex items-center gap-2 mb-3">
           <Mail className="w-4 h-4 text-violet-400" />
           <h3 className="text-sm font-semibold text-white">Email Notifications</h3>
@@ -94,7 +94,7 @@ export function NotificationSettings() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3 sm:p-4">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <div className="flex items-center gap-2 mb-3">
           <Bell className="w-4 h-4 text-amber-400" />
           <h3 className="text-sm font-semibold text-white">Alert Preferences</h3>
@@ -121,7 +121,7 @@ export function NotificationSettings() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3 sm:p-4">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <div className="flex items-center gap-2 mb-3">
           <MessageSquare className="w-4 h-4 text-emerald-400" />
           <h3 className="text-sm font-semibold text-white">Tenant Invite Channels</h3>

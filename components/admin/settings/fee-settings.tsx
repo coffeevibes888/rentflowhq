@@ -521,7 +521,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
     <div className="space-y-4">
       {/* Property-Specific Overrides Section */}
       {properties.length > 0 && (
-        <div className="rounded-xl border border-sky-500/30 bg-gradient-to-br from-sky-500/10 to-blue-500/10 p-4 sm:p-5">
+        <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
           <div className="flex items-center gap-2 mb-4">
             <Building2 className="w-5 h-5 text-sky-400" />
             <h3 className="text-base font-semibold text-white">Property-Specific Settings</h3>
@@ -556,7 +556,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
       )}
 
       {/* Rent Automation - Combined Pro Feature Card */}
-      <div className="relative rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/10 p-4 sm:p-5 overflow-hidden">
+      <div className="relative rounded-xl border border-violet-500/30 bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 p-4 sm:p-5 overflow-hidden">
         {!isPro && (
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-xl">
             <Crown className="w-10 h-10 text-amber-400 mb-3" />
@@ -572,7 +572,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
           </div>
         )}
         
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-4 ">
           <Clock className="w-5 h-5 text-violet-400" />
           <h3 className="text-base font-semibold text-white">Rent Automation</h3>
           <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-medium">PRO</span>
@@ -642,7 +642,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
       </div>
 
       {/* Pet Fees */}
-      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 sm:p-5">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <div className="flex items-center gap-2 mb-4">
           <PawPrint className="w-5 h-5 text-amber-400" />
           <h3 className="text-base font-semibold text-white">Pet Fees</h3>
@@ -724,7 +724,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
       </div>
 
       {/* Move-in Fees */}
-      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 sm:p-5">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-5 h-5 text-emerald-400" />
           <h3 className="text-base font-semibold text-white">Move-in Fees</h3>
@@ -769,7 +769,7 @@ export function FeeSettings({ isPro }: FeeSettingsProps) {
       </div>
 
       {/* Deposit Requirements */}
-      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 sm:p-5">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <div className="flex items-center gap-2 mb-4">
           <DollarSign className="w-5 h-5 text-sky-400" />
           <h3 className="text-base font-semibold text-white">Deposit Requirements</h3>

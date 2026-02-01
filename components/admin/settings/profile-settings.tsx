@@ -58,7 +58,7 @@ export function ProfileSettings({ landlord }: ProfileSettingsProps) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3 sm:p-4">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <h3 className="text-sm font-semibold text-white mb-3">Profile Photo</h3>
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -77,7 +77,7 @@ export function ProfileSettings({ landlord }: ProfileSettingsProps) {
             )}
           </div>
           <div className="flex-1">
-            <p className="text-xs text-slate-400 mb-2">
+            <p className="text-xs text-black mb-2">
               Upload a profile photo. Recommended size: 200x200px
             </p>
             <UploadButton
@@ -100,7 +100,7 @@ export function ProfileSettings({ landlord }: ProfileSettingsProps) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-slate-900/60 p-3 sm:p-4">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <h3 className="text-sm font-semibold text-white mb-3">Contact Information</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>

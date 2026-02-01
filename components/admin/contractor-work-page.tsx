@@ -24,68 +24,68 @@ export default function ContractorWorkPage() {
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-xl md:text-3xl font-bold text-white flex items-center gap-2">
-            <Wrench className="h-5 w-5 md:h-7 md:w-7 text-violet-400" />
+          <h1 className="text-xl md:text-3xl font-bold text-black flex items-center gap-2">
+            <Wrench className="h-5 w-5 md:h-7 md:w-7 text-black" />
             Contractor Hub
           </h1>
-          <p className="text-xs md:text-sm text-slate-400">
+          <p className="text-xs md:text-sm text-black">
             Manage contractors, work orders, and payments all in one place
           </p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          <Card className="border-slate-700 bg-slate-800/80">
+          <Card className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-blue-800 shadow-2xl flex items-center justify-center">
                   <Users className="h-5 w-5 text-violet-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">Contractors</p>
+                  <p className="text-xs text-white font-bold">Contractors</p>
                   <p className="text-lg md:text-xl font-bold text-white">--</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="border-slate-700 bg-slate-800/80">
+          <Card className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]0">
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-blue-800 flex items-center justify-center">
                   <Clock className="h-5 w-5 text-cyan-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">Active Jobs</p>
-                  <p className="text-lg md:text-xl font-bold text-white">--</p>
+                  <p className="text-xs text-white font-bold">Active Jobs</p>
+                  <p className="text-lg md:text-xl font-bold text-black">--</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="border-slate-700 bg-slate-800/80">
+          <Card className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-blue-800 flex items-center justify-center">
                   <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">Completed</p>
-                  <p className="text-lg md:text-xl font-bold text-white">--</p>
+                  <p className="text-xs text-white font-bold">Completed</p>
+                  <p className="text-lg md:text-xl font-bold text-black">--</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="border-slate-700 bg-slate-800/80">
+          <Card className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-blue-800 flex items-center justify-center">
                   <TrendingUp className="h-5 w-5 text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">This Month</p>
-                  <p className="text-lg md:text-xl font-bold text-white">$--</p>
+                  <p className="text-xs text-white font-bold">This Month</p>
+                  <p className="text-lg md:text-xl font-bold text-black">$--</p>
                 </div>
               </div>
             </CardContent>
@@ -94,10 +94,10 @@ export default function ContractorWorkPage() {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="bg-gradient-to-r from-indigo-700 to-indigo-900 border border-white/10 p-1 flex flex-wrap h-auto gap-1 w-full md:w-auto">
+          <TabsList className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
             <TabsTrigger 
               value="directory" 
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1.5 md:gap-2 text-xs md:text-sm px-3 md:px-4 py-2 text-white"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-white flex items-center gap-1.5 md:gap-2 text-xs md:text-sm px-3 md:px-4 py-2 text-white"
             >
               <Users className="h-4 w-4" />
               <span>Directory</span>
@@ -111,7 +111,7 @@ export default function ContractorWorkPage() {
             </TabsTrigger>
             <TabsTrigger 
               value="payments" 
-              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white flex items-center gap-1.5 md:gap-2 text-xs md:text-sm px-3 md:px-4 py-2 text-white"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-white flex items-center gap-1.5 md:gap-2 text-xs md:text-sm px-3 md:px-4 py-2 text-white"
             >
               <CreditCard className="h-4 w-4" />
               <span>Payments</span>

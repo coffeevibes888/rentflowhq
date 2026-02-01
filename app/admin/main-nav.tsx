@@ -44,7 +44,7 @@ const MainNav = ({
   return (
     <nav
       className={cn(
-        'flex flex-col gap-1 text-base text-black font-medium',
+        'flex flex-col gap-2 text-base text-black font-medium',
         className
       )}
       {...props}
@@ -63,21 +63,25 @@ const MainNav = ({
             href={item.href}
             title={item.title}
             className={cn(
-              'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 overflow-hidden border border-black',
+              'group flex items-center rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]',
               isActive 
-                ? 'bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 text-black shadow-2xl' 
-                : 'hover:bg-gradient-to-r hover:from-sky-400 hover:via-cyan-200 hover:to-sky-400 hover:shadow-xl hover:scale-105'
+                ? 'bg-white border border-black shadow-lg text-black' 
+                : 'bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border-transparent text-black hover:bg-slate-600 hover:text-white hover:border-blue-400 hover:shadow-md'
             )}
           >
             <Icon className={cn(
-              'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
-              isActive ? 'text-black' : '!text-black'
+              'h-5 w-5 shrink-0 transition-all duration-200',
+              isActive 
+                ? 'text-blue-600' 
+                : 'text-black group-hover:scale-110'
             )} />
             <div className='flex flex-col min-w-0 flex-1 overflow-hidden'>
               <div className="flex items-center gap-1.5">
                 <span className={cn(
-                  'text-sm truncate',
-                  isActive ? 'text-black font-bold' : '!text-black !font-semibold'
+                  'text-sm truncate font-semibold transition-all duration-200',
+                  isActive 
+                    ? 'text-blue-600' 
+                    : 'text-black'
                 )}>{item.title}</span>
                 {showProBadge && (
                   <span className="shrink-0 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wide">
@@ -87,8 +91,10 @@ const MainNav = ({
                 )}
               </div>
               <span className={cn(
-                'text-[11px] truncate',
-                isActive ? 'text-blue-800' : '!text-black/60'
+                'text-[11px] truncate transition-all duration-200',
+                isActive 
+                  ? 'text-blue-500' 
+                  : 'text-black/70'
               )}>{item.description}</span>
             </div>
           </Link>

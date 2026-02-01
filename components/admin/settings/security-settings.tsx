@@ -53,7 +53,7 @@ export function SecuritySettings({ initialEnabled }: SecuritySettingsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-5 space-y-4">
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className={`rounded-full p-2 border ${isEnabled ? 'bg-emerald-500/20 border-emerald-500/30' : 'bg-slate-800 border-white/10'}`}>
@@ -65,7 +65,7 @@ export function SecuritySettings({ initialEnabled }: SecuritySettingsProps) {
             </div>
             <div className="space-y-1">
               <h3 className="font-semibold text-white">Two-Factor Authentication</h3>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-black">
                 {isEnabled 
                   ? 'Your account is protected with email verification codes.'
                   : 'Add an extra layer of security by requiring a verification code sent to your email when signing in.'}
@@ -84,8 +84,8 @@ export function SecuritySettings({ initialEnabled }: SecuritySettingsProps) {
         </div>
 
         {isEnabled && (
-          <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-4">
-            <p className="text-sm text-emerald-200">
+          <div className="rounded-lg border border-emerald-500/20 p-4">
+            <p className="text-sm text-black text-semibold">
               When you sign in, we'll send a 6-digit code to your email. Enter this code to complete your login.
             </p>
           </div>

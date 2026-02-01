@@ -47,8 +47,8 @@ export function AdminSidebarWrapper({ children }: AdminSidebarWrapperProps) {
     <SidebarContext.Provider value={{ isCollapsed }}>
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r-2 border-black shadow-xl glass-effect-beach py-6 gap-6 transition-all duration-300 ease-in-out relative group/sidebar',
-          isCollapsed ? 'w-[72px] px-3' : 'w-72 px-4'
+          'hidden md:flex flex-col border-r-2 border-black shadow-xl glass-effect-beach py-6 px-3 gap-6 transition-all duration-300 ease-in-out relative group/sidebar',
+          isCollapsed ? 'w-[72px]' : 'w-72'
         )}
       >
         {/* Toggle Button */}
