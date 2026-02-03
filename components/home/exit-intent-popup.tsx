@@ -56,7 +56,7 @@ export default function ExitIntentPopup() {
           </h2>
           
           <p className='text-slate-600 text-base leading-relaxed'>
-            Try all features <span className='text-violet-600 font-bold'>free for 7 days</span>. See why property managers love us.
+            Try all features <span className='text-violet-600 font-bold'>free for 14 days</span>. See why property managers love us.
           </p>
 
           <div className='bg-slate-50 border border-slate-100 rounded-xl p-6 text-left'>

@@ -9,6 +9,7 @@ import ResetPassword from './reset-password';
 import EvictionNoticeEmail from './eviction-notice';
 import DepositDispositionEmail from './deposit-disposition';
 import AffiliateWelcomeEmail from './affiliate-welcome';
+import TrialReminderEmail from './trial-reminder';
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -337,6 +338,87 @@ export const sendAffiliateWelcomeEmail = async ({
     return { success: true, messageId: data?.id };
   } catch (err) {
     console.error('❌ Error sending Affiliate Welcome email:', err);
+    return { success: false, error: err };
+  }
+};
+
+// Generic send email function
+export const sendEmail = async ({
+  to,
+  subject,
+  html,
+  from,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+  from?: string;
+}) => {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: from || getDefaultSender(),
+      to,
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error('❌ Error sending email:', error);
+      return { success: false, error };
+    }
+
+    console.log('✓ Email Sent:', data?.id);
+    return { success: true, messageId: data?.id };
+  } catch (err) {
+    console.error('❌ Error sending email:', err);
+    return { success: false, error: err };
+  }
+};
+
+// Trial Reminder Emails
+export const sendTrialReminderEmail = async ({
+  email,
+  name,
+  daysLeft,
+  subscriptionUrl,
+  role,
+}: {
+  email: string;
+  name: string;
+  daysLeft: number;
+  subscriptionUrl: string;
+  role: 'landlord' | 'contractor' | 'agent';
+}) => {
+  try {
+    const html = await render(
+      <TrialReminderEmail
+        name={name}
+        daysLeft={daysLeft}
+        subscriptionUrl={subscriptionUrl}
+        role={role}
+      />
+    );
+
+    const subject = daysLeft > 0 
+      ? `${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left in your Property Flow HQ trial`
+      : 'Your Property Flow HQ trial has ended';
+
+    const { data, error} = await resend.emails.send({
+      from: getDefaultSender(),
+      to: email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error('❌ Error sending Trial Reminder email:', error);
+      return { success: false, error };
+    }
+
+    console.log('✓ Trial Reminder Email Sent:', data?.id);
+    return { success: true, messageId: data?.id };
+  } catch (err) {
+    console.error('❌ Error sending Trial Reminder email:', err);
     return { success: false, error: err };
   }
 };

@@ -6,7 +6,7 @@
  * - Pro: $39.99/month (small team, up to 6 members)
  * - Enterprise: $79.99/month (unlimited team, full business operations)
  * 
- * All tiers include 7-day free trial
+ * All tiers include 14-day free trial
  */
 
 export const CONTRACTOR_TIERS = {

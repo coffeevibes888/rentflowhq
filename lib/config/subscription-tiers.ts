@@ -6,7 +6,7 @@
  * - Pro: $39.99/month (up to 150 units)
  * - Enterprise: $79.99/month (unlimited)
  * 
- * All tiers include 7-day free trial
+ * All tiers include 14-day free trial
  * No transaction fees - subscription only revenue model
  */
 

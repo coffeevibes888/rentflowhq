@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
         ...(referralCode && { affiliateCode: referralCode }),
       },
       subscription_data: {
-        trial_period_days: tierConfig.trialDays, // 7-day free trial
+        trial_period_days: tierConfig.trialDays, // 14-day free trial
         metadata: {
           landlordId: landlord.id,
           tier: targetTier,

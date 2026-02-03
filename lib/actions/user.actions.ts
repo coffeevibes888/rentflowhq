@@ -38,7 +38,7 @@ export async function signInWithCredentials(
       password: formData.get('password'),
     });
 
-    // Check if user exists and email is verified
+    // Check if user exists
     const dbUser = await prisma.user.findUnique({
       where: { email: user.email },
       select: { id: true, role: true, emailVerified: true },
@@ -48,15 +48,8 @@ export async function signInWithCredentials(
       return { success: false, message: 'Invalid email or password' };
     }
 
-    // Block sign-in if email not verified
-    if (!dbUser.emailVerified) {
-      return { 
-        success: false, 
-        message: 'Please verify your email before signing in. Check your inbox for the verification link.',
-        requiresVerification: true,
-        email: user.email,
-      };
-    }
+    // Allow sign-in even if email not verified (verify later pattern)
+    // Critical actions will be blocked in the app, not at sign-in
 
     // Sign in the user
     const result = await signIn('credentials', {
@@ -165,8 +158,8 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       signupMethod: 'Email',
     }).catch(console.error);
 
-    // Send verification email - REQUIRED before sign-in
-    await sendVerificationEmailToken(user.email);
+    // Send verification email (non-blocking)
+    sendVerificationEmailToken(user.email).catch(console.error);
 
     // Log signup event
     logAuthEvent('AUTH_SIGNUP', {
@@ -176,11 +169,20 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       success: true,
     }).catch(console.error);
 
-    // DO NOT sign in automatically - require email verification first
+    // Sign in automatically and redirect to onboarding/subscription flow
+    const callbackUrl = formData.get('callbackUrl') as string | null;
+    
+    await signIn('credentials', {
+      email: user.email,
+      password: plainPassword,
+      redirect: true,
+      redirectTo: callbackUrl || '/onboarding',
+    });
+
+    // This return won't be reached due to redirect, but needed for type safety
     return {
       success: true,
-      message: 'Account created! Please check your email to verify your account before signing in.',
-      requiresVerification: true,
+      message: 'Account created successfully!',
     };
   } catch (error) {
     if (isRedirectError(error)) {
@@ -778,6 +780,11 @@ export async function setUserRoleAndLandlordIntake(data: {
         };
       }
 
+      // Set trial dates (14 days from now)
+      const trialStartDate = new Date();
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 14);
+
       let unitsEstimateMin: number | null = null;
       let unitsEstimateMax: number | null = null;
 
@@ -810,6 +817,11 @@ export async function setUserRoleAndLandlordIntake(data: {
           ownsProperties: data.ownsProperties ?? false,
           managesForOthers: data.managesForOthers ?? false,
           useSubdomain: data.useSubdomain ?? true,
+          // Set trial dates
+          trialStartDate,
+          trialEndDate,
+          trialStatus: 'trialing',
+          subscriptionStatus: 'trialing',
         },
       });
     }

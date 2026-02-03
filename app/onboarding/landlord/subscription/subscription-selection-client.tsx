@@ -156,7 +156,7 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
           <p className="text-lg text-slate-400 max-w-xl mx-auto">
             {suggestedPlan 
               ? 'Take a moment to review all plans. You can upgrade or downgrade anytime.'
-              : 'All plans include a 7-day free trial. No credit card charged until trial ends.'}
+              : 'All plans include a 14-day free trial. No credit card required to start.'}
           </p>
         </motion.div>
 
@@ -251,7 +251,7 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
                     </>
                   ) : (
                     <>
-                      Start 7-Day Free Trial
+                      Start 14-Day Free Trial
                       <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}

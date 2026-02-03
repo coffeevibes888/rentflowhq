@@ -29,11 +29,10 @@ const CredentialsSignInForm = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
-  const [step, setStep] = useState<'credentials' | '2fa' | 'verification'>('credentials');
+  const [step, setStep] = useState<'credentials' | '2fa'>('credentials');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [verificationEmail, setVerificationEmail] = useState('');
   
   // Build sign-up URL with property params if applicable
   const signUpUrl = fromProperty && propertySlug && subdomain
@@ -86,10 +85,6 @@ const CredentialsSignInForm = ({
 
     if (data.success && data.redirectUrl) {
       router.push(data.redirectUrl);
-    } else if (data.requiresVerification) {
-      // Show verification message
-      setVerificationEmail(email);
-      setStep('verification');
     } else {
       setError(data.message || 'Invalid email or password');
     }
@@ -224,46 +219,6 @@ const CredentialsSignInForm = ({
             </button>
           </div>
         </form>
-      </div>
-    );
-  }
-
-  if (step === 'verification') {
-    return (
-      <div className='space-y-4'>
-        <button
-          onClick={() => { setStep('credentials'); setError(''); }}
-          className='flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors'
-        >
-          <ArrowLeft className='h-4 w-4' />
-          Back to sign in
-        </button>
-
-        <div className='rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border border-black p-6 shadow-2xl space-y-4'>
-          <div className='text-center space-y-2'>
-            <div className='mx-auto w-12 h-12 rounded-full bg-black/10 flex items-center justify-center'>
-              <Mail className='h-6 w-6 text-black' />
-            </div>
-            <h2 className='text-xl font-semibold text-black'>Email Verification Required</h2>
-            <p className='text-sm text-black/70'>
-              Please verify your email address before signing in. We sent a verification link to:
-            </p>
-            <p className='text-sm font-semibold text-black'>{verificationEmail}</p>
-          </div>
-
-          <div className='space-y-3'>
-            <p className='text-xs text-black/60 text-center'>
-              Check your inbox and click the verification link. If you don't see it, check your spam folder.
-            </p>
-            
-            <Link 
-              href='/resend-verification'
-              className='block w-full text-center py-2 px-4 rounded-lg bg-black text-white hover:bg-black/80 transition-colors text-sm font-medium'
-            >
-              Resend Verification Email
-            </Link>
-          </div>
-        </div>
       </div>
     );
   }

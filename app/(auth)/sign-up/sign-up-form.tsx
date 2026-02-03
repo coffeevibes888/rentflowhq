@@ -163,15 +163,6 @@ const SignUpForm = () => {
             <div className='text-center text-destructive'>{data.message}</div>
           )}
 
-          {data && data.success && (
-            <div className='rounded-lg bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border border-black p-4 shadow-2xl'>
-              <p className='text-sm text-black font-semibold mb-2'>✅ Account Created!</p>
-              <p className='text-xs text-black/70'>
-                We've sent a verification email to your inbox. Please click the link in the email to verify your account before signing in.
-              </p>
-            </div>
-          )}
-
           <div className='text-sm text-center text-muted-foreground'>
             Already have an account?{' '}
             <Link href='/sign-in' target='_self' className='link'>

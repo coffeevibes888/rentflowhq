@@ -195,7 +195,7 @@ const Homepage = async () => {
                 </div>
           
                 
-                <div className='flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4 pt-2'>
+                <div className='flex flex-col items-center justify-center lg:items-center gap-3 md:gap-4 pt-2'>
                   <Link
                     href='/sign-up'
                     className='group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-fuchsia-500 to-cyan-400 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-105 transition-all duration-200'
@@ -203,6 +203,9 @@ const Homepage = async () => {
                     Start Free Today
                     <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
                   </Link>
+                  <p className='text-xs md:text-sm text-slate-600 font-medium'>
+                    14-day free trial • No credit card required
+                  </p>
                   {/* <Link
                     href='/contact'
                     className='group inline-flex items-center justify-center rounded-full bg-white text-slate-900 px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-md transition-all duration-200'

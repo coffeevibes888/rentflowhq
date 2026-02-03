@@ -5,12 +5,15 @@ import Header from '@/components/shared/header';
 import Footer from '@/components/footer';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { AgentSidebarWrapper } from '@/components/agent/agent-sidebar-wrapper';
+import { SubscriptionGate } from '@/components/subscription/subscription-gate';
 
-export default function AgentLayout({
+export default async function AgentLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Ensure user has active subscription before accessing agent dashboard
+  await SubscriptionGate({ role: 'agent', redirectTo: '/onboarding/agent/subscription' });
   return (
     <SessionProviderWrapper>
       <div className='flex min-h-screen flex-col bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-600'>

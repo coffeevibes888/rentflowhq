@@ -615,11 +615,19 @@ model Landlord {
   subscriptionTier           String    @default("starter") // starter, pro, enterprise
   stripeSubscriptionId       String?
   stripeCustomerId           String?
-  subscriptionStatus         String    @default("active") // active, past_due, canceled, trialing
+  subscriptionStatus         String    @default("trialing") // trialing, trial_expired, suspended, active, past_due, canceled
   subscriptionEndsAt         DateTime? @db.Timestamp(6)
   unitLimitNotifiedAt        DateTime? @db.Timestamp(6) // last time we sent unit limit warning
   freeBackgroundChecks       Boolean   @default(false)
   freeEmploymentVerification Boolean   @default(false)
+
+  // Trial Management (14-day no-card trial)
+  trialStartDate      DateTime? @db.Timestamp(6)
+  trialEndDate        DateTime? @db.Timestamp(6)
+  trialStatus         String    @default("trialing") // trialing, trial_expired, suspended, active
+  gracePeriodsUsed    Int       @default(0) // Track how many times they've extended
+  lastGracePeriodDate DateTime? @db.Timestamp(6)
+  trialRemindersSent  Json?     @db.Json // Track which reminder emails were sent { day7: true, day12: true, etc }
 
   // Notification Settings
   notificationEmail        String?
@@ -2650,8 +2658,16 @@ model Agent {
   subscriptionTier     String    @default("starter")
   stripeCustomerId     String?
   stripeSubscriptionId String?
-  subscriptionStatus   String    @default("active")
+  subscriptionStatus   String    @default("trialing") // trialing, trial_expired, suspended, active, past_due, canceled
   subscriptionEndsAt   DateTime? @db.Timestamp(6)
+
+  // Trial Management (14-day no-card trial)
+  trialStartDate      DateTime? @db.Timestamp(6)
+  trialEndDate        DateTime? @db.Timestamp(6)
+  trialStatus         String    @default("trialing") // trialing, trial_expired, suspended, active
+  gracePeriodsUsed    Int       @default(0)
+  lastGracePeriodDate DateTime? @db.Timestamp(6)
+  trialRemindersSent  Json?     @db.Json
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -3517,10 +3533,18 @@ model ContractorProfile {
   subscriptionTier     String?   @default("starter") // 'starter', 'pro', 'enterprise'
   stripeSubscriptionId String?
   stripeCustomerId     String?
-  subscriptionStatus   String    @default("active") // active, past_due, canceled, trialing
+  subscriptionStatus   String    @default("trialing") // trialing, trial_expired, suspended, active, past_due, canceled
   currentPeriodStart   DateTime? @db.Timestamp(6)
   currentPeriodEnd     DateTime? @db.Timestamp(6)
   subscriptionEndsAt   DateTime? @db.Timestamp(6)
+
+  // Trial Management (14-day no-card trial)
+  trialStartDate      DateTime? @db.Timestamp(6)
+  trialEndDate        DateTime? @db.Timestamp(6)
+  trialStatus         String    @default("trialing") // trialing, trial_expired, suspended, active
+  gracePeriodsUsed    Int       @default(0)
+  lastGracePeriodDate DateTime? @db.Timestamp(6)
+  trialRemindersSent  Json?     @db.Json
 
   // Stripe Connect for Payouts
   stripeConnectAccountId  String?

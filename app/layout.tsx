@@ -10,6 +10,8 @@ import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrappe
 import PrivacyConsentBanner from '@/components/privacy/privacy-consent-banner';
 import { Suspense } from 'react';
 import AffiliateTracker from '@/components/affiliate-tracker';
+import { TrialStatusWrapper } from '@/components/subscription/trial-status-wrapper';
+import { EmailVerificationWrapper } from '@/components/auth/email-verification-wrapper';
 // import LiveChatWidget from '@/components/shared/live-chat-widget';
 
 let resolvedMetadataBase: URL;
@@ -129,6 +131,8 @@ export default function RootLayout({
                 <span>Residents: log in to submit a work ticket.</span>
               </div>
             </div>
+            <EmailVerificationWrapper />
+            <TrialStatusWrapper />
             {children}
             <Toaster />
             {/* Team Chat Widget - Available for Pro+ team members and tenants */}

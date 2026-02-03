@@ -5,12 +5,15 @@ import Footer from '@/components/footer';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { ContractorSidebarWrapper } from '@/components/contractor/contractor-sidebar-wrapper';
 import ContractorMainNav from './main-nav';
+import { SubscriptionGate } from '@/components/subscription/subscription-gate';
 
-export default function ContractorLayout({
+export default async function ContractorLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Ensure user has active subscription before accessing contractor dashboard
+  await SubscriptionGate({ role: 'contractor', redirectTo: '/onboarding/contractor/subscription' });
   return (
     <SessionProviderWrapper>
       <div className='flex min-h-screen flex-col bg-white'>
