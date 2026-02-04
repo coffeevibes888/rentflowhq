@@ -182,6 +182,34 @@ To seed the database with sample data, run the following command:
 npx tsx ./db/seed
 ```
 
+### Marketplace Dummy Data
+
+This project includes a powerful system for generating realistic dummy data for property listings and contractor profiles across 50 major US cities. Perfect for demos, testing, and development!
+
+**Quick Start:**
+```bash
+npm run seed:marketplace
+```
+
+This creates:
+- ✅ 250+ property listings
+- ✅ 350+ contractor profiles
+- ✅ 800+ portfolio items
+- ✅ 2000+ customer reviews
+
+**Additional Commands:**
+```bash
+npm run stats:marketplace      # View statistics
+npm run cleanup:marketplace    # Remove dummy data
+```
+
+**Documentation:**
+- 📚 [Complete Guide](./README-MARKETPLACE.md) - Start here
+- ⚡ [Quick Start](./MARKETPLACE-QUICK-START.md) - Get running in 5 minutes
+- 📖 [Documentation Index](./MARKETPLACE-INDEX.md) - All documentation
+
+See the [Marketplace Documentation](./README-MARKETPLACE.md) for complete details.
+
 ## Demo
 
 I am not sure how long I will have this demo up but you can view it here:

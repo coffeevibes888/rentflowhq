@@ -294,13 +294,6 @@ export default function ContractorMarketplace({
                           </div>
                         )}
                         
-                        {/* Hourly Rate Badge */}
-                        {contractor.hourlyRate && (
-                          <div className="absolute top-3 left-3 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-sm text-white text-sm font-bold">
-                            ${contractor.hourlyRate}/hr
-                          </div>
-                        )}
-                        
                         {/* Verified Badge */}
                         {contractor.isPaymentReady && (
                           <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-emerald-500 text-white text-xs font-medium flex items-center gap-1">

@@ -16,6 +16,9 @@
     "email": "cp .env ./node_modules/react-email && email dev --dir email --port 3001",
     "zoho:sync": "ts-node scripts/zoho-sync.ts",
     "seed": "ts-node db/seed-property-management.ts",
+    "seed:marketplace": "npx tsx db/seed-marketplace-dummy-data.ts",
+    "cleanup:marketplace": "npx tsx scripts/cleanup-marketplace-dummy-data.ts",
+    "stats:marketplace": "npx tsx scripts/marketplace-stats.ts",
     "clean": "rm -rf .next && rm -rf node_modules/.cache"
   },
   "dependencies": {

@@ -13,7 +13,7 @@ export const CONTRACTOR_TIERS = {
   starter: {
     name: 'Starter',
     price: 19.99,
-    trialDays: 7,
+    trialDays: 14,
     limits: {
       activeJobs: 15,
       invoicesPerMonth: 20,
@@ -83,7 +83,7 @@ export const CONTRACTOR_TIERS = {
   pro: {
     name: 'Pro',
     price: 39.99,
-    trialDays: 7,
+    trialDays: 14,
     limits: {
       activeJobs: 50,
       invoicesPerMonth: -1, // unlimited
@@ -169,7 +169,7 @@ export const CONTRACTOR_TIERS = {
   enterprise: {
     name: 'Enterprise',
     price: 79.99,
-    trialDays: 7,
+    trialDays: 14,
     limits: {
       activeJobs: -1, // unlimited
       invoicesPerMonth: -1, // unlimited

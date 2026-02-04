@@ -18,7 +18,7 @@ export const SUBSCRIPTION_TIERS = {
     price: 19.99,
     priceId: stripeConfig.prices.starter,
     unitLimit: 24,
-    trialDays: 7,
+    trialDays: 14,
     features: {
       automaticRentReminders: false,
       automaticLateFees: false,
@@ -51,7 +51,7 @@ export const SUBSCRIPTION_TIERS = {
     price: 39.99,
     priceId: stripeConfig.prices.pro,
     unitLimit: 150,
-    trialDays: 7,
+    trialDays: 14,
     features: {
       automaticRentReminders: true,
       automaticLateFees: true,
@@ -84,7 +84,7 @@ export const SUBSCRIPTION_TIERS = {
     price: 79.99,
     priceId: stripeConfig.prices.enterprise,
     unitLimit: Infinity,
-    trialDays: 7,
+    trialDays: 14,
     features: {
       automaticRentReminders: true,
       automaticLateFees: true,
