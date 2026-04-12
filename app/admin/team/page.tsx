@@ -1,0 +1,88 @@
+import { Metadata } from 'next';
+import { requireAdmin } from '@/lib/auth-guard';
+import { getTeamMembers } from '@/lib/actions/team.actions';
+import { getCurrentLandlordSubscription } from '@/lib/actions/subscription.actions';
+import Link from 'next/link';
+import { Lock, Zap } from 'lucide-react';
+import { auth } from '@/auth';
+import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { TeamHub } from '@/components/admin/team-hub';
+import { normalizeTier } from '@/lib/config/subscription-tiers';
+
+export const metadata: Metadata = {
+  title: 'Team Hub',
+};
+
+export default async function TeamPage() {
+  await requireAdmin();
+
+  const session = await auth();
+  
+  const [subscriptionData, teamData, landlordResult] = await Promise.all([
+    getCurrentLandlordSubscription(),
+    getTeamMembers(),
+    getOrCreateCurrentLandlord(),
+  ]);
+
+  // Check if team feature is locked
+  const hasTeamAccess = subscriptionData.success && 
+    subscriptionData.features?.teamManagement === true;
+
+  if (!hasTeamAccess) {
+    return (
+      <main className="w-full px-4 py-10 md:px-0">
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10 p-8 text-center">
+            <Lock className="h-12 w-12 text-amber-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-semibold text-white mb-2">Team Hub</h1>
+            <p className="text-slate-300 mb-6">
+              Team management is available on the Pro plan. Upgrade to invite team members, 
+              communicate with your team, and collaborate on property management.
+            </p>
+            <Link
+              href="/admin/settings/subscription"
+              className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+            >
+              <Zap className="h-5 w-5" />
+              Upgrade to Pro
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Determine subscription tier from the consistent subscription data source
+  const tier = subscriptionData.success 
+    ? subscriptionData.currentTier 
+    : 'starter';
+
+  // Get current user's team role
+  const { getCurrentUserTeamRole } = await import('@/lib/actions/team.actions');
+  const userRoleData = landlordResult.success && landlordResult.landlord 
+    ? await getCurrentUserTeamRole(landlordResult.landlord.id)
+    : { success: false, role: null, canManageTeam: false };
+
+  return (
+    <main className="w-full pb-8">
+      <TeamHub
+        currentUser={{
+          id: session?.user?.id || '',
+          name: session?.user?.name || 'User',
+          email: session?.user?.email || '',
+          image: session?.user?.image || undefined,
+        }}
+        landlordId={landlordResult.success && landlordResult.landlord ? landlordResult.landlord.id : ''}
+        teamMembers={teamData.success && teamData.members ? teamData.members : []}
+        subscriptionTier={tier as 'starter' | 'pro' | 'enterprise'}
+        currentUserRole={userRoleData.role || 'member'}
+        canManageTeam={userRoleData.canManageTeam || false}
+        features={{
+          teamManagement: subscriptionData.features?.teamManagement,
+          teamCommunications: subscriptionData.features?.teamCommunications,
+          teamOperations: tier === 'enterprise',
+        }}
+      />
+    </main>
+  );
+}
