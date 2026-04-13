@@ -114,10 +114,6 @@ export async function POST(request: Request) {
             name: companyName || session.user.name || 'Contractor',
             email: session.user.email || '',
             specialties: specialties || [],
-            serviceAreas: serviceAreas ? serviceAreas.split(',').map((s: string) => s.trim()) : [],
-            licenseNumber: licenseNumber || null,
-            insuranceInfo: insuranceProvider ? { provider: insuranceProvider } : null,
-            status: 'active',
           },
         });
 

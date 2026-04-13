@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     // Check if already a team member
     if (existingUser) {
-      const existingMember = await prisma.contractorTeamMember.findFirst({
+      const existingMember = await prisma.contractorEmployee.findFirst({
         where: {
           contractorId: contractor.id,
           userId: existingUser.id,
@@ -107,11 +107,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if invitation already sent
-    const existingInvite = await prisma.contractorTeamMember.findFirst({
+    const existingInvite = await prisma.contractorEmployee.findFirst({
       where: {
         contractorId: contractor.id,
-        invitedEmail: email.toLowerCase(),
-        status: 'pending',
+        email: email.toLowerCase(),
+        status: 'inactive',
       },
     });
 
@@ -122,25 +122,19 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Create team member invitation
-    const member = await prisma.contractorTeamMember.create({
+    // Create team member
+    const member = await prisma.contractorEmployee.create({
       data: {
         contractorId: contractor.id,
-        userId: existingUser?.id || '',
-        invitedEmail: email.toLowerCase(),
+        userId: existingUser?.id || null,
+        email: email.toLowerCase(),
+        firstName: '',
+        lastName: '',
         role: role || 'employee',
-        status: 'pending',
-        permissions: [],
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
+        status: 'inactive',
+        hireDate: new Date(),
+        payRate: 0,
+        payType: 'hourly',
       },
     });
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // PUT - Update expense
 export async function PUT(
@@ -23,7 +24,7 @@ export async function PUT(
 
     const data = await req.json();
 
-    const expense = await prisma.sTRExpense.update({
+    const expense = await prismaBase.sTRExpense.update({
       where: {
         id: params.id,
         landlordId: landlord.id,
@@ -74,7 +75,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Landlord not found' }, { status: 404 });
     }
 
-    await prisma.sTRExpense.delete({
+    await prismaBase.sTRExpense.delete({
       where: {
         id: params.id,
         landlordId: landlord.id,

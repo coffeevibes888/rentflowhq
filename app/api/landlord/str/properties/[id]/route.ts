@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // GET - Get single property
 export async function GET(
@@ -21,7 +22,7 @@ export async function GET(
       return NextResponse.json({ error: 'Landlord not found' }, { status: 404 });
     }
 
-    const property = await prisma.shortTermRental.findFirst({
+    const property = await prismaBase.shortTermRental.findFirst({
       where: {
         id: params.id,
         landlordId: landlord.id,
@@ -80,7 +81,7 @@ export async function PUT(
 
     const data = await req.json();
 
-    const property = await prisma.shortTermRental.update({
+    const property = await prismaBase.shortTermRental.update({
       where: {
         id: params.id,
         landlordId: landlord.id,
@@ -150,7 +151,7 @@ export async function DELETE(
     }
 
     // Check for active bookings
-    const activeBookings = await prisma.sTRBooking.count({
+    const activeBookings = await prismaBase.sTRBooking.count({
       where: {
         rentalId: params.id,
         status: { in: ['confirmed', 'checked_in'] },
@@ -164,7 +165,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.shortTermRental.delete({
+    await prismaBase.shortTermRental.delete({
       where: {
         id: params.id,
         landlordId: landlord.id,

@@ -100,7 +100,7 @@ export async function POST(
           userId: escrow.contractorJob.contractor.userId,
           type: 'escrow_funded',
           title: 'Escrow Funded - Job Ready to Start',
-          message: `${escrow.contractorJob.customer.name} has funded the escrow for "${escrow.contractorJob.title}". You can now begin work!`,
+          message: `${escrow.contractorJob.customer?.name ?? 'A customer'} has funded the escrow for "${escrow.contractorJob.title}". You can now begin work!`,
           actionUrl: `/contractor/jobs/${jobId}`
         }
       });

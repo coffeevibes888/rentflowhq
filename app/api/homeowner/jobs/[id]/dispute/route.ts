@@ -78,20 +78,26 @@ export async function POST(
       );
     }
 
+    // Generate unique case number
+    const caseNumber = `DSP-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     // Create dispute
     const dispute = await prisma.dispute.create({
       data: {
+        caseNumber,
         type: 'job_quality',
+        category: 'poor_quality',
         status: 'open',
         priority: 'high',
         filedById: session.user.id,
-        respondentId: workOrder.contractorId,
-        landlordId: homeowner.id, // Using homeownerId as landlordId for now
-        subject: `Job Dispute: ${workOrder.title}`,
+        filedByRole: 'homeowner',
+        homeownerId: homeowner.id,
+        contractorId: workOrder.contractorId,
+        workOrderId: jobId,
+        landlordId: homeowner.id,
+        title: `Job Dispute: ${workOrder.title}`,
         description: reason,
-        amount: escrowHold.amount,
-        relatedEntityType: 'job',
-        relatedEntityId: jobId,
+        disputedAmount: escrowHold.amount,
       },
     });
 

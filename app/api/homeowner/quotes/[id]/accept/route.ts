@@ -110,26 +110,26 @@ export async function POST(
           budgetMin: quote.totalPrice.toString(),
           budgetMax: quote.totalPrice.toString(),
           scheduledDate: quote.startDate || null,
-          estimatedCompletionDate: quote.completionDate || null,
           notes: quote.notes || '',
           images: [],
           category: quote.lead.projectType,
-          location: quote.lead.propertyAddress || '',
-          city: quote.lead.propertyCity || '',
-          state: quote.lead.propertyState || '',
-          zipCode: quote.lead.propertyZip || '',
+          address: {
+            street: quote.lead.propertyAddress || '',
+            city: quote.lead.propertyCity || '',
+            state: quote.lead.propertyState || '',
+            zipCode: quote.lead.propertyZip || '',
+          },
         },
       });
 
       // Create an accepted bid record
-      await prisma.homeownerBid.create({
+      await prisma.homeownerWorkOrderBid.create({
         data: {
           workOrderId: workOrder.id,
           contractorId: quote.contractorId,
           amount: quote.totalPrice,
           message: `Quote accepted: ${quote.title}`,
           status: 'accepted',
-          acceptedAt: new Date(),
         },
       });
 

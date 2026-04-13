@@ -103,9 +103,9 @@ export async function POST(
       await MarketplaceNotifications.notifyCounterOfferAccepted({
         customerId: counterOffer.originalQuote.customerId,
         quoteId: counterOffer.originalQuoteId,
-        quoteTitle: counterOffer.originalQuote.title,
+        leadTitle: counterOffer.originalQuote.title,
         contractorName: counterOffer.originalQuote.contractor.displayName || counterOffer.originalQuote.contractor.businessName,
-        newPrice: counterOffer.totalPrice.toNumber(),
+        amount: counterOffer.totalPrice.toNumber(),
       });
     } catch (error) {
       console.error('Error sending notification:', error);

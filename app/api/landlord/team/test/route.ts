@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get team channels if landlord exists
-    let channels = [];
+    let channels: Awaited<ReturnType<typeof prisma.teamChannel.findMany>> = [];
     if (landlord) {
       channels = await prisma.teamChannel.findMany({
         where: { landlordId: landlord.id },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // GET - List all cleaning schedules
 export async function GET(req: NextRequest) {
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    const cleanings = await prisma.sTRCleaning.findMany({
+    const cleanings = await prismaBase.sTRCleaning.findMany({
       where,
       include: {
         rental: {
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
 
     // Verify property belongs to landlord
-    const rental = await prisma.shortTermRental.findFirst({
+    const rental = await prismaBase.shortTermRental.findFirst({
       where: {
         id: data.rentalId,
         landlordId: landlord.id,
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Property not found' }, { status: 404 });
     }
 
-    const cleaning = await prisma.sTRCleaning.create({
+    const cleaning = await prismaBase.sTRCleaning.create({
       data: {
         rentalId: data.rentalId,
         bookingId: data.bookingId || null,

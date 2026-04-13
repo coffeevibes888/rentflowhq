@@ -87,17 +87,16 @@ export async function POST(
       // Create review
       await tx.contractorReview.create({
         data: {
-          contractorProfileId: escrowHold.contractorId,
-          reviewerId: homeowner.userId,
-          workOrderId: jobId,
+          contractorId: escrowHold.contractorId,
+          customerId: homeowner.userId,
+          jobId,
           overallRating: rating,
           qualityRating: rating,
           communicationRating: rating,
           timelinessRating: rating,
           valueRating: rating,
-          content: review || 'Great work!',
-          isVerified: true, // Verified because payment was made
-          verificationMethod: 'payment_confirmed',
+          comment: review || 'Great work!',
+          verified: true,
           status: 'published',
         },
       });
@@ -109,11 +108,11 @@ export async function POST(
 
       if (contractor) {
         const allReviews = await tx.contractorReview.findMany({
-          where: { contractorProfileId: escrowHold.contractorId },
+          where: { contractorId: escrowHold.contractorId },
         });
         
         const totalReviews = allReviews.length + 1;
-        const totalRating = allReviews.reduce((sum, r) => sum + r.overallRating, 0) + rating;
+        const totalRating = allReviews.reduce((sum, r) => sum + Number(r.overallRating), 0) + rating;
         const newAvgRating = totalRating / totalReviews;
 
         await tx.contractorProfile.update({

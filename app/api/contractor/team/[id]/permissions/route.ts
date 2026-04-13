@@ -31,7 +31,7 @@ export async function PATCH(
     }
 
     // Get the team member
-    const member = await prisma.contractorTeamMember.findUnique({
+    const member = await prisma.contractorEmployee.findUnique({
       where: { id: memberId },
     });
 
@@ -40,9 +40,9 @@ export async function PATCH(
     }
 
     // Update permissions
-    await prisma.contractorTeamMember.update({
+    await prisma.contractorEmployee.update({
       where: { id: memberId },
-      data: { permissions },
+      data: { customPermissions: permissions },
     });
 
     return NextResponse.json({ 

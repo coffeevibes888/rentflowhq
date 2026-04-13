@@ -39,7 +39,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { PropertyZillowData } from '@/components/admin/property-zillow-data';
 import CashoutDialog from '@/components/admin/cashout-dialog';
 import { ArrowDownToLine } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';

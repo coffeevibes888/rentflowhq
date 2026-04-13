@@ -49,13 +49,6 @@ export async function POST(
         id: bidId,
         workOrderId: jobId,
       },
-      include: {
-        contractor: {
-          include: {
-            user: true,
-          },
-        },
-      },
     });
 
     if (!bid) {

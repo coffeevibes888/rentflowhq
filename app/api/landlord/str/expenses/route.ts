@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // GET - List all expenses
 export async function GET(req: NextRequest) {
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    const expenses = await prisma.sTRExpense.findMany({
+    const expenses = await prismaBase.sTRExpense.findMany({
       where,
       include: {
         rental: {
@@ -57,8 +58,8 @@ export async function GET(req: NextRequest) {
     });
 
     // Calculate totals
-    const total = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-    const byCategory = expenses.reduce((acc, exp) => {
+    const total = expenses.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0);
+    const byCategory = expenses.reduce((acc: Record<string, number>, exp: any) => {
       acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
       return acc;
     }, {} as Record<string, number>);
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
 
     // Verify property belongs to landlord
-    const rental = await prisma.shortTermRental.findFirst({
+    const rental = await prismaBase.shortTermRental.findFirst({
       where: {
         id: data.rentalId,
         landlordId: landlord.id,
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Property not found' }, { status: 404 });
     }
 
-    const expense = await prisma.sTRExpense.create({
+    const expense = await prismaBase.sTRExpense.create({
       data: {
         landlordId: landlord.id,
         rentalId: data.rentalId,

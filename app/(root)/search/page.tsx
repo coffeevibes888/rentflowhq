@@ -254,6 +254,8 @@ const SearchPage = async (props: {
               saleUntil: product.saleUntil
                 ? product.saleUntil.toISOString()
                 : undefined,
+              videoUrl: product.videoUrl ?? undefined,
+              virtualTourUrl: product.virtualTourUrl ?? undefined,
             };
 
             return (

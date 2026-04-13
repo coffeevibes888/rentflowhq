@@ -84,7 +84,7 @@ export async function POST(
       await MarketplaceNotifications.notifyCounterOfferRejected({
         customerId: counterOffer.originalQuote.customerId,
         quoteId: counterOffer.originalQuoteId,
-        quoteTitle: counterOffer.originalQuote.title,
+        leadTitle: counterOffer.originalQuote.title,
         contractorName: counterOffer.originalQuote.contractor.displayName || counterOffer.originalQuote.contractor.businessName,
       });
     } catch (error) {

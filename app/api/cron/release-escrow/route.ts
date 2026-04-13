@@ -26,9 +26,6 @@ export async function GET(request: NextRequest) {
           lte: now,
         },
       },
-      include: {
-        // We'll need contractor info for stats update
-      },
     });
 
     console.log(`Found ${expiredHolds.length} expired escrow holds to release`);
@@ -55,17 +52,16 @@ export async function GET(request: NextRequest) {
           // Auto-create a 5-star review (since no issues were reported)
           await tx.contractorReview.create({
             data: {
-              contractorProfileId: hold.contractorId,
-              reviewerId: hold.customerId,
-              workOrderId: hold.jobId,
+              contractorId: hold.contractorId,
+              customerId: hold.customerId,
+              jobId: hold.jobId,
               overallRating: 5,
               qualityRating: 5,
               communicationRating: 5,
               timelinessRating: 5,
               valueRating: 5,
-              content: 'Job completed successfully (auto-approved after 7 days)',
-              isVerified: true,
-              verificationMethod: 'work_order_completion',
+              comment: 'Job completed successfully (auto-approved after 7 days)',
+              verified: true,
               status: 'published',
             },
           });
@@ -73,18 +69,15 @@ export async function GET(request: NextRequest) {
           // Update contractor stats
           const contractor = await tx.contractorProfile.findUnique({
             where: { id: hold.contractorId },
-            include: {
-              reviews: true,
-            },
           });
 
           if (contractor) {
             const allReviews = await tx.contractorReview.findMany({
-              where: { contractorProfileId: hold.contractorId },
+              where: { contractorId: hold.contractorId },
             });
             
             const totalReviews = allReviews.length + 1;
-            const totalRating = allReviews.reduce((sum, r) => sum + r.overallRating, 0) + 5;
+            const totalRating = allReviews.reduce((sum, r) => sum + Number(r.overallRating), 0) + 5;
             const newAvgRating = totalRating / totalReviews;
 
             await tx.contractorProfile.update({
@@ -104,52 +97,53 @@ export async function GET(request: NextRequest) {
         console.log(`Released escrow hold ${hold.id} for job ${hold.jobId}`);
 
         // Send notifications
-        try {
-          const [contractor, homeowner, job] = await Promise.all([
-            tx.contractorProfile.findUnique({
-              where: { id: hold.contractorId },
-              include: { user: true },
-            }),
-            tx.homeowner.findUnique({
-              where: { id: hold.customerId },
-              include: { user: true },
-            }),
-            tx.homeownerWorkOrder.findUnique({
-              where: { id: hold.jobId },
-            }),
-          ]);
+        if (hold.jobId) {
+          try {
+            const [contractor, homeowner, job] = await Promise.all([
+              prisma.contractorProfile.findUnique({
+                where: { id: hold.contractorId },
+                include: { user: true },
+              }),
+              prisma.user.findUnique({
+                where: { id: hold.customerId },
+              }),
+              prisma.homeownerWorkOrder.findUnique({
+                where: { id: hold.jobId },
+              }),
+            ]);
 
-          if (contractor?.user && job) {
-            // Notify contractor of payment release
-            await MarketplaceNotifications.notifyPaymentReleased({
-              contractorId: contractor.user.id,
-              jobId: hold.jobId,
-              jobTitle: job.title,
-              amount: Number(hold.amount),
-              rating: 5,
-            });
+            if (contractor?.user && job) {
+              // Notify contractor of payment release
+              await MarketplaceNotifications.notifyPaymentReleased({
+                contractorId: contractor.user.id,
+                jobId: hold.jobId,
+                jobTitle: job.title,
+                amount: Number(hold.amount),
+                rating: 5,
+              });
 
-            // Notify contractor of auto-review
-            await MarketplaceNotifications.notifyReviewReceived({
-              contractorId: contractor.user.id,
-              jobId: hold.jobId,
-              jobTitle: job.title,
-              rating: 5,
-              reviewText: 'Job completed successfully (auto-approved after 7 days)',
-            });
+              // Notify contractor of auto-review
+              await MarketplaceNotifications.notifyReviewReceived({
+                contractorId: contractor.user.id,
+                jobId: hold.jobId,
+                jobTitle: job.title,
+                rating: 5,
+                reviewText: 'Job completed successfully (auto-approved after 7 days)',
+              });
+            }
+
+            if (homeowner && job) {
+              // Notify homeowner that payment was auto-released
+              await MarketplaceNotifications.notifyPaymentAutoReleased({
+                homeownerId: homeowner.id,
+                jobId: hold.jobId,
+                jobTitle: job.title,
+                amount: Number(hold.amount),
+              });
+            }
+          } catch (notifError) {
+            console.error('Error sending notifications:', notifError);
           }
-
-          if (homeowner?.user && job) {
-            // Notify homeowner that payment was auto-released
-            await MarketplaceNotifications.notifyPaymentAutoReleased({
-              homeownerId: homeowner.user.id,
-              jobId: hold.jobId,
-              jobTitle: job.title,
-              amount: Number(hold.amount),
-            });
-          }
-        } catch (notifError) {
-          console.error('Error sending notifications:', notifError);
         }
 
         // TODO: Transfer funds via Stripe (when Treasury is implemented)

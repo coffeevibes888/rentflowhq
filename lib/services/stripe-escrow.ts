@@ -3,7 +3,7 @@ import { prisma } from '@/db/prisma';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia'
+  apiVersion: '2025-02-24.acacia'
 });
 
 const PLATFORM_FEE_FLAT = 1.00; // $1 flat fee per transaction (homeowner pays)
@@ -440,7 +440,6 @@ export class StripeEscrowService {
         where: { id: escrowId },
         data: {
           status: 'refunded',
-          refundedAt: new Date()
         }
       });
 

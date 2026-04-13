@@ -20,19 +20,9 @@ export async function GET() {
     }
 
     // Get team members
-    const members = await prisma.contractorTeamMember.findMany({
+    const members = await prisma.contractorEmployee.findMany({
       where: {
         contractorId: contractor.id,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
       },
       orderBy: {
         createdAt: 'asc',

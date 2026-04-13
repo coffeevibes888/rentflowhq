@@ -125,12 +125,13 @@ export async function POST(request: NextRequest) {
 
     const entry = await prisma.contractorTimeEntry.create({
       data: {
+        contractorId: contractorProfile.id,
         employeeId,
         clockIn: new Date(clockIn),
         clockOut: new Date(clockOut),
         breakMinutes: breakMinutes || 0,
         notes: notes || null,
-        approved: false,
+        status: 'pending',
       },
       include: {
         employee: {

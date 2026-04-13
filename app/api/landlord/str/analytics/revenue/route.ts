@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, eachMonthOfInterval } from 'date-fns';
 
 // GET - Revenue analytics
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get bookings
-    const bookings = await prisma.sTRBooking.findMany({
+    const bookings = await prismaBase.sTRBooking.findMany({
       where,
       select: {
         checkIn: true,
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Get expenses
-    const expenses = await prisma.sTRExpense.findMany({
+    const expenses = await prismaBase.sTRExpense.findMany({
       where: {
         landlordId: landlord.id,
         ...(rentalId && { rentalId }),

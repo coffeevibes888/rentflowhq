@@ -19,11 +19,11 @@ export async function DELETE() {
       return NextResponse.json({ success: false, message: 'Contractor profile not found' }, { status: 404 });
     }
 
-    // Delete all pending invitations
-    const result = await prisma.contractorTeamMember.deleteMany({
+    // Delete all inactive/pending employees
+    const result = await prisma.contractorEmployee.deleteMany({
       where: {
         contractorId: contractor.id,
-        status: 'pending',
+        status: 'inactive',
       },
     });
 

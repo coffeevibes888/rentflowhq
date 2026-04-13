@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // POST - Mark cleaning as complete
 export async function POST(
@@ -23,7 +24,7 @@ export async function POST(
 
     const data = await req.json();
 
-    const cleaning = await prisma.sTRCleaning.update({
+    const cleaning = await prismaBase.sTRCleaning.update({
       where: {
         id: params.id,
       },
@@ -43,7 +44,7 @@ export async function POST(
 
     // Create expense if cost is provided
     if (data.cost && parseFloat(data.cost) > 0) {
-      await prisma.sTRExpense.create({
+      await prismaBase.sTRExpense.create({
         data: {
           landlordId: landlord.id,
           rentalId: cleaning.rentalId,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // POST - Block dates
 export async function POST(req: NextRequest) {
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
 
     // Verify property belongs to landlord
-    const rental = await prisma.shortTermRental.findFirst({
+    const rental = await prismaBase.shortTermRental.findFirst({
       where: {
         id: data.rentalId,
         landlordId: landlord.id,
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     const endDate = new Date(data.endDate);
 
     // Check for overlapping bookings
-    const overlapping = await prisma.sTRBooking.findFirst({
+    const overlapping = await prismaBase.sTRBooking.findFirst({
       where: {
         rentalId: data.rentalId,
         status: { in: ['confirmed', 'checked_in'] },
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const blockedDate = await prisma.sTRBlockedDate.create({
+    const blockedDate = await prismaBase.sTRBlockedDate.create({
       data: {
         rentalId: data.rentalId,
         startDate,
@@ -112,7 +113,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'ID required' }, { status: 400 });
     }
 
-    await prisma.sTRBlockedDate.delete({
+    await prismaBase.sTRBlockedDate.delete({
       where: { id },
     });
 

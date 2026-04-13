@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 import { startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 
 // GET - Get calendar availability
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get bookings
-    const bookings = await prisma.sTRBooking.findMany({
+    const bookings = await prismaBase.sTRBooking.findMany({
       where: {
         ...where,
         status: { in: ['confirmed', 'checked_in'] },
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Get blocked dates
-    const blockedDates = await prisma.sTRBlockedDate.findMany({
+    const blockedDates = await prismaBase.sTRBlockedDate.findMany({
       where: {
         ...where,
         OR: [
@@ -92,13 +93,13 @@ export async function GET(req: NextRequest) {
     // Build calendar data
     const days = eachDayOfInterval({ start: startDate, end: endDate });
     const calendar = days.map(day => {
-      const dayBookings = bookings.filter(b => {
+      const dayBookings = bookings.filter((b: any) => {
         const checkIn = new Date(b.checkIn);
         const checkOut = new Date(b.checkOut);
         return day >= checkIn && day < checkOut;
       });
 
-      const dayBlocked = blockedDates.filter(b => {
+      const dayBlocked = blockedDates.filter((b: any) => {
         const start = new Date(b.startDate);
         const end = new Date(b.endDate);
         return day >= start && day <= end;

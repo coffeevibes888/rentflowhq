@@ -18,11 +18,6 @@ export async function POST(
     // Get the quote
     const quote = await prisma.contractorQuote.findUnique({
       where: { id: quoteId },
-      include: {
-        customer: {
-          select: { userId: true },
-        },
-      },
     });
 
     if (!quote) {
@@ -30,7 +25,7 @@ export async function POST(
     }
 
     // Verify ownership
-    if (quote.customer.userId !== session.user.id) {
+    if (quote.customerId !== session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -47,21 +42,20 @@ export async function POST(
       where: { id: quoteId },
       data: {
         status: 'accepted',
-        respondedAt: new Date(),
+        acceptedAt: new Date(),
       },
     });
 
     // Create a job from the accepted quote
     await prisma.contractorJob.create({
       data: {
+        jobNumber: `JOB-Q-${quoteId.slice(0, 8).toUpperCase()}`,
         title: quote.title,
         description: quote.description,
         contractorId: quote.contractorId,
-        customerId: quote.customerId,
         status: 'approved',
-        estimatedCost: quote.estimatedCost,
-        priority: 'medium',
-        category: 'general',
+        estimatedCost: quote.totalPrice,
+        priority: 'normal',
       },
     });
 

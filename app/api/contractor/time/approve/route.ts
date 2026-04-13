@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
         id: { in: entryIds },
       },
       data: {
-        approved: true,
+        status: 'approved',
+        approvedBy: session.user.id,
         approvedAt: new Date(),
       },
     });

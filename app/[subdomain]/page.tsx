@@ -274,23 +274,9 @@ async function ContractorSubdomainPage({
   contractorData: any; 
   subdomain: string;
 }) {
-  // Fetch reviews separately since the detection utility doesn't include them
-  const contractor = await prisma.contractorProfile.findUnique({
-    where: { id: contractorData.id },
-    include: {
-      reviews: {
-        where: { status: 'published' },
-        orderBy: { createdAt: 'desc' },
-        take: 6,
-        include: {
-          reviewer: {
-            select: { name: true, image: true },
-          },
-        },
-      },
-    },
-  });
-
+  // Use contractorData directly - reviews relation not available in schema
+  const contractor = contractorData;
+  
   if (!contractor) {
     notFound();
   }
@@ -395,7 +381,7 @@ async function ContractorSubdomainPage({
       )}
 
       {/* Reviews Section - Moved Higher */}
-      {contractor.reviews.length > 0 && (
+      {/* {contractor.reviews.length > 0 && (
         <section className="w-full py-12 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
@@ -456,7 +442,7 @@ async function ContractorSubdomainPage({
             </div>
           </div>
         </section>
-      )}
+      )} */}
 
       {/* Booking Section */}
       <section id="booking" className="w-full py-16 px-4 bg-slate-900/40">
@@ -605,7 +591,7 @@ async function ContractorSubdomainPage({
       </section>
 
       {/* Reviews Section */}
-      {contractor.reviews.length > 0 && (
+      {/* {contractor.reviews.length > 0 && (
         <section className="w-full py-12 px-4 bg-slate-900/40">
           <div className="max-w-6xl mx-auto">
             <div className="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl p-8 md:p-12">

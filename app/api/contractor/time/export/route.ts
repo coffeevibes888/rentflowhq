@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
           lte: new Date(endDate),
         },
         clockOut: { not: null },
-        approved: true,
+        status: 'approved',
       },
       include: {
         employee: {
@@ -63,6 +63,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate totals per employee
     const employeeSummary = entries.reduce((acc, entry) => {
+      if (!entry.employee) return acc;
       const employeeId = entry.employee.id;
       if (!acc[employeeId]) {
         acc[employeeId] = {

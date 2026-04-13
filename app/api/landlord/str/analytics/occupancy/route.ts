@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 import { startOfMonth, endOfMonth, getDaysInMonth, eachDayOfInterval } from 'date-fns';
 
 // GET - Occupancy analytics
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
       where.rentalId = rentalId;
     }
 
-    const bookings = await prisma.sTRBooking.findMany({
+    const bookings = await prismaBase.sTRBooking.findMany({
       where,
       select: {
         checkIn: true,
@@ -90,7 +91,7 @@ export async function GET(req: NextRequest) {
 
     // By property breakdown
     const byProperty = rentalId ? null : await Promise.all(
-      [...new Set(bookings.map((b: any) => b.rentalId))].map(async (propId: string) => {
+      ([...new Set(bookings.map((b: any) => b.rentalId as string))] as string[]).map(async (propId: string) => {
         const propBookings = bookings.filter((b: any) => b.rentalId === propId);
         const propNights = propBookings.reduce((sum: number, b: any) => sum + b.nights, 0);
         const propRevenue = propBookings.reduce((sum: number, b: any) => sum + Number(b.totalPrice), 0);

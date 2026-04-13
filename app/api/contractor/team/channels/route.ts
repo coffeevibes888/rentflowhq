@@ -21,14 +21,14 @@ export async function GET() {
       // Check if user is a team member
       let teamMember: any = null;
       try {
-        teamMember = await (prisma as any).contractorTeamMember?.findFirst?.({
+        teamMember = await prisma.contractorEmployee.findFirst({
           where: {
             userId: session.user.id,
             status: 'active',
           },
         });
       } catch (error) {
-        console.error('ContractorTeamMember check failed:', error);
+        console.error('ContractorEmployee check failed:', error);
       }
 
       if (!teamMember) {

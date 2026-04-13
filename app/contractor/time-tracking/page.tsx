@@ -101,6 +101,8 @@ export default async function TimeTrackingPage() {
         include: {
           employee: {
             select: {
+              firstName: true,
+              lastName: true,
               payRate: true,
             },
           },
@@ -171,7 +173,7 @@ export default async function TimeTrackingPage() {
           (1000 * 60 * 60);
         const breakHours = (entry.breakMinutes || 0) / 60;
         const netHours = hours - breakHours;
-        const cost = netHours * Number(entry.employee.payRate);
+        const cost = netHours * Number(entry.employee?.payRate ?? 0);
         return sum + cost;
       }
       return sum;
@@ -184,7 +186,7 @@ export default async function TimeTrackingPage() {
   const monthCost = calculateCost(monthEntries);
 
   const pendingApproval = recentEntries.filter(
-    (e) => e.clockOut && !e.approved
+    (e) => e.clockOut && !e.approvedBy
   ).length;
 
   return (
@@ -296,13 +298,13 @@ export default async function TimeTrackingPage() {
                     <div className="flex items-start gap-3">
                       <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 flex items-center justify-center flex-shrink-0 border-2 border-blue-200">
                         <span className="text-sm font-bold text-blue-600">
-                          {entry.employee.firstName[0]}
-                          {entry.employee.lastName[0]}
+                          {entry.employee?.firstName?.[0] ?? '?'}
+                          {entry.employee?.lastName?.[0] ?? ''}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900">
-                          {entry.employee.firstName} {entry.employee.lastName}
+                          {entry.employee?.firstName ?? 'Unknown'} {entry.employee?.lastName ?? ''}
                         </p>
                         <p className="text-sm text-gray-600">
                           Clocked in at{' '}
@@ -355,7 +357,7 @@ export default async function TimeTrackingPage() {
                   : null;
 
                 const cost = hours
-                  ? parseFloat(hours) * Number(entry.employee.payRate)
+                  ? parseFloat(hours) * Number(entry.employee?.payRate ?? 0)
                   : 0;
 
                 return (
@@ -367,13 +369,13 @@ export default async function TimeTrackingPage() {
                       <div className="flex items-start gap-3 flex-1">
                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 flex items-center justify-center flex-shrink-0 border-2 border-blue-200">
                           <span className="text-sm font-bold text-blue-600">
-                            {entry.employee.firstName[0]}
-                            {entry.employee.lastName[0]}
+                            {entry.employee?.firstName?.[0] ?? '?'}
+                            {entry.employee?.lastName?.[0] ?? ''}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-gray-900">
-                            {entry.employee.firstName} {entry.employee.lastName}
+                            {entry.employee?.firstName ?? 'Unknown'} {entry.employee?.lastName ?? ''}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                             <span>
@@ -397,12 +399,12 @@ export default async function TimeTrackingPage() {
                         {hours ? (
                           <>
                             <p className="text-lg font-bold text-gray-900">
-                              {hours} hrs
+                              {hours} Hours
                             </p>
                             <p className="text-sm text-gray-600">
                               ${cost.toFixed(2)}
                             </p>
-                            {entry.approved ? (
+                            {entry.approvedBy ? (
                               <Badge className="bg-emerald-100 text-emerald-700 mt-2">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Approved

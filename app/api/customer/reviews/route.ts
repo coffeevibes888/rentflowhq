@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
         contractorId,
         customerId,
         jobId,
-        rating: Number(rating),
-        comment: comment || null,
+        overallRating: Number(rating),
+        comment: comment || '',
         status: 'published',
       },
     });
@@ -59,17 +59,17 @@ export async function POST(req: NextRequest) {
     // Update contractor average rating
     const allReviews = await prisma.contractorReview.findMany({
       where: { contractorId },
-      select: { rating: true },
+      select: { overallRating: true },
     });
 
     const avgRating =
-      allReviews.reduce((sum, r) => sum + Number(r.rating), 0) / allReviews.length;
+      allReviews.reduce((sum, r) => sum + Number(r.overallRating), 0) / allReviews.length;
 
-    await prisma.contractor.update({
+    await prisma.contractorProfile.update({
       where: { id: contractorId },
       data: {
         avgRating,
-        reviewCount: allReviews.length,
+        totalReviews: allReviews.length,
       },
     });
 

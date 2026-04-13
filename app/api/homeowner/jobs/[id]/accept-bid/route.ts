@@ -56,13 +56,6 @@ export async function POST(
         id: bidId,
         workOrderId: jobId,
       },
-      include: {
-        contractor: {
-          include: {
-            user: true,
-          },
-        },
-      },
     });
 
     if (!bid) {
@@ -131,17 +124,16 @@ export async function POST(
           id: { not: bidId },
           status: 'declined',
         },
-        include: {
-          contractor: {
-            include: { user: true },
-          },
-        },
       });
 
       for (const otherBid of otherBids) {
-        if (otherBid.contractor?.user) {
+        const otherContractor = await prisma.contractorProfile.findUnique({
+          where: { id: otherBid.contractorId },
+          include: { user: true },
+        });
+        if (otherContractor?.user) {
           await MarketplaceNotifications.notifyBidRejected({
-            contractorId: otherBid.contractor.user.id,
+            contractorId: otherContractor.user.id,
             jobId,
             jobTitle: workOrder.title,
           });

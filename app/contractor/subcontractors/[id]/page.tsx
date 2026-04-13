@@ -30,6 +30,7 @@ interface Subcontractor {
 
 interface Assignment {
   id: string;
+  jobId: string;
   jobTitle: string;
   jobNumber: string;
   scopeOfWork: string;
@@ -267,7 +268,7 @@ export default function SubcontractorDetailPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Job Assignments</CardTitle>
-              <Link href={`/contractor/jobs/${assignment.jobId}/assign`}>
+              <Link href="/contractor/jobs">
                 <Button size="sm" className="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600">
                   Assign Crew
                 </Button>

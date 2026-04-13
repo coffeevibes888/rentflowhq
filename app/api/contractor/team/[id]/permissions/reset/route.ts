@@ -35,7 +35,7 @@ export async function POST(
     }
 
     // Get the team member
-    const member = await prisma.contractorTeamMember.findUnique({
+    const member = await prisma.contractorEmployee.findUnique({
       where: { id: memberId },
     });
 
@@ -46,9 +46,9 @@ export async function POST(
     // Reset to default permissions for their role
     const defaultPermissions = DEFAULT_PERMISSIONS[member.role] || [];
 
-    await prisma.contractorTeamMember.update({
+    await prisma.contractorEmployee.update({
       where: { id: memberId },
-      data: { permissions: defaultPermissions },
+      data: { customPermissions: defaultPermissions },
     });
 
     return NextResponse.json({ 

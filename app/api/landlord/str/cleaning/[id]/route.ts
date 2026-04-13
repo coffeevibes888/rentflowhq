@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // PUT - Update cleaning
 export async function PUT(
@@ -23,7 +24,7 @@ export async function PUT(
 
     const data = await req.json();
 
-    const cleaning = await prisma.sTRCleaning.update({
+    const cleaning = await prismaBase.sTRCleaning.update({
       where: {
         id: params.id,
       },

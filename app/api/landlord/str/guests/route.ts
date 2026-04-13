@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // GET - List all guests
 export async function GET(req: NextRequest) {
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Landlord not found' }, { status: 404 });
     }
 
-    const guests = await prisma.sTRGuest.findMany({
+    const guests = await prismaBase.sTRGuest.findMany({
       where: {
         landlordId: landlord.id,
       },

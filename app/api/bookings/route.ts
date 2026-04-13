@@ -7,24 +7,33 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { contractorId, date, time, name, email, phone, service } = body;
 
-    // Create booking/appointment request
-    const booking = await prisma.contractorAppointment.create({
+    // Create a lead for this booking request
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    const lead = await prisma.contractorLead.create({
       data: {
-        contractorId,
+        source: 'subdomain',
         customerName: name,
         customerEmail: email,
         customerPhone: phone,
-        serviceRequested: service,
-        requestedDate: new Date(date),
-        requestedTime: time,
-        status: 'pending',
-        source: 'website_booking',
+        projectType: service,
+        projectDescription: `Booking request for ${service} on ${date} at ${time}`,
+        status: 'new',
+        expiresAt,
+        matches: {
+          create: {
+            contractorId,
+            status: 'sent',
+            sentAt: new Date(),
+          },
+        },
       },
     });
 
     // Emit event for new booking
-    await eventBus.emit('contractor.booking.created', {
-      bookingId: booking.id,
+    await eventBus.emit('appointment.created', {
+      bookingId: lead.id,
       contractorId,
       customerName: name,
       customerEmail: email,
@@ -32,7 +41,7 @@ export async function POST(request: Request) {
       requestedTime: time,
     });
 
-    return NextResponse.json({ booking }, { status: 201 });
+    return NextResponse.json({ booking: lead }, { status: 201 });
   } catch (error) {
     console.error('Error creating booking:', error);
     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });

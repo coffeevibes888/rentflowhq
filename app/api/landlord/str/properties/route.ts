@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // GET - List all STR properties
 export async function GET(req: NextRequest) {
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Landlord not found' }, { status: 404 });
     }
 
-    const properties = await prisma.shortTermRental.findMany({
+    const properties = await prismaBase.shortTermRental.findMany({
       where: { landlordId: landlord.id },
       include: {
         _count: {
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     // Generate unique iCal export URL
     const icalExportUrl = `/api/landlord/str/calendar/ical/${slug}`;
 
-    const property = await prisma.shortTermRental.create({
+    const property = await prismaBase.shortTermRental.create({
       data: {
         landlordId: landlord.id,
         propertyId: data.propertyId || null,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 import { differenceInDays } from 'date-fns';
 
 // GET - List all bookings
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    const bookings = await prisma.sTRBooking.findMany({
+    const bookings = await prismaBase.sTRBooking.findMany({
       where,
       include: {
         rental: {
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
 
     // Verify property belongs to landlord
-    const rental = await prisma.shortTermRental.findFirst({
+    const rental = await prismaBase.shortTermRental.findFirst({
       where: {
         id: data.rentalId,
         landlordId: landlord.id,
@@ -107,7 +108,7 @@ export async function POST(req: NextRequest) {
     const checkIn = new Date(data.checkIn);
     const checkOut = new Date(data.checkOut);
     
-    const overlapping = await prisma.sTRBooking.findFirst({
+    const overlapping = await prismaBase.sTRBooking.findFirst({
       where: {
         rentalId: data.rentalId,
         status: { in: ['confirmed', 'checked_in'] },
@@ -149,7 +150,7 @@ export async function POST(req: NextRequest) {
     // Find or create guest
     let guest = null;
     if (data.guestEmail) {
-      guest = await prisma.sTRGuest.upsert({
+      guest = await prismaBase.sTRGuest.upsert({
         where: {
           landlordId_email: {
             landlordId: landlord.id,
@@ -169,7 +170,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const booking = await prisma.sTRBooking.create({
+    const booking = await prismaBase.sTRBooking.create({
       data: {
         rentalId: data.rentalId,
         guestId: guest?.id,
@@ -200,7 +201,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Auto-schedule cleaning
-    await prisma.sTRCleaning.create({
+    await prismaBase.sTRCleaning.create({
       data: {
         rentalId: data.rentalId,
         bookingId: booking.id,

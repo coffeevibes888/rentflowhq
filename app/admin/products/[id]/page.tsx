@@ -121,6 +121,8 @@ const AdminProductUpdatePage = async (props: {
     saleUntil: product.saleUntil ? product.saleUntil.toISOString() : null,
     price: Number(product.price),
     rating: Number(product.rating),
+    videoUrl: product.videoUrl ?? undefined,
+    virtualTourUrl: product.virtualTourUrl ?? undefined,
   };
 
   return (

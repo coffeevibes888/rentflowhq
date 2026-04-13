@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { prismaBase } from '@/db/prisma-base';
 
 // GET - Get single booking
 export async function GET(
@@ -21,7 +22,7 @@ export async function GET(
       return NextResponse.json({ error: 'Landlord not found' }, { status: 404 });
     }
 
-    const booking = await prisma.sTRBooking.findFirst({
+    const booking = await prismaBase.sTRBooking.findFirst({
       where: {
         id: params.id,
         rental: { landlordId: landlord.id },
@@ -68,7 +69,7 @@ export async function PUT(
 
     const data = await req.json();
 
-    const booking = await prisma.sTRBooking.update({
+    const booking = await prismaBase.sTRBooking.update({
       where: {
         id: params.id,
       },
@@ -115,7 +116,7 @@ export async function DELETE(
     const reason = searchParams.get('reason') || 'Cancelled by host';
     const refundAmount = searchParams.get('refundAmount');
 
-    const booking = await prisma.sTRBooking.update({
+    const booking = await prismaBase.sTRBooking.update({
       where: {
         id: params.id,
       },
@@ -128,7 +129,7 @@ export async function DELETE(
     });
 
     // Cancel associated cleaning
-    await prisma.sTRCleaning.updateMany({
+    await prismaBase.sTRCleaning.updateMany({
       where: {
         bookingId: params.id,
         status: 'scheduled',

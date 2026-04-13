@@ -100,6 +100,7 @@ export default function CashCollection() {
   const generateCashPaymentBarcode = (tenant: Tenant, amount: number) => {
     const paymentData = {
       tenantId: tenant.id,
+      tenantName: tenant.name,
       amount,
       propertyId: 'property-1', // Would come from selected property
       description: `Rent payment for ${tenant.unit}`,
