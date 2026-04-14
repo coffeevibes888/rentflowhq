@@ -24,64 +24,59 @@ const tiers = [
     id: 'starter',
     name: 'Starter',
     price: 19.99,
-    description: 'Perfect for solo contractors.',
-    unitLimit: 'Solo contractor',
+    description: 'Perfect for solo contractors & one-man operations just getting organized.',
+    unitLimit: 'Solo operator',
     icon: Wrench,
     popular: false,
     comingSoon: false,
     features: [
-      'Custom subdomain & branding',
-      'Marketplace profile & listings',
-      'Accept PM job invites',
-      'Job bidding & quoting',
-      'Work order management',
-      'Unlimited invoicing',
-      'Customer management (CRM)',
-      'Estimates & proposals',
-      'Expense tracking',
-      'Portfolio showcase',
-      'Client reviews & ratings',
-      'Basic analytics & reports',
+      'Unlimited job & work order management',
+      'Professional invoicing & estimates',
+      'Online payment collection (Stripe)',
+      'Client & contact management (CRM)',
+      'Your own branded subdomain profile',
+      'Contractor Marketplace listing',
+      'Photo & document uploads per job',
+      'Basic job cost tracking',
+      'Automated invoice payment reminders',
+      'Mobile-friendly — works on any device',
     ],
-    iconBg: 'bg-slate-500/20',
-    iconColor: 'text-slate-300',
-    buttonStyle: 'bg-white/10 text-white hover:bg-white/20 border border-white/10',
+    iconBg: 'bg-rose-500/20',
+    iconColor: 'text-rose-300',
+    buttonStyle: 'bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 shadow-lg shadow-rose-500/20',
   },
   {
     id: 'pro',
     name: 'Pro',
     price: 39.99,
-    description: 'For growing contracting businesses.',
-    unitLimit: 'Up to 5 team members',
+    description: 'Built for growing crews of 2–20. Run your entire operation from one place.',
+    unitLimit: 'Up to 20 team members',
     icon: Zap,
     popular: true,
     comingSoon: false,
     features: [
       'Everything in Starter',
-      'Up to 5 team members',
-      'Team messaging & chat',
-      'Shift scheduling',
-      'Time tracking with GPS',
-      'Timesheet approvals',
-      'Inventory management',
-      'Equipment tracking',
-      'Vendor management',
-      'Marketing campaigns',
-      'Referral program',
-      'QuickBooks integration',
-      'Advanced analytics',
-      'Priority marketplace listing',
+      'Up to 20 team members',
+      'Team scheduling & job assignment',
+      'GPS time clock & timesheet approvals',
+      'Inventory & equipment tracking',
+      'Lead management & pipeline',
+      'QuickBooks & accounting sync',
+      'Advanced profit & loss reporting',
+      'Multi-trade job management',
+      'Team Slack-like internal chat',
+      'Priority support',
     ],
-    iconBg: 'bg-violet-500/20',
-    iconColor: 'text-violet-300',
+    iconBg: 'bg-orange-500/20',
+    iconColor: 'text-orange-300',
     buttonStyle:
-      'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-400 hover:to-purple-400 shadow-lg shadow-violet-500/30',
+      'bg-gradient-to-r from-rose-500 to-orange-400 text-white hover:from-rose-400 hover:to-orange-300 shadow-lg shadow-rose-500/30',
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
     price: 79.99,
-    description: 'Full-scale business operations.',
+    description: 'For large contractors & multi-trade companies scaling to 100+ employees.',
     unitLimit: 'Unlimited team members',
     icon: Crown,
     popular: false,
@@ -89,15 +84,16 @@ const tiers = [
     features: [
       'Everything in Pro',
       'Unlimited team members',
-      'Payroll management (Coming Soon)',
-      'VoIP call center (Coming Soon)',
-      'Stripe Treasury wallet & debit card',
-      'Dispute management',
-      'Finance dashboard',
-      'Custom reports',
-      'Featured marketplace listing',
-      'API access',
-      'Dedicated support',
+      'Payroll processing & direct deposit',
+      'Advanced roles, permissions & divisions',
+      'Multi-location & multi-trade dashboard',
+      'Subcontractor management & payments',
+      'Client portal with job status updates',
+      'Performance & productivity reports',
+      'Custom branding & white-label options',
+      'Dedicated account manager',
+      'API access & third-party integrations',
+      'Priority 24/7 support',
     ],
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-300',
@@ -156,7 +152,7 @@ export default function ContractorSubscriptionClient({
           transition={{ duration: 0.5 }}
           className="text-center space-y-4"
         >
-          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-500/20 to-cyan-500/20 px-4 py-1.5 text-sm font-medium text-violet-300 ring-1 ring-violet-500/30">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-500/20 to-orange-500/20 px-4 py-1.5 text-sm font-medium text-rose-300 ring-1 ring-rose-500/30">
             <Sparkles className="h-4 w-4" />
             Welcome, {userName.split(' ')[0]}!
           </div>
@@ -203,23 +199,23 @@ export default function ContractorSubscriptionClient({
                 transition={{ duration: 0.4, delay: 0.1 * index }}
                 className={`relative group rounded-2xl border bg-slate-900/60 backdrop-blur-sm p-6 flex flex-col transition-all duration-300 ${
                   isSuggested
-                    ? 'border-cyan-500/70 hover:border-cyan-500 ring-2 ring-cyan-500/30 scale-105'
+                    ? 'border-rose-500/70 hover:border-rose-500 ring-2 ring-rose-500/30 scale-105'
                     : isPopular
-                    ? 'border-violet-500/50 hover:border-violet-500 ring-1 ring-violet-500/20'
+                    ? 'border-orange-500/50 hover:border-orange-500 ring-1 ring-orange-500/20'
                     : 'border-white/10 hover:border-white/20'
                 }`}
               >
                 {/* Suggested or Popular badge */}
                 {isSuggested ? (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-cyan-500/50 flex items-center gap-1">
+                    <div className="bg-gradient-to-r from-rose-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-rose-500/50 flex items-center gap-1">
                       <Sparkles className="h-3 w-3" />
                       YOUR SELECTION
                     </div>
                   </div>
                 ) : isPopular ? (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-violet-500/50 flex items-center gap-1">
+                    <div className="bg-gradient-to-r from-rose-500 to-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-rose-500/50 flex items-center gap-1">
                       <Zap className="h-3 w-3" />
                       MOST POPULAR
                     </div>
@@ -273,8 +269,8 @@ export default function ContractorSubscriptionClient({
                         <div
                           className={`mt-0.5 rounded-full p-0.5 ${
                             isPopular
-                              ? 'bg-violet-500/20 text-violet-400'
-                              : 'bg-emerald-500/20 text-emerald-400'
+                              ? 'bg-orange-500/20 text-orange-400'
+                              : 'bg-rose-500/20 text-rose-400'
                           }`}
                         >
                           <Check className="h-3 w-3" />
@@ -318,7 +314,7 @@ export default function ContractorSubscriptionClient({
           className="text-center text-sm text-slate-500"
         >
           Questions?{' '}
-          <a href="/contact" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
+          <a href="/contact" className="text-rose-400 hover:text-rose-300 underline underline-offset-2">
             Talk to our team
           </a>
         </motion.p>

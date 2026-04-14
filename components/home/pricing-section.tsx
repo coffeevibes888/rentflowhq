@@ -91,6 +91,87 @@ const tiers = [
   },
 ];
 
+const contractorTiers = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 19.99,
+    description: 'Perfect for solo contractors & one-man operations just getting organized.',
+    unitLimit: 'Solo operator',
+    icon: Building2,
+    popular: false,
+    comingSoon: false,
+    features: [
+      { name: 'Unlimited job & work order management', included: true },
+      { name: 'Professional invoicing & estimates', included: true },
+      { name: 'Online payment collection (Stripe)', included: true },
+      { name: 'Client & contact management (CRM)', included: true },
+      { name: 'Your own branded subdomain profile', included: true },
+      { name: 'Contractor Marketplace listing', included: true },
+      { name: 'Photo & document uploads per job', included: true },
+      { name: 'Basic job cost tracking', included: true },
+      { name: 'Automated invoice payment reminders', included: true },
+      { name: 'Mobile-friendly — works on any device', included: true },
+    ],
+    cta: 'Start Free with 14 day free trial',
+    iconBg: 'bg-rose-500/20',
+    iconColor: 'text-rose-300',
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 39.99,
+    description: 'Built for growing crews of 2–20. Run your entire operation from one place.',
+    unitLimit: 'Up to 20 team members',
+    icon: Zap,
+    popular: true,
+    comingSoon: false,
+    features: [
+      { name: 'Everything in Starter', included: true },
+      { name: 'Up to 20 team members', included: true },
+      { name: 'Team scheduling & job assignment', included: true },
+      { name: 'GPS time clock & timesheet approvals', included: true },
+      { name: 'Inventory & equipment tracking', included: true },
+      { name: 'Lead management & pipeline', included: true },
+      { name: 'QuickBooks & accounting sync', included: true },
+      { name: 'Advanced profit & loss reporting', included: true },
+      { name: 'Multi-trade job management', included: true },
+      { name: 'Team Slack-like internal chat', included: true },
+      { name: 'Priority support', included: true },
+    ],
+    cta: 'Start for free with a 14 day free trial',
+    iconBg: 'bg-orange-500/20',
+    iconColor: 'text-orange-300',
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 79.99,
+    description: 'For large contractors & multi-trade companies scaling to 100+ employees.',
+    unitLimit: 'Unlimited team members',
+    icon: Crown,
+    popular: false,
+    comingSoon: false,
+    features: [
+      { name: 'Everything in Pro', included: true },
+      { name: 'Unlimited team members', included: true },
+      { name: 'Payroll processing & direct deposit', included: true },
+      { name: 'Advanced roles, permissions & divisions', included: true },
+      { name: 'Multi-location & multi-trade dashboard', included: true },
+      { name: 'Subcontractor management & payments', included: true },
+      { name: 'Client portal with job status updates', included: true },
+      { name: 'Performance & productivity reports', included: true },
+      { name: 'Custom branding & white-label options', included: true },
+      { name: 'Dedicated account manager', included: true },
+      { name: 'API access & third-party integrations', included: true },
+      { name: 'Priority 24/7 support', included: true },
+    ],
+    cta: 'Start Free with 14 day free trial',
+    iconBg: 'bg-amber-500/20',
+    iconColor: 'text-amber-300',
+  },
+];
+
 export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'contractor' }) {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -139,7 +220,7 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
 
         {/* Pricing Cards */}
         <div className="grid gap-8 lg:grid-cols-3 lg:gap-6 max-w-6xl mx-auto">
-          {tiers.map((tier, index) => {
+          {(isContractor ? contractorTiers : tiers).map((tier, index) => {
             const Icon = tier.icon;
             const isPopular = tier.popular;
 

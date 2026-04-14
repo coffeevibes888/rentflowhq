@@ -2,6 +2,7 @@ import HomeContactCard from '@/components/home/home-contact-card';
 import TrustBadges from '@/components/home/trust-badges';
 import PricingSection from '@/components/home/pricing-section';
 import AudienceSwitcher from '@/components/home/audience-switcher';
+import AudienceTabBar from '@/components/home/audience-tab-bar';
 import { headers } from 'next/headers';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
@@ -147,6 +148,9 @@ const Homepage = async () => {
   return (
     <>
       <main className='flex-1 w-full'>
+        <Suspense fallback={null}>
+          <AudienceTabBar />
+        </Suspense>
         <Suspense fallback={null}>
           <AudienceSwitcher
             pmPricingSection={<PricingSection variant="pm" />}

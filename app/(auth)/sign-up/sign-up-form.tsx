@@ -75,7 +75,9 @@ const SignUpForm = () => {
         fromProperty 
           ? `/application?property=${propertySlug}` 
           : plan 
-            ? `/onboarding/landlord/subscription?plan=${plan}`
+            ? role === 'contractor'
+              ? `/onboarding/contractor/subscription?plan=${plan}`
+              : `/onboarding/landlord/subscription?plan=${plan}`
             : callbackUrl
       } />
       
@@ -84,7 +86,9 @@ const SignUpForm = () => {
           fromProperty 
             ? `/application?property=${propertySlug}` 
             : plan 
-              ? `/onboarding/landlord/subscription?plan=${plan}`
+              ? role === 'contractor'
+                ? `/onboarding/contractor/subscription?plan=${plan}`
+                : `/onboarding/landlord/subscription?plan=${plan}`
               : callbackUrl
         } />
         {/* Pass property application params to the server action */}

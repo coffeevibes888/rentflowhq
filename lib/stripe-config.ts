@@ -27,6 +27,18 @@ export const stripeConfig = {
     enterprise: isProduction
       ? process.env.STRIPE_LIVE_PRICE_ENTERPRISE || process.env.STRIPE_PRICE_ENTERPRISE
       : process.env.STRIPE_TEST_PRICE_ENTERPRISE || process.env.STRIPE_PRICE_ENTERPRISE,
+
+    contractorStarter: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_CONTRACTOR_STARTER || process.env.STRIPE_PRICE_CONTRACTOR_STARTER
+      : process.env.STRIPE_TEST_PRICE_CONTRACTOR_STARTER || process.env.STRIPE_PRICE_CONTRACTOR_STARTER,
+
+    contractorPro: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_CONTRACTOR_PRO || process.env.STRIPE_PRICE_CONTRACTOR_PRO
+      : process.env.STRIPE_TEST_PRICE_CONTRACTOR_PRO || process.env.STRIPE_PRICE_CONTRACTOR_PRO,
+
+    contractorEnterprise: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_CONTRACTOR_ENTERPRISE || process.env.STRIPE_PRICE_CONTRACTOR_ENTERPRISE
+      : process.env.STRIPE_TEST_PRICE_CONTRACTOR_ENTERPRISE || process.env.STRIPE_PRICE_CONTRACTOR_ENTERPRISE,
   },
   
   isTestMode: !isProduction,
