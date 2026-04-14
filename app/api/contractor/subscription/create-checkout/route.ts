@@ -58,17 +58,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const profile = await prisma.contractorProfile.findUnique({
+    // Ensure user role is set to contractor
+    if (session.user.role !== 'contractor') {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { role: 'contractor' },
+      });
+    }
+
+    // Auto-create a minimal contractor profile if one doesn't exist yet
+    // (happens when user signs up directly from the pricing page)
+    const userName = session.user.name || session.user.email?.split('@')[0] || 'Contractor';
+    const baseSlug = userName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const slug = `${baseSlug}-${session.user.id.slice(0, 6)}`;
+
+    const profile = await prisma.contractorProfile.upsert({
       where: { userId: session.user.id },
+      update: {},
+      create: {
+        userId: session.user.id,
+        slug,
+        businessName: userName,
+        displayName: userName,
+        email: session.user.email || '',
+      },
       select: { id: true, stripeCustomerId: true, businessName: true },
     });
-
-    if (!profile) {
-      return NextResponse.json(
-        { success: false, message: 'Contractor profile not found. Please complete onboarding first.' },
-        { status: 400 }
-      );
-    }
 
     const stripe = new Stripe(stripeSecretKey);
 
