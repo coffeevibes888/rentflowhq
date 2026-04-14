@@ -210,75 +210,97 @@ export default async function ContractorDashboardPage() {
         <p className='text-xs sm:text-sm text-muted-foreground'>Marketplace performance and business overview.</p>
       </div>
 
-      {/* Main Stats Dashboard - Light Rose/Orange Theme */}
-      <div className='relative rounded-2xl md:rounded-3xl border border-rose-200 shadow-2xl overflow-hidden'>
-        <div className='absolute inset-0 bg-gradient-to-r from-rose-100 via-orange-50 to-rose-100' />
+      {/* Main Stats Dashboard - Dark Slate + Amber Gold Theme */}
+      <div className='relative rounded-2xl md:rounded-3xl border border-slate-700 shadow-2xl overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' />
+        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(251,191,36,0.12),_transparent_60%)]' />
         <div className='relative p-4 md:p-6 flex flex-col gap-3'>
-          <div className='flex items-center justify-between'>
-            <h3 className='text-base md:text-xl font-bold text-slate-900'>Contractor Dashboard</h3>
-            <span className='text-[10px] bg-gradient-to-r from-rose-500 to-orange-500 text-white px-2 py-1 rounded-full font-semibold shadow-md'>PRO</span>
+
+          <div className='flex items-center justify-between mb-1'>
+            <h3 className='text-base md:text-lg font-bold text-white tracking-tight'>Business Overview</h3>
+            <span className='text-[10px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 px-2.5 py-1 rounded-full font-bold shadow'>{(contractorProfile.subscriptionTier ?? 'starter').toUpperCase()}</span>
           </div>
 
           {/* Top Stats Row */}
           <div className='grid grid-cols-3 gap-2'>
-            <div className='rounded-xl bg-gradient-to-r from-rose-500 via-rose-300 to-rose-500 border border-white p-3 space-y-1 shadow-lg'>
-              <div className='text-[9px] md:text-[11px] text-slate-900 font-bold'>Active Jobs</div>
-              <div className='text-xl md:text-2xl font-bold text-slate-900'>{activeJobs}</div>
-              <div className='text-[8px] md:text-[10px] text-rose-800 font-semibold'>{completedJobsThisMonth} done this month</div>
+            <div className='rounded-xl bg-slate-800/80 border border-slate-600/60 p-3 space-y-1 shadow-lg hover:border-amber-500/40 transition-colors'>
+              <div className='flex items-center gap-1.5'>
+                <Briefcase className='h-3 w-3 text-amber-400' />
+                <div className='text-[9px] md:text-[10px] text-slate-400 font-semibold uppercase tracking-wide'>Active Jobs</div>
+              </div>
+              <div className='text-xl md:text-2xl font-bold text-white'>{activeJobs}</div>
+              <div className='text-[8px] md:text-[9px] text-amber-400/80 font-medium'>{completedJobsThisMonth} done this month</div>
             </div>
-            <div className='rounded-xl bg-gradient-to-r from-amber-500 via-orange-200 to-amber-500 border border-white p-3 space-y-1 shadow-lg'>
-              <div className='text-[9px] md:text-[11px] text-slate-900 font-bold'>Open Leads</div>
-              <div className='text-xl md:text-2xl font-bold text-slate-900'>{leadsThisWeek}</div>
-              <div className='text-[8px] md:text-[10px] text-amber-800 font-semibold'>{hotLeads} hot leads</div>
+            <div className='rounded-xl bg-slate-800/80 border border-slate-600/60 p-3 space-y-1 shadow-lg hover:border-amber-500/40 transition-colors'>
+              <div className='flex items-center gap-1.5'>
+                <TrendingUp className='h-3 w-3 text-amber-400' />
+                <div className='text-[9px] md:text-[10px] text-slate-400 font-semibold uppercase tracking-wide'>Open Leads</div>
+              </div>
+              <div className='text-xl md:text-2xl font-bold text-white'>{leadsThisWeek}</div>
+              <div className='text-[8px] md:text-[9px] text-amber-400/80 font-medium'>{hotLeads} hot leads</div>
             </div>
-            <div className='rounded-xl bg-gradient-to-r from-violet-500 via-purple-200 to-violet-500 border border-white p-3 space-y-1 shadow-lg'>
-              <div className='text-[9px] md:text-[11px] text-slate-900 font-bold'>Team Members</div>
-              <div className='text-xl md:text-2xl font-bold text-slate-900'>{activeEmployees}</div>
-              <div className='text-[8px] md:text-[10px] text-violet-800 font-semibold'>Active employees</div>
+            <div className='rounded-xl bg-slate-800/80 border border-slate-600/60 p-3 space-y-1 shadow-lg hover:border-amber-500/40 transition-colors'>
+              <div className='flex items-center gap-1.5'>
+                <Users className='h-3 w-3 text-amber-400' />
+                <div className='text-[9px] md:text-[10px] text-slate-400 font-semibold uppercase tracking-wide'>Team</div>
+              </div>
+              <div className='text-xl md:text-2xl font-bold text-white'>{activeEmployees}</div>
+              <div className='text-[8px] md:text-[9px] text-amber-400/80 font-medium'>Active employees</div>
             </div>
           </div>
 
           {/* Revenue Row */}
           <div className='grid grid-cols-2 gap-2'>
-            <div className='rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-200 to-emerald-500 border border-white p-3 space-y-1 shadow-lg'>
-              <div className='text-[9px] md:text-[11px] text-slate-900 font-bold'>Revenue This Month</div>
-              <div className='text-lg md:text-xl font-bold text-slate-900'>{formatCurrency(revenueMonth)}</div>
-              <div className='text-[8px] md:text-[10px] text-emerald-800 font-semibold'>{formatCurrency(revenueYear)} YTD</div>
+            <div className='rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-600/10 border border-amber-500/30 p-3 space-y-1 shadow-lg'>
+              <div className='flex items-center gap-1.5'>
+                <DollarSign className='h-3 w-3 text-amber-400' />
+                <div className='text-[9px] md:text-[10px] text-amber-300/80 font-semibold uppercase tracking-wide'>Revenue This Month</div>
+              </div>
+              <div className='text-lg md:text-xl font-bold text-white'>{formatCurrency(revenueMonth)}</div>
+              <div className='text-[8px] md:text-[9px] text-amber-400/70 font-medium'>{formatCurrency(revenueYear)} YTD</div>
             </div>
-            <div className='rounded-xl bg-gradient-to-r from-orange-500 via-orange-200 to-orange-500 border border-white p-3 space-y-1 shadow-lg'>
-              <div className='text-[9px] md:text-[11px] text-slate-900 font-bold'>Pending Quotes</div>
-              <div className='text-lg md:text-xl font-bold text-slate-900'>{pendingQuotes}</div>
-              <div className='text-[8px] md:text-[10px] text-orange-800 font-semibold'>{quotesThisWeek} sent this week</div>
+            <div className='rounded-xl bg-slate-800/80 border border-slate-600/60 p-3 space-y-1 shadow-lg hover:border-amber-500/40 transition-colors'>
+              <div className='flex items-center gap-1.5'>
+                <FileText className='h-3 w-3 text-slate-400' />
+                <div className='text-[9px] md:text-[10px] text-slate-400 font-semibold uppercase tracking-wide'>Pending Quotes</div>
+              </div>
+              <div className='text-lg md:text-xl font-bold text-white'>{pendingQuotes}</div>
+              <div className='text-[8px] md:text-[9px] text-slate-500 font-medium'>{quotesThisWeek} sent this week</div>
             </div>
           </div>
 
           {/* Conversion Rate */}
-          <div className='rounded-xl bg-gradient-to-r from-blue-500 via-blue-200 to-blue-500 border border-white p-3 space-y-1 shadow-lg'>
+          <div className='rounded-xl bg-slate-800/60 border border-slate-600/60 p-3 shadow-lg'>
             <div className='flex items-center justify-between'>
-              <div className='text-[9px] md:text-[11px] text-slate-900 font-bold'>Conversion Rate</div>
-              <CheckCircle className='h-4 w-4 text-blue-600' />
+              <div className='flex items-center gap-1.5'>
+                <CheckCircle className='h-3 w-3 text-emerald-400' />
+                <div className='text-[9px] md:text-[10px] text-slate-400 font-semibold uppercase tracking-wide'>Conversion Rate</div>
+              </div>
+              <div className='text-lg md:text-xl font-bold text-white'>{conversionRate}%</div>
             </div>
-            <div className='text-lg md:text-xl font-bold text-slate-900'>{conversionRate}%</div>
-            <div className='text-[8px] md:text-[10px] text-blue-800 font-semibold'>Leads to jobs</div>
+            <div className='mt-2 h-1.5 bg-slate-700 rounded-full overflow-hidden'>
+              <div className='h-full bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full transition-all' style={{ width: `${Math.min(Number(conversionRate), 100)}%` }} />
+            </div>
+            <div className='text-[8px] text-slate-500 mt-1'>Leads converted to jobs</div>
           </div>
 
           {/* Recent Jobs List */}
-          <div className='rounded-xl bg-white/60 border border-rose-100 p-3 space-y-2 shadow-sm'>
-            <div className='text-[10px] text-slate-600 font-bold uppercase tracking-wide'>Recent Jobs</div>
+          <div className='rounded-xl bg-slate-800/40 border border-slate-700/60 p-3 space-y-2'>
+            <div className='text-[10px] text-slate-400 font-bold uppercase tracking-widest'>Recent Jobs</div>
             {recentJobs.length === 0 ? (
               <p className='text-xs text-slate-500 text-center py-4'>No jobs yet</p>
             ) : (
               recentJobs.slice(0, 3).map((job) => (
                 <Link key={job.id} href={`/contractor/jobs/${job.id}`}>
-                  <div className='flex items-center justify-between py-2 border-b border-rose-100 last:border-0 hover:bg-white/80 rounded px-2 -mx-2 transition-colors'>
+                  <div className='flex items-center justify-between py-2 border-b border-slate-700/50 last:border-0 hover:bg-slate-700/30 rounded px-2 -mx-2 transition-colors'>
                     <div className='flex-1 min-w-0'>
-                      <p className='text-[10px] md:text-xs text-slate-900 font-semibold truncate'>{job.title}</p>
-                      <p className='text-[9px] text-slate-600'>{job.customer?.name || 'No customer'}</p>
+                      <p className='text-[10px] md:text-xs text-white font-semibold truncate'>{job.title}</p>
+                      <p className='text-[9px] text-slate-500'>{job.customer?.name || 'No customer'}</p>
                     </div>
-                    <span className={`text-[9px] font-bold ${
-                      job.status === 'completed' ? 'text-emerald-600'
-                      : job.status === 'in_progress' ? 'text-amber-600'
-                      : 'text-blue-600'
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                      job.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400'
+                      : job.status === 'in_progress' ? 'bg-amber-500/20 text-amber-400'
+                      : 'bg-slate-600/60 text-slate-300'
                     }`}>
                       {job.status.replace('_', ' ')}
                     </span>
@@ -289,23 +311,23 @@ export default async function ContractorDashboardPage() {
           </div>
 
           {/* Bottom Stats Bar */}
-          <div className='rounded-xl bg-white/60 border border-rose-100 p-3 shadow-sm'>
+          <div className='rounded-xl bg-slate-800/40 border border-slate-700/60 p-3'>
             <div className='grid grid-cols-4 gap-2 text-center'>
               <div>
-                <div className='text-[9px] text-slate-600 font-bold uppercase tracking-wide'>Rating</div>
-                <div className='text-sm md:text-base font-bold text-slate-900'>{contractorProfile.avgRating.toFixed(1)}★</div>
+                <div className='text-[9px] text-slate-500 font-bold uppercase tracking-wide'>Rating</div>
+                <div className='text-sm md:text-base font-bold text-amber-400'>{contractorProfile.avgRating.toFixed(1)}★</div>
               </div>
               <div>
-                <div className='text-[9px] text-slate-600 font-bold uppercase tracking-wide'>Reviews</div>
-                <div className='text-sm md:text-base font-bold text-slate-900'>{contractorProfile.totalReviews}</div>
+                <div className='text-[9px] text-slate-500 font-bold uppercase tracking-wide'>Reviews</div>
+                <div className='text-sm md:text-base font-bold text-white'>{contractorProfile.totalReviews}</div>
               </div>
               <div>
-                <div className='text-[9px] text-slate-600 font-bold uppercase tracking-wide'>Jobs YTD</div>
-                <div className='text-sm md:text-base font-bold text-slate-900'>{contractorProfile.completedJobs}</div>
+                <div className='text-[9px] text-slate-500 font-bold uppercase tracking-wide'>Jobs YTD</div>
+                <div className='text-sm md:text-base font-bold text-white'>{contractorProfile.completedJobs}</div>
               </div>
               <div>
-                <div className='text-[9px] text-slate-600 font-bold uppercase tracking-wide'>Leads</div>
-                <div className='text-sm md:text-base font-bold text-slate-900'>{leadsThisMonth}</div>
+                <div className='text-[9px] text-slate-500 font-bold uppercase tracking-wide'>Leads</div>
+                <div className='text-sm md:text-base font-bold text-white'>{leadsThisMonth}</div>
               </div>
             </div>
           </div>
@@ -321,12 +343,13 @@ export default async function ContractorDashboardPage() {
       {/* Recent Activity */}
       <div className='grid gap-3 sm:gap-4 md:grid-cols-2'>
         {/* Recent Leads */}
-        <div className='relative rounded-xl sm:rounded-2xl border border-rose-200 shadow-xl overflow-hidden'>
-          <div className='absolute inset-0 bg-gradient-to-r from-rose-100 via-orange-50 to-rose-100' />
+        <div className='relative rounded-xl sm:rounded-2xl border border-slate-700 shadow-xl overflow-hidden'>
+          <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' />
+          <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(251,191,36,0.08),_transparent_60%)]' />
           <div className='relative p-3 sm:p-4'>
             <div className='flex items-center justify-between mb-3'>
-              <h3 className='text-sm sm:text-base font-bold text-slate-900'>Recent Leads</h3>
-              <Link href='/contractor/leads' className='text-[10px] sm:text-xs text-rose-600 font-semibold hover:underline'>
+              <h3 className='text-sm sm:text-base font-bold text-white'>Recent Leads</h3>
+              <Link href='/contractor/leads' className='text-[10px] sm:text-xs text-amber-400 font-semibold hover:text-amber-300 transition-colors'>
                 View all →
               </Link>
             </div>
@@ -338,20 +361,20 @@ export default async function ContractorDashboardPage() {
                   <Link
                     key={match.id}
                     href={`/contractor/leads/${match.lead.id}`}
-                    className='flex items-start justify-between p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 hover:shadow-md transition-all'
+                    className='flex items-start justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-amber-500/40 hover:bg-slate-700/60 transition-all'
                   >
                     <div className='flex-1 min-w-0'>
-                      <p className='text-xs sm:text-sm font-semibold text-slate-900 truncate'>
+                      <p className='text-xs sm:text-sm font-semibold text-white truncate'>
                         {match.lead.projectTitle || match.lead.projectType}
                       </p>
-                      <p className='text-[9px] sm:text-[10px] text-slate-600 mt-0.5'>
+                      <p className='text-[9px] sm:text-[10px] text-slate-400 mt-0.5'>
                         {match.lead.propertyCity}, {match.lead.propertyState}
                       </p>
                     </div>
-                    <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold ml-2 shrink-0 border ${
-                      match.lead.priority === 'hot' ? 'bg-rose-100 text-rose-700 border-rose-300'
-                      : match.lead.priority === 'warm' ? 'bg-amber-100 text-amber-700 border-amber-300'
-                      : 'bg-blue-100 text-blue-700 border-blue-300'
+                    <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold ml-2 shrink-0 ${
+                      match.lead.priority === 'hot' ? 'bg-amber-500/20 text-amber-400'
+                      : match.lead.priority === 'warm' ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-slate-600/60 text-slate-300'
                     }`}>
                       {match.lead.priority}
                     </span>
@@ -363,12 +386,13 @@ export default async function ContractorDashboardPage() {
         </div>
 
         {/* Recent Jobs */}
-        <div className='relative rounded-xl sm:rounded-2xl border border-rose-200 shadow-xl overflow-hidden'>
-          <div className='absolute inset-0 bg-gradient-to-r from-rose-100 via-orange-50 to-rose-100' />
+        <div className='relative rounded-xl sm:rounded-2xl border border-slate-700 shadow-xl overflow-hidden'>
+          <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' />
+          <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(251,191,36,0.08),_transparent_60%)]' />
           <div className='relative p-3 sm:p-4'>
             <div className='flex items-center justify-between mb-3'>
-              <h3 className='text-sm sm:text-base font-bold text-slate-900'>Recent Jobs</h3>
-              <Link href='/contractor/jobs' className='text-[10px] sm:text-xs text-rose-600 font-semibold hover:underline'>
+              <h3 className='text-sm sm:text-base font-bold text-white'>Recent Jobs</h3>
+              <Link href='/contractor/jobs' className='text-[10px] sm:text-xs text-amber-400 font-semibold hover:text-amber-300 transition-colors'>
                 View all →
               </Link>
             </div>
@@ -380,18 +404,18 @@ export default async function ContractorDashboardPage() {
                   <Link
                     key={job.id}
                     href={`/contractor/jobs/${job.id}`}
-                    className='flex items-start justify-between p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 hover:shadow-md transition-all'
+                    className='flex items-start justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-amber-500/40 hover:bg-slate-700/60 transition-all'
                   >
                     <div className='flex-1 min-w-0'>
-                      <p className='text-xs sm:text-sm font-semibold text-slate-900 truncate'>{job.title}</p>
-                      <p className='text-[9px] sm:text-[10px] text-slate-600 mt-0.5'>
+                      <p className='text-xs sm:text-sm font-semibold text-white truncate'>{job.title}</p>
+                      <p className='text-[9px] sm:text-[10px] text-slate-400 mt-0.5'>
                         {job.customer?.name || 'No customer'}
                       </p>
                     </div>
-                    <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold ml-2 shrink-0 border ${
-                      job.status === 'completed' ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
-                      : job.status === 'in_progress' ? 'bg-blue-100 text-blue-700 border-blue-300'
-                      : 'bg-amber-100 text-amber-700 border-amber-300'
+                    <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold ml-2 shrink-0 ${
+                      job.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400'
+                      : job.status === 'in_progress' ? 'bg-amber-500/20 text-amber-400'
+                      : 'bg-slate-600/60 text-slate-300'
                     }`}>
                       {job.status.replace('_', ' ')}
                     </span>

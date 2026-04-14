@@ -149,7 +149,8 @@ const Homepage = async () => {
       <main className='flex-1 w-full'>
         <Suspense fallback={null}>
           <AudienceSwitcher
-            pmPricingSection={<PricingSection />}
+            pmPricingSection={<PricingSection variant="pm" />}
+            contractorPricingSection={<PricingSection variant="contractor" />}
             pmLifecycleSection={<PMLifecycleSection />}
             pmLeasePortalSection={<PMLeasePortalSection />}
           />

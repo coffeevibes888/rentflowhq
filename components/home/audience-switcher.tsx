@@ -364,10 +364,12 @@ function ContractorShowcase() {
 // ─────────────────────────────────────────────
 export default function AudienceSwitcher({
   pmPricingSection,
+  contractorPricingSection,
   pmLifecycleSection,
   pmLeasePortalSection,
 }: {
   pmPricingSection: React.ReactNode;
+  contractorPricingSection: React.ReactNode;
   pmLifecycleSection: React.ReactNode;
   pmLeasePortalSection: React.ReactNode;
 }) {
@@ -467,8 +469,7 @@ export default function AudienceSwitcher({
           </motion.div>
         ) : (
           <motion.div key="contractor-content" {...fadeSlide}>
-            {/* Contractor pricing — reuse same pricing section with ?for=contractor context */}
-            {pmPricingSection}
+            {contractorPricingSection}
             <ContractorFeatures />
             <ContractorShowcase />
           </motion.div>

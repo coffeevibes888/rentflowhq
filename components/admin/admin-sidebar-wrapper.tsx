@@ -37,7 +37,7 @@ export function AdminSidebarWrapper({ children }: AdminSidebarWrapperProps) {
   // Prevent hydration mismatch
   if (!isMounted) {
     return (
-      <aside className='hidden md:flex flex-col w-64 border-r border-white/10 glass-effect-beach px-4 py-6 gap-6'>
+      <aside className='hidden md:flex flex-col w-64 border-r border-white/10 glass-effect-dark px-4 py-6 gap-6'>
         {children}
       </aside>
     );
@@ -47,8 +47,8 @@ export function AdminSidebarWrapper({ children }: AdminSidebarWrapperProps) {
     <SidebarContext.Provider value={{ isCollapsed }}>
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r-2 border-black shadow-xl glass-effect-beach py-6 px-3 gap-6 transition-all duration-300 ease-in-out relative group/sidebar',
-          isCollapsed ? 'w-[72px]' : 'w-72'
+          'hidden md:flex flex-col border-r-2 border-black shadow-xl glass-effect-dark py-6 gap-6 transition-all duration-300 ease-in-out relative group/sidebar',
+          isCollapsed ? 'w-[72px] px-3' : 'w-72 px-4'
         )}
       >
         {/* Toggle Button */}
@@ -56,8 +56,8 @@ export function AdminSidebarWrapper({ children }: AdminSidebarWrapperProps) {
           onClick={toggleSidebar}
           className={cn(
             'absolute -right-3 top-8 z-10 flex h-6 w-6 items-center justify-center rounded-full',
-            'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg',
-            'hover:from-cyan-400 hover:to-blue-500 transition-all duration-200',
+            'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-lg',
+            'hover:from-sky-400 hover:to-cyan-400 transition-all duration-200',
             'border-2 border-white/20 hover:scale-110'
           )}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -81,23 +81,26 @@ export function AdminSidebarWrapper({ children }: AdminSidebarWrapperProps) {
       {/* Global styles for collapsed state */}
       <style jsx global>{`
         ${isCollapsed ? `
-          aside.group\\/sidebar .sidebar-expanded-only,
-          aside.group\\/sidebar .nav-text-content {
+          aside.group\/sidebar .sidebar-expanded-only,
+          aside.group\/sidebar .nav-text-content {
             opacity: 0;
             width: 0;
             overflow: hidden;
             display: none !important;
           }
-          aside.group\\/sidebar nav a {
+          aside.group\/sidebar nav a {
             justify-content: center;
             padding: 0.625rem;
           }
-          aside.group\\/sidebar .nav-tooltip {
+          aside.group\/sidebar .nav-tooltip {
             display: block !important;
           }
         ` : `
-          aside.group\\/sidebar .nav-tooltip {
+          aside.group\/sidebar .nav-tooltip {
             display: none !important;
+          }
+          aside.group\/sidebar nav button {
+            display: flex;
           }
         `}
       `}</style>

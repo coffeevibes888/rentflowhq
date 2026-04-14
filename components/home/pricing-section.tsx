@@ -91,52 +91,49 @@ const tiers = [
   },
 ];
 
-export default function PricingSection() {
+export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'contractor' }) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
+  const isContractor = variant === 'contractor';
+
   const handleTierClick = async (tierId: string) => {
     setLoadingTier(tierId);
 
-    // Check if user is logged in
     if (status === 'authenticated' && session?.user) {
-      // Check if user is a landlord/admin
-      if (session.user.role === 'admin' || session.user.role === 'landlord') {
-        // Already an admin, go to subscription selection page with suggested plan
+      if (isContractor) {
+        router.push(`/sign-up?role=contractor&plan=${tierId}`);
+      } else if (session.user.role === 'admin' || session.user.role === 'landlord') {
         router.push(`/onboarding/landlord/subscription?plan=${tierId}`);
       } else {
-        // User exists but not a landlord - redirect to sign-up to create landlord account
-        // Pass the plan they clicked on as a suggestion
         router.push(`/sign-up?role=landlord&plan=${tierId}`);
       }
     } else {
-      // Not logged in - go to sign up with suggested plan
-      // They'll see it highlighted on the subscription page
-      router.push(`/sign-up?role=landlord&plan=${tierId}`);
+      router.push(isContractor ? `/sign-up?role=contractor&plan=${tierId}` : `/sign-up?role=landlord&plan=${tierId}`);
     }
-    
+
     setLoadingTier(null);
   };
 
   return (
-    <section id="pricing" className="w-full py-20 md:py-28 px-4 relative overflow-hidden scroll-mt-20 ">
+    <section id="pricing" className="w-full py-20 md:py-28 px-4 relative overflow-hidden scroll-mt-20">
       {/* Background effects */}
-      <div className="absolute inset-0 " />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-500/10 rounded-full blur-3xl" />
-      
+      <div className="absolute inset-0" />
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] ${isContractor ? 'bg-rose-500/10' : 'bg-violet-500/10'} rounded-full blur-3xl`} />
+
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center space-y-4 mb-16 animate-in fade-in duration-700">
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-slate-900 text-sm font-medium border border-black bg-white">
-            <Sparkles className="h-4 w-4 text-blue-600" />
+            <Sparkles className={`h-4 w-4 ${isContractor ? 'text-rose-500' : 'text-blue-600'}`} />
             <span className='text-black font-bold'>Simple, Transparent Pricing</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-black">
-            Start at Just $19.99/month. Scales as You Grow.
+            {isContractor ? 'Start at Just $19.99/month. Built for Contractors.' : 'Start at Just $19.99/month. Scales as You Grow.'}
           </h2>
           <p className="text-lg text-black font-semibold max-w-2xl mx-auto">
-            Finally an Automation Tool that saves you time and money. Let's face it your time is valuable.
+            {isContractor ? 'Everything you need to run your business — jobs, invoices, team, and more.' : "Finally an Automation Tool that saves you time and money. Let's face it your time is valuable."}
           </p>
         </div>
 
@@ -145,21 +142,21 @@ export default function PricingSection() {
           {tiers.map((tier, index) => {
             const Icon = tier.icon;
             const isPopular = tier.popular;
-            
+
             return (
               <div
                 key={tier.id}
-                className={`relative group rounded-2xl border border-black bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 shadow-2xl p-8 flex flex-col transition-all duration-300 animate-in fade-in slide-in-from-bottom hover:scale-105 ${
-                  isPopular 
-                    ? 'scale-105 lg:scale-110 z-10' 
-                    : ''
-                }`}
+                className={`relative group rounded-2xl border border-black shadow-2xl p-8 flex flex-col transition-all duration-300 animate-in fade-in slide-in-from-bottom hover:scale-105 ${
+                  isContractor
+                    ? 'bg-gradient-to-br from-slate-900 via-rose-950 to-slate-900'
+                    : 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600'
+                } ${isPopular ? 'scale-105 lg:scale-110 z-10' : ''}`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Popular badge */}
                 {isPopular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-violet-500/50 flex items-center gap-1.5">
+                    <div className={`bg-gradient-to-r ${isContractor ? 'from-rose-500 to-orange-500 shadow-rose-500/50' : 'from-violet-500 to-purple-500 shadow-violet-500/50'} text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5`}>
                       <Zap className="h-3 w-3" />
                       MOST POPULAR
                     </div>
@@ -169,7 +166,7 @@ export default function PricingSection() {
                 {/* Tier header */}
                 <div className={`flex items-center gap-3 mb-4 ${isPopular ? 'pt-2' : ''}`}>
                   <div className={`rounded-xl ${tier.iconBg} p-3 border border-white/20`}>
-                    <Icon className={`h-6 w-6 text-white`} />
+                    <Icon className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-white">{tier.name}</h3>
@@ -198,6 +195,12 @@ export default function PricingSection() {
                   className={`w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-8 ${
                     tier.comingSoon
                       ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                    : isContractor
+                      ? isPopular
+                        ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white hover:from-rose-400 hover:to-orange-400 shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 hover:scale-105'
+                        : tier.id === 'enterprise'
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400'
+                          : 'bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 shadow-lg shadow-rose-500/20 hover:scale-105'
                     : isPopular
                       ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-400 hover:to-purple-400 shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105'
                     : tier.id === 'enterprise'

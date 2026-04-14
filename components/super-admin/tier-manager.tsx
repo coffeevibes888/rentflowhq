@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Check, Loader2, Crown, Building2, DollarSign, X, Gift, Calendar, Search } from 'lucide-react';
+import { Check, Loader2, Crown, Building2, DollarSign, X, Gift, Calendar, Search, Wrench } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Landlord {
@@ -34,6 +34,21 @@ interface Tier {
   price: number | null;
   unitLimit: number;
   noCashoutFees: boolean;
+}
+
+interface ContractorProfile {
+  id: string;
+  name: string;
+  email: string;
+  currentTier: string;
+  status: string;
+  periodEnd?: string;
+}
+
+interface ContractorTierOption {
+  id: string;
+  name: string;
+  price: number;
 }
 
 const DURATION_OPTIONS = [
@@ -59,12 +74,37 @@ export default function TierManager() {
   const [selectedTier, setSelectedTier] = useState<string>('pro');
   const [selectedDuration, setSelectedDuration] = useState<string>('30');
   const [showDropdown, setShowDropdown] = useState(false);
-  
+
+  // Contractor state
+  const [contractors, setContractors] = useState<ContractorProfile[]>([]);
+  const [contractorTiers, setContractorTiers] = useState<ContractorTierOption[]>([]);
+  const [contractorSearchQuery, setContractorSearchQuery] = useState('');
+  const [selectedContractorId, setSelectedContractorId] = useState<string>('');
+  const [selectedContractorTier, setSelectedContractorTier] = useState<string>('pro');
+  const [selectedContractorDuration, setSelectedContractorDuration] = useState<string>('30');
+  const [showContractorDropdown, setShowContractorDropdown] = useState(false);
+  const [updatingContractor, setUpdatingContractor] = useState<string | null>(null);
+  const [revokingContractor, setRevokingContractor] = useState<string | null>(null);
+
   const { toast } = useToast();
 
   useEffect(() => {
     fetchData();
+    fetchContractorData();
   }, []);
+
+  const fetchContractorData = async () => {
+    try {
+      const res = await fetch('/api/super-admin/set-contractor-tier');
+      if (res.ok) {
+        const data = await res.json();
+        setContractors(data.contractors);
+        setContractorTiers(data.availableTiers);
+      }
+    } catch (error) {
+      console.error('Failed to fetch contractors:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -152,6 +192,97 @@ export default function TierManager() {
       toast({ title: 'Error', description: 'Failed to grant tier', variant: 'destructive' });
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const selectedContractor = useMemo(
+    () => contractors.find((c) => c.id === selectedContractorId),
+    [contractors, selectedContractorId]
+  );
+
+  const filteredContractors = useMemo(() => {
+    if (!contractorSearchQuery.trim()) return contractors.slice(0, 10);
+    const query = contractorSearchQuery.toLowerCase();
+    return contractors
+      .filter(
+        (c) =>
+          c.name.toLowerCase().includes(query) ||
+          c.email.toLowerCase().includes(query)
+      )
+      .slice(0, 10);
+  }, [contractors, contractorSearchQuery]);
+
+  const grantedContractors = useMemo(
+    () => contractors.filter((c) => c.currentTier !== 'starter'),
+    [contractors]
+  );
+
+  const grantContractorTier = async () => {
+    if (!selectedContractorId || !selectedContractorTier) {
+      toast({ title: 'Error', description: 'Please select a contractor and tier' });
+      return;
+    }
+    const duration = parseInt(selectedContractorDuration || '30');
+    setUpdatingContractor(selectedContractorId);
+    try {
+      const res = await fetch('/api/super-admin/set-contractor-tier', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contractorProfileId: selectedContractorId,
+          tier: selectedContractorTier,
+          durationDays: duration,
+          isGrant: true,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast({ title: 'Success', description: `Granted ${data.tier} tier for ${duration} days` });
+        setContractors((prev) =>
+          prev.map((c) =>
+            c.id === selectedContractorId
+              ? { ...c, currentTier: selectedContractorTier, periodEnd: data.periodEnd }
+              : c
+          )
+        );
+        setSelectedContractorId('');
+        setContractorSearchQuery('');
+      } else {
+        toast({ title: 'Error', description: data.error || 'Failed to grant tier', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('Failed to grant contractor tier:', error);
+      toast({ title: 'Error', description: 'Failed to grant tier', variant: 'destructive' });
+    } finally {
+      setUpdatingContractor(null);
+    }
+  };
+
+  const revokeContractorTier = async (contractorProfileId: string) => {
+    if (!confirm('Are you sure you want to revoke this contractor subscription? They will be reset to Starter.')) return;
+    setRevokingContractor(contractorProfileId);
+    try {
+      const res = await fetch('/api/super-admin/set-contractor-tier', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contractorProfileId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast({ title: 'Success', description: 'Contractor subscription revoked' });
+        setContractors((prev) =>
+          prev.map((c) =>
+            c.id === contractorProfileId ? { ...c, currentTier: 'starter', periodEnd: undefined } : c
+          )
+        );
+      } else {
+        toast({ title: 'Error', description: data.error || 'Failed to revoke', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('Failed to revoke contractor tier:', error);
+      toast({ title: 'Error', description: 'Failed to revoke subscription', variant: 'destructive' });
+    } finally {
+      setRevokingContractor(null);
     }
   };
 
@@ -492,6 +623,182 @@ export default function TierManager() {
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     {revoking === landlord.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <X className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Grant Contractor Access */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wrench className="h-5 w-5 text-blue-500" />
+            Grant Contractor Access
+          </CardTitle>
+          <CardDescription>
+            Search for a contractor and grant them Pro or Enterprise access.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Search Contractor</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by business name or email..."
+                value={contractorSearchQuery}
+                onChange={(e) => {
+                  setContractorSearchQuery(e.target.value);
+                  setShowContractorDropdown(true);
+                }}
+                onFocus={() => setShowContractorDropdown(true)}
+                className="pl-10"
+              />
+              {showContractorDropdown && (contractorSearchQuery || !selectedContractorId) && (
+                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                  {filteredContractors.length === 0 ? (
+                    <div className="p-3 text-sm text-muted-foreground">No contractors found</div>
+                  ) : (
+                    filteredContractors.map((contractor) => (
+                      <button
+                        key={contractor.id}
+                        type="button"
+                        className="w-full px-3 py-2 text-left hover:bg-slate-100 flex items-center justify-between"
+                        onClick={() => {
+                          setSelectedContractorId(contractor.id);
+                          setContractorSearchQuery(contractor.name);
+                          setShowContractorDropdown(false);
+                        }}
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{contractor.name}</p>
+                          <p className="text-xs text-muted-foreground">{contractor.email}</p>
+                        </div>
+                        <Badge variant="outline" className={`text-xs ${getTierBadgeColor(contractor.currentTier)}`}>
+                          {contractor.currentTier}
+                        </Badge>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+            {selectedContractor && (
+              <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-md">
+                <Check className="h-4 w-4 text-emerald-500" />
+                <span className="text-sm">Selected: <strong>{selectedContractor.name}</strong></span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 ml-auto"
+                  onClick={() => {
+                    setSelectedContractorId('');
+                    setContractorSearchQuery('');
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tier</label>
+              <Select value={selectedContractorTier} onValueChange={setSelectedContractorTier}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {contractorTiers.filter((t) => t.id !== 'free').map((tier) => (
+                    <SelectItem key={tier.id} value={tier.id}>
+                      <div className="flex items-center gap-2">
+                        {getTierIcon(tier.id)}
+                        {tier.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Duration</label>
+              <Select value={selectedContractorDuration} onValueChange={setSelectedContractorDuration}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DURATION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Button
+            onClick={grantContractorTier}
+            disabled={!selectedContractorId || updatingContractor === selectedContractorId}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            {updatingContractor === selectedContractorId ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Gift className="h-4 w-4 mr-2" />
+            )}
+            Grant {selectedContractorTier.charAt(0).toUpperCase() + selectedContractorTier.slice(1)} Access
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Active Granted Contractor Subscriptions */}
+      {grantedContractors.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Active Granted Contractor Subscriptions</CardTitle>
+            <CardDescription>Contractors with manually granted Pro/Enterprise access.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {grantedContractors.map((contractor) => (
+                <div
+                  key={contractor.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-slate-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="font-medium text-sm">{contractor.name}</p>
+                      <p className="text-xs text-muted-foreground">{contractor.email}</p>
+                    </div>
+                    <Badge variant="outline" className={getTierBadgeColor(contractor.currentTier)}>
+                      {getTierIcon(contractor.currentTier)}
+                      <span className="ml-1">{contractor.currentTier}</span>
+                    </Badge>
+                    {contractor.periodEnd && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(contractor.periodEnd).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => revokeContractorTier(contractor.id)}
+                    disabled={revokingContractor === contractor.id}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    {revokingContractor === contractor.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <X className="h-4 w-4" />

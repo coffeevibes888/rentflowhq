@@ -141,7 +141,7 @@ export default async function ContractorJobsPage({
             </Button>
           </Link>
           <Link href='/contractor/leads'>
-            <Button className='bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 hover:from-violet-700 hover:to-purple-700 text-gray-900 border border-black shadow-2xl'>
+            <Button className='bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900 border border-amber-600/50 shadow-lg font-semibold'>
               <Plus className='h-4 w-4 mr-2' />
               New Job from Lead
             </Button>
@@ -150,12 +150,12 @@ export default async function ContractorJobsPage({
       </div>
 
       {/* Status Filters */}
-      <div className='relative rounded-xl border border-black shadow-2xl overflow-hidden'>
-        <div className='absolute inset-0 bg-linear-to-r from-cyan-400 via-sky-400 to-blue-300 shadow-2xl' />
+      <div className='relative rounded-xl border border-slate-700 shadow-xl overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' />
         <div className='relative p-3 sm:p-4'>
           <div className='flex items-center gap-2 mb-3'>
-            <Filter className='h-4 w-4 text-black' />
-            <h3 className='text-sm font-bold text-black'>Filter by Status</h3>
+            <Filter className='h-4 w-4 text-amber-400' />
+            <h3 className='text-sm font-bold text-white'>Filter by Status</h3>
           </div>
           <div className='flex flex-wrap gap-2'>
             {statusFilters.map((filter) => {
@@ -169,18 +169,18 @@ export default async function ContractorJobsPage({
                   href={`/contractor/jobs${filter.value !== 'all' ? `?status=${filter.value}` : ''}`}
                 >
                   <Button
-                    variant={isActive ? 'default' : 'outline'}
+                    variant='outline'
                     size='sm'
                     className={
                       isActive
-                        ? ' text-black bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black shadow-2xl'
-                        : ' text-black bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black shadow-2xl'
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 border-amber-500 font-semibold shadow-md hover:from-amber-600 hover:to-yellow-600'
+                        : 'bg-slate-800/60 text-slate-300 border-slate-600/60 hover:border-amber-500/50 hover:text-white hover:bg-slate-700/60'
                     }
                   >
                     {filter.label}
                     <span
-                      className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${
-                        isActive ? 'text-black' : 'bg-black/10'
+                      className={`ml-2 px-1.5 py-0.5 rounded-full text-xs font-bold ${
+                        isActive ? 'bg-slate-900/30 text-slate-900' : 'bg-slate-700/60 text-slate-400'
                       }`}
                     >
                       {filter.count}
@@ -194,8 +194,9 @@ export default async function ContractorJobsPage({
       </div>
 
       {/* Jobs List */}
-      <div className='relative rounded-xl border border-black shadow-2xl overflow-hidden bg-blue-300'>
-        <div className='p-4'>
+      <div className='relative rounded-xl border border-slate-700 shadow-xl overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' />
+        <div className='relative p-4'>
           <JobsMobileList jobs={jobs} />
           <JobsDesktopTable jobs={jobs} />
         </div>
@@ -203,18 +204,19 @@ export default async function ContractorJobsPage({
 
       {/* Empty State */}
       {jobs.length === 0 && (
-        <div className='relative rounded-xl border border-black shadow-xl overflow-hidden'>
-          <div className='absolute inset-0 bg-linear-to-r from-sky-500 via-cyan-300 to-sky-500' />
+        <div className='relative rounded-xl border border-slate-700 shadow-xl overflow-hidden'>
+          <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' />
+          <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(251,191,36,0.07),_transparent_65%)]' />
           <div className='relative p-8 text-center'>
-            <div className='w-16 h-16 mx-auto mb-4 rounded-full bg-white border-2 border-black flex items-center justify-center'>
-              <Plus className='h-8 w-8 text-violet-600' />
+            <div className='w-16 h-16 mx-auto mb-4 rounded-full bg-slate-800 border-2 border-amber-500/40 flex items-center justify-center'>
+              <Plus className='h-8 w-8 text-amber-400' />
             </div>
-            <h3 className='text-lg font-bold text-black mb-2'>No jobs yet</h3>
-            <p className='text-sm text-black/70 mb-4'>
+            <h3 className='text-lg font-bold text-white mb-2'>No jobs yet</h3>
+            <p className='text-sm text-slate-400 mb-4'>
               Start by responding to leads from the marketplace and converting them to jobs.
             </p>
             <Link href='/contractor/leads'>
-              <Button className='bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-gray-900 border-2 border-black'>
+              <Button className='bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900 font-semibold border-0 shadow-lg'>
                 View Leads
               </Button>
             </Link>

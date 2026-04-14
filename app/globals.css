@@ -481,6 +481,24 @@
   100% { background-position: 200% 0; }
 }
 
+@keyframes bounce-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+.animate-bounce-x {
+  animation: bounce-x 0.9s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
 /* Success/Error states */
 .success-glow {
   box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
