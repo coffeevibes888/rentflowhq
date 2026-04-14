@@ -213,8 +213,8 @@ export default function CardForm({
         )}
 
         {isEditing && (
-          <div className='border rounded-lg p-4 bg-white'>
-            <p className='text-sm text-gray-600'>
+          <div className='border border-white/10 rounded-lg p-4 bg-slate-800/60'>
+            <p className='text-sm text-slate-300'>
               {initialData?.brand} •••• {initialData?.last4}
               {initialData?.expirationDate && (
                 <span className='ml-2'>Expires {initialData.expirationDate}</span>

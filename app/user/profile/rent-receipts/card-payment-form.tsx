@@ -48,8 +48,8 @@ export default function CardPaymentForm({
   return (
     <div className='space-y-5'>
       {/* Card Details */}
-      <div className='rounded-lg border border-slate-300 p-4 bg-white'>
-        <label className='block text-sm font-medium text-slate-900 mb-3'>
+      <div className='rounded-lg border border-white/10 p-4 bg-slate-800/60'>
+        <label className='block text-sm font-medium text-slate-300 mb-3'>
           Card Details
         </label>
         <PaymentElement
@@ -66,12 +66,12 @@ export default function CardPaymentForm({
       {/* Contact info is not collected here — tenant is authenticated */}
 
       {/* Available Methods */}
-      <div className='rounded-lg border border-blue-200 bg-blue-50 p-3.5 text-sm'>
+      <div className='rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-3.5 text-sm'>
         <div className='flex items-start gap-2'>
-          <Smartphone className='h-4 w-4 text-blue-600 mt-0.5 shrink-0' />
+          <Smartphone className='h-4 w-4 text-indigo-400 mt-0.5 shrink-0' />
           <div>
-            <p className='text-blue-900 font-medium'>Available payment methods:</p>
-            <ul className='mt-1 space-y-1 text-blue-800 text-xs'>
+            <p className='text-white font-medium'>Available payment methods:</p>
+            <ul className='mt-1 space-y-1 text-slate-400 text-xs'>
               <li>• Credit & Debit Cards</li>
               <li>• Apple Pay</li>
               <li>• Google Pay</li>
@@ -92,7 +92,7 @@ export default function CardPaymentForm({
           type='button'
           onClick={handleSubmit}
           disabled={stripe == null || elements == null || isProcessing || isLoading}
-          className='flex-1 bg-violet-600 hover:bg-violet-700 text-white'
+          className='flex-1 bg-indigo-600 hover:bg-indigo-700 text-white'
         >
           {isProcessing || isLoading
             ? 'Processing payment...'
@@ -104,7 +104,7 @@ export default function CardPaymentForm({
             variant='outline'
             onClick={onCancel}
             disabled={isProcessing || isLoading}
-            className='border-slate-300 text-slate-900 hover:bg-slate-50'
+            className='border-white/10 text-slate-300 hover:bg-slate-800'
           >
             Cancel
           </Button>

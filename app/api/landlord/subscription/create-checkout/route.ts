@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
+      payment_method_collection: 'always',
       line_items: [
         {
           price: tierConfig.priceId,

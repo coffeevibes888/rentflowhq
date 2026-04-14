@@ -323,10 +323,10 @@ export default function RentStripePayment({
 
         {/* Payment Method Forms */}
         {selectedPaymentType === 'ach' ? (
-          <div className='rounded-lg border border-slate-300 bg-white p-6'>
+          <div className='rounded-lg border border-white/10 bg-slate-800/60 p-6'>
             {achVerificationPaymentIntentId ? (
               <div className='space-y-4'>
-                <div className='text-sm text-slate-700'>
+                <div className='text-sm text-slate-400'>
                   Your bank requires verification to complete this ACH payment. Enter the two microdeposit amounts (in cents). In test mode you can use <span className='font-semibold'>32</span> and <span className='font-semibold'>45</span>.
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
@@ -335,14 +335,14 @@ export default function RentStripePayment({
                     onChange={(e) => setAchMicrodepositAmount1(e.target.value)}
                     placeholder='First deposit (cents) e.g. 32'
                     inputMode='numeric'
-                    className='text-slate-900 placeholder:text-slate-400'
+                    className='bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500'
                   />
                   <Input
                     value={achMicrodepositAmount2}
                     onChange={(e) => setAchMicrodepositAmount2(e.target.value)}
                     placeholder='Second deposit (cents) e.g. 45'
                     inputMode='numeric'
-                    className='text-slate-900 placeholder:text-slate-400'
+                    className='bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500'
                   />
                 </div>
                 <Button
@@ -361,14 +361,14 @@ export default function RentStripePayment({
               </div>
             ) : savedAchMethods.length > 0 && selectedSavedAchId ? (
               <div className='space-y-4'>
-                <div className='text-sm text-slate-700'>
+                <div className='text-sm text-slate-400'>
                   Use a saved bank account or enter a new one.
                 </div>
                 <div className='space-y-2'>
                   <select
                     value={selectedSavedAchId}
                     onChange={(e) => setSelectedSavedAchId(e.target.value)}
-                    className='flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500'
+                    className='flex h-9 w-full rounded-md border border-white/10 bg-slate-800/60 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500'
                   >
                     {savedAchMethods.map((m) => (
                       <option key={m.id} value={m.id}>
@@ -393,7 +393,7 @@ export default function RentStripePayment({
                       setSelectedSavedAchId(null);
                     }}
                     disabled={isPayingWithSavedAch || isLoading}
-                    className='w-full border-slate-300 text-slate-900 hover:bg-slate-50'
+                    className='w-full border-white/10 text-slate-300 hover:bg-slate-800'
                   >
                     Use a different bank account
                   </Button>
@@ -407,7 +407,7 @@ export default function RentStripePayment({
             )}
           </div>
         ) : (
-          <div className='rounded-lg border border-slate-300 bg-white p-6'>
+          <div className='rounded-lg border border-white/10 bg-slate-800/60 p-6'>
             <CardPaymentForm
               onSubmit={handleCardPaymentSubmit}
               isLoading={isLoading}
@@ -416,47 +416,47 @@ export default function RentStripePayment({
         )}
 
         {/* Payment Breakdown */}
-        <div className='rounded-lg border border-slate-300 bg-slate-50 p-4 space-y-2.5'>
-          <div className='text-sm font-semibold text-slate-900'>Payment Summary</div>
+        <div className='rounded-lg border border-white/10 bg-slate-800/60 p-4 space-y-2.5'>
+          <div className='text-sm font-semibold text-white'>Payment Summary</div>
           <div className='space-y-2'>
             <div className='flex justify-between text-sm'>
-              <span className='text-slate-600'>Rent Amount</span>
-              <span className='font-semibold text-slate-900'>{formatCurrency(rentAmount)}</span>
+              <span className='text-slate-400'>Rent Amount</span>
+              <span className='font-semibold text-white'>{formatCurrency(rentAmount)}</span>
             </div>
             <div className='flex justify-between text-sm'>
-              <span className='text-emerald-600 flex items-center gap-1'>
+              <span className='text-emerald-400 flex items-center gap-1'>
                 <span>✓</span> No fees
               </span>
-              <span className='text-emerald-700 font-semibold'>$0.00</span>
+              <span className='text-emerald-400 font-semibold'>$0.00</span>
             </div>
-            <div className='border-t border-slate-300 pt-2 flex justify-between font-bold text-base'>
-              <span className='text-slate-900'>Total Due</span>
-              <span className='text-slate-900'>{formatCurrency(rentAmount)}</span>
+            <div className='border-t border-white/10 pt-2 flex justify-between font-bold text-base'>
+              <span className='text-white'>Total Due</span>
+              <span className='text-white'>{formatCurrency(rentAmount)}</span>
             </div>
           </div>
         </div>
 
         {/* Info Banner */}
         {errorMessage && (
-          <div className='rounded-lg border border-red-200 bg-red-50 p-3.5 text-sm'>
-            <p className='text-red-900 font-medium'>{errorMessage}</p>
+          <div className='rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm'>
+            <p className='text-red-300 font-medium'>{errorMessage}</p>
           </div>
         )}
 
-        <div className='rounded-lg border border-emerald-200 bg-emerald-50 p-3.5 text-sm'>
+        <div className='rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-sm'>
           <div className='flex items-start gap-2'>
             <div className='rounded-full bg-emerald-600 p-1 mt-0.5'>
               <Clock className='h-3 w-3 text-white' />
             </div>
             <div className='flex-1'>
-              <p className='font-semibold text-emerald-900 mb-1'>✓ No fees on any payment method</p>
-              <ul className='space-y-1 text-xs text-emerald-800'>
+              <p className='font-semibold text-white mb-1'>✓ No fees on any payment method</p>
+              <ul className='space-y-1 text-xs text-slate-400'>
                 <li className='flex items-start gap-1.5'>
-                  <span className='text-emerald-600 font-bold mt-0.5'>•</span>
+                  <span className='text-emerald-400 font-bold mt-0.5'>•</span>
                   <span><strong>Bank Account:</strong> 1-3 business days</span>
                 </li>
                 <li className='flex items-start gap-1.5'>
-                  <span className='text-emerald-600 font-bold mt-0.5'>•</span>
+                  <span className='text-emerald-400 font-bold mt-0.5'>•</span>
                   <span><strong>Card/Wallet:</strong> Instant confirmation</span>
                 </li>
               </ul>
@@ -485,7 +485,7 @@ export default function RentStripePayment({
               ? 'stripe'
               : 'night',
           variables: {
-            colorPrimary: '#7c3aed',
+            colorPrimary: '#6366f1',
             borderRadius: '8px',
           },
         },

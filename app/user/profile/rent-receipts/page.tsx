@@ -93,11 +93,11 @@ export default async function UserProfileRentReceiptsPage() {
       <div className='max-w-5xl mx-auto space-y-8'>
         <div className='flex flex-col gap-2'>
           <h1 className='text-3xl md:text-4xl font-bold text-white'>Rent &amp; Receipts</h1>
-          <p className='text-sm md:text-base text-gray-300'>View your current rent status and past payment history.</p>
+          <p className='text-sm md:text-base text-slate-400'>View your current rent status and past payment history.</p>
         </div>
 
         {!lease ? (
-          <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl px-6 py-8 shadow-lg text-sm text-gray-200'>
+          <div className='bg-slate-900/60 border border-white/10 rounded-xl px-6 py-8 shadow-lg text-sm text-slate-300'>
             We don&apos;t see an active lease linked to your account yet. Please contact management if you believe this is a
             mistake.
           </div>
@@ -125,16 +125,16 @@ export default async function UserProfileRentReceiptsPage() {
             
             {/* Waiting for Landlord Signature Notice */}
             {lease.status === 'pending_signature' && lease.tenantSignedAt && !lease.landlordSignedAt && (
-              <div className='backdrop-blur-md bg-blue-500/20 border border-blue-400/50 rounded-xl px-6 py-4 shadow-lg'>
+              <div className='bg-indigo-500/10 border border-indigo-400/30 rounded-xl px-6 py-4 shadow-lg'>
                 <div className='flex items-start gap-3'>
-                  <div className='rounded-full bg-blue-500/30 p-2 mt-0.5'>
-                    <svg className='h-5 w-5 text-blue-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                  <div className='rounded-full bg-indigo-500/20 p-2 mt-0.5'>
+                    <svg className='h-5 w-5 text-indigo-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                   <div className='flex-1'>
-                    <h3 className='text-base font-semibold text-blue-100'>You&apos;ve Signed! Waiting for Landlord</h3>
-                    <p className='text-sm text-blue-200/80 mt-1'>
+                    <h3 className='text-base font-semibold text-indigo-100'>You&apos;ve Signed! Waiting for Landlord</h3>
+                    <p className='text-sm text-indigo-200/80 mt-1'>
                       Great job! You signed your lease on {new Date(lease.tenantSignedAt).toLocaleDateString()}. 
                       We&apos;re waiting for the landlord to countersign. You&apos;ll be notified once it&apos;s complete.
                     </p>
@@ -142,69 +142,69 @@ export default async function UserProfileRentReceiptsPage() {
                 </div>
               </div>
             )}
-            <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg space-y-4 text-sm text-gray-100'>
+            <div className='bg-slate-900/60 border border-white/10 rounded-xl p-8 shadow-lg space-y-4 text-sm text-slate-100'>
               <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
                 <div className='space-y-1'>
-                  <p className='text-[11px] font-semibold text-gray-300 uppercase tracking-[0.16em]'>Unit</p>
+                  <p className='text-[11px] font-semibold text-slate-500 uppercase tracking-[0.16em]'>Unit</p>
                   <p className='text-base md:text-lg font-medium text-white'>
                     {lease.unit.property?.name || 'Property'} • {lease.unit.name}
                   </p>
                 </div>
                 <div className='text-left md:text-right space-y-1'>
-                  <p className='text-[11px] font-semibold text-gray-300 uppercase tracking-[0.16em]'>Monthly rent</p>
+                  <p className='text-[11px] font-semibold text-slate-500 uppercase tracking-[0.16em]'>Monthly rent</p>
                   <p className='text-base md:text-xl font-semibold text-white'>
                     {formatCurrency(lease.rentAmount.toString())}
                   </p>
                 </div>
               </div>
 
-              <div className='grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-white/10 text-xs md:text-sm text-gray-200'>
+              <div className='grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-white/10 text-xs md:text-sm text-slate-300'>
                 <div className='space-y-1'>
-                  <p className='font-semibold text-gray-300 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Billing day</p>
+                  <p className='font-semibold text-slate-500 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Billing day</p>
                   <p>Day {lease.billingDayOfMonth} of each month</p>
                 </div>
                 <div className='space-y-1'>
-                  <p className='font-semibold text-gray-300 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Lease period</p>
+                  <p className='font-semibold text-slate-500 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Lease period</p>
                   <p>
                     {new Date(lease.startDate).toLocaleDateString()} –{' '}
                     {lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'Ongoing'}
                   </p>
                 </div>
                 <div className='space-y-1'>
-                  <p className='font-semibold text-gray-300 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Status</p>
+                  <p className='font-semibold text-slate-500 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Status</p>
                   <p className='capitalize'>{lease.status}</p>
                 </div>
               </div>
             </div>
 
-            <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg space-y-4 text-sm text-gray-100'>
+            <div className='bg-slate-900/60 border border-white/10 rounded-xl p-8 shadow-lg space-y-4 text-sm text-slate-100'>
               <div className='flex items-center justify-between gap-4'>
                 <div>
                   <h2 className='text-sm md:text-base font-semibold text-white'>Move-in amounts</h2>
-                  <p className='text-xs text-gray-300'>First month, last month, and security deposit.</p>
+                  <p className='text-xs text-slate-400'>First month, last month, and security deposit.</p>
                 </div>
               </div>
 
               {!currentPayments.length ? (
-                <p className='text-sm text-gray-200'>You don&apos;t have any unpaid move-in charges.</p>
+                <p className='text-sm text-slate-400'>You don&apos;t have any unpaid move-in charges.</p>
               ) : (
-                <div className='space-y-4 text-sm text-gray-100'>
-                  <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-gray-200'>
+                <div className='space-y-4 text-sm text-slate-100'>
+                  <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-300'>
                     {firstMonth && (
                       <div>
-                        <p className='font-semibold text-gray-300 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>First month&apos;s rent</p>
+                        <p className='font-semibold text-slate-500 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>First month&apos;s rent</p>
                         <p>{formatCurrency(firstMonth.amount.toString())}</p>
                       </div>
                     )}
                     {lastMonth && (
                       <div>
-                        <p className='font-semibold text-gray-300 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Last month&apos;s rent</p>
+                        <p className='font-semibold text-slate-500 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Last month&apos;s rent</p>
                         <p>{formatCurrency(lastMonth.amount.toString())}</p>
                       </div>
                     )}
                     {securityDeposit && (
                       <div>
-                        <p className='font-semibold text-gray-300 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Security deposit</p>
+                        <p className='font-semibold text-slate-500 uppercase tracking-[0.16em] mb-0.5 text-[11px]'>Security deposit</p>
                         <p>{formatCurrency(securityDeposit.amount.toString())}</p>
                       </div>
                     )}
@@ -212,7 +212,7 @@ export default async function UserProfileRentReceiptsPage() {
 
                   <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
                     <div>
-                      <p className='text-[11px] font-semibold text-gray-300 uppercase tracking-[0.16em]'>Total due now</p>
+                      <p className='text-[11px] font-semibold text-slate-500 uppercase tracking-[0.16em]'>Total due now</p>
                       <p className='text-base md:text-xl font-semibold text-white'>
                         {formatCurrency(currentTotalAmount.toString())}
                       </p>
@@ -221,47 +221,47 @@ export default async function UserProfileRentReceiptsPage() {
                       <RentPayClient
                         rentPaymentIds={currentPayments.map((p) => p.id)}
                       />
-                      <p className='mt-1 text-[11px] text-gray-300'>Payments are securely processed and recorded via Stripe.</p>
+                      <p className='mt-1 text-[11px] text-slate-500'>Payments are securely processed and recorded via Stripe.</p>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className='backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-8 shadow-lg space-y-4 text-sm text-gray-100'>
+            <div className='bg-slate-900/60 border border-white/10 rounded-xl p-8 shadow-lg space-y-4 text-sm text-slate-100'>
               <div className='flex items-center justify-between gap-4 mb-1'>
                 <h2 className='text-sm md:text-base font-semibold text-white'>Past rent receipts</h2>
-                <span className='text-[11px] text-gray-300'>
+                <span className='text-[11px] text-slate-400'>
                   {pastPayments.length} payment{pastPayments.length === 1 ? '' : 's'}
                 </span>
               </div>
 
               {pastPayments.length === 0 ? (
-                <p className='text-sm text-gray-200'>No past rent payments recorded yet.</p>
+                <p className='text-sm text-slate-400'>No past rent payments recorded yet.</p>
               ) : (
                 <div className='overflow-x-auto'>
                   <table className='min-w-full text-xs'>
-                    <thead className='bg-white/10'>
+                    <thead className='bg-slate-800/60'>
                       <tr>
-                        <th className='px-3 py-2 text-left font-medium text-gray-200'>Paid on</th>
-                        <th className='px-3 py-2 text-left font-medium text-gray-200'>For month of</th>
-                        <th className='px-3 py-2 text-left font-medium text-gray-200'>Amount</th>
-                        <th className='px-3 py-2 text-left font-medium text-gray-200'>Status</th>
+                        <th className='px-3 py-2 text-left font-medium text-slate-400'>Paid on</th>
+                        <th className='px-3 py-2 text-left font-medium text-slate-400'>For month of</th>
+                        <th className='px-3 py-2 text-left font-medium text-slate-400'>Amount</th>
+                        <th className='px-3 py-2 text-left font-medium text-slate-400'>Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {pastPayments.map((p) => (
                         <tr key={p.id} className='border-t border-white/10'>
-                          <td className='px-3 py-2 align-top text-gray-100'>
+                          <td className='px-3 py-2 align-top text-slate-300'>
                             {p.paidAt ? new Date(p.paidAt).toLocaleString() : '—'}
                           </td>
-                          <td className='px-3 py-2 align-top text-gray-100'>
+                          <td className='px-3 py-2 align-top text-slate-300'>
                             {new Date(p.dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}
                           </td>
-                          <td className='px-3 py-2 align-top text-gray-100'>
+                          <td className='px-3 py-2 align-top text-slate-300'>
                             {formatCurrency(p.amount.toString())}
                           </td>
-                          <td className='px-3 py-2 align-top text-gray-100'>
+                          <td className='px-3 py-2 align-top text-slate-300'>
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
                               p.status === 'paid' ? 'bg-emerald-500/20 text-emerald-300' :
                               p.status === 'processing' ? 'bg-blue-500/20 text-blue-300' :

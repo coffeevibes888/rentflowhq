@@ -162,7 +162,7 @@ export default function ContractorSubscriptionClient({
           <p className="text-lg text-slate-400 max-w-xl mx-auto">
             {suggestedPlan
               ? 'Take a moment to review all plans. You can upgrade or downgrade anytime.'
-              : 'All plans include a 14-day free trial. No credit card required to start.'}
+              : 'All plans include a 14-day free trial. Credit card required — cancel anytime.'}
           </p>
         </motion.div>
 

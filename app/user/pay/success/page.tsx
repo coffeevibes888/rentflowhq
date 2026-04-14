@@ -62,7 +62,7 @@ export default function PaymentSuccessPage({
         {/* Actions */}
         <div className='flex flex-col gap-3'>
           <Link href='/user/profile/rent-receipts'>
-            <Button className='w-full bg-violet-600 hover:bg-violet-700'>
+            <Button className='w-full bg-indigo-600 hover:bg-indigo-700'>
               <ReceiptText className='w-4 h-4 mr-2' />
               View Payment History
               <ArrowRight className='w-4 h-4 ml-2' />
@@ -79,7 +79,7 @@ export default function PaymentSuccessPage({
         {/* Help Text */}
         <p className='text-xs text-slate-500'>
           Questions about your payment? Contact your property manager or{' '}
-          <Link href='/contact' className='text-violet-400 hover:underline'>
+          <Link href='/contact' className='text-indigo-400 hover:underline'>
             reach out to support
           </Link>
           .

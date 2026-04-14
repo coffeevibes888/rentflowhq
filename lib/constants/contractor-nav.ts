@@ -17,6 +17,9 @@ import {
   Truck,
   HardHat,
   TrendingUp,
+  Settings,
+  CreditCard,
+  UserCircle,
   LucideIcon 
 } from 'lucide-react';
 
@@ -162,8 +165,8 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         icon: Briefcase,
       },
       {
-        title: 'My Profile',
-        description: 'Public profile & branding',
+        title: 'Public Profile',
+        description: 'Marketplace profile & branding',
         href: '/contractor/profile/branding',
         icon: Palette,
       },
@@ -179,6 +182,31 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         href: '/contractor/safety',
         icon: Shield,
         requiredTier: 'pro',
+      },
+    ],
+  },
+  {
+    label: 'Settings',
+    icon: Settings,
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Account',
+        description: 'Profile, avatar & password',
+        href: '/contractor/settings/account',
+        icon: UserCircle,
+      },
+      {
+        title: 'Billing',
+        description: 'Payment method & invoices',
+        href: '/contractor/settings/billing',
+        icon: CreditCard,
+      },
+      {
+        title: 'Subscription',
+        description: 'Plan, usage & upgrades',
+        href: '/contractor/settings/subscription',
+        icon: TrendingUp,
       },
     ],
   },

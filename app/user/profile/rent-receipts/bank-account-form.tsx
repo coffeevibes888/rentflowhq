@@ -99,12 +99,12 @@ export default function BankAccountForm({
           name='accountHolderName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-slate-900'>Account Holder Name</FormLabel>
+              <FormLabel className='text-slate-300'>Account Holder Name</FormLabel>
               <FormControl>
                 <Input
                   placeholder='John Doe'
                   {...field}
-                  className='text-slate-900 placeholder:text-slate-400'
+                  className='bg-slate-800/60 border-white/10 text-white placeholder:text-slate-500'
                 />
               </FormControl>
               <FormMessage />
@@ -118,7 +118,7 @@ export default function BankAccountForm({
           name='accountHolderType'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-slate-900'>Account Holder Type</FormLabel>
+              <FormLabel className='text-slate-300'>Account Holder Type</FormLabel>
               <FormControl>
                 <div className='flex gap-3'>
                   <label className='inline-flex items-center gap-2'>
@@ -128,7 +128,7 @@ export default function BankAccountForm({
                       checked={field.value === 'individual'}
                       onChange={() => field.onChange('individual')}
                     />
-                    <span className='text-sm'>Individual</span>
+                    <span className='text-sm text-slate-300'>Individual</span>
                   </label>
                   <label className='inline-flex items-center gap-2'>
                     <input
@@ -137,7 +137,7 @@ export default function BankAccountForm({
                       checked={field.value === 'company'}
                       onChange={() => field.onChange('company')}
                     />
-                    <span className='text-sm'>Company</span>
+                    <span className='text-sm text-slate-300'>Company</span>
                   </label>
                 </div>
               </FormControl>
@@ -152,11 +152,11 @@ export default function BankAccountForm({
           name='accountType'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-slate-900'>Account Type</FormLabel>
+              <FormLabel className='text-slate-300'>Account Type</FormLabel>
               <FormControl>
                 <select
                   {...field}
-                  className='flex h-9 rounded-md border border-slate-200 bg-transparent px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  className='flex h-9 rounded-md border border-white/10 bg-slate-800/60 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500'
                 >
                   <option value='checking'>Checking</option>
                   <option value='savings'>Savings</option>
@@ -176,7 +176,7 @@ export default function BankAccountForm({
               <FormControl>
                 <label className='inline-flex items-center gap-2'>
                   <input type='checkbox' checked={!!field.value} onChange={(e) => field.onChange(e.target.checked)} />
-                  <span className='text-xs text-slate-700'>I authorize the landlord and platform to initiate ACH debits to this account for rent payments.</span>
+                  <span className='text-xs text-slate-400'>I authorize the landlord and platform to initiate ACH debits to this account for rent payments.</span>
                 </label>
               </FormControl>
               <FormMessage />
@@ -190,13 +190,13 @@ export default function BankAccountForm({
           name='routingNumber'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-slate-900'>Routing Number</FormLabel>
+              <FormLabel className='text-slate-300'>Routing Number</FormLabel>
               <FormControl>
                 <Input
                   placeholder='000000000'
                   {...field}
                   maxLength={9}
-                  className='text-slate-900 placeholder:text-slate-400'
+                  className='bg-slate-800/60 border-white/10 text-white placeholder:text-slate-500'
                 />
               </FormControl>
               <p className='text-xs text-slate-500 mt-1'>9 digits • Find it on a check or your bank website</p>
@@ -211,20 +211,20 @@ export default function BankAccountForm({
           name='accountNumber'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-slate-900'>Account Number</FormLabel>
+              <FormLabel className='text-slate-300'>Account Number</FormLabel>
               <FormControl>
                 <div className='relative'>
                   <Input
                     placeholder='Enter your account number'
                     type={showAccountNumbers ? 'text' : 'password'}
                     {...field}
-                    className='text-slate-900 placeholder:text-slate-400 pr-10'
+                    className='bg-slate-800/60 border-white/10 text-white placeholder:text-slate-500 pr-10'
                   />
                   <button
                     type='button'
                     onClick={() => setShowAccountNumbers((s) => !s)}
                     aria-label={showAccountNumbers ? 'Hide account number' : 'Show account number'}
-                    className='absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900'
+                    className='absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white'
                   >
                     {showAccountNumbers ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                   </button>
@@ -242,20 +242,20 @@ export default function BankAccountForm({
           name='accountNumberConfirm'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-slate-900'>Confirm Account Number</FormLabel>
+              <FormLabel className='text-slate-300'>Confirm Account Number</FormLabel>
               <FormControl>
                 <div className='relative'>
                   <Input
                     placeholder='Re-enter your account number'
                     type={showAccountNumbers ? 'text' : 'password'}
                     {...field}
-                    className='text-slate-900 placeholder:text-slate-400 pr-10'
+                    className='bg-slate-800/60 border-white/10 text-white placeholder:text-slate-500 pr-10'
                   />
                   <button
                     type='button'
                     onClick={() => setShowAccountNumbers((s) => !s)}
                     aria-label={showAccountNumbers ? 'Hide account number' : 'Show account number'}
-                    className='absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900'
+                    className='absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white'
                   >
                     {showAccountNumbers ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                   </button>
@@ -267,9 +267,9 @@ export default function BankAccountForm({
         />
 
         {/* Security Notice */}
-        <div className='rounded-lg border border-blue-200 bg-blue-50 p-3.5 text-sm'>
-          <p className='text-blue-900 font-medium mb-1'>🔒 Your information is secure</p>
-          <p className='text-blue-800 text-xs'>
+        <div className='rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-sm'>
+          <p className='text-white font-medium mb-1'>🔒 Your information is secure</p>
+          <p className='text-slate-400 text-xs'>
             Your bank details are encrypted and securely transmitted to our payment processor. We never store your full account number.
           </p>
         </div>
@@ -290,7 +290,7 @@ export default function BankAccountForm({
               variant='outline'
               onClick={onCancel}
               disabled={isProcessing || isLoading}
-              className='border-slate-300 text-slate-900 hover:bg-slate-50'
+              className='border-white/10 text-slate-300 hover:bg-slate-800'
             >
               Cancel
             </Button>

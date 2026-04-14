@@ -43,12 +43,12 @@ export default function CreateMaintenanceTicketPage() {
     <main className='w-full min-h-screen px-4 py-8 md:px-8'>
       <div className='max-w-2xl mx-auto space-y-6'>
         <div>
-          <h1 className='text-2xl md:text-3xl font-semibold text-slate-900 mb-1'>Create maintenance ticket</h1>
-          <p className='text-sm text-slate-600'>Tell us what&apos;s wrong with your unit or property so our team can help.</p>
+          <h1 className='text-2xl md:text-3xl font-bold text-white mb-1'>Create Maintenance Ticket</h1>
+          <p className='text-sm text-slate-400'>Tell us what&apos;s wrong with your unit or property so our team can help.</p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 bg-white rounded-xl border border-slate-200 p-6 shadow-sm'>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 bg-slate-900/60 rounded-xl border border-white/10 p-6 shadow-lg'>
             <FormField
               control={form.control}
               name='title'
@@ -56,7 +56,7 @@ export default function CreateMaintenanceTicketPage() {
                 <FormItem>
                   <FormLabel>Issue title</FormLabel>
                   <FormControl>
-                    <Input placeholder='e.g. Bathroom sink leaking' {...field} />
+                    <Input placeholder='e.g. Bathroom sink leaking' className='bg-slate-800/60 border-white/10 text-white placeholder:text-slate-500' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -73,6 +73,7 @@ export default function CreateMaintenanceTicketPage() {
                     <Textarea
                       rows={5}
                       placeholder='Describe the problem, when it started, and any access notes (pets, alarm, etc.)'
+                      className='bg-slate-800/60 border-white/10 text-white placeholder:text-slate-500'
                       {...field}
                     />
                   </FormControl>
@@ -89,7 +90,7 @@ export default function CreateMaintenanceTicketPage() {
                   <FormLabel>Priority</FormLabel>
                   <FormControl>
                     <select
-                      className='w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm'
+                      className='w-full rounded-md border border-white/10 bg-slate-800/60 px-3 py-2 text-sm text-white'
                       {...field}
                     >
                       <option value='low'>Low</option>
@@ -103,7 +104,7 @@ export default function CreateMaintenanceTicketPage() {
               )}
             />
 
-            <Button type='submit' className='w-full'>
+            <Button type='submit' className='w-full bg-indigo-600 hover:bg-indigo-500'>
               Submit ticket
             </Button>
           </form>

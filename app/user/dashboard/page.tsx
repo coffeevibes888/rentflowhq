@@ -89,19 +89,19 @@ export default async function TenantDashboardPage() {
     <main className='w-full'>
       <div className='max-w-7xl space-y-4 sm:space-y-6'>
         <div>
-          <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-black mb-1'>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1'>
             Tenant Dashboard
           </h1>
-          <p className='text-xs sm:text-sm text-black'>
+          <p className='text-xs sm:text-sm text-slate-400'>
             Welcome back, {session.user.name}. Manage your rental, payments, and requests.
           </p>
           {tenantNeedsSignature && (
-            <Badge className='mt-2 bg-amber-500/20 text-amber-800 border-amber-500'>
+            <Badge className='mt-2 bg-amber-500/20 text-amber-300 border border-amber-500/40'>
               Lease requires your signature
             </Badge>
           )}
           {landlordPendingSignature && !tenantNeedsSignature && (
-            <Badge className='mt-2 bg-emerald-500/20 text-emerald-800 border-emerald-500'>
+            <Badge className='mt-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'>
               Waiting on landlord signature
             </Badge>
           )}
@@ -109,29 +109,28 @@ export default async function TenantDashboardPage() {
 
         {/* Lease Pending Signature Alert */}
         {activeLease?.status === 'pending_signature' && tenantNeedsSignature && (
-          <div className='relative rounded-xl sm:rounded-2xl border border-white shadow-xl overflow-hidden'>
-            <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
+          <div className='relative rounded-xl sm:rounded-2xl border border-amber-500/30 bg-amber-500/10 shadow-lg overflow-hidden'>
             <div className='relative p-3 sm:p-4 md:p-5 space-y-3'>
               <div className='flex items-start gap-3'>
-                <div className='rounded-full bg-white/30 p-2 shrink-0'>
-                  <FileSignature className='h-4 w-4 sm:h-5 sm:w-5 text-black' />
+                <div className='rounded-full bg-amber-500/20 p-2 shrink-0'>
+                  <FileSignature className='h-4 w-4 sm:h-5 sm:w-5 text-amber-400' />
                 </div>
                 <div className='flex-1'>
-                  <h3 className='text-sm sm:text-base font-bold text-black'>Application Approved — Sign Your Lease</h3>
-                  <p className='text-[10px] sm:text-xs text-black/80 mt-1'>
+                  <h3 className='text-sm sm:text-base font-bold text-white'>Application Approved — Sign Your Lease</h3>
+                  <p className='text-[10px] sm:text-xs text-slate-400 mt-1'>
                     Your application has been approved. Sign your lease and pay move-in costs to complete.
                   </p>
                 </div>
               </div>
               <div className='flex flex-wrap gap-2'>
                 <Link href='/user/profile/lease'>
-                  <button className='rounded-lg bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white px-3 py-1.5 text-xs font-bold text-black hover:border-slate-700 transition-colors active:scale-[0.98] flex items-center gap-1.5'>
+                  <button className='rounded-lg bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/50 px-3 py-1.5 text-xs font-bold text-white transition-colors active:scale-[0.98] flex items-center gap-1.5'>
                     <FileSignature className='h-3.5 w-3.5' />
                     Sign Lease
                   </button>
                 </Link>
                 <Link href='/user/profile/rent-receipts'>
-                  <button className='rounded-lg bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white px-3 py-1.5 text-xs font-bold text-black hover:border-slate-700 transition-colors active:scale-[0.98] flex items-center gap-1.5'>
+                  <button className='rounded-lg bg-teal-600 hover:bg-teal-500 border border-teal-500/50 px-3 py-1.5 text-xs font-bold text-white transition-colors active:scale-[0.98] flex items-center gap-1.5'>
                     <CreditCard className='h-3.5 w-3.5' />
                     Pay Move-in Costs
                   </button>
@@ -142,54 +141,53 @@ export default async function TenantDashboardPage() {
         )}
 
         {/* Stats Cards */}
-        <div className='relative rounded-xl sm:rounded-2xl border border-white shadow-xl overflow-hidden'>
-          <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
-          <div className='relative p-3 sm:p-4 md:p-6'>
-            <div className='flex items-center justify-between mb-3'>
-              <h3 className='text-sm sm:text-base font-bold text-black'>Your Dashboard</h3>
-              <span className='text-[10px] text-black bg-white/30 px-1.5 py-0.5 rounded-full ring-1 ring-black/20 font-semibold'>Live</span>
+        <div className='rounded-xl sm:rounded-2xl border border-white/10 bg-slate-900/60 shadow-xl overflow-hidden'>
+          <div className='p-3 sm:p-4 md:p-6'>
+            <div className='flex items-center justify-between mb-4'>
+              <h3 className='text-sm sm:text-base font-bold text-white'>Your Dashboard</h3>
+              <span className='text-[10px] text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-full ring-1 ring-emerald-500/30 font-semibold'>Live</span>
             </div>
 
             <div className='grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3'>
               {/* Pending Rent */}
               <Link
                 href='/user/profile/rent-receipts'
-                className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+                className='group rounded-lg sm:rounded-xl bg-slate-800/60 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/10 p-2.5 sm:p-3 md:p-4 space-y-1 transition-all duration-200 active:scale-[0.98]'
               >
                 <div className='flex items-center justify-between'>
-                  <div className='text-[10px] sm:text-xs text-black font-bold'>Pending Rent</div>
-                  <CreditCard className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600' />
+                  <div className='text-[10px] sm:text-xs text-slate-400 font-semibold'>Pending Rent</div>
+                  <CreditCard className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-teal-400' />
                 </div>
-                <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>${totalPendingRent.toFixed(2)}</div>
-                <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{pendingRentPayments.length} payment{pendingRentPayments.length !== 1 ? 's' : ''} due</div>
+                <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>${totalPendingRent.toFixed(2)}</div>
+                <div className='text-[9px] sm:text-[10px] text-slate-500 font-medium'>{pendingRentPayments.length} payment{pendingRentPayments.length !== 1 ? 's' : ''} due</div>
               </Link>
 
               {/* Maintenance */}
               <Link
                 href='/user/profile/ticket'
-                className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+                className='group rounded-lg sm:rounded-xl bg-slate-800/60 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/10 p-2.5 sm:p-3 md:p-4 space-y-1 transition-all duration-200 active:scale-[0.98]'
               >
                 <div className='flex items-center justify-between'>
-                  <div className='text-[10px] sm:text-xs text-black font-bold'>Maintenance</div>
-                  <Wrench className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600' />
+                  <div className='text-[10px] sm:text-xs text-slate-400 font-semibold'>Maintenance</div>
+                  <Wrench className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400' />
                 </div>
-                <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{openTickets.length}</div>
-                <div className='text-[9px] sm:text-[10px] text-black font-semibold'>Open tickets</div>
+                <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>{openTickets.length}</div>
+                <div className='text-[9px] sm:text-[10px] text-slate-500 font-medium'>Open tickets</div>
               </Link>
 
               {/* Current Lease */}
               <Link
                 href='/user/profile/lease'
-                className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+                className='group rounded-lg sm:rounded-xl bg-slate-800/60 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/10 p-2.5 sm:p-3 md:p-4 space-y-1 transition-all duration-200 active:scale-[0.98]'
               >
                 <div className='flex items-center justify-between'>
-                  <div className='text-[10px] sm:text-xs text-black font-bold'>Current Lease</div>
-                  <Home className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
+                  <div className='text-[10px] sm:text-xs text-slate-400 font-semibold'>Current Lease</div>
+                  <Home className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-400' />
                 </div>
-                <div className='text-lg sm:text-xl md:text-2xl font-bold text-black truncate'>
+                <div className='text-lg sm:text-xl md:text-2xl font-bold text-white truncate'>
                   {activeLease ? activeLease.unit.name : '—'}
                 </div>
-                <div className='text-[9px] sm:text-[10px] text-black font-semibold truncate'>
+                <div className='text-[9px] sm:text-[10px] text-slate-500 font-medium truncate'>
                   {activeLease ? activeLease.unit.property.name : 'No active lease'}
                 </div>
               </Link>
@@ -197,67 +195,67 @@ export default async function TenantDashboardPage() {
               {/* Applications */}
               <Link
                 href='/user/applications'
-                className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+                className='group rounded-lg sm:rounded-xl bg-slate-800/60 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/10 p-2.5 sm:p-3 md:p-4 space-y-1 transition-all duration-200 active:scale-[0.98]'
               >
                 <div className='flex items-center justify-between'>
-                  <div className='text-[10px] sm:text-xs text-black font-bold'>Applications</div>
-                  <FileText className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-600' />
+                  <div className='text-[10px] sm:text-xs text-slate-400 font-semibold'>Applications</div>
+                  <FileText className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-teal-400' />
                 </div>
-                <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>View</div>
-                <div className='text-[9px] sm:text-[10px] text-black font-semibold'>Check status</div>
+                <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>View</div>
+                <div className='text-[9px] sm:text-[10px] text-slate-500 font-medium'>Check status</div>
               </Link>
 
               {/* Notifications */}
               <Link
                 href='/user/notifications'
-                className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+                className='group rounded-lg sm:rounded-xl bg-slate-800/60 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/10 p-2.5 sm:p-3 md:p-4 space-y-1 transition-all duration-200 active:scale-[0.98]'
               >
                 <div className='flex items-center justify-between'>
-                  <div className='text-[10px] sm:text-xs text-black font-bold'>Notifications</div>
-                  <Bell className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
+                  <div className='text-[10px] sm:text-xs text-slate-400 font-semibold'>Notifications</div>
+                  <Bell className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-400' />
                 </div>
-                <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>Alerts</div>
-                <div className='text-[9px] sm:text-[10px] text-black font-semibold'>View all</div>
+                <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>Alerts</div>
+                <div className='text-[9px] sm:text-[10px] text-slate-500 font-medium'>View all</div>
               </Link>
 
               {/* Profile */}
               <Link
                 href='/user/profile'
-                className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
+                className='group rounded-lg sm:rounded-xl bg-slate-800/60 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/10 p-2.5 sm:p-3 md:p-4 space-y-1 transition-all duration-200 active:scale-[0.98]'
               >
                 <div className='flex items-center justify-between'>
-                  <div className='text-[10px] sm:text-xs text-black font-bold'>Profile</div>
-                  <User className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
+                  <div className='text-[10px] sm:text-xs text-slate-400 font-semibold'>Profile</div>
+                  <User className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-400' />
                 </div>
-                <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>Edit</div>
-                <div className='text-[9px] sm:text-[10px] text-black font-semibold'>Update details</div>
+                <div className='text-lg sm:text-xl md:text-2xl font-bold text-white'>Edit</div>
+                <div className='text-[9px] sm:text-[10px] text-slate-500 font-medium'>Update details</div>
               </Link>
             </div>
 
             {/* Summary Bar */}
-            <div className='mt-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-2.5 sm:p-3 md:p-4 border border-white shadow-2xl'>
+            <div className='mt-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-600/20 via-teal-600/10 to-indigo-600/20 p-2.5 sm:p-3 md:p-4 border border-indigo-500/20'>
               <div className='grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4'>
                 <div className='space-y-0.5'>
-                  <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Monthly Rent</div>
-                  <div className='text-xs sm:text-md font-bold text-black'>
+                  <div className='text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wide'>Monthly Rent</div>
+                  <div className='text-xs sm:text-sm font-bold text-white'>
                     {activeLease ? `$${Number(activeLease.rentAmount).toFixed(2)}` : '—'}
                   </div>
                 </div>
                 <div className='space-y-0.5'>
-                  <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Lease Status</div>
-                  <div className='text-xs sm:text-md font-bold text-black capitalize'>
+                  <div className='text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wide'>Lease Status</div>
+                  <div className='text-xs sm:text-sm font-bold text-white capitalize'>
                     {activeLease ? activeLease.status.replace('_', ' ') : 'None'}
                   </div>
                 </div>
                 <div className='space-y-0.5'>
-                  <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Lease Ends</div>
-                  <div className='text-xs sm:text-md font-bold text-black'>
+                  <div className='text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wide'>Lease Ends</div>
+                  <div className='text-xs sm:text-sm font-bold text-white'>
                     {activeLease?.endDate ? new Date(activeLease.endDate).toLocaleDateString() : 'Month-to-month'}
                   </div>
                 </div>
                 <div className='space-y-0.5'>
-                  <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Manager</div>
-                  <div className='text-xs sm:text-md font-bold text-black truncate'>
+                  <div className='text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wide'>Manager</div>
+                  <div className='text-xs sm:text-sm font-bold text-white truncate'>
                     {activeLease?.unit.property.landlord?.name || '—'}
                   </div>
                 </div>
@@ -268,24 +266,25 @@ export default async function TenantDashboardPage() {
 
         {/* No Lease Message */}
         {!activeLease && (
-          <div className='relative rounded-xl sm:rounded-2xl border border-white shadow-xl overflow-hidden'>
-            <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
-            <div className='relative p-3 sm:p-4 md:p-5 space-y-3'>
+          <div className='rounded-xl sm:rounded-2xl border border-indigo-500/20 bg-indigo-500/5 shadow-lg overflow-hidden'>
+            <div className='p-3 sm:p-4 md:p-5 space-y-3'>
               <div className='flex items-start gap-3'>
-                <Home className='h-4 w-4 sm:h-5 sm:w-5 text-black mt-0.5 shrink-0' />
+                <div className='rounded-full bg-indigo-500/20 p-2 shrink-0'>
+                  <Home className='h-4 w-4 sm:h-5 sm:w-5 text-indigo-400 mt-0 shrink-0' />
+                </div>
                 <div>
-                  <h3 className='text-sm sm:text-base font-bold text-black'>No Active Lease</h3>
-                  <p className='text-[10px] sm:text-xs text-black/80 mt-1'>
+                  <h3 className='text-sm sm:text-base font-bold text-white'>No Active Lease</h3>
+                  <p className='text-[10px] sm:text-xs text-slate-400 mt-1'>
                     Browse available properties or check your applications.
                   </p>
                   <div className='flex flex-wrap gap-2 mt-3'>
                     <Link href='/search?category=all'>
-                      <button className='rounded-lg bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white px-3 py-1.5 text-xs font-bold text-black hover:border-slate-700 transition-colors active:scale-[0.98]'>
+                      <button className='rounded-lg bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/50 px-3 py-1.5 text-xs font-bold text-white transition-colors active:scale-[0.98]'>
                         Browse Properties
                       </button>
                     </Link>
                     <Link href='/user/applications'>
-                      <button className='rounded-lg bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white px-3 py-1.5 text-xs font-bold text-black hover:border-slate-700 transition-colors active:scale-[0.98]'>
+                      <button className='rounded-lg bg-slate-700 hover:bg-slate-600 border border-white/10 px-3 py-1.5 text-xs font-bold text-white transition-colors active:scale-[0.98]'>
                         View Applications
                       </button>
                     </Link>

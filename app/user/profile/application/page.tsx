@@ -39,29 +39,29 @@ export default async function UserProfileApplicationPage() {
     <div className='w-full px-4 py-8 md:px-8'>
       <div className='max-w-4xl mx-auto space-y-6'>
         <div>
-          <h1 className='text-2xl md:text-3xl font-semibold text-slate-900 mb-1'>My rental applications</h1>
-          <p className='text-sm text-slate-600'>Track the status of applications you have submitted.</p>
+          <h1 className='text-2xl md:text-3xl font-bold text-white mb-1'>My Rental Applications</h1>
+          <p className='text-sm text-slate-400'>Track the status of applications you have submitted.</p>
         </div>
 
-        <div className='rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden'>
+        <div className='rounded-xl border border-white/10 bg-slate-900/60 shadow-lg overflow-hidden'>
           {applications.length === 0 ? (
             <div className='px-4 py-6 text-center text-sm text-slate-500'>
               You have not submitted any applications yet.
             </div>
           ) : (
             <table className='min-w-full text-sm'>
-              <thead className='bg-slate-50'>
+              <thead className='bg-slate-800/60'>
                 <tr>
-                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Property</th>
-                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Submitted</th>
-                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Status</th>
-                  <th className='px-4 py-2 text-left font-medium text-slate-500'>Verification</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-400'>Property</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-400'>Submitted</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-400'>Status</th>
+                  <th className='px-4 py-2 text-left font-medium text-slate-400'>Verification</th>
                 </tr>
               </thead>
               <tbody>
                 {applications.map((app) => (
-                  <tr key={app.id} className='border-t border-slate-100'>
-                    <td className='px-4 py-2 align-top text-xs text-slate-700'>
+                  <tr key={app.id} className='border-t border-white/10'>
+                    <td className='px-4 py-2 align-top text-xs text-slate-300'>
                       {app.unit?.property?.name || app.propertySlug || 'N/A'}
                       {app.unit?.property?.address && typeof app.unit.property.address === 'object' && (
                         <div className='text-slate-500'>
@@ -69,15 +69,15 @@ export default async function UserProfileApplicationPage() {
                         </div>
                       )}
                     </td>
-                    <td className='px-4 py-2 align-top text-xs text-slate-600'>
+                    <td className='px-4 py-2 align-top text-xs text-slate-400'>
                       {new Date(app.createdAt).toLocaleString()}
                     </td>
-                    <td className='px-4 py-2 align-top text-xs capitalize text-slate-700'>
+                    <td className='px-4 py-2 align-top text-xs capitalize text-slate-300'>
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        app.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        app.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        app.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
+                        app.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300' :
+                        app.status === 'rejected' ? 'bg-red-500/20 text-red-300' :
+                        app.status === 'pending' ? 'bg-amber-500/20 text-amber-300' :
+                        'bg-slate-500/20 text-slate-300'
                       }`}>
                         {app.status}
                       </span>

@@ -129,6 +129,7 @@ export async function POST(req: NextRequest) {
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
+      payment_method_collection: 'always',
       line_items: [{ price: contractorPriceId, quantity: 1 }],
       success_url: `${baseUrl}/contractor/dashboard?subscription=success&tier=${targetTier}`,
       cancel_url: `${baseUrl}/onboarding/contractor/subscription?canceled=true`,

@@ -190,7 +190,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'Is there a free trial?',
-    answer: 'Yes! All new accounts start with a 14-day free trial so you can explore all features before committing. No credit card required.',
+    answer: 'Yes! All new accounts start with a 14-day free trial so you can explore all features before committing. A credit card is required to start — cancel anytime before the trial ends.',
   },
   {
     question: 'What payment methods do you accept?',

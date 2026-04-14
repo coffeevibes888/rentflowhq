@@ -146,7 +146,7 @@ export default async function UserInboxPage({
             <div className="flex items-center gap-2 mb-1">
               <h1 className="text-3xl md:text-4xl font-bold text-white">Inbox</h1>
               {(unreadEmailThreadsCount > 0 || friendRequests.length > 0) && (
-                <span className="inline-flex items-center justify-center rounded-full bg-violet-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+                <span className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-2 py-0.5 text-[11px] font-semibold text-white">
                   {unreadEmailThreadsCount + friendRequests.length}
                 </span>
               )}
@@ -157,7 +157,7 @@ export default async function UserInboxPage({
           </div>
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center rounded-lg bg-violet-500 px-3 py-1.5 text-xs md:text-sm font-semibold text-white shadow hover:bg-violet-400 transition-colors"
+            className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-1.5 text-xs md:text-sm font-semibold text-white shadow hover:bg-indigo-400 transition-colors"
           >
             Support
           </Link>
@@ -208,7 +208,7 @@ export default async function UserInboxPage({
                   <Link
                     href="/user/profile/inbox?folder=compose"
                     className={`flex items-center justify-between rounded-lg px-2 py-1 cursor-pointer text-[11px] font-semibold ${
-                      folder === 'compose' ? 'bg-slate-800/70 text-violet-200' : 'text-violet-300 hover:bg-slate-800/60'
+                      folder === 'compose' ? 'bg-slate-800/70 text-indigo-200' : 'text-indigo-300 hover:bg-slate-800/60'
                     }`}
                   >
                     <span>Compose</span>
@@ -287,7 +287,7 @@ export default async function UserInboxPage({
                   <Link
                     key={p.id}
                     href={`/user/profile/inbox/${p.threadId}`}
-                    className="block rounded-xl border border-white/10 bg-slate-950/70 px-3.5 py-3 text-xs text-slate-200/90 flex flex-col gap-1 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors"
+                    className="block rounded-xl border border-white/10 bg-slate-950/70 px-3.5 py-3 text-xs text-slate-200/90 flex flex-col gap-1 hover:border-indigo-400/60 hover:bg-slate-900/90 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="inline-flex items-center rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300/90">

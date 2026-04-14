@@ -87,7 +87,7 @@ const MainNav = ({
   return (
     <nav
       className={cn(
-        'flex flex-col gap-2 text-base text-white',
+        'flex flex-col gap-0.5 text-sm font-medium',
         className
       )}
       {...props}
@@ -101,21 +101,23 @@ const MainNav = ({
             key={item.href}
             href={item.href}
             className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2',
-              isActive ? 'text-emerald-300' : 'text-white'
+              'flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
+              isActive
+                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
             )}
           >
-            <Icon className='h-5 w-5 shrink-0' />
+            <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-indigo-400' : 'text-slate-500')} />
             <div className='flex flex-col'>
-              <span className='font-medium text-sm'>{item.title}</span>
-              <span className='text-xs text-slate-200'>{item.description}</span>
+              <span className='font-medium text-xs'>{item.title}</span>
+              <span className={cn('text-xs', isActive ? 'text-indigo-300/70' : 'text-slate-600')}>{item.description}</span>
             </div>
           </Link>
         );
       })}
       
       {/* Affiliate Dashboard Link - only shows if user is an affiliate */}
-      <div className="mt-4 pt-4 border-t border-white/20">
+      <div className="mt-auto pt-4 border-t border-slate-700/50">
         <AffiliateNavLink variant="sidebar" />
       </div>
     </nav>

@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { SubscriptionSettingsClient } from './subscription-settings-client';
 import { prisma } from '@/db/prisma';
+import Stripe from 'stripe';
 
 export const metadata: Metadata = {
   title: 'Subscription Settings | Contractor Dashboard',
@@ -50,6 +51,32 @@ export default async function SubscriptionPage() {
     redirect('/onboarding/contractor');
   }
 
+  // Fetch saved payment method from Stripe
+  let paymentMethod: { brand: string; last4: string; expMonth: number; expYear: number } | null = null;
+
+  if (contractor.stripeCustomerId && process.env.STRIPE_SECRET_KEY) {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const customer = await stripe.customers.retrieve(contractor.stripeCustomerId) as Stripe.Customer;
+
+      if (!customer.deleted && customer.invoice_settings?.default_payment_method) {
+        const pm = await stripe.paymentMethods.retrieve(
+          customer.invoice_settings.default_payment_method as string
+        );
+        if (pm.type === 'card' && pm.card) {
+          paymentMethod = {
+            brand: pm.card.brand,
+            last4: pm.card.last4,
+            expMonth: pm.card.exp_month,
+            expYear: pm.card.exp_year,
+          };
+        }
+      }
+    } catch {
+      // Non-fatal — billing section will show fallback
+    }
+  }
+
   return (
     <SubscriptionSettingsClient
       currentTier={contractor.subscriptionTier || 'starter'}
@@ -58,6 +85,7 @@ export default async function SubscriptionPage() {
       currentPeriodEnd={contractor.currentPeriodEnd}
       stripeCustomerId={contractor.stripeCustomerId}
       stripeSubscriptionId={contractor.stripeSubscriptionId}
+      paymentMethod={paymentMethod}
       usage={contractor.usageTracking || {
         activeJobsCount: 0,
         invoicesThisMonth: 0,

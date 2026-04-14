@@ -414,7 +414,7 @@ export default function AudienceSwitcher({
                       Start Free Today
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
-                    <p className="text-xs md:text-sm text-slate-600 font-medium">14-day free trial • No credit card required</p>
+                    <p className="text-xs md:text-sm text-slate-600 font-medium">14-day free trial • Credit card required</p>
                   </div>
                 </div>
                 <PMDashboardMock />
@@ -448,7 +448,7 @@ export default function AudienceSwitcher({
                       Start Free Today
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
-                    <p className="text-xs md:text-sm text-slate-400 font-medium">14-day free trial • No credit card required</p>
+                    <p className="text-xs md:text-sm text-slate-400 font-medium">14-day free trial • Credit card required</p>
                   </div>
                 </div>
                 <ContractorDashboardMock />

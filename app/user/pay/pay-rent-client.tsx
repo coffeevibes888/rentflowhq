@@ -132,7 +132,7 @@ export default function PayRentClient({
             </p>
             <div className='flex flex-col sm:flex-row gap-3 justify-center'>
               <Link href='/user/applications'>
-                <Button className='bg-violet-600 hover:bg-violet-700'>
+                <Button className='bg-indigo-600 hover:bg-indigo-700'>
                   View Applications
                 </Button>
               </Link>
@@ -235,12 +235,12 @@ export default function PayRentClient({
         </div>
 
         {/* Amount Due Card */}
-        <div className='relative overflow-hidden rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-900/40 via-purple-900/30 to-indigo-900/40 p-8'>
-          <div className='absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2' />
+        <div className='relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-900/40 via-slate-900/60 to-teal-900/30 p-8'>
+          <div className='absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2' />
           <div className='relative'>
             <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-6'>
               <div>
-                <p className='text-sm font-medium text-violet-300 uppercase tracking-wider'>Total Amount Due</p>
+                <p className='text-sm font-medium text-indigo-300 uppercase tracking-wider'>Total Amount Due</p>
                 <p className='text-5xl md:text-6xl font-bold text-white mt-2'>
                   {formatCurrency(totalAmount)}
                 </p>
@@ -299,7 +299,7 @@ export default function PayRentClient({
                   onClick={() => setSelectedMethod(method.id)}
                   className={`relative group text-left rounded-xl border-2 p-5 transition-all duration-200 ${
                     isSelected
-                      ? 'border-violet-500 bg-violet-500/10 ring-2 ring-violet-500/20'
+                      ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/20'
                       : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800'
                   }`}
                 >
@@ -318,7 +318,7 @@ export default function PayRentClient({
                       <p className='text-sm text-slate-400 mt-0.5'>{method.description}</p>
                     </div>
                     {isSelected && (
-                      <CheckCircle2 className='w-5 h-5 text-violet-400 flex-shrink-0' />
+                      <CheckCircle2 className='w-5 h-5 text-indigo-400 flex-shrink-0' />
                     )}
                   </div>
                   
@@ -345,7 +345,7 @@ export default function PayRentClient({
             size='lg'
             disabled={!selectedMethod}
             onClick={() => setShowCheckout(true)}
-            className='w-full max-w-md bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-semibold py-6 text-lg rounded-xl shadow-lg shadow-violet-500/25 disabled:opacity-50 disabled:cursor-not-allowed'
+            className='w-full max-w-md bg-gradient-to-r from-indigo-600 to-teal-600 hover:from-indigo-500 hover:to-teal-500 text-white font-semibold py-6 text-lg rounded-xl shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed'
           >
             Continue to Payment
             <ArrowRight className='w-5 h-5 ml-2' />
@@ -377,8 +377,8 @@ export default function PayRentClient({
             </div>
             <div className='hidden md:block w-px h-10 bg-slate-700' />
             <div className='flex items-center gap-3'>
-              <div className='w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center'>
-                <CheckCircle2 className='w-5 h-5 text-violet-400' />
+              <div className='w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center'>
+                <CheckCircle2 className='w-5 h-5 text-indigo-400' />
               </div>
               <div className='text-left'>
                 <p className='font-medium text-white text-sm'>No Hidden Fees</p>

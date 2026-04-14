@@ -43,6 +43,13 @@ interface UsageData {
   activeLeadsCount: number;
 }
 
+interface PaymentMethod {
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+}
+
 interface SubscriptionSettingsClientProps {
   currentTier: string;
   subscriptionStatus: string;
@@ -50,6 +57,7 @@ interface SubscriptionSettingsClientProps {
   currentPeriodEnd: Date | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
+  paymentMethod: PaymentMethod | null;
   usage: UsageData;
 }
 
@@ -105,6 +113,7 @@ export function SubscriptionSettingsClient({
   currentPeriodEnd,
   stripeCustomerId,
   stripeSubscriptionId,
+  paymentMethod,
   usage,
 }: SubscriptionSettingsClientProps) {
   const router = useRouter();
@@ -489,10 +498,23 @@ export function SubscriptionSettingsClient({
                       <CreditCard className="h-5 w-5 text-slate-300" />
                     </div>
                     <div>
-                      <p className="text-white font-medium">Payment Method on File</p>
-                      <p className="text-slate-400 text-sm">
-                        {stripeCustomerId ? 'Card ending in ••••' : 'No payment method'}
-                      </p>
+                      {paymentMethod ? (
+                        <>
+                          <p className="text-white font-medium capitalize">
+                            {paymentMethod.brand} ending in {paymentMethod.last4}
+                          </p>
+                          <p className="text-slate-400 text-sm">
+                            Expires {paymentMethod.expMonth.toString().padStart(2, '0')}/{paymentMethod.expYear}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-white font-medium">Payment Method on File</p>
+                          <p className="text-slate-400 text-sm">
+                            {stripeCustomerId ? 'Card on file (details loading)' : 'No payment method added'}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                   <Button
