@@ -215,6 +215,88 @@ export async function markAllNotificationsAsRead() {
 }
 
 /**
+ * Send a direct message to a tenant via the Thread system
+ * so it appears in the tenant's inbox at /user/profile/inbox
+ */
+export async function sendMessageToTenant(data: {
+  recipientId: string;
+  subject: string;
+  message: string;
+}) {
+  const { auth } = await import('@/auth');
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, message: 'Not authenticated' };
+  }
+
+  const thread = await prisma.thread.create({
+    data: {
+      type: 'email',
+      subject: data.subject,
+      status: 'active',
+      createdByUserId: session.user.id,
+      fromEmail: session.user.email ?? undefined,
+      toEmail: undefined,
+      participants: {
+        create: [
+          { userId: session.user.id },
+          { userId: data.recipientId },
+        ],
+      },
+      messages: {
+        create: {
+          content: data.message,
+          senderName: session.user.name ?? 'Management',
+          senderEmail: session.user.email ?? undefined,
+        },
+      },
+    },
+  });
+
+  return { success: true, threadId: thread.id };
+}
+
+/**
+ * Reply to an existing thread
+ */
+export async function replyToThread(data: {
+  threadId: string;
+  message: string;
+}) {
+  const { auth } = await import('@/auth');
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, message: 'Not authenticated' };
+  }
+
+  const participant = await prisma.threadParticipant.findFirst({
+    where: { threadId: data.threadId, userId: session.user.id },
+  });
+
+  if (!participant) {
+    return { success: false, message: 'Not a participant in this thread' };
+  }
+
+  await prisma.message.create({
+    data: {
+      threadId: data.threadId,
+      content: data.message,
+      senderName: session.user.name ?? 'User',
+      senderEmail: session.user.email ?? undefined,
+    },
+  });
+
+  await prisma.thread.update({
+    where: { id: data.threadId },
+    data: { updatedAt: new Date() },
+  });
+
+  return { success: true };
+}
+
+/**
  * Create a message/notification
  */
 export async function createMessage(data: {

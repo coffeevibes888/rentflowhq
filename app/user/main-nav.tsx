@@ -12,6 +12,7 @@ import {
   MessageCircle,
   LayoutDashboard,
   Wallet,
+  Inbox,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { AffiliateNavLink } from '@/components/affiliate/affiliate-nav-link';
@@ -82,6 +83,12 @@ const MainNav = ({
       href: '/user/profile/ticket',
       icon: MessageCircle,
     },
+    {
+      title: 'Messages',
+      description: 'View messages from management',
+      href: '/user/profile/inbox',
+      icon: Inbox,
+    },
   ];
 
   return (
@@ -101,23 +108,23 @@ const MainNav = ({
             key={item.href}
             href={item.href}
             className={cn(
-              'flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
+              'flex items-center gap-3 px-3 py-2.5 transition-all duration-200 bg-transparent border-l-2',
               isActive
-                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
             )}
           >
             <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-indigo-400' : 'text-slate-500')} />
             <div className='flex flex-col'>
               <span className='font-medium text-xs'>{item.title}</span>
-              <span className={cn('text-xs', isActive ? 'text-indigo-300/70' : 'text-slate-600')}>{item.description}</span>
+              <span className={cn('text-xs', isActive ? 'text-indigo-400' : 'text-slate-400')}>{item.description}</span>
             </div>
           </Link>
         );
       })}
       
       {/* Affiliate Dashboard Link - only shows if user is an affiliate */}
-      <div className="mt-auto pt-4 border-t border-slate-700/50">
+      <div className="mt-auto pt-4 border-t border-slate-200">
         <AffiliateNavLink variant="sidebar" />
       </div>
     </nav>

@@ -141,7 +141,7 @@ export default async function TenantDashboardPage() {
         )}
 
         {/* Stats Cards */}
-        <div className='rounded-xl sm:rounded-2xl border border-white/10 bg-slate-900/60 shadow-xl overflow-hidden'>
+        <div className='rounded-xl sm:rounded-2xl border border-white/10 bg-gradient-to-r from-emerald-500 to-emerald-900 shadow-xl overflow-hidden'>
           <div className='p-3 sm:p-4 md:p-6'>
             <div className='flex items-center justify-between mb-4'>
               <h3 className='text-sm sm:text-base font-bold text-white'>Your Dashboard</h3>

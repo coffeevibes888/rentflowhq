@@ -4,6 +4,8 @@ import Menu from "./menu";
 import AdminMobileDrawer from '@/components/admin/admin-mobile-drawer';
 import ContractorMobileDrawer from '@/components/contractor/contractor-mobile-drawer';
 import AgentMobileDrawer from '@/components/agent/agent-mobile-drawer';
+import TenantMobileMenu from '@/components/mobile/tenant-mobile-menu';
+import MainNav from '@/app/user/main-nav';
 import { getCategoryTree } from '@/lib/actions/product.actions';
 import { prisma } from '@/db/prisma';
 import { headers } from 'next/headers';
@@ -37,6 +39,10 @@ const Header = async () => {
               <AgentMobileDrawer />
             ) : (userRole === 'landlord' || userRole === 'admin' || userRole === 'superAdmin' || userRole === 'property_manager') ? (
               <AdminMobileDrawer />
+            ) : userRole === 'tenant' ? (
+              <TenantMobileMenu>
+                <MainNav />
+              </TenantMobileMenu>
             ) : null}
           </div>
         )}

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Send, Users, Search, Bell, Megaphone } from 'lucide-react';
 import { formatDistanceToNow } from '@/lib/utils/date-utils';
-import { createMessage, getMyMessages } from '@/lib/actions/notification.actions';
+import { sendMessageToTenant, getMyMessages } from '@/lib/actions/notification.actions';
 
 import type { Prisma } from '@prisma/client';
 
@@ -64,9 +64,9 @@ export default function TenantMessagesPage() {
     }
 
     try {
-      await createMessage({
+      await sendMessageToTenant({
         recipientId: newMessage.recipientId,
-        title: newMessage.subject,
+        subject: newMessage.subject,
         message: newMessage.content,
       });
       

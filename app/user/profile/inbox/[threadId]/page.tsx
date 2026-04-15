@@ -65,16 +65,16 @@ export default async function UserThreadPage({
       <div className="max-w-3xl mx-auto space-y-4">
         <header className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-white mb-1">
+            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-1">
               {thread.subject || 'Conversation'}
             </h1>
-            <p className="text-xs md:text-sm text-slate-300/90">
+            <p className="text-xs md:text-sm text-slate-500">
               Direct messages and support chats related to your account.
             </p>
           </div>
           <Link
             href="/user/profile/inbox"
-            className="text-xs md:text-sm text-slate-300 hover:text-slate-100 underline-offset-2 hover:underline"
+            className="text-xs md:text-sm text-indigo-600 hover:text-indigo-500 underline-offset-2 hover:underline"
           >
             Back to inbox
           </Link>
@@ -94,7 +94,7 @@ export default async function UserThreadPage({
                   key={m.id}
                   className={`max-w-[80%] rounded-2xl px-4 py-3 text-xs md:text-sm shadow border border-white/5 ${
                     mine
-                      ? 'ml-auto bg-violet-600/80 text-slate-50'
+                      ? 'ml-auto bg-indigo-600/80 text-slate-50'
                       : 'mr-auto bg-slate-800/80 text-slate-50'
                   }`}
                 >
@@ -157,12 +157,12 @@ export default async function UserThreadPage({
               <textarea
                 name="content"
                 rows={2}
-                className="flex-1 resize-none rounded-2xl border border-white/10 bg-slate-900/80 px-3 py-2 text-xs md:text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/70"
+                className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs md:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/70"
                 placeholder="Type a message..."
               />
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded-xl bg-violet-500 px-4 py-2 text-xs md:text-sm font-medium text-white shadow hover:bg-violet-400 transition-colors"
+                className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-xs md:text-sm font-medium text-white shadow hover:bg-indigo-500 transition-colors"
               >
                 Send
               </button>

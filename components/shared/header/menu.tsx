@@ -55,22 +55,29 @@ const Menu = async () => {
           <SheetTrigger className='align-middle text-black'>
             <EllipsisVertical />
           </SheetTrigger>
-          <SheetContent className='flex flex-col items-start bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 text-white font-bold'>
-            <SheetTitle className='text-black font-bold'>Menu</SheetTitle>
-            <NotificationBell isAdmin={isAdmin} />
-          <Link href='/' className="px-2.5 py-1.5 text-white hover:underline">Home</Link>
-          <Link href='/listings' className="px-2.5 py-1.5 text-white hover:underline">Listings</Link>
-          {/* <Link href='/about' className="px-2.5 py-1.5 text-white hover:underline">About Me</Link> */}
-          <Link href='/contractors' className="px-2.5 py-1.5 text-white hover:underline">Contractor Marketplace</Link>
-            
-            {/* Resources Section */}
-            <div className="mt-4 mb-2 px-1 text-xs uppercase tracking-wider text-black font-bold">Resources</div>
-            <Link href='/faq' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">FAQs</Link>
-            <Link href='/docs/api' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">API & Webhooks</Link>
-            <Link href='/affiliate-program' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Affiliate Program</Link>
-            <Link href='/contact' className="m-2.5 px-1 hover:text-white/70 hover:underline transition-colors">Contact</Link>
-            
-            <UserButton />
+          <SheetContent className='flex flex-col items-start bg-white text-black w-[280px]'>
+            <SheetTitle className='text-base font-bold text-black'>Menu</SheetTitle>
+            <div className='w-full flex flex-col gap-1 mt-2'>
+              <NotificationBell isAdmin={isAdmin} />
+              {session && (
+                <Link href={dashboardLink} className='flex items-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-black font-semibold text-sm hover:bg-slate-200 transition-colors'>
+                  <LayoutDashboard className='h-4 w-4 text-slate-600' />
+                  {dashboardLabel}
+                </Link>
+              )}
+              <div className='border-t border-slate-200 my-2' />
+              <Link href='/' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Home</Link>
+              <Link href='/listings' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Listings</Link>
+              <Link href='/contractors' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Contractor Marketplace</Link>
+              <div className='border-t border-slate-200 my-2' />
+              <p className='px-3 text-[10px] uppercase tracking-wider text-slate-400 font-semibold'>Resources</p>
+              <Link href='/faq' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>FAQs</Link>
+              <Link href='/docs/api' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>API & Webhooks</Link>
+              <Link href='/affiliate-program' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Affiliate Program</Link>
+              <Link href='/contact' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Contact</Link>
+              <div className='border-t border-slate-200 my-2' />
+              <UserButton />
+            </div>
             <SheetDescription></SheetDescription>
           </SheetContent>
         </Sheet>
