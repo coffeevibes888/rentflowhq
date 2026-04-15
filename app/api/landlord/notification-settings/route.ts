@@ -13,6 +13,7 @@ export async function GET() {
       where: { ownerUserId: session.user.id },
       select: {
         notificationEmail: true,
+        notificationPhone: true,
         notifyNewApplications: true,
         notifyMaintenanceTickets: true,
         notifyLatePayments: true,
@@ -20,6 +21,7 @@ export async function GET() {
         notifyNewMessages: true,
         emailInvitesEnabled: true,
         smsInvitesEnabled: true,
+        smsAlertsEnabled: true,
       },
     });
 
@@ -30,6 +32,7 @@ export async function GET() {
     return NextResponse.json({
       settings: {
         notificationEmail: landlord.notificationEmail || '',
+        notificationPhone: landlord.notificationPhone || '',
         newApplications: landlord.notifyNewApplications ?? true,
         maintenanceTickets: landlord.notifyMaintenanceTickets ?? true,
         latePayments: landlord.notifyLatePayments ?? true,
@@ -37,6 +40,7 @@ export async function GET() {
         newMessages: landlord.notifyNewMessages ?? true,
         emailInvites: landlord.emailInvitesEnabled ?? true,
         smsInvites: landlord.smsInvitesEnabled ?? false,
+        smsAlerts: landlord.smsAlertsEnabled ?? false,
       },
     });
   } catch (error) {
@@ -66,6 +70,7 @@ export async function PUT(request: Request) {
       where: { id: landlord.id },
       data: {
         notificationEmail: body.notificationEmail || null,
+        notificationPhone: body.notificationPhone || null,
         notifyNewApplications: body.newApplications,
         notifyMaintenanceTickets: body.maintenanceTickets,
         notifyLatePayments: body.latePayments,
@@ -73,6 +78,7 @@ export async function PUT(request: Request) {
         notifyNewMessages: body.newMessages,
         emailInvitesEnabled: body.emailInvites,
         smsInvitesEnabled: body.smsInvites,
+        smsAlertsEnabled: body.smsAlerts,
       },
     });
 

@@ -5,9 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bell, BellRing, Check, CheckCheck, Calendar, CreditCard, Wrench, FileText, MessageCircle } from 'lucide-react';
+import { Bell, BellRing, Check, CheckCheck, Calendar, CreditCard, Wrench, FileText, MessageCircle, Mail, MessageSquare, Phone, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from '@/lib/utils/date-utils';
 import { getMyNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/lib/actions/notification.actions';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 
 interface Notification {
   id: string;
@@ -20,9 +24,17 @@ interface Notification {
 }
 
 export default function UserNotificationsPage() {
+  const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'application' | 'message' | 'maintenance' | 'payment' | 'reminder'>('all');
+
+  // Notification preference state
+  const [prefLoading, setPrefLoading] = useState(true);
+  const [prefSaving, setPrefSaving] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [emailEnabled, setEmailEnabled] = useState(true);
+  const [smsEnabled, setSmsEnabled] = useState(false);
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -127,8 +139,51 @@ export default function UserNotificationsPage() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  // Load notification preferences
+  const loadPreferences = async () => {
+    try {
+      const res = await fetch('/api/user/notification-preferences');
+      if (res.ok) {
+        const data = await res.json();
+        setPhoneNumber(data.phoneNumber ?? '');
+        setEmailEnabled(data.emailEnabled ?? true);
+        setSmsEnabled(data.smsEnabled ?? false);
+      }
+    } catch (err) {
+      console.error('Failed to load notification preferences:', err);
+    } finally {
+      setPrefLoading(false);
+    }
+  };
+
+  const savePreferences = async () => {
+    if (smsEnabled && !phoneNumber.trim()) {
+      toast({ title: 'Phone number required', description: 'Enter a phone number to enable SMS notifications.', variant: 'destructive' });
+      return;
+    }
+    setPrefSaving(true);
+    try {
+      const res = await fetch('/api/user/notification-preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber, emailEnabled, smsEnabled }),
+      });
+      if (res.ok) {
+        toast({ title: 'Preferences saved', description: smsEnabled ? 'You will now receive SMS notifications.' : 'Notification preferences updated.' });
+      } else {
+        const data = await res.json();
+        toast({ title: 'Failed to save', description: data.message, variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Failed to save preferences', variant: 'destructive' });
+    } finally {
+      setPrefSaving(false);
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
+    loadPreferences();
   }, []);
 
   return (
@@ -325,35 +380,99 @@ export default function UserNotificationsPage() {
         </Card>
       </div>
 
-      {/* Notification Settings Card */}
+      {/* Notification Preferences Card */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Notification Preferences</CardTitle>
           <CardDescription>
-            Manage how you receive notifications
+            Choose how you want to be notified about rent reminders, maintenance updates, and messages.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <h4 className="font-medium">Email Notifications</h4>
-              <p className="text-sm text-muted-foreground">
-                Receive email updates for important activities
-              </p>
-              <Button variant="outline" size="sm">
-                Configure Email Settings
+          {prefLoading ? (
+            <div className="flex items-center gap-2 py-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Loading preferences...</span>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Channel toggles */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <p className="text-sm font-medium">Email Notifications</p>
+                      <p className="text-xs text-muted-foreground">Sent to your account email</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={emailEnabled}
+                    onCheckedChange={setEmailEnabled}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="h-5 w-5 text-green-500" />
+                    <div>
+                      <p className="text-sm font-medium">SMS Notifications</p>
+                      <p className="text-xs text-muted-foreground">Text messages to your phone</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={smsEnabled}
+                    onCheckedChange={setSmsEnabled}
+                  />
+                </div>
+              </div>
+
+              {/* Phone number field — shown when SMS is on */}
+              {smsEnabled && (
+                <div className="space-y-1.5 rounded-lg border border-green-200 bg-green-50 p-4">
+                  <Label htmlFor="phoneNumber" className="flex items-center gap-1.5 text-sm font-medium">
+                    <Phone className="h-3.5 w-3.5" />
+                    Mobile Phone Number
+                  </Label>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    placeholder="(555) 000-0000"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="h-9 text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Standard message rates may apply. You can turn off SMS at any time.
+                  </p>
+                </div>
+              )}
+
+              {/* What you'll receive */}
+              <div className="rounded-lg bg-muted/40 p-4 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">You&apos;ll be notified about</p>
+                <ul className="grid gap-1.5 sm:grid-cols-2">
+                  {[
+                    { icon: <CreditCard className="h-3.5 w-3.5 text-red-500" />, label: 'Rent reminders & late notices' },
+                    { icon: <Wrench className="h-3.5 w-3.5 text-orange-500" />, label: 'Maintenance ticket updates' },
+                    { icon: <MessageCircle className="h-3.5 w-3.5 text-green-500" />, label: 'New messages from your landlord' },
+                    { icon: <FileText className="h-3.5 w-3.5 text-blue-500" />, label: 'Application status changes' },
+                    { icon: <Calendar className="h-3.5 w-3.5 text-purple-500" />, label: 'Lease expiry reminders' },
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {item.icon}
+                      {item.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <Button onClick={savePreferences} disabled={prefSaving} size="sm" className="w-full sm:w-auto">
+                {prefSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Check className="h-3.5 w-3.5 mr-1.5" />}
+                Save Preferences
               </Button>
             </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">SMS Notifications</h4>
-              <p className="text-sm text-muted-foreground">
-                Get text messages for urgent updates (coming soon)
-              </p>
-              <Button variant="outline" size="sm" disabled>
-                Configure SMS Settings
-              </Button>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

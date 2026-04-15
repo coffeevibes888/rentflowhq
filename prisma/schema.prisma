@@ -639,6 +639,8 @@ model Landlord {
   notifyNewMessages        Boolean @default(true)
   emailInvitesEnabled      Boolean @default(true)
   smsInvitesEnabled        Boolean @default(false)
+  smsAlertsEnabled         Boolean @default(false)
+  notificationPhone        String?
 
   // Fee Settings
   petDepositAmount      Decimal? @db.Decimal(12, 2)

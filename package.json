@@ -100,6 +100,7 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^6.0.1",
+    "twilio": "^5.13.1",
     "uploadthing": "^7.4.0",
     "vaul": "^1.1.1",
     "ws": "^8.18.0",

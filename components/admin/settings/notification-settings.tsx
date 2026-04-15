@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Check, Mail, Bell, MessageSquare } from 'lucide-react';
+import { Loader2, Check, Mail, Bell, MessageSquare, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function NotificationSettings() {
@@ -14,6 +14,7 @@ export function NotificationSettings() {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState({
     notificationEmail: '',
+    notificationPhone: '',
     newApplications: true,
     maintenanceTickets: true,
     latePayments: true,
@@ -21,6 +22,7 @@ export function NotificationSettings() {
     newMessages: true,
     emailInvites: true,
     smsInvites: false,
+    smsAlerts: false,
   });
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function NotificationSettings() {
       if (res.ok) {
         const data = await res.json();
         if (data.settings) {
-          setSettings(data.settings);
+          setSettings(prev => ({ ...prev, ...data.settings }));
         }
       }
     } catch (error) {
@@ -94,6 +96,39 @@ export function NotificationSettings() {
         </div>
       </div>
 
+      {/* SMS Alerts */}
+      <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
+        <div className="flex items-center gap-2 mb-3">
+          <Phone className="w-4 h-4 text-green-300" />
+          <h3 className="text-sm font-semibold text-white">SMS Alert Notifications</h3>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between py-1.5">
+            <div>
+              <p className="text-xs text-white">Enable SMS alerts</p>
+              <p className="text-[10px] text-slate-500">Receive texts for new applications, late rent, etc.</p>
+            </div>
+            <Switch
+              checked={settings.smsAlerts}
+              onCheckedChange={(checked) => setSettings({ ...settings, smsAlerts: checked })}
+            />
+          </div>
+          {settings.smsAlerts && (
+            <div>
+              <Label className="text-xs text-slate-300">Phone Number for SMS Alerts</Label>
+              <Input
+                type="tel"
+                value={settings.notificationPhone}
+                onChange={(e) => setSettings({ ...settings, notificationPhone: e.target.value })}
+                className="h-9 text-sm mt-1"
+                placeholder="(555) 000-0000"
+              />
+              <p className="text-[10px] text-slate-500 mt-1">U.S. number — standard message rates may apply</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <div className="flex items-center gap-2 mb-3">
           <Bell className="w-4 h-4 text-amber-400" />
@@ -141,12 +176,11 @@ export function NotificationSettings() {
           <div className="flex items-center justify-between py-1.5">
             <div>
               <p className="text-xs text-white">SMS invites</p>
-              <p className="text-[10px] text-slate-500">Coming soon</p>
+              <p className="text-[10px] text-slate-500">Text tenants their invite link</p>
             </div>
             <Switch
               checked={settings.smsInvites}
               onCheckedChange={(checked) => setSettings({ ...settings, smsInvites: checked })}
-              disabled
             />
           </div>
         </div>

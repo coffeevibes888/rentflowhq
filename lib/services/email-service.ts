@@ -19,7 +19,7 @@ interface EmailOptions {
 
 export async function sendBrandedEmail({ to, subject, template, data, landlordId }: EmailOptions) {
   try {
-    // Get landlord information for branding (including logo)
+    // Get landlord information for branding (including logo and contact email)
     const landlord = await prisma.landlord.findUnique({
       where: { id: landlordId },
       select: {
@@ -28,6 +28,8 @@ export async function sendBrandedEmail({ to, subject, template, data, landlordId
         subdomain: true,
         logoUrl: true,
         useSubdomain: true,
+        companyEmail: true,
+        notificationEmail: true,
       },
     });
 
@@ -40,10 +42,14 @@ export async function sendBrandedEmail({ to, subject, template, data, landlordId
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
     
-    // Use landlord's name as the sender display name
-    // Email will come from your verified domain but show landlord's name
+    // Show PM/landlord name professionally while sending from our verified domain.
+    // e.g. "Joe's Realty via PropertyFlowHQ <noreply@propertyflowhq.com>"
     const senderEmail = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
-    const fromName = landlord.name || 'Property Management';
+    const appName = process.env.NEXT_PUBLIC_APP_NAME || 'PropertyFlowHQ';
+    const landlordName = landlord.name || 'Property Management';
+    const fromName = `${landlordName} via ${appName}`;
+    // Use landlord's own contact email as reply-to so replies go directly to them
+    const replyToEmail = landlord.companyEmail || landlord.notificationEmail || senderEmail;
 
     switch (template) {
       case 'rent-reminder':
@@ -66,9 +72,9 @@ export async function sendBrandedEmail({ to, subject, template, data, landlordId
     const { data: emailData, error } = await resend.emails.send({
       from: `${fromName} <${senderEmail}>`,
       to: Array.isArray(to) ? to : [to],
-      subject: `${subject} - ${fromName}`,
+      subject: `${subject} - ${landlordName}`,
       html: emailHtml,
-      replyTo: senderEmail,
+      replyTo: replyToEmail,
     });
 
     if (error) {

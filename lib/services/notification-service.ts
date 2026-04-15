@@ -1,5 +1,6 @@
 import { prisma } from '@/db/prisma';
 import { decryptField } from '@/lib/encrypt';
+import { sendSms } from '@/lib/services/sms-service';
 
 // Dynamic import to avoid bundling nodemailer in client
 const getEmailService = async () => {
@@ -24,14 +25,20 @@ interface NotificationPreferences {
 }
 
 export class NotificationService {
-  // Get user's notification preferences (default to email)
+  // Get user's notification preferences from DB (default to email only)
   static async getNotificationPreferences(userId: string): Promise<NotificationPreferences> {
-    // For now, default to email notifications
-    // In the future, this would check user settings
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { notificationPreferences: true },
+    });
+
+    const prefs = user?.notificationPreferences as Partial<NotificationPreferences> | null;
+    if (!prefs) return { email: true, sms: false, both: false };
+
     return {
-      email: true, // Default to email
-      sms: false,
-      both: false,
+      email: prefs.email ?? true,
+      sms: prefs.sms ?? false,
+      both: prefs.both ?? false,
     };
   }
 
@@ -153,7 +160,7 @@ export class NotificationService {
     }
   }
 
-  // Send SMS notification (placeholder for future implementation)
+  // Send SMS notification via Twilio
   private static async sendSMSNotification({
     userId,
     type,
@@ -167,12 +174,8 @@ export class NotificationService {
     message: string;
     phoneNumber: string;
   }) {
-    // TODO: Implement SMS service when budget allows
-    console.log('SMS notification would be sent:', {
-      to: phoneNumber,
-      title,
-      message,
-    });
+    const body = `${title}: ${message}`.slice(0, 160);
+    await sendSms({ to: phoneNumber, message: body, eventType: type as any });
   }
 
   // Get unread notifications for user
