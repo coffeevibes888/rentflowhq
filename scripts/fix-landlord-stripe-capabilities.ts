@@ -26,17 +26,18 @@ async function fixLandlordCapabilities() {
       },
       select: {
         id: true,
-        name: true,
-        email: true,
+        companyName: true,
+        companyEmail: true,
         stripeConnectAccountId: true,
         stripeOnboardingStatus: true,
+        owner: { select: { email: true, name: true } },
       },
     });
 
     console.log(`Found ${landlords.length} landlord(s) with Connect accounts\n`);
 
     for (const landlord of landlords) {
-      console.log(`\n📋 Checking: ${landlord.name || landlord.email}`);
+      console.log(`\n📋 Checking: ${landlord.companyName || landlord.owner?.name || landlord.owner?.email || landlord.companyEmail}`);
       console.log(`   Account ID: ${landlord.stripeConnectAccountId}`);
 
       try {
@@ -62,30 +63,45 @@ async function fixLandlordCapabilities() {
         // Need to update capabilities
         console.log('   ⚠️  Missing capabilities, updating...');
 
-        const updatedAccount = await stripe.accounts.update(
-          landlord.stripeConnectAccountId!,
-          {
-            capabilities: {
-              card_payments: { requested: true },
-              transfers: { requested: true },
+        try {
+          const updatedAccount = await stripe.accounts.update(
+            landlord.stripeConnectAccountId!,
+            {
+              capabilities: {
+                card_payments: { requested: true },
+                transfers: { requested: true },
+              },
+            }
+          );
+
+          console.log('   ✅ Updated capabilities:', {
+            card_payments: updatedAccount.capabilities?.card_payments,
+            transfers: updatedAccount.capabilities?.transfers,
+          });
+
+          // Update local status
+          await prisma.landlord.update({
+            where: { id: landlord.id },
+            data: {
+              stripeOnboardingStatus: 'pending',
             },
-          }
-        );
+          });
 
-        console.log('   ✅ Updated capabilities:', {
-          card_payments: updatedAccount.capabilities?.card_payments,
-          transfers: updatedAccount.capabilities?.transfers,
-        });
+          console.log('   ✅ Local status updated');
+        } catch (updateError: any) {
+          console.log('   ❌ Cannot update capabilities on existing account:', updateError.message);
+          console.log('   🗑️  Clearing bad account so a fresh one can be created...');
 
-        // Update local status
-        await prisma.landlord.update({
-          where: { id: landlord.id },
-          data: {
-            stripeOnboardingStatus: 'pending',
-          },
-        });
+          await prisma.landlord.update({
+            where: { id: landlord.id },
+            data: {
+              stripeConnectAccountId: null,
+              stripeOnboardingStatus: 'not_started',
+            },
+          });
 
-        console.log('   ✅ Local status updated');
+          console.log('   ✅ Cleared - landlord can now click Get Started to create a new account');
+        }
 
       } catch (error: any) {
         if (error.code === 'account_invalid') {

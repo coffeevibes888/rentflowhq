@@ -785,11 +785,47 @@ export async function createConnectAccountSession() {
 
     let connectAccountId = landlord.stripeConnectAccountId || undefined;
 
+    if (connectAccountId) {
+      try {
+        const existing = await stripe.accounts.retrieve(connectAccountId);
+        const hasCardPayments =
+          existing.capabilities?.card_payments === 'active' ||
+          existing.capabilities?.card_payments === 'pending';
+        if (!hasCardPayments) {
+          try {
+            await stripe.accounts.update(connectAccountId, {
+              capabilities: {
+                card_payments: { requested: true },
+                transfers: { requested: true },
+              },
+            });
+          } catch {
+            connectAccountId = undefined;
+            await prisma.landlord.update({
+              where: { id: landlord.id },
+              data: { stripeConnectAccountId: null, stripeOnboardingStatus: 'not_started' },
+            });
+          }
+        }
+      } catch (retrieveError: any) {
+        if (retrieveError?.code === 'account_invalid') {
+          connectAccountId = undefined;
+          await prisma.landlord.update({
+            where: { id: landlord.id },
+            data: { stripeConnectAccountId: null, stripeOnboardingStatus: 'not_started' },
+          });
+        } else {
+          throw retrieveError;
+        }
+      }
+    }
+
     if (!connectAccountId) {
       const account = await stripe.accounts.create({
         type: 'express',
         email: session.user.email || undefined,
         capabilities: {
+          card_payments: { requested: true },
           transfers: { requested: true },
         },
         business_profile: {
@@ -975,6 +1011,7 @@ export async function createOnboardingLink() {
         type: 'express',
         email: session.user.email || undefined,
         capabilities: {
+          card_payments: { requested: true },
           transfers: { requested: true },
         },
         business_profile: {
