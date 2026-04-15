@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,6 +9,8 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const ticketSchema = z.object({
   title: z.string().min(3, 'Please describe the issue briefly'),
@@ -17,6 +20,8 @@ const ticketSchema = z.object({
 
 export default function CreateMaintenanceTicketPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof ticketSchema>>({
     resolver: zodResolver(ticketSchema),
@@ -28,14 +33,29 @@ export default function CreateMaintenanceTicketPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof ticketSchema>) => {
-    const res = await fetch('/api/maintenance-tickets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    });
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/maintenance-tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
 
-    if (res.ok) {
-      router.push('/user/profile?ticket=created');
+      if (res.ok) {
+        toast({ title: 'Ticket submitted', description: 'Your maintenance request has been sent to your property manager.' });
+        router.push('/user/profile?ticket=created');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast({
+          title: 'Failed to submit ticket',
+          description: data.message || 'Something went wrong. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } catch {
+      toast({ title: 'Network error', description: 'Could not reach the server. Check your connection.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -104,8 +124,9 @@ export default function CreateMaintenanceTicketPage() {
               )}
             />
 
-            <Button type='submit' className='w-full bg-indigo-600 hover:bg-indigo-500'>
-              Submit ticket
+            <Button type='submit' disabled={submitting} className='w-full bg-indigo-600 hover:bg-indigo-500'>
+              {submitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              {submitting ? 'Submitting...' : 'Submit ticket'}
             </Button>
           </form>
         </Form>

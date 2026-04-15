@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });
     }
 
-    const { title, description, priority, unitId } = body as {
+    const { title, description, priority, unitId: bodyUnitId } = body as {
       title?: string;
       description?: string;
       priority?: string;
@@ -32,20 +32,24 @@ export async function POST(req: NextRequest) {
     const validPriorities = ['low', 'medium', 'high', 'urgent'];
     const finalPriority = priority && validPriorities.includes(priority) ? priority : 'medium';
 
-    // If unitId is provided, verify the tenant has access to that unit
-    if (unitId) {
+    // Always resolve the tenant's active lease unit — form may not send unitId
+    let resolvedUnitId: string | null = bodyUnitId || null;
+
+    if (!resolvedUnitId) {
+      const activeLease = await prisma.lease.findFirst({
+        where: { tenantId: userId, status: 'active' },
+        select: { unitId: true },
+        orderBy: { startDate: 'desc' },
+      });
+      resolvedUnitId = activeLease?.unitId ?? null;
+    } else {
+      // Verify the tenant actually has access to the provided unitId
       const unit = await prisma.unit.findFirst({
         where: {
-          id: unitId,
-          leases: {
-            some: {
-              tenantId: userId,
-              status: 'active',
-            },
-          },
+          id: resolvedUnitId,
+          leases: { some: { tenantId: userId, status: 'active' } },
         },
       });
-
       if (!unit) {
         return NextResponse.json(
           { success: false, message: 'Unit not found or you do not have access to it' },
@@ -53,6 +57,8 @@ export async function POST(req: NextRequest) {
         );
       }
     }
+
+    const unitId = resolvedUnitId;
 
     const ticket = await prisma.maintenanceTicket.create({
       data: {
@@ -68,10 +74,12 @@ export async function POST(req: NextRequest) {
             property: {
               include: {
                 landlord: {
-                  include: {
-                    owner: {
-                      select: { id: true },
-                    },
+                  select: {
+                    id: true,
+                    ownerUserId: true,
+                    notificationPhone: true,
+                    notifyMaintenanceTickets: true,
+                    smsAlertsEnabled: true,
                   },
                 },
               },
@@ -85,22 +93,36 @@ export async function POST(req: NextRequest) {
     });
 
     // Notify landlord about new maintenance ticket
-    if (ticket.unit?.property?.landlord?.owner?.id) {
-      const landlordId = ticket.unit.property.landlordId;
-      const propertyName = ticket.unit.property.name;
-      const unitName = ticket.unit.name;
+    const landlord = ticket.unit?.property?.landlord;
+    if (landlord?.ownerUserId && landlord.notifyMaintenanceTickets !== false) {
+      const landlordId = ticket.unit!.property.landlordId;
+      const propertyName = ticket.unit!.property.name;
+      const unitName = ticket.unit!.name;
       const tenantName = ticket.tenant?.name || 'Tenant';
       const priorityLabel = finalPriority.charAt(0).toUpperCase() + finalPriority.slice(1);
 
+      // In-app + email notification
       await NotificationService.createNotification({
-        userId: ticket.unit.property.landlord.owner.id,
+        userId: landlord.ownerUserId,
         type: 'maintenance',
         title: `New ${priorityLabel} Priority Maintenance Ticket`,
-        message: `${tenantName} submitted a maintenance request: "${title.trim()}" for ${propertyName} - ${unitName}`,
+        message: `${tenantName} submitted: "${title.trim()}" at ${propertyName} – ${unitName}`,
         actionUrl: `/admin/maintenance`,
         metadata: { ticketId: ticket.id, priority: finalPriority },
         landlordId: landlordId ?? undefined,
       });
+
+      // SMS alert if landlord has it enabled
+      if (landlord.smsAlertsEnabled && landlord.notificationPhone) {
+        const { sendMaintenanceSms } = await import('@/lib/services/sms-service');
+        await sendMaintenanceSms(
+          landlord.notificationPhone,
+          'Property Manager',
+          title.trim(),
+          'open',
+          propertyName
+        );
+      }
     }
 
     return NextResponse.json({ success: true }, { status: 201 });
