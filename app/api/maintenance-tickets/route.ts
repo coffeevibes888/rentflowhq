@@ -94,6 +94,10 @@ export async function POST(req: NextRequest) {
 
     // Notify landlord about new maintenance ticket
     const landlord = ticket.unit?.property?.landlord;
+    console.log('[maintenance] unitId:', unitId);
+    console.log('[maintenance] ticket.unit:', ticket.unit ? 'found' : 'NULL — no unit linked');
+    console.log('[maintenance] landlord:', landlord ? { ownerUserId: landlord.ownerUserId, smsAlertsEnabled: landlord.smsAlertsEnabled, notificationPhone: landlord.notificationPhone } : 'NULL');
+
     if (landlord?.ownerUserId && landlord.notifyMaintenanceTickets !== false) {
       const landlordId = ticket.unit!.property.landlordId;
       const propertyName = ticket.unit!.property.name;
@@ -113,6 +117,7 @@ export async function POST(req: NextRequest) {
       });
 
       // SMS alert if landlord has it enabled
+      console.log('[maintenance] SMS check — smsAlertsEnabled:', landlord.smsAlertsEnabled, '| notificationPhone:', landlord.notificationPhone);
       if (landlord.smsAlertsEnabled && landlord.notificationPhone) {
         const { sendMaintenanceSms } = await import('@/lib/services/sms-service');
         await sendMaintenanceSms(
