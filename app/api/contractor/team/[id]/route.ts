@@ -26,7 +26,8 @@ export async function GET(
       );
     }
 
-    const employee = await prisma.contractorEmployee.findUnique({
+    const db = prisma as any;
+    const employee = await db.contractorEmployee.findUnique({
       where: {
         id: params.id,
         contractorId: contractorProfile.id,
@@ -40,6 +41,15 @@ export async function GET(
         },
         employeeCertifications: true,
         timeOffRequests: true,
+        paychecks: {
+          include: {
+            payroll: {
+              select: { periodStart: true, periodEnd: true, payDate: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 24,
+        },
       },
     });
 

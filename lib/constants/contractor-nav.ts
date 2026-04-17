@@ -20,6 +20,9 @@ import {
   Settings,
   CreditCard,
   UserCircle,
+  DollarSign,
+  Receipt,
+  FileSignature,
   LucideIcon 
 } from 'lucide-react';
 
@@ -182,6 +185,26 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         href: '/contractor/safety',
         icon: Shield,
         requiredTier: 'pro',
+      },
+      {
+        title: 'Payroll',
+        description: 'Run payroll & pay stubs',
+        href: '/contractor/payroll',
+        icon: DollarSign,
+        requiredTier: 'pro',
+      },
+      {
+        title: 'Tax & Financials',
+        description: 'P&L report & 1099 prep',
+        href: '/contractor/finance/tax',
+        icon: Receipt,
+        requiredTier: 'pro',
+      },
+      {
+        title: 'Contracts',
+        description: 'Create & send contracts for signing',
+        href: '/contractor/contracts',
+        icon: FileSignature,
       },
     ],
   },

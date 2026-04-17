@@ -100,6 +100,12 @@ export type ContractorPermission =
   | 'messages.send'
   | 'messages.manage'
   
+  // Payroll
+  | 'payroll.view'
+  | 'payroll.run'
+  | 'payroll.edit'
+  | 'payroll.mark_paid'
+
   // Leads & Marketing
   | 'leads.view'
   | 'leads.create'
@@ -141,6 +147,7 @@ export const CONTRACTOR_ROLES: Record<string, ContractorRoleDefinition> = {
       'trucks.view', 'trucks.create', 'trucks.edit', 'trucks.delete', 'trucks.load', 'trucks.unload', 'trucks.assign',
       'financials.view_summary', 'financials.view_detailed', 'financials.manage',
       'expenses.view', 'expenses.create', 'expenses.approve',
+      'payroll.view', 'payroll.run', 'payroll.edit', 'payroll.mark_paid',
       'reports.view', 'reports.export', 'analytics.view',
       'settings.view', 'settings.edit', 'settings.billing',
       'messages.view', 'messages.send', 'messages.manage',
@@ -170,6 +177,7 @@ export const CONTRACTOR_ROLES: Record<string, ContractorRoleDefinition> = {
       'trucks.view', 'trucks.edit', 'trucks.load', 'trucks.unload', 'trucks.assign',
       'financials.view_summary',
       'expenses.view', 'expenses.create', 'expenses.approve',
+      'payroll.view', 'payroll.run', 'payroll.edit', 'payroll.mark_paid',
       'reports.view', 'reports.export', 'analytics.view',
       'settings.view',
       'messages.view', 'messages.send', 'messages.manage',
@@ -291,6 +299,7 @@ export const CONTRACTOR_ROLES: Record<string, ContractorRoleDefinition> = {
       'equipment.view',
       'financials.view_summary', 'financials.view_detailed',
       'expenses.view', 'expenses.create', 'expenses.approve',
+      'payroll.view',
       'reports.view', 'reports.export', 'analytics.view',
       'messages.view', 'messages.send',
     ],
@@ -336,6 +345,26 @@ export const CONTRACTOR_ROLES: Record<string, ContractorRoleDefinition> = {
     icon: 'Package',
     isDefault: true,
     canBeDeleted: false,
+  },
+
+  payroll_manager: {
+    id: 'payroll_manager',
+    name: 'Payroll Manager',
+    description: 'Runs payroll, manages paychecks, and views financial summaries. Enterprise-tier role.',
+    permissions: [
+      'jobs.view',
+      'team.view',
+      'time.view_all',
+      'financials.view_summary', 'financials.view_detailed',
+      'expenses.view',
+      'payroll.view', 'payroll.run', 'payroll.edit', 'payroll.mark_paid',
+      'reports.view', 'reports.export', 'analytics.view',
+      'messages.view', 'messages.send',
+    ],
+    color: 'teal',
+    icon: 'DollarSign',
+    isDefault: false,
+    canBeDeleted: true,
   },
 
   helper: {
@@ -443,5 +472,8 @@ export const PERMISSION_CATEGORIES = {
   'Sales & Marketing': [
     'leads.view', 'leads.create', 'leads.edit', 'leads.convert',
     'marketing.view', 'marketing.manage'
+  ],
+  'Payroll': [
+    'payroll.view', 'payroll.run', 'payroll.edit', 'payroll.mark_paid'
   ],
 } as const;

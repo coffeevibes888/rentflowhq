@@ -82,3 +82,5 @@ describe('Marketplace Scalability & Performance', () => {
       });
       expect(duration).toBeLessThan(10000); // Under 10 seconds for 50 requests
     });
+  });
+});

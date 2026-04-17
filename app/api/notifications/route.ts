@@ -20,15 +20,18 @@ export async function GET(request: NextRequest) {
     const notifications = await prisma.notification.findMany({
       where: {
         userId: session.user.id,
-        ...(unreadOnly && { read: false }),
+        ...(unreadOnly && { isRead: false }),
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
 
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+
     return NextResponse.json({
       success: true,
       notifications,
+      unreadCount,
     });
   } catch (error) {
     console.error('Error fetching notifications:', error);

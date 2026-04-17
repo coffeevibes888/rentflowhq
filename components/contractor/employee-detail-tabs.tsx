@@ -15,7 +15,9 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Banknote,
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 
 type Employee = {
@@ -29,6 +31,19 @@ type Employee = {
   hireDate: Date;
   payRate: any;
   avgRating: any;
+  paychecks?: Array<{
+    id: string;
+    status: string;
+    grossPay: any;
+    netPay: any;
+    regularHours: any;
+    overtimeHours: any;
+    ptoHours: any;
+    payType: string;
+    paymentMethod: string | null;
+    paidAt: Date | null;
+    payroll: { periodStart: Date; periodEnd: Date; payDate: Date };
+  }>;
   assignments: Array<{
     id: string;
     startDate: Date;
@@ -98,12 +113,13 @@ export function EmployeeDetailTabs({ employee }: { employee: Employee }) {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-100 p-1 rounded-lg">
+      <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 bg-gray-100 p-1 rounded-lg">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="jobs">Jobs</TabsTrigger>
         <TabsTrigger value="time">Time</TabsTrigger>
         <TabsTrigger value="certifications">Certs</TabsTrigger>
         <TabsTrigger value="timeoff">Time Off</TabsTrigger>
+        <TabsTrigger value="payroll">Payroll</TabsTrigger>
         <TabsTrigger value="performance">Performance</TabsTrigger>
       </TabsList>
 
@@ -453,6 +469,71 @@ export function EmployeeDetailTabs({ employee }: { employee: Employee }) {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </TabsContent>
+
+      {/* Payroll Tab */}
+      <TabsContent value="payroll" className="space-y-4">
+        <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
+          <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Paycheck History</h3>
+              <p className="text-sm text-gray-500 mt-0.5">All processed paychecks for this employee</p>
+            </div>
+            <Link href="/contractor/payroll" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              Payroll →
+            </Link>
+          </div>
+          <div className="p-5">
+            {!employee.paychecks || employee.paychecks.length === 0 ? (
+              <div className="text-center py-12">
+                <Banknote className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <p className="text-gray-600 mb-1">No paychecks yet</p>
+                <p className="text-sm text-gray-500">Paychecks will appear here after payroll is run.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {employee.paychecks.map((pc) => {
+                  const statusColors: Record<string, string> = {
+                    pending: 'bg-amber-100 text-amber-700',
+                    paid: 'bg-emerald-100 text-emerald-700',
+                    void: 'bg-red-100 text-red-700',
+                  };
+                  return (
+                    <div key={pc.id} className="rounded-lg border-2 border-gray-200 bg-white p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Banknote className="h-4 w-4 text-emerald-600" />
+                            <span className="font-medium text-gray-900">
+                              {new Date(pc.payroll.periodStart).toLocaleDateString()} – {new Date(pc.payroll.periodEnd).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            Pay date: {new Date(pc.payroll.payDate).toLocaleDateString()}
+                            {pc.paymentMethod && ` · ${pc.paymentMethod}`}
+                            {pc.paidAt && ` · Paid ${new Date(pc.paidAt).toLocaleDateString()}`}
+                          </p>
+                          <div className="flex gap-4 mt-2 text-sm text-gray-600">
+                            <span>Reg: {Number(pc.regularHours).toFixed(1)}h</span>
+                            {Number(pc.overtimeHours) > 0 && <span>OT: {Number(pc.overtimeHours).toFixed(1)}h</span>}
+                            {Number(pc.ptoHours) > 0 && <span>PTO: {Number(pc.ptoHours).toFixed(1)}h</span>}
+                          </div>
+                        </div>
+                        <div className="text-right ml-4">
+                          <p className="text-lg font-bold text-emerald-600">{formatCurrency(Number(pc.netPay))}</p>
+                          <p className="text-xs text-gray-500">Gross: {formatCurrency(Number(pc.grossPay))}</p>
+                          <Badge className={`mt-1 ${statusColors[pc.status] || 'bg-gray-100 text-gray-700'}`}>
+                            {pc.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
