@@ -194,7 +194,7 @@ function PMFeatures() {
     <section className="w-full md:py-10 px-3 md:px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-2 animate-in fade-in duration-700">
-          <h2 className="text-2xl md:text-4xl font-bold text-white">FINALLY A SOLUTION THAT YOU CAN TRUST</h2>
+          <h2 className="text-2xl md:text-4xl font-bold text-black">FINALLY A SOLUTION THAT YOU CAN TRUST</h2>
           <p className="text-sm md:text-lg text-black font-semibold max-w-2xl mx-auto">
             You didn't become a landlord to spend hours on admin work. Here's how we solve your biggest headaches.
           </p>
@@ -243,8 +243,8 @@ function ContractorFeatures() {
     <section className="w-full md:py-10 px-3 md:px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-2 animate-in fade-in duration-700">
-          <h2 className="text-2xl md:text-4xl font-bold text-white">RUN YOUR ENTIRE BUSINESS FROM ONE PLACE</h2>
-          <p className="text-sm md:text-lg text-slate-300 font-semibold max-w-2xl mx-auto">
+          <h2 className="text-2xl md:text-4xl font-bold text-black">RUN YOUR ENTIRE BUSINESS FROM ONE PLACE</h2>
+          <p className="text-sm md:text-lg text-slate-900 font-semibold max-w-2xl mx-auto">
             Stop duct-taping five apps together. Property Flow HQ is built for contractors who want to grow.
           </p>
         </div>
@@ -398,12 +398,12 @@ export default function AudienceSwitcher({
                 <div className="space-y-4 md:space-y-6 text-center lg:text-left">
                   <div className="space-y-2 md:space-y-3">
                     <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-                      <span className="block bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent drop-shadow-2xl">Your Properties.</span>
-                      <span className="block bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent drop-shadow-2xl">Your Rules.</span>
-                      <span className="block bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent drop-shadow-2xl">Fully Automated!</span>
+                      <span className="block bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent drop-shadow-2xl text-center">Your Properties.</span>
+                      <span className="block bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent drop-shadow-2xl text-center">Your Rules.</span>
+                      <span className="block bg-gradient-to-r from-blue-600 to-sky-700 bg-clip-text text-transparent drop-shadow-2xl text-center">Fully Automated!</span>
                     </h1>
                     <p className="text-center text-sm sm:text-base md:text-lg font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4 text-black">
-                      Whether you manage 5 units or 500 — We handle everything from applications, rent collections, maintenance requests, and even evictions with ease.
+                      Whether you manage 5 or 500 Units — We handle everything from applications, rent collections, maintenance requests, and even evictions with ease.
                     </p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-3 pt-2">
@@ -414,7 +414,7 @@ export default function AudienceSwitcher({
                       Start Free Today
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
-                    <p className="text-xs md:text-sm text-slate-600 font-medium">14-day free trial • Credit card required</p>
+                    <p className="text-xs md:text-sm text-slate-600 font-medium"> • 14-day free trial •</p>
                   </div>
                 </div>
                 <PMDashboardMock />
@@ -432,11 +432,11 @@ export default function AudienceSwitcher({
                 <div className="space-y-4 md:space-y-6 text-center lg:text-left">
                   <div className="space-y-2 md:space-y-3">
                     <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-                      <span className="block bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent drop-shadow-2xl">Run Your</span>
-                      <span className="block bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent drop-shadow-2xl">Entire Business</span>
-                      <span className="block bg-gradient-to-r from-rose-400 to-amber-400 bg-clip-text text-transparent drop-shadow-2xl">From One Place.</span>
+                      <span className="block bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent drop-shadow-2xl text-center">Run Your</span>
+                      <span className="block bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent drop-shadow-2xl text-center">Entire Business</span>
+                      <span className="block bg-gradient-to-r from-rose-400 to-amber-400 bg-clip-text text-transparent drop-shadow-2xl text-center">From One Place.</span>
                     </h1>
-                    <p className="text-center text-sm sm:text-base md:text-lg font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4 text-slate-300">
+                    <p className="text-center text-sm sm:text-base md:text-lg font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4 text-slate-900">
                       Jobs, invoices, leads, team scheduling, inventory, payroll, and your own branded marketplace profile — all in one platform built for contractors.
                     </p>
                   </div>
@@ -448,7 +448,7 @@ export default function AudienceSwitcher({
                       Start Free Today
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
-                    <p className="text-xs md:text-sm text-slate-400 font-medium">14-day free trial • Credit card required</p>
+                    <p className="text-xs md:text-sm text-slate-400 font-medium"> • 14-day free trial • </p>
                   </div>
                 </div>
                 <ContractorDashboardMock />

@@ -1,8 +1,8 @@
-import { Shield, Lock, CreditCard, CheckCircle2, Users, Building2 } from 'lucide-react';
+import { Shield, Lock, CreditCard, CheckCircle2 } from 'lucide-react';
 
 export default function TrustBadges() {
   return (
-    <section className='w-full py-8 md:py-12 px-3 md:px-4'>
+    <section className='w-full py-8 md:py-12 px-3 md:px-4 '>
       <div className='max-w-6xl mx-auto'>
         <div className='rounded-2xl border border-slate-200 bg-white shadow-md p-6 md:p-8'>
           <div className='text-center mb-6 md:mb-8'>
@@ -14,7 +14,7 @@ export default function TrustBadges() {
             </p>
           </div>
 
-          <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6'>
+          <div className='flex flex-wrap justify-center gap-6 md:gap-10'>
             {/* SSL Secured */}
             <div className='flex flex-col items-center text-center space-y-2'>
               <div className='rounded-full bg-emerald-500/20 p-3 border border-emerald-500/30'>
@@ -56,28 +56,6 @@ export default function TrustBadges() {
               <div>
                 <p className='text-xs md:text-sm font-semibold text-slate-900'>99.9% Uptime</p>
                 <p className='text-[10px] md:text-xs text-slate-600'>Always available</p>
-              </div>
-            </div>
-
-            {/* Active Users */}
-            <div className='flex flex-col items-center text-center space-y-2'>
-              <div className='rounded-full bg-amber-500/20 p-3 border border-amber-500/30'>
-                <Users className='h-5 w-5 md:h-6 md:w-6 text-amber-400' />
-              </div>
-              <div>
-                <p className='text-xs md:text-sm font-semibold text-slate-900'>1,000+</p>
-                <p className='text-[10px] md:text-xs text-slate-600'>Active landlords</p>
-              </div>
-            </div>
-
-            {/* Units Managed */}
-            <div className='flex flex-col items-center text-center space-y-2'>
-              <div className='rounded-full bg-rose-500/20 p-3 border border-rose-500/30'>
-                <Building2 className='h-5 w-5 md:h-6 md:w-6 text-rose-400' />
-              </div>
-              <div>
-                <p className='text-xs md:text-sm font-semibold text-slate-900'>50,000+</p>
-                <p className='text-[10px] md:text-xs text-slate-600'>Units managed</p>
               </div>
             </div>
           </div>

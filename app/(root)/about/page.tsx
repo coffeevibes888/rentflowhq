@@ -11,11 +11,10 @@ const AboutPage = () => {
     <main className="w-full min-h-screen py-10">
       <div className="container mx-auto max-w-6xl px-4 md:px-6">
         <header className="space-y-2 mb-10 text-center">
-          <p className="text-xs tracking-[0.3em] uppercase text-violet-300">About</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-[0_0_35px_rgba(139,92,246,0.4)]">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-black drop-shadow-[0_0_35px_rgba(139,92,246,0.4)]">
             Property Flow HQ
           </h1>
-          <p className="max-w-2xl mx-auto text-sm md:text-base text-gray-200/90">
+          <p className="max-w-2xl mx-auto text-sm md:text-base text-slate-900">
             Built by a property manager, for property managers. This is the story behind the platform.
           </p>
         </header>

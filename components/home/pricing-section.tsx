@@ -334,18 +334,6 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
             );
           })}
         </div>
-
-        {/* Bottom note */}
-        <div className="mt-16 text-center">
-          <p className="text-black text-sm">
-            All plans include SSL security, 99.9% uptime, and 24/7 monitoring.
-            <br />
-            <span className="text-slate-500">Questions? </span>
-            <a href="/contact" className="text-blue-800 hover:text-violet-300 underline underline-offset-2">
-              Talk to our team
-            </a>
-          </p>
-        </div>
       </div>
     </section>
   );
