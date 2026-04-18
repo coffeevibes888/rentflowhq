@@ -17,8 +17,8 @@ const Profile = async () => {
           <div className='flex flex-col gap-4'>
             <div className='flex flex-col md:flex-row md:items-end md:justify-between gap-4'>
               <div>
-                <h1 className='text-3xl md:text-4xl font-bold text-white mb-2'>Profile Settings</h1>
-                <p className='text-slate-400'>Manage your account information and preferences</p>
+                <h1 className='text-3xl md:text-4xl font-bold text-black mb-2'>Profile Settings</h1>
+                <p className='text-slate-900'>Manage your account information and preferences</p>
               </div>
               {/* <Link
                 href='/user/maintenance/create'

@@ -76,7 +76,7 @@ const ProfileForm = () => {
 
   return (
     <div className='space-y-8'>
-      <div className='bg-slate-900/60 border border-white/10 rounded-xl p-8 shadow-lg'>
+      <div className='bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-xl p-8 shadow-lg'>
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-8 items-start'>
           <div className='flex flex-col items-center'>
             <h3 className='text-xl font-semibold text-white mb-6'>Avatar</h3>
@@ -87,7 +87,7 @@ const ProfileForm = () => {
           </div>
 
           <div className='lg:col-span-2'>
-            <h3 className='text-xl font-semibold text-white mb-6'>Basic Information</h3>
+            <h3 className='text-xl font-semibold text-slate-200 mb-6'>Basic Information</h3>
             <Form {...form}>
               <form
                 className='space-y-6'
@@ -103,7 +103,7 @@ const ProfileForm = () => {
                           <Input
                             disabled
                             placeholder='Email'
-                            className='input-field bg-slate-800/30 border-white/5 text-slate-500 placeholder:text-slate-600'
+                            className='input-field bg-slate-900 border-white/5 text-slate-500 placeholder:text-slate-600'
                             {...field}
                           />
                         </FormControl>
@@ -131,7 +131,7 @@ const ProfileForm = () => {
                 <Button
                   type='submit'
                   size='lg'
-                  className='w-full bg-gradient-to-r from-indigo-600 to-teal-600 hover:from-indigo-500 hover:to-teal-500 text-white'
+                  className='w-full bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 hover:from-indigo-500 hover:to-teal-500 text-white'
                   disabled={form.formState.isSubmitting}
                 >
                   {form.formState.isSubmitting ? 'Submitting...' : 'Update Profile'}
@@ -143,7 +143,7 @@ const ProfileForm = () => {
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
-        <div className='bg-slate-900/60 border border-white/10 rounded-xl p-8 shadow-lg'>
+        <div className='bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-xl p-8 shadow-lg'>
           <h3 className='text-xl font-semibold text-white mb-6'>Addresses</h3>
           <AddressForm 
             initialAddress={userAddress}
@@ -152,11 +152,11 @@ const ProfileForm = () => {
           />
         </div>
 
-        <div className='bg-slate-900/60 border border-white/10 rounded-xl p-8 shadow-lg'>
+        <div className='bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-xl p-8 shadow-lg'>
           <h3 className='text-xl font-semibold text-white mb-6'>Phone Number</h3>
           {session?.user?.phoneNumber ? (
             <div className='space-y-4'>
-              <div className='p-4 bg-slate-800/60 border border-white/10 rounded-lg'>
+              <div className='p-4 bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 border border-white/10 rounded-lg'>
                 <p className='text-sm text-gray-300'>Phone Number on File</p>
                 <p className='text-lg font-semibold text-white mt-2'>{session.user.phoneNumber}</p>
                 {session?.user?.phoneVerified && (
@@ -189,7 +189,7 @@ const ProfileForm = () => {
           )}
 
           {showPhoneVerification && (
-            <div className='mt-6 p-4 bg-slate-800/60 border border-white/10 rounded-lg'>
+            <div className='mt-6 p-4 bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-lg'>
               <PhoneVerification
                 mode={session?.user?.phoneNumber ? 'verify' : 'add'}
                 onPhoneVerified={() => {
@@ -202,7 +202,7 @@ const ProfileForm = () => {
         </div>
       </div>
 
-      <div className='bg-slate-900/60 border border-white/10 rounded-xl p-8 shadow-lg'>
+      <div className='bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-xl p-8 shadow-lg'>
         <h3 className='text-xl font-semibold text-white mb-6'>Payment Methods</h3>
         <Suspense fallback={
           <div className='text-center text-gray-400 py-8'>

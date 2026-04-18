@@ -63,8 +63,8 @@ export default function AvatarUpload({ currentImage, userName }: AvatarUploadPro
             />
           </div>
         ) : (
-          <div className='w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center'>
-            <span className='text-gray-400 font-semibold text-2xl'>
+          <div className='w-24 h-24 rounded-full bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 flex items-center justify-center'>
+            <span className='text-black font-semibold text-2xl'>
               {userName?.charAt(0).toUpperCase() || 'U'}
             </span>
           </div>

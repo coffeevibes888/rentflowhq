@@ -63,6 +63,12 @@ export async function getSuperAdminInsights() {
       newLandlordsThisWeek,
       newLandlordsThisMonth,
       failedPaymentsCount,
+      // Contractor data
+      contractorCount,
+      contractorTierBreakdown,
+      contractorJobCount,
+      newContractorsThisWeek,
+      newContractorsThisMonth,
     ] = await Promise.all([
       prisma.landlord.findMany({
         where: {
@@ -163,6 +169,23 @@ export async function getSuperAdminInsights() {
           status: 'failed',
           updatedAt: { gte: thirtyDaysAgo },
         },
+      }),
+      // Total contractors with profiles
+      prisma.contractorProfile.count(),
+      // Contractor subscription tier breakdown
+      prisma.contractorProfile.groupBy({
+        by: ['subscriptionTier'],
+        _count: { id: true },
+      }),
+      // Total contractor jobs ever processed
+      prisma.contractorJob.count(),
+      // New contractors this week
+      prisma.contractorProfile.count({
+        where: { createdAt: { gte: sevenDaysAgo } },
+      }),
+      // New contractors this month
+      prisma.contractorProfile.count({
+        where: { createdAt: { gte: thirtyDaysAgo } },
       }),
     ]);
 
@@ -439,6 +462,27 @@ export async function getSuperAdminInsights() {
       landlordSubdomain: p.landlord?.subdomain || '',
     }));
 
+    // Build contractor subscription breakdown from groupBy result
+    const contractorSubscriptionBreakdown = {
+      starter: 0,
+      pro: 0,
+      enterprise: 0,
+    };
+    for (const row of contractorTierBreakdown) {
+      const tier = normalizeTierName(row.subscriptionTier);
+      if (tier === 'starter') contractorSubscriptionBreakdown.starter += row._count.id;
+      else if (tier === 'pro') contractorSubscriptionBreakdown.pro += row._count.id;
+      else if (tier === 'enterprise') contractorSubscriptionBreakdown.enterprise += row._count.id;
+    }
+
+    const contractorStats = {
+      total: contractorCount,
+      subscriptionBreakdown: contractorSubscriptionBreakdown,
+      totalJobs: contractorJobCount,
+      newThisWeek: newContractorsThisWeek,
+      newThisMonth: newContractorsThisMonth,
+    };
+
     return {
       landlordsCount,
       propertyManagersCount,
@@ -469,6 +513,7 @@ export async function getSuperAdminInsights() {
       recentSignups,
       systemHealth,
       recentPayouts: recentPayoutsFormatted,
+      contractorStats,
     };
   } catch (error) {
     console.error('Failed to load super admin insights', formatError(error));
@@ -507,6 +552,13 @@ export async function getSuperAdminInsights() {
       recentSignups: { usersThisWeek: 0, usersThisMonth: 0, landlordsThisWeek: 0, landlordsThisMonth: 0 },
       systemHealth: { failedPaymentsLast30Days: 0, overduePayments: 0 },
       recentPayouts: [],
+      contractorStats: {
+        total: 0,
+        subscriptionBreakdown: { starter: 0, pro: 0, enterprise: 0 },
+        totalJobs: 0,
+        newThisWeek: 0,
+        newThisMonth: 0,
+      },
     };
   }
 }

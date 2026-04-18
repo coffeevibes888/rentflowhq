@@ -123,11 +123,11 @@ export default function PayRentClient({
       <div className='min-h-screen'>
         <div className='max-w-4xl mx-auto px-4 py-12'>
           <div className='text-center space-y-6'>
-            <div className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-800/50 border border-slate-700'>
+            <div className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-cyan-600/50 border border-cyan-500/50'>
               <Wallet className='w-10 h-10 text-slate-400' />
             </div>
-            <h1 className='text-3xl font-bold text-white'>No Active Lease</h1>
-            <p className='text-slate-400 max-w-md mx-auto'>
+            <h1 className='text-3xl font-bold text-slate-800'>No Active Lease</h1>
+            <p className='text-slate-600 max-w-md mx-auto'>
               You don't have an active lease yet. Once your lease is set up, you'll be able to make rent payments here.
             </p>
             <div className='flex flex-col sm:flex-row gap-3 justify-center'>
@@ -137,7 +137,7 @@ export default function PayRentClient({
                 </Button>
               </Link>
               <Link href='/search?category=all'>
-                <Button variant='outline' className='border-slate-600 text-slate-300 hover:bg-slate-800'>
+                <Button variant='outline' className='border-cyan-600 text-cyan-700 hover:bg-cyan-50'>
                   Browse Properties
                 </Button>
               </Link>
@@ -157,7 +157,7 @@ export default function PayRentClient({
             <div className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-amber-500/20 border border-amber-500/30'>
               <FileSignature className='w-10 h-10 text-amber-400' />
             </div>
-            <h1 className='text-3xl font-bold text-white'>Sign Your Lease First</h1>
+            <h1 className='text-3xl font-bold text-slate-800'>Sign Your Lease First</h1>
             <p className='text-amber-200/80 max-w-md mx-auto'>
               Great news! Your application has been approved. Please sign your lease agreement before making any payments.
             </p>
@@ -182,11 +182,11 @@ export default function PayRentClient({
             <div className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-500/30'>
               <CheckCircle2 className='w-10 h-10 text-emerald-400' />
             </div>
-            <h1 className='text-3xl font-bold text-white'>You're All Caught Up!</h1>
-            <p className='text-slate-400 max-w-md mx-auto'>
+            <h1 className='text-3xl font-bold text-slate-800'>You're All Caught Up!</h1>
+            <p className='text-slate-600 max-w-md mx-auto'>
               No payments due right now. Your next rent payment will appear here when it's time.
             </p>
-            <div className='rounded-xl border border-slate-700 bg-slate-800/50 p-6 max-w-sm mx-auto'>
+            <div className='rounded-xl border border-cyan-600/30 bg-linear-to-r from-cyan-700 to-cyan-700 p-6 max-w-sm mx-auto'>
               <p className='text-sm text-slate-400'>Next payment due</p>
               <p className='text-lg font-semibold text-white mt-1'>
                 Day {lease.billingDayOfMonth} of next month
@@ -196,7 +196,7 @@ export default function PayRentClient({
               </p>
             </div>
             <Link href='/user/profile/rent-receipts'>
-              <Button variant='outline' className='border-slate-600 text-slate-300 hover:bg-slate-800'>
+              <Button variant='outline' className='border-cyan-600 text-cyan-700 hover:bg-cyan-50'>
                 View Payment History
               </Button>
             </Link>
@@ -228,7 +228,7 @@ export default function PayRentClient({
       <div className='max-w-5xl mx-auto px-4 py-8 space-y-8'>
         {/* Header */}
         <div className='text-center space-y-2'>
-          <h1 className='text-3xl md:text-4xl font-bold text-white'>Pay Your Rent</h1>
+          <h1 className='text-3xl md:text-4xl font-bold text-slate-800'>Pay Your Rent</h1>
           <p className='text-slate-400'>
             {lease.propertyName} • {lease.unitName}
           </p>
@@ -300,7 +300,7 @@ export default function PayRentClient({
                   className={`relative group text-left rounded-xl border-2 p-5 transition-all duration-200 ${
                     isSelected
                       ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/20'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800'
+                      : 'border-cyan-600/40 bg-linear-to-r from-cyan-700 to-cyan-700 hover:border-cyan-500 hover:opacity-90'
                   }`}
                 >
                   {method.badge && (
@@ -326,7 +326,7 @@ export default function PayRentClient({
                     {method.features.map((feature, i) => (
                       <span
                         key={i}
-                        className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-700/50 text-xs text-slate-300'
+                        className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-900/60 text-xs text-slate-200'
                       >
                         <CheckCircle2 className='w-3 h-3 text-emerald-400' />
                         {feature}
@@ -364,7 +364,7 @@ export default function PayRentClient({
         </div>
 
         {/* Trust Badges */}
-        <div className='rounded-xl border border-slate-700 bg-slate-800/30 p-6'>
+        <div className='rounded-xl border border-cyan-600/30 bg-linear-to-r from-cyan-700 to-cyan-700 p-6'>
           <div className='flex flex-col md:flex-row items-center justify-center gap-6 text-center'>
             <div className='flex items-center gap-3'>
               <div className='w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center'>

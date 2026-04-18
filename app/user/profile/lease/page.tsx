@@ -137,14 +137,14 @@ export default async function UserProfileLeasePage() {
     <div className='w-full min-h-screen px-4 py-8 md:px-8'>
       <div className='max-w-5xl mx-auto space-y-8'>
         <div className='flex flex-col gap-2'>
-          <h1 className='text-3xl md:text-4xl font-bold text-white'>Current Lease</h1>
-          <p className='text-sm md:text-base text-slate-400'>
+          <h1 className='text-3xl md:text-4xl font-bold text-slate-800'>Current Lease</h1>
+          <p className='text-sm md:text-base text-slate-600'>
             Review the key details of your active rental agreement.
           </p>
         </div>
 
         {!lease ? (
-          <div className='bg-slate-900/60 border border-white/10 rounded-xl px-6 py-8 shadow-lg text-sm text-slate-300'>
+          <div className='bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-xl px-6 py-8 shadow-lg text-sm text-slate-300'>
             You don&apos;t have an active lease on file yet. Please contact management if you believe this is a mistake.
           </div>
         ) : (
@@ -170,7 +170,7 @@ export default async function UserProfileLeasePage() {
               </div>
             )}
 
-            <div className='bg-slate-900/60 border border-white/10 rounded-xl p-8 shadow-lg space-y-6 text-sm text-slate-100'>
+            <div className='bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-xl p-8 shadow-lg space-y-6 text-sm text-slate-100'>
             <div className='space-y-2'>
               <p className='text-[11px] font-semibold text-slate-500 uppercase tracking-[0.16em]'>Property</p>
               <p className='text-base md:text-lg font-medium text-white'>

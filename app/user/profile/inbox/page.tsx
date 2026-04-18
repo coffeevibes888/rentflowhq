@@ -139,19 +139,20 @@ export default async function UserInboxPage({
   });
 
   return (
-    <main className="w-full min-h-screen px-4 py-8 md:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between gap-4">
+    <main className="w-full">
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-3xl md:text-4xl font-bold text-white">Inbox</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Inbox</h1>
               {(unreadEmailThreadsCount > 0 || friendRequests.length > 0) && (
                 <span className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-2 py-0.5 text-[11px] font-semibold text-white">
                   {unreadEmailThreadsCount + friendRequests.length}
                 </span>
               )}
             </div>
-            <p className="text-gray-300 text-sm md:text-base">
+            <p className="text-slate-600 text-sm">
               Internal and external email-style messages for your workspace.
             </p>
           </div>
@@ -163,143 +164,142 @@ export default async function UserInboxPage({
           </Link>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1.8fr)]">
-          <div className="space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-4 shadow-inner shadow-slate-950/60 text-sm text-slate-200/90">
-            <FriendRequestsPanel requests={friendRequests} />
+        {/* Gmail-style layout */}
+        <div className="flex gap-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-cyan-900/30" style={{minHeight: '75vh'}}>
+          {/* Sidebar */}
+          <div className="w-52 flex-shrink-0 bg-linear-to-r from-cyan-700 to-cyan-700 border-r border-white/10 flex flex-col text-sm text-slate-200/90">
+            {/* Compose button */}
+            <div className="p-3">
+              <Link
+                href="/user/profile/inbox?folder=compose"
+                className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                  folder === 'compose'
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-cyan-600 hover:bg-cyan-500 text-white'
+                }`}
+              >
+                + Compose
+              </Link>
+            </div>
 
-            <div className="space-y-3">
-              <div className="border-b border-white/10 pb-2">
-                <h2 className="text-[11px] font-semibold text-slate-200 uppercase tracking-[0.18em] mb-2">
-                  Mailboxes
-                </h2>
-                <div className="space-y-1 text-xs text-slate-300">
-                  <Link
-                    href="/user/profile/inbox?folder=inbox"
-                    className={`flex items-center justify-between rounded-lg px-2 py-1 cursor-pointer ${
-                      folder === 'inbox' ? 'bg-slate-800/70 text-slate-50' : 'hover:bg-slate-800/50'
-                    }`}
-                  >
-                    <span>Inbox</span>
-                  </Link>
-                  <Link
-                    href="/user/profile/inbox?folder=sent"
-                    className={`flex items-center justify-between rounded-lg px-2 py-1 cursor-pointer ${
-                      folder === 'sent' ? 'bg-slate-800/70 text-slate-50' : 'hover:bg-slate-800/50'
-                    }`}
-                  >
-                    <span>Sent</span>
-                  </Link>
-                  <Link
-                    href="/user/profile/inbox?folder=drafts"
-                    className={`flex items-center justify-between rounded-lg px-2 py-1 cursor-pointer ${
-                      folder === 'drafts' ? 'bg-slate-800/70 text-slate-50' : 'hover:bg-slate-800/50'
-                    }`}
-                  >
-                    <span>Drafts</span>
-                  </Link>
-                  <Link
-                    href="/user/profile/inbox?folder=archived"
-                    className={`flex items-center justify-between rounded-lg px-2 py-1 cursor-pointer ${
-                      folder === 'archived' ? 'bg-slate-800/70 text-slate-50' : 'hover:bg-slate-800/50'
-                    }`}
-                  >
-                    <span>Archived</span>
-                  </Link>
-                  <Link
-                    href="/user/profile/inbox?folder=compose"
-                    className={`flex items-center justify-between rounded-lg px-2 py-1 cursor-pointer text-[11px] font-semibold ${
-                      folder === 'compose' ? 'bg-slate-800/70 text-indigo-200' : 'text-indigo-300 hover:bg-slate-800/60'
-                    }`}
-                  >
-                    <span>Compose</span>
-                  </Link>
-                </div>
+            {/* Mailboxes */}
+            <div className="px-2 pb-2">
+              <p className="text-[10px] font-bold text-slate-300/60 uppercase tracking-[0.18em] px-2 mb-1">Mailboxes</p>
+              {[
+                { label: 'Inbox', key: 'inbox', count: inboxThreads.length },
+                { label: 'Sent', key: 'sent', count: sentThreads.length },
+                { label: 'Drafts', key: 'drafts', count: draftThreads.length },
+                { label: 'Archived', key: 'archived', count: archivedThreads.length },
+              ].map(({ label, key, count }) => (
+                <Link
+                  key={key}
+                  href={`/user/profile/inbox?folder=${key}`}
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer transition-colors ${
+                    folder === key ? 'bg-cyan-500/40 text-white font-semibold' : 'text-slate-300 hover:bg-cyan-600/40'
+                  }`}
+                >
+                  <span>{label}</span>
+                  {count > 0 && <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full">{count}</span>}
+                </Link>
+              ))}
+            </div>
+
+            {/* Friends */}
+            <div className="px-2 flex-1 overflow-y-auto">
+              <div className="flex items-center justify-between px-2 mb-1">
+                <p className="text-[10px] font-bold text-slate-300/60 uppercase tracking-[0.18em]">People</p>
+                <span className="text-[10px] text-slate-400/80">{friends.length}</span>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-sm font-semibold text-slate-200 uppercase tracking-[0.18em]">
-                    Friends & Coworkers
-                  </h2>
-                  <span className="text-[10px] text-slate-400/90">{friends.length}</span>
-                </div>
-                <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
-                  {friends.length === 0 && (
-                    <p className="text-sm text-slate-400/80">No other users found yet.</p>
-                  )}
+              <FriendRequestsPanel requests={friendRequests} />
+              {friends.length === 0 ? (
+                <p className="text-xs text-slate-400/70 px-3 py-2">No contacts yet.</p>
+              ) : (
+                <div className="space-y-1">
                   {friends.map((u) => (
-                    <div
-                      key={u.id}
-                      className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-xs flex flex-col gap-1"
-                    >
-                      <p className="text-[13px] font-medium text-slate-50">{u.name || 'User'}</p>
-                      <p className="text-[11px] text-slate-300/90 break-all">{u.email}</p>
-                      {u.phoneNumber && (
-                        <p className="text-[11px] text-slate-400/90">Phone: {u.phoneNumber}</p>
-                      )}
+                    <div key={u.id} className="rounded-lg bg-cyan-600/30 border border-white/5 px-3 py-2">
+                      <p className="text-xs font-medium text-white truncate">{u.name || 'User'}</p>
+                      <p className="text-[10px] text-slate-300/80 truncate">{u.email}</p>
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
-          <div className="space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-4 shadow-inner shadow-slate-950/60">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-semibold text-slate-200 uppercase tracking-[0.18em]">
-                Email
-              </h2>
-              <span className="text-[10px] text-slate-400/90">
+          {/* Main email panel */}
+          <div className="flex-1 bg-linear-to-r from-cyan-700 to-cyan-700 flex flex-col overflow-hidden">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-white/10">
+              <h2 className="text-sm font-semibold text-white capitalize">{folder}</h2>
+              <span className="text-[11px] text-slate-300/70">
                 {currentThreads.length} thread{currentThreads.length === 1 ? '' : 's'}
               </span>
             </div>
+
+            {/* Compose form */}
             {folder === 'compose' && (
-              <div
-                id="compose-email"
-                className="mb-3 rounded-xl border border-white/10 bg-slate-950/80 px-3 py-3"
-              >
-                <EmailComposeForm />
+              <div className="p-5">
+                <div className="rounded-xl border border-white/10 bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 p-5">
+                  <EmailComposeForm />
+                </div>
               </div>
             )}
+
+            {/* Thread list */}
             {folder !== 'compose' && (
-              <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+              <div className="flex-1 overflow-y-auto divide-y divide-white/5">
                 {currentThreads.length === 0 && (
-                  <p className="text-sm text-slate-400/80">No messages in this folder yet.</p>
+                  <div className="flex flex-col items-center justify-center h-full py-16 text-center">
+                    <div className="w-16 h-16 rounded-full bg-cyan-600/40 flex items-center justify-center mb-4">
+                      <span className="text-2xl">📭</span>
+                    </div>
+                    <p className="text-sm font-medium text-slate-200">No messages in this folder yet.</p>
+                    <p className="text-xs text-slate-400 mt-1">Messages will appear here when they arrive.</p>
+                  </div>
                 )}
                 {currentThreads.map((p: UserThreadParticipant) => {
-                const t = p.thread;
-                const last = t.messages[0];
-                const preview = last?.content?.slice(0, 120) ?? '';
-                const updated = new Date(t.updatedAt).toLocaleString();
-                const senderLabel = (() => {
-                  if (t.fromEmail) {
-                    const atIndex = t.fromEmail.indexOf('@');
-                    if (atIndex !== -1 && atIndex < t.fromEmail.length - 1) {
-                      return t.fromEmail.slice(atIndex + 1);
-                    }
-                    return t.fromEmail;
-                  }
-                  if (t.toEmail) return t.toEmail;
-                  return 'Email';
-                })();
+                  const t = p.thread;
+                  const last = t.messages[0];
+                  const preview = last?.content?.slice(0, 160) ?? '';
+                  const updated = new Date(t.updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                  const isUnread = !p.lastReadAt || (last && new Date(last.createdAt) > new Date(p.lastReadAt));
+                  const senderLabel = (() => {
+                    if (t.fromEmail) return t.fromEmail;
+                    if (t.toEmail) return t.toEmail;
+                    return 'PropertyFlow HQ';
+                  })();
+                  const subject = t.subject || senderLabel;
 
-                return (
-                  <Link
-                    key={p.id}
-                    href={`/user/profile/inbox/${p.threadId}`}
-                    className="block rounded-xl border border-white/10 bg-slate-950/70 px-3.5 py-3 text-xs text-slate-200/90 flex flex-col gap-1 hover:border-indigo-400/60 hover:bg-slate-900/90 transition-colors"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300/90">
-                        {senderLabel}
-                      </span>
-                      <span className="text-[10px] text-slate-400/90">{updated}</span>
-                    </div>
-                    <p className="text-[11px] text-slate-300/90 line-clamp-2">
-                      {preview || 'No message content'}
-                    </p>
-                  </Link>
-                );
+                  return (
+                    <Link
+                      key={p.id}
+                      href={`/user/profile/inbox/${p.threadId}`}
+                      className={`flex items-start gap-4 px-5 py-4 hover:bg-cyan-600/30 transition-colors cursor-pointer ${
+                        isUnread ? 'bg-cyan-600/20' : ''
+                      }`}
+                    >
+                      {/* Avatar */}
+                      <div className="flex-shrink-0 w-9 h-9 rounded-full bg-indigo-500/30 flex items-center justify-center text-xs font-bold text-white uppercase">
+                        {senderLabel.charAt(0)}
+                      </div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <span className={`text-sm truncate ${isUnread ? 'font-bold text-white' : 'font-medium text-slate-200'}`}>
+                            {senderLabel}
+                          </span>
+                          <span className="text-[10px] text-slate-400 flex-shrink-0">{updated}</span>
+                        </div>
+                        <p className={`text-xs truncate mb-0.5 ${isUnread ? 'text-white' : 'text-slate-300'}`}>
+                          {subject}
+                        </p>
+                        <p className="text-[11px] text-slate-400/80 line-clamp-1">
+                          {preview || 'No message content'}
+                        </p>
+                      </div>
+                      {isUnread && <div className="flex-shrink-0 w-2 h-2 rounded-full bg-indigo-400 mt-2" />}
+                    </Link>
+                  );
                 })}
               </div>
             )}

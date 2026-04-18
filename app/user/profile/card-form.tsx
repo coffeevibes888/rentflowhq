@@ -191,7 +191,7 @@ export default function CardForm({
         />
 
         {!isEditing && (
-          <div className='border rounded-lg p-4 bg-white'>
+          <div className='border rounded-lg p-4 bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500'>
             <FormLabel className='block mb-2'>Card Details</FormLabel>
             <CardElement
               options={{
@@ -213,7 +213,7 @@ export default function CardForm({
         )}
 
         {isEditing && (
-          <div className='border border-white/10 rounded-lg p-4 bg-slate-800/60'>
+          <div className='border border-white/10 rounded-lg p-4 bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500'>
             <p className='text-sm text-slate-300'>
               {initialData?.brand} •••• {initialData?.last4}
               {initialData?.expirationDate && (

@@ -63,12 +63,12 @@ export default function CreateMaintenanceTicketPage() {
     <main className='w-full min-h-screen px-4 py-8 md:px-8'>
       <div className='max-w-2xl mx-auto space-y-6'>
         <div>
-          <h1 className='text-2xl md:text-3xl font-bold text-white mb-1'>Create Maintenance Ticket</h1>
-          <p className='text-sm text-slate-400'>Tell us what&apos;s wrong with your unit or property so our team can help.</p>
+          <h1 className='text-2xl md:text-3xl font-bold text-slate-800 mb-1'>Create Maintenance Ticket</h1>
+          <p className='text-sm text-slate-600'>Tell us what&apos;s wrong with your unit or property so our team can help.</p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 bg-slate-900/60 rounded-xl border border-white/10 p-6 shadow-lg'>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 bg-linear-to-r from-cyan-700 to-cyan-700 rounded-xl border border-white/10 p-6 shadow-lg'>
             <FormField
               control={form.control}
               name='title'
@@ -76,7 +76,7 @@ export default function CreateMaintenanceTicketPage() {
                 <FormItem>
                   <FormLabel>Issue title</FormLabel>
                   <FormControl>
-                    <Input placeholder='e.g. Bathroom sink leaking' className='bg-slate-800/60 border-white/10 text-white placeholder:text-slate-500' {...field} />
+                    <Input placeholder='e.g. Bathroom sink leaking' className='bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 border-white/10 text-white placeholder:text-white/60' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -93,7 +93,7 @@ export default function CreateMaintenanceTicketPage() {
                     <Textarea
                       rows={5}
                       placeholder='Describe the problem, when it started, and any access notes (pets, alarm, etc.)'
-                      className='bg-slate-800/60 border-white/10 text-white placeholder:text-slate-500'
+                      className='bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 border-white/10 text-white placeholder:text-white/60'
                       {...field}
                     />
                   </FormControl>
@@ -110,7 +110,7 @@ export default function CreateMaintenanceTicketPage() {
                   <FormLabel>Priority</FormLabel>
                   <FormControl>
                     <select
-                      className='w-full rounded-md border border-white/10 bg-slate-800/60 px-3 py-2 text-sm text-white'
+                      className='w-full rounded-md border border-white/10 bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 px-3 py-2 text-sm text-white'
                       {...field}
                     >
                       <option value='low'>Low</option>

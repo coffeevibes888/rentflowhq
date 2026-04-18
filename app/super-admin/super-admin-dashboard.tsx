@@ -4,13 +4,6 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import type { Session } from "next-auth";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
   Table,
   TableBody,
   TableCell,
@@ -20,7 +13,6 @@ import {
 } from "@/components/ui/table";
 import PropertyManagement from "@/components/super-admin/property-management";
 import { formatCurrency, formatDateTime, formatNumber } from "@/lib/utils";
-import DashboardOverview from "../admin/overview/dashboard-overview";
 import UserManagement from "@/components/super-admin/user-management";
 import LandlordDetailModal from "@/components/super-admin/landlord-detail-modal";
 import TierManager from "@/components/super-admin/tier-manager";
@@ -34,7 +26,13 @@ import {
   Settings, 
   Layers,
   Menu,
-  X
+  X,
+  HardHat,
+  FileSearch,
+  Share2,
+  Mail,
+  ShieldCheck,
+  ExternalLink
 } from "lucide-react";
 
 const views = [
@@ -44,9 +42,18 @@ const views = [
   { id: "engagement", label: "Engagement", icon: MousePointerClick },
   { id: "users", label: "Users & Sessions", icon: Users },
   { id: "portfolio", label: "Portfolio & Revenue", icon: Building2 },
+  { id: "contractors", label: "Contractors", icon: HardHat },
   { id: "properties", label: "Properties", icon: Building2 },
   { id: "management", label: "User Management", icon: Settings },
   { id: "tiers", label: "Tier Testing", icon: Layers },
+] as const;
+
+const externalViews = [
+  { id: "audit-logs", label: "Audit Logs", href: "/super-admin/audit-logs", icon: FileSearch },
+  { id: "affiliates", label: "Affiliates", href: "/super-admin/affiliates", icon: Share2 },
+  { id: "referrals", label: "Referrals", href: "/super-admin/referrals", icon: Share2 },
+  { id: "newsletter", label: "Newsletter", href: "/super-admin/newsletter", icon: Mail },
+  { id: "security", label: "Security", href: "/super-admin/security", icon: ShieldCheck },
 ] as const;
 
 type TopPage = { path: string; _count: { _all: number } };
@@ -87,6 +94,7 @@ type OverviewSummary = {
   salesData: { month: string; totalSales: number }[];
 };
 type StoreSummary = OverviewSummary & { latestSales: LatestSale[] };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RentTotals = { day: number; week: number; month: number; year: number };
 type LandlordPortfolio = { id: string; name: string; subdomain: string; properties: number; units: number; tenants: number; rentCollected: number; subscriptionTier?: string };
 type LocationBreakdown = { state?: string; city?: string; count: number };
@@ -102,6 +110,14 @@ type MaintenanceSummary = { open: number; inProgress: number; resolved: number; 
 type RecentSignups = { usersThisWeek: number; usersThisMonth: number; landlordsThisWeek: number; landlordsThisMonth: number };
 type SystemHealth = { failedPaymentsLast30Days: number; overduePayments: number };
 type RecentPayout = { id: string; amount: number; status: string; initiatedAt: string; paidAt: string | null; landlordName: string; landlordSubdomain: string };
+
+type ContractorStats = {
+  total: number;
+  subscriptionBreakdown: { starter: number; pro: number; enterprise: number };
+  totalJobs: number;
+  newThisWeek: number;
+  newThisMonth: number;
+};
 
 type SuperAdminInsights = {
   landlordsCount: number;
@@ -132,13 +148,14 @@ type SuperAdminInsights = {
   recentSignups?: RecentSignups;
   systemHealth?: SystemHealth;
   recentPayouts?: RecentPayout[];
+  contractorStats?: ContractorStats;
 };
 
 type LandlordRow = { id: string; name: string; ownerUserId: string };
 
 interface SuperAdminDashboardProps {
   userEmail: string;
-  summary: StoreSummary;
+  summary?: StoreSummary;
   analytics: AnalyticsSummary;
   insights?: SuperAdminInsights;
   users?: UserRow[];
@@ -169,15 +186,6 @@ function parseOS(userAgent?: string | null): string {
   return "Other";
 }
 
-// Gradient card component for consistency
-function GradientCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-600 p-4 ${className}`}>
-      {children}
-    </div>
-  );
-}
-
 // Stat card component
 function StatCard({ label, value, subtext, variant = "default" }: { 
   label: string; 
@@ -206,7 +214,8 @@ function StatCard({ label, value, subtext, variant = "default" }: {
 
 const SuperAdminDashboard = ({
   userEmail,
-  summary,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  summary: _summary,
   analytics,
   insights,
   users: initialUsers,
@@ -355,11 +364,32 @@ const SuperAdminDashboard = ({
         </div>
       </div>
 
-      {/* Store Performance */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-white">Store Performance</h2>
-        <DashboardOverview summary={summary} />
-      </div>
+      {/* Contractor Snapshot */}
+      {insights?.contractorStats && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Contractors</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard label="Total Contractors" value={formatNumber(insights.contractorStats.total)} variant="gradient" />
+            <StatCard label="Total Jobs Processed" value={formatNumber(insights.contractorStats.totalJobs)} />
+            <StatCard label="New (7 days)" value={formatNumber(insights.contractorStats.newThisWeek)} />
+            <StatCard label="New (30 days)" value={formatNumber(insights.contractorStats.newThisMonth)} />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="rounded-xl bg-slate-950/50 border border-slate-800/50 p-4">
+              <p className="text-xs text-slate-400 mb-1">Starter</p>
+              <p className="text-2xl font-bold text-slate-300">{formatNumber(insights.contractorStats.subscriptionBreakdown.starter)}</p>
+            </div>
+            <div className="rounded-xl bg-violet-950/50 border border-violet-800/50 p-4">
+              <p className="text-xs text-violet-400 mb-1">Pro</p>
+              <p className="text-2xl font-bold text-violet-300">{formatNumber(insights.contractorStats.subscriptionBreakdown.pro)}</p>
+            </div>
+            <div className="rounded-xl bg-amber-950/50 border border-amber-800/50 p-4">
+              <p className="text-xs text-amber-400 mb-1">Enterprise</p>
+              <p className="text-2xl font-bold text-amber-300">{formatNumber(insights.contractorStats.subscriptionBreakdown.enterprise)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Top Pages & Countries */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -412,37 +442,6 @@ const SuperAdminDashboard = ({
         </div>
       </div>
 
-      {/* Recent Orders */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Recent Paid Orders</h2>
-          <Link href="/admin/orders" className="text-xs text-cyan-400 hover:underline">View all</Link>
-        </div>
-        <div className="rounded-xl bg-slate-900/60 border border-white/10 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-white/10">
-                <TableHead className="text-slate-400">Buyer</TableHead>
-                <TableHead className="text-slate-400">Date</TableHead>
-                <TableHead className="text-slate-400">Total</TableHead>
-                <TableHead className="text-right text-slate-400">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {summary.latestSales.slice(0, 8).map((order) => (
-                <TableRow key={order.id} className="border-white/5">
-                  <TableCell className="text-white">{order?.user?.name || "Deleted User"}</TableCell>
-                  <TableCell className="text-slate-300">{formatDateTime(new Date(order.createdAt)).dateOnly}</TableCell>
-                  <TableCell className="text-white font-medium">{formatCurrency(order.totalPrice)}</TableCell>
-                  <TableCell className="text-right">
-                    <Link href={`/order/${order.id}`} className="text-cyan-400 hover:underline text-sm">View</Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
     </div>
   );
 
@@ -759,7 +758,11 @@ const SuperAdminDashboard = ({
                 .sort((a, b) => b.rentCollected - a.rentCollected)
                 .slice(0, 10)
                 .map((ll) => (
-                  <TableRow key={ll.id} className="border-white/5">
+                  <TableRow
+                    key={ll.id}
+                    className="border-white/5 cursor-pointer hover:bg-white/5 transition-colors"
+                    onClick={() => setSelectedLandlordId(ll.id)}
+                  >
                     <TableCell>
                       <div>
                         <p className="font-medium text-white">{ll.name}</p>
@@ -1058,12 +1061,85 @@ const SuperAdminDashboard = ({
   // Properties Content
   const propertiesContent = <PropertyManagement />;
 
+  // Contractors Content
+  const contractorsContent = (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Contractors</h1>
+        <p className="text-sm text-slate-400">Platform-wide contractor overview</p>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Overview</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label="Total Contractors" value={formatNumber(insights?.contractorStats?.total ?? 0)} variant="gradient" />
+          <StatCard label="Total Jobs Processed" value={formatNumber(insights?.contractorStats?.totalJobs ?? 0)} />
+          <StatCard label="New This Week" value={formatNumber(insights?.contractorStats?.newThisWeek ?? 0)} />
+          <StatCard label="New This Month" value={formatNumber(insights?.contractorStats?.newThisMonth ?? 0)} />
+        </div>
+      </div>
+
+      {/* Subscription Breakdown */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Subscription Tiers</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="rounded-xl bg-slate-950/50 border border-slate-800/50 p-5">
+            <p className="text-xs text-slate-400 mb-1">Starter</p>
+            <p className="text-3xl font-bold text-slate-300">{formatNumber(insights?.contractorStats?.subscriptionBreakdown.starter ?? 0)}</p>
+            <p className="text-xs text-slate-500 mt-1">Free tier</p>
+          </div>
+          <div className="rounded-xl bg-violet-950/50 border border-violet-800/50 p-5">
+            <p className="text-xs text-violet-400 mb-1">Pro</p>
+            <p className="text-3xl font-bold text-violet-300">{formatNumber(insights?.contractorStats?.subscriptionBreakdown.pro ?? 0)}</p>
+            <p className="text-xs text-violet-500/70 mt-1">Paid plan</p>
+          </div>
+          <div className="rounded-xl bg-amber-950/50 border border-amber-800/50 p-5">
+            <p className="text-xs text-amber-400 mb-1">Enterprise</p>
+            <p className="text-3xl font-bold text-amber-300">{formatNumber(insights?.contractorStats?.subscriptionBreakdown.enterprise ?? 0)}</p>
+            <p className="text-xs text-amber-500/70 mt-1">Top tier</p>
+          </div>
+        </div>
+      </div>
+
+      {/* MRR Attribution */}
+      {insights?.contractorStats && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-white">Growth Trend</h2>
+          <div className="rounded-xl bg-slate-900/60 border border-white/10 p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-400">New contractors this week</span>
+              <span className="text-sm font-bold text-white">{insights.contractorStats.newThisWeek}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-400">New contractors this month</span>
+              <span className="text-sm font-bold text-white">{insights.contractorStats.newThisMonth}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-400">Total jobs on platform</span>
+              <span className="text-sm font-bold text-white">{formatNumber(insights.contractorStats.totalJobs)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-400">Avg jobs per contractor</span>
+              <span className="text-sm font-bold text-white">
+                {insights.contractorStats.total > 0
+                  ? (insights.contractorStats.totalJobs / insights.contractorStats.total).toFixed(1)
+                  : '0.0'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   let content = overviewContent;
   if (activeView === "health") content = healthContent;
   else if (activeView === "traffic") content = trafficContent;
   else if (activeView === "engagement") content = engagementContent;
   else if (activeView === "users") content = usersContent;
   else if (activeView === "portfolio") content = portfolioContent;
+  else if (activeView === "contractors") content = contractorsContent;
   else if (activeView === "properties") content = propertiesContent;
   else if (activeView === "management") content = managementContent;
   else if (activeView === "tiers") content = tiersContent;
@@ -1103,6 +1179,24 @@ const SuperAdminDashboard = ({
                 </button>
               );
             })}
+            <div className="pt-2 border-t border-white/10 space-y-1">
+              <p className="text-[10px] text-white/40 px-3 pt-1 uppercase tracking-widest font-semibold">External Pages</p>
+              {externalViews.map((ev) => {
+                const Icon = ev.icon;
+                return (
+                  <Link
+                    key={ev.id}
+                    href={ev.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/10 hover:text-white transition"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {ev.label}
+                    <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
+                  </Link>
+                );
+              })}
+            </div>
             <div className="pt-2 border-t border-white/10">
               <button
                 onClick={handleClearStatistics}
@@ -1124,7 +1218,7 @@ const SuperAdminDashboard = ({
             <p className="text-xs text-white/60 mt-1">Platform Management</p>
           </div>
 
-          <nav className="flex-1 space-y-1">
+          <nav className="flex-1 space-y-1 overflow-y-auto">
             {views.map((view) => {
               const Icon = view.icon;
               return (
@@ -1142,6 +1236,24 @@ const SuperAdminDashboard = ({
                 </button>
               );
             })}
+
+            <div className="pt-3 border-t border-white/10 space-y-1 mt-2">
+              <p className="text-[10px] text-white/40 px-3 pt-1 pb-0.5 uppercase tracking-widest font-semibold">External Pages</p>
+              {externalViews.map((ev) => {
+                const Icon = ev.icon;
+                return (
+                  <Link
+                    key={ev.id}
+                    href={ev.href}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/10 hover:text-white transition"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {ev.label}
+                    <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
+                  </Link>
+                );
+              })}
+            </div>
           </nav>
 
           <div className="pt-4 border-t border-white/10 space-y-3">

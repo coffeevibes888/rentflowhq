@@ -201,8 +201,8 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
     <main className="w-full px-4 py-8 md:px-0">
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">My Rental Applications</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1">My Rental Applications</h1>
+          <p className="text-sm text-slate-600">
             Track the status of your applications and complete verification.
           </p>
         </div>
@@ -265,7 +265,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
 
         {/* Applications List */}
         {applications.length === 0 ? (
-          <div className="bg-slate-900/60 border border-white/10 rounded-xl py-12 text-center">
+          <div className="bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-xl py-12 text-center">
               <FileCheck className="h-12 w-12 text-slate-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">No Applications Yet</h3>
               <p className="text-sm text-slate-400 mb-4">
@@ -289,7 +289,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
                 app.status === 'pending';
               
               return (
-                <div key={app.id} className={`bg-slate-900/60 border rounded-xl overflow-hidden ${needsVerification ? 'border-amber-500/30' : awaitingReview ? 'border-indigo-500/30' : 'border-white/10'}`}>
+                <div key={app.id} className={`bg-linear-to-r from-cyan-700 to-cyan-700 border rounded-xl overflow-hidden ${needsVerification ? 'border-amber-500/30' : awaitingReview ? 'border-indigo-500/30' : 'border-white/10'}`}>
                   <div className="p-5 pb-2">
                     <div className="flex items-start justify-between">
                       <div>
@@ -341,7 +341,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
                             ? 'bg-red-500/10 border-red-500/30'
                             : app.verification?.identityStatus !== 'pending'
                             ? 'bg-indigo-500/10 border-indigo-500/30'
-                            : 'bg-slate-800/60 border-white/10'
+                            : 'bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 border-white/20'
                         }`}>
                           <div className="flex items-center gap-2 mb-1">
                             {app.verification?.identityStatus === 'verified' ? (
@@ -373,7 +373,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
                             ? 'bg-red-500/10 border-red-500/30'
                             : app.verification?.employmentStatus !== 'pending'
                             ? 'bg-indigo-500/10 border-indigo-500/30'
-                            : 'bg-slate-800/60 border-white/10'
+                            : 'bg-linear-to-r from-cyan-400 via-sky-200 to-cyan-500 border-white/20'
                         }`}>
                           <div className="flex items-center gap-2 mb-1">
                             {app.verification?.employmentStatus === 'verified' ? (
