@@ -332,15 +332,15 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
               </DropdownMenu>
             ) : null}
             
-            {/* Cash Out Button - only show if property has bank account */}
-            {cashoutInfo?.canCashOut && cashoutInfo.hasBankAccount && (
+            {/* Payout Info Button - opens Stripe Express dashboard info */}
+            {cashoutInfo?.canCashOut && (
               <Button 
                 variant="outline" 
                 className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs h-8 px-2.5 sm:h-9 sm:px-3"
                 onClick={() => setShowCashoutDialog(true)}
               >
                 <ArrowDownToLine className="w-4 h-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Cash Out</span>
+                <span className="hidden sm:inline">Payouts</span>
               </Button>
             )}
             
@@ -887,23 +887,11 @@ export function PropertyDetailsTabs({ property, rentPayments, landlordId, isPro 
         </DialogContent>
       </Dialog>
 
-      {/* Cashout Dialog */}
-      {cashoutInfo && (
-        <CashoutDialog
-          open={showCashoutDialog}
-          onOpenChange={setShowCashoutDialog}
-          availableBalance={cashoutInfo.availableBalance}
-          properties={[{
-            id: property.id,
-            name: property.name,
-            hasBankAccount: cashoutInfo.hasBankAccount,
-            bankAccount: cashoutInfo.bankAccount,
-          }]}
-          preselectedPropertyId={property.id}
-          defaultBankLast4={cashoutInfo.defaultBankLast4}
-          onSuccess={() => window.location.reload()}
-        />
-      )}
+      {/* Payout Info Dialog */}
+      <CashoutDialog
+        open={showCashoutDialog}
+        onOpenChange={setShowCashoutDialog}
+      />
     </main>
   );
 }

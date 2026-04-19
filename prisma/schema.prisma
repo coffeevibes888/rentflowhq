@@ -3672,6 +3672,9 @@ model ContractorProfile {
   safetyChecklists      ContractorSafetyChecklist[]
   safetyCompletions     ContractorSafetyChecklistCompletion[]
   dispatchBoards        ContractorDispatchBoard[]
+  labelConfigs          ContractorLabelConfig[]
+  labels                ContractorLabel[]
+  shipments             ContractorShipment[]
 
   @@index([slug])
   @@index([rankScore])
@@ -5584,6 +5587,8 @@ model ContractorInventoryItem {
   jobMaterials ContractorJobMaterial[]
   receivingHistory ContractorInventoryReceiving[]
   purchaseOrderItems ContractorPurchaseOrderItem[]
+  labels           ContractorLabel[]
+  shipmentItems    ContractorShipmentItem[]
 
   @@index([contractorId])
   @@index([vendorId])
@@ -6884,4 +6889,154 @@ model ContractorDispatchBoard {
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
 
   @@index([contractorId])
+}
+
+// ContractorLabelConfig - Per-contractor label format settings
+model ContractorLabelConfig {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+
+  name         String          // e.g. "Warehouse Storage Label", "Shipping Label"
+  labelType    String          // storage | shipping | receiving | item
+  isDefault    Boolean @default(false)
+
+  // Number sequence settings
+  prefix       String?         // e.g. "CON-", "CEMENT-", "01-", or blank
+  suffix       String?         // e.g. "-2026", or blank
+  sequenceType String @default("sequential") // sequential | random | date_prefix | custom
+  currentSeq   Int    @default(0)           // current counter for sequential
+  padLength    Int    @default(4)           // zero-padding: 4 = "0001"
+  startAt      Int    @default(1)           // start number for sequential
+
+  // Label layout
+  showLogo       Boolean @default(true)
+  showBarcode    Boolean @default(true)
+  showLocation   Boolean @default(true)
+  showDate       Boolean @default(true)
+  showQty        Boolean @default(true)
+  showItemName   Boolean @default(true)
+  showSku        Boolean @default(true)
+  showNotes      Boolean @default(false)
+  labelSize      String  @default("4x6")   // 4x6 | 4x4 | 3x2 | letter
+  copies         Int     @default(1)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  labels     ContractorLabel[]
+
+  @@index([contractorId])
+  @@index([labelType])
+}
+
+// ContractorLabel - Individual printed label records
+model ContractorLabel {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+  configId     String? @db.Uuid
+  itemId       String? @db.Uuid   // linked inventory item, if any
+
+  labelNumber  String              // The generated number/barcode on the label
+  labelType    String              // storage | shipping | receiving | item
+  description  String?             // What this label is for
+
+  // What's on this label (snapshot at print time)
+  itemName     String?
+  sku          String?
+  quantity     Int?
+  unit         String?
+
+  // Location (for storage labels)
+  warehouseZone  String?
+  warehouseAisle String?
+  warehouseShelf String?
+  warehouseBin   String?
+
+  // Shipping / receiving reference
+  shipmentId    String? @db.Uuid
+  receivingId   String? @db.Uuid
+
+  // Status
+  status       String @default("active")  // active | voided | used
+  printedAt    DateTime @default(now()) @db.Timestamp(6)
+  printedCount Int     @default(1)
+
+  notes String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  contractor ContractorProfile     @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  config     ContractorLabelConfig? @relation(fields: [configId], references: [id], onDelete: SetNull)
+  item       ContractorInventoryItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  shipment   ContractorShipment?   @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+
+  @@index([contractorId])
+  @@index([labelNumber])
+  @@index([itemId])
+  @@index([labelType])
+  @@index([status])
+}
+
+// ContractorShipment - Outbound material shipments to job sites or subcontractors
+model ContractorShipment {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+
+  shipmentNumber String            // Auto-generated or manual
+  status         String @default("draft") // draft | packed | in_transit | delivered | cancelled
+
+  // Destination
+  destinationType String?          // job_site | subcontractor | warehouse | customer
+  destinationId   String?          // jobId, subcontractorId, etc.
+  destinationName String?
+  destinationAddress String?
+
+  // Origin
+  fromWarehouseZone String?
+
+  // Carrier / tracking
+  carrier         String?
+  trackingNumber  String?
+  estimatedDelivery DateTime? @db.Timestamp(6)
+  deliveredAt     DateTime?  @db.Timestamp(6)
+
+  notes    String?
+  shipDate DateTime? @db.Timestamp(6)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  contractor ContractorProfile      @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  items      ContractorShipmentItem[]
+  labels     ContractorLabel[]
+
+  @@index([contractorId])
+  @@index([shipmentNumber])
+  @@index([status])
+}
+
+// ContractorShipmentItem - Line items in a shipment
+model ContractorShipmentItem {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shipmentId String @db.Uuid
+  itemId     String @db.Uuid
+
+  quantityShipped Int
+  unit            String?
+  notes           String?
+
+  // Location pulled from
+  fromZone  String?
+  fromAisle String?
+  fromShelf String?
+  fromBin   String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  shipment ContractorShipment     @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  item     ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@index([itemId])
 }

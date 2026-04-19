@@ -209,16 +209,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Mark rent payments as paid
-    const now = new Date();
+    // Mark rent payments as processing — ACH takes 1-5 business days to clear.
+    // The webhook (payment_intent.succeeded) will update status to 'paid' when funds settle.
     const result = await prisma.rentPayment.updateMany({
       where: {
         stripePaymentIntentId: finalPaymentIntentId,
         tenantId: session.user.id as string,
       },
       data: {
-        status: 'paid',
-        paidAt: now,
+        status: confirmed.status === 'succeeded' ? 'paid' : 'processing',
+        paidAt: confirmed.status === 'succeeded' ? new Date() : null,
         paymentMethod: 'ach',
       },
     });
@@ -229,8 +229,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'ACH payment processed successfully',
+      message: confirmed.status === 'succeeded'
+        ? 'ACH payment completed successfully.'
+        : 'ACH payment submitted. Funds typically arrive in 1-5 business days.',
       paymentIntentId: confirmed.id,
+      status: confirmed.status,
     });
   } catch (error) {
     console.error('ACH payment error:', error);

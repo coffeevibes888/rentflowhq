@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,305 +9,112 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle2, Building2, Wallet } from 'lucide-react';
-
-interface PropertyWithBankAccount {
-  id: string;
-  name: string;
-  hasBankAccount: boolean;
-  bankAccount: {
-    last4: string;
-    bankName: string | null;
-    isVerified: boolean;
-  } | null;
-}
+import { CheckCircle2, ExternalLink, Landmark, ArrowRight } from 'lucide-react';
 
 interface CashoutDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  availableBalance: number;
-  properties: PropertyWithBankAccount[];
-  preselectedPropertyId?: string;
-  defaultBankLast4?: string | null;
-  onSuccess: () => void;
 }
 
 export default function CashoutDialog({
   open,
   onOpenChange,
-  availableBalance,
-  properties,
-  preselectedPropertyId,
-  defaultBankLast4,
-  onSuccess,
 }: CashoutDialogProps) {
-  const [amount, setAmount] = useState('');
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('default');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  // Reset state when dialog opens
-  useEffect(() => {
-    if (open) {
-      setAmount('');
-      setSelectedPropertyId(preselectedPropertyId || 'default');
-      setError(null);
-    }
-  }, [open, preselectedPropertyId]);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
-  };
-
-  const parseAmount = (value: string): number => {
-    const cleaned = value.replace(/[^0-9.]/g, '');
-    return parseFloat(cleaned) || 0;
-  };
-
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.]/g, '');
-    // Only allow one decimal point and max 2 decimal places
-    const parts = value.split('.');
-    if (parts.length > 2) return;
-    if (parts[1] && parts[1].length > 2) return;
-    setAmount(value);
-    setError(null);
-  };
-
-  const handleCashOutAll = () => {
-    setAmount(availableBalance.toFixed(2));
-    setError(null);
-  };
-
-  const getSelectedDestination = () => {
-    if (selectedPropertyId === 'default') {
-      return {
-        label: 'Default Account',
-        bankInfo: defaultBankLast4 ? `****${defaultBankLast4}` : 'Connected via Stripe',
-      };
-    }
-    const property = properties.find((p) => p.id === selectedPropertyId);
-    if (property?.bankAccount) {
-      return {
-        label: property.name,
-        bankInfo: property.bankAccount.bankName
-          ? `${property.bankAccount.bankName} ****${property.bankAccount.last4}`
-          : `****${property.bankAccount.last4}`,
-      };
-    }
-    return { label: 'Unknown', bankInfo: '' };
-  };
-
-  const validateAmount = (): string | null => {
-    const numAmount = parseAmount(amount);
-    if (!amount || numAmount === 0) {
-      return 'Please enter an amount';
-    }
-    if (numAmount < 1) {
-      return 'Minimum cashout is $1.00';
-    }
-    if (numAmount > availableBalance) {
-      return 'Amount exceeds available balance';
-    }
-    return null;
-  };
-
-  const handleSubmit = async () => {
-    const validationError = validateAmount();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
+  const openStripeDashboard = async () => {
+    setLoading(true);
     try {
-      const numAmount = parseAmount(amount);
-      const propertyId = selectedPropertyId === 'default' ? undefined : selectedPropertyId;
-
-      const res = await fetch('/api/landlord/payouts/cash-out', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: numAmount,
-          propertyId,
-          type: 'standard',
-        }),
-      });
-
-      const data = await res.json().catch(() => null) as
-        | { success?: boolean; message?: string; netAmount?: number }
-        | null;
-
-      if (res.ok && data?.success) {
-        toast({
-          title: 'Payout initiated!',
-          description: data.message || 'Payout initiated.',
-        });
-        onOpenChange(false);
-        onSuccess();
-      } else {
-        setError(data?.message || 'Failed to process payout');
+      const res = await fetch('/api/landlord/stripe/dashboard-link', { method: 'POST' });
+      const data = await res.json().catch(() => null) as { url?: string } | null;
+      if (data?.url) {
+        window.open(data.url, '_blank');
       }
-    } catch (err) {
-      setError('An unexpected error occurred');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
-
-  const destination = getSelectedDestination();
-  const propertiesWithAccounts = properties.filter((p) => p.hasBankAccount);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Cash Out</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Landmark className="h-5 w-5 text-emerald-600" />
+            Direct Deposit Active
+          </DialogTitle>
           <DialogDescription>
-            Transfer funds to your bank account
+            Rent payments go directly to your bank account
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Amount Input */}
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-              <Input
-                id="amount"
-                type="text"
-                inputMode="decimal"
-                placeholder="0.00"
-                value={amount}
-                onChange={handleAmountChange}
-                className="pl-7 pr-24"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleCashOutAll}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 text-xs text-emerald-600 hover:text-emerald-700"
-              >
-                Cash Out All
-              </Button>
-            </div>
-            <p className="text-xs text-slate-500">
-              Available: {formatCurrency(availableBalance)}
-            </p>
-          </div>
-
-          {/* Destination Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="destination">Destination</Label>
-            <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
-              <SelectTrigger id="destination">
-                <SelectValue placeholder="Select destination" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">
-                  <div className="flex items-center gap-2">
-                    <Wallet className="h-4 w-4" />
-                    <span>Default Account</span>
-                  </div>
-                </SelectItem>
-                {propertiesWithAccounts.map((property) => (
-                  <SelectItem key={property.id} value={property.id}>
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      <span>{property.name}</span>
-                      <span className="text-slate-400 text-xs">
-                        ****{property.bankAccount?.last4}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Selected Destination Info */}
-          <div className="rounded-lg bg-slate-50 dark:bg-slate-900/50 p-3">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                {selectedPropertyId === 'default' ? (
-                  <Wallet className="h-5 w-5 text-emerald-600" />
-                ) : (
-                  <Building2 className="h-5 w-5 text-emerald-600" />
-                )}
+        <div className="space-y-4 py-2">
+          {/* How it works */}
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
+                  No cash-out step needed
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                  When a tenant pays rent, the money transfers directly into your connected bank account via Stripe. Nothing sits in a platform wallet.
+                </p>
               </div>
-              <div className="flex-1">
-                <p className="font-medium text-sm">{destination.label}</p>
-                <p className="text-xs text-slate-500">{destination.bankInfo}</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
+                  Card payments: 2 business days
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                  Standard Stripe payout schedule applies. ACH bank transfers take 1–5 business days to clear.
+                </p>
               </div>
-              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
             </div>
           </div>
 
-          {/* Transfer Details */}
-          <div className="rounded-lg bg-slate-50 dark:bg-slate-900/50 p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Transfer method</span>
-              <span className="font-medium">Standard ACH</span>
+          {/* Payout schedule info */}
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-900/50 p-4 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Transfer model</span>
+              <span className="font-semibold">Stripe Connect (direct)</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Arrival time</span>
-              <span className="font-medium">2-3 business days</span>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Platform fee on rent</span>
+              <span className="font-semibold text-emerald-600">None</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Fee</span>
-              <span className="font-medium text-emerald-600">Free</span>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Stripe card processing</span>
+              <span className="font-semibold">2.9% + 30¢</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Stripe ACH processing</span>
+              <span className="font-semibold">0.8% (max $5)</span>
             </div>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <p className="text-sm text-red-600 text-center">{error}</p>
-          )}
+          <p className="text-xs text-slate-400 text-center">
+            To manage your payout schedule, bank account, or view transfer history, visit your Stripe Express dashboard.
+          </p>
 
-          {/* Action Buttons */}
           <div className="flex gap-3">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
               className="flex-1"
-              disabled={isSubmitting}
             >
-              Cancel
+              Close
             </Button>
             <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || !amount}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+              onClick={openStripeDashboard}
+              disabled={loading}
+              className="flex-1 bg-[#635BFF] hover:bg-[#5851db] text-white"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Confirm
-                </>
-              )}
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {loading ? 'Opening...' : 'Stripe Dashboard'}
+              {!loading && <ArrowRight className="h-4 w-4 ml-1" />}
             </Button>
           </div>
         </div>

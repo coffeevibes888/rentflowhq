@@ -23,6 +23,8 @@ import {
   DollarSign,
   Receipt,
   FileSignature,
+  Tag,
+  MapPin,
   LucideIcon 
 } from 'lucide-react';
 
@@ -133,6 +135,34 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         description: 'Material orders',
         href: '/contractor/purchase-orders',
         icon: ShoppingCart,
+        requiredTier: 'pro',
+      },
+      {
+        title: 'Receiving Dock',
+        description: 'Log incoming materials',
+        href: '/contractor/receiving',
+        icon: Truck,
+        requiredTier: 'pro',
+      },
+      {
+        title: 'Shipping',
+        description: 'Ship materials to job sites',
+        href: '/contractor/shipping',
+        icon: Package,
+        requiredTier: 'pro',
+      },
+      {
+        title: 'Label Center',
+        description: 'Print & manage labels',
+        href: '/contractor/labels',
+        icon: Tag,
+        requiredTier: 'pro',
+      },
+      {
+        title: 'Find Inventory',
+        description: 'Locate items by name or label',
+        href: '/contractor/inventory/locate',
+        icon: MapPin,
         requiredTier: 'pro',
       },
     ],
