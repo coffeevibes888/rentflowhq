@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { BarcodeScanner } from '@/components/contractor/barcode-scanner';
 
 interface InventoryItem {
   id: string;
@@ -92,6 +93,22 @@ export function ReceivingDockClient({ items, recentReceiving, businessName }: Pr
       i.name.toLowerCase().includes(search.toLowerCase()) ||
       (i.sku ?? '').toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleBarcodeScan = (value: string) => {
+    const match = items.find(
+      (i) =>
+        (i.sku ?? '').toLowerCase() === value.toLowerCase() ||
+        i.name.toLowerCase() === value.toLowerCase()
+    );
+    if (match) {
+      setForm((f) => ({ ...f, itemId: match.id }));
+      setShowForm(true);
+      setSearch(match.name);
+    } else {
+      setSearch(value);
+      setShowForm(true);
+    }
+  };
 
   const selectedItem = items.find((i) => i.id === form.itemId);
 
