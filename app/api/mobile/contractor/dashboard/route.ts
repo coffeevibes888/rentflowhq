@@ -39,17 +39,17 @@ export async function GET(req: NextRequest) {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const [activeJobs, pendingLeads, monthlyJobs, recentJobs, recentLeads] = await Promise.all([
-      prisma.job.count({
-        where: { contractorId, status: { in: ['in_progress', 'dispatched', 'accepted'] } },
+      prisma.contractorJob.count({
+        where: { contractorId, status: { in: ['in_progress', 'scheduled', 'approved'] } },
       }),
-      prisma.contractorLead.count({
+      prisma.contractorLeadMatch.count({
         where: { contractorId, status: 'pending' },
       }),
-      prisma.job.findMany({
+      prisma.contractorJob.findMany({
         where: { contractorId, createdAt: { gte: startOfMonth } },
-        select: { totalAmount: true, status: true },
+        select: { actualCost: true, status: true },
       }),
-      prisma.job.findMany({
+      prisma.contractorJob.findMany({
         where: { contractorId },
         orderBy: { createdAt: 'desc' },
         take: 5,
@@ -57,28 +57,34 @@ export async function GET(req: NextRequest) {
           id: true,
           title: true,
           status: true,
-          totalAmount: true,
+          actualCost: true,
           createdAt: true,
-          property: { select: { address: true } },
+          address: true,
         },
       }),
-      prisma.contractorLead.findMany({
+      prisma.contractorLeadMatch.findMany({
         where: { contractorId },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: {
           id: true,
-          title: true,
           status: true,
-          budget: true,
           createdAt: true,
+          lead: {
+            select: {
+              projectTitle: true,
+              projectType: true,
+              budgetMin: true,
+              budgetMax: true,
+            },
+          },
         },
       }),
     ]);
 
     const monthlyRevenue = monthlyJobs
       .filter((j) => j.status === 'completed')
-      .reduce((sum, j) => sum + (j.totalAmount || 0), 0);
+      .reduce((sum, j) => sum + Number(j.actualCost || 0), 0);
 
     const completedThisMonth = monthlyJobs.filter((j) => j.status === 'completed').length;
 

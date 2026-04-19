@@ -17,9 +17,9 @@ export async function GET(req: NextRequest) {
 
     const userId = payload.userId;
 
-    const landlord = await prisma.landlord.findUnique({
-      where: { userId },
-      select: { id: true, businessName: true },
+    const landlord = await prisma.landlord.findFirst({
+      where: { ownerUserId: userId },
+      select: { id: true, companyName: true },
     });
 
     if (!landlord) {
@@ -33,42 +33,63 @@ export async function GET(req: NextRequest) {
     const [
       totalProperties,
       totalTenants,
+      totalUnits,
+      occupiedUnits,
       openMaintenanceTickets,
-      rentPaymentsThisMonth,
+      urgentTickets,
+      rentPaidThisMonth,
       pendingApplications,
-      overdueRent,
     ] = await Promise.all([
       prisma.property.count({ where: { landlordId } }),
-      prisma.tenant.count({ where: { landlordId, status: 'active' } }),
-      prisma.maintenanceTicket.count({
-        where: { landlordId, status: { in: ['open', 'in_progress'] } },
+      prisma.user.count({
+        where: {
+          role: 'tenant',
+          leasesAsTenant: { some: { unit: { property: { landlordId } } } },
+        },
       }),
-      prisma.rentPayment.findMany({
-        where: { landlordId, createdAt: { gte: startOfMonth }, status: 'paid' },
-        select: { amount: true },
+      prisma.unit.count({ where: { property: { landlordId } } }),
+      prisma.lease.count({
+        where: { status: 'active', unit: { property: { landlordId } } },
+      }),
+      prisma.maintenanceTicket.count({
+        where: {
+          status: { in: ['open', 'in_progress'] },
+          unit: { property: { landlordId } },
+        },
+      }),
+      prisma.maintenanceTicket.count({
+        where: {
+          status: { in: ['open', 'in_progress'] },
+          priority: 'urgent',
+          unit: { property: { landlordId } },
+        },
+      }),
+      prisma.rentPayment.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: 'paid',
+          paidAt: { gte: startOfMonth },
+          lease: { unit: { property: { landlordId } } },
+        },
       }),
       prisma.rentalApplication.count({
-        where: { landlordId, status: 'pending' },
-      }),
-      prisma.rentPayment.count({
-        where: { landlordId, status: 'overdue' },
+        where: { unit: { property: { landlordId } } },
       }),
     ]);
 
-    const monthlyRentCollected = rentPaymentsThisMonth.reduce(
-      (sum, p) => sum + (p.amount || 0),
-      0
-    );
+    const monthlyRentCollected = Number(rentPaidThisMonth._sum?.amount || 0);
 
     return NextResponse.json({
-      profile: landlord,
+      profile: { id: landlord.id, businessName: landlord.companyName },
       stats: {
         totalProperties,
         totalTenants,
+        totalUnits,
+        occupiedUnits,
         openMaintenanceTickets,
+        urgentTickets,
         monthlyRentCollected,
         pendingApplications,
-        overdueRent,
       },
     });
   } catch (error) {
