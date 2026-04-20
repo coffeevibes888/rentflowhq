@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           <h1 className='text-3xl font-bold text-white mb-8'>Privacy Policy</h1>
           
           <div className='space-y-6 text-sm leading-relaxed'>
-            <p className='text-slate-400'>Last updated: December 31, 2024</p>
+            <p className='text-slate-400'>Last updated: April 19, 2025</p>
 
             <section className='space-y-3'>
               <h2 className='text-xl font-semibold text-white'>1. Introduction</h2>
@@ -145,7 +145,23 @@ export default function PrivacyPage() {
             </section>
 
             <section className='space-y-3'>
-              <h2 className='text-xl font-semibold text-white'>12. Contact Us</h2>
+              <h2 className='text-xl font-semibold text-white'>12. Mobile Application Permissions</h2>
+              <p>The PropertyFlow HQ mobile application requests the following device permissions:</p>
+              <ul className='list-disc list-inside space-y-1 ml-4'>
+                <li><strong className='text-white'>Camera:</strong> Used to capture job site photos, maintenance issue photos, and verify work completion.</li>
+                <li><strong className='text-white'>Microphone:</strong> Used for video recording on job sites and maintenance walkthroughs.</li>
+                <li><strong className='text-white'>Location:</strong> Used to verify team member location on job sites and for GPS tracking during active jobs.</li>
+                <li><strong className='text-white'>Photo Library:</strong> Used to upload photos of job sites, completed work, and maintenance issues from your device gallery.</li>
+                <li><strong className='text-white'>Push Notifications:</strong> Used to alert you of rent payments, maintenance updates, job assignments, and messages.</li>
+              </ul>
+              <p className='mt-2'>
+                All permissions are optional and can be revoked at any time through your device settings. Denying a permission will only disable that specific feature.
+                Location data collected during active jobs is used solely for operational purposes and is not sold to third parties.
+              </p>
+            </section>
+
+            <section className='space-y-3'>
+              <h2 className='text-xl font-semibold text-white'>13. Contact Us</h2>
               <p>
                 For privacy-related questions or to exercise your rights, contact us at:
               </p>
