@@ -388,6 +388,10 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      const isTrialing = subscription.status === 'trialing';
+      const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+      const trialStart = subscription.trial_start ? new Date(subscription.trial_start * 1000) : null;
+
       await prisma.landlord.update({
         where: { id: landlordId },
         data: {
@@ -396,6 +400,11 @@ export async function POST(req: NextRequest) {
           subscriptionStatus: subscription.status,
           freeBackgroundChecks: tierConfig.features.freeBackgroundChecks,
           freeEmploymentVerification: tierConfig.features.freeEmploymentVerification,
+          // Set trial dates from Stripe so the subscription gate can verify trial validity
+          ...(isTrialing && trialStart && { trialStartDate: trialStart }),
+          ...(isTrialing && trialEnd && { trialEndDate: trialEnd, trialStatus: 'trialing' }),
+          // When trial ends and subscription activates, mark trial as completed
+          ...(!isTrialing && subscription.status === 'active' && { trialStatus: 'active' }),
         },
       });
 
@@ -470,6 +479,26 @@ export async function POST(req: NextRequest) {
           console.error('Error processing affiliate commission:', affiliateError);
         }
       }
+    }
+
+    // Handle contractor subscription (contractorProfileId in metadata)
+    const contractorProfileId = subscription.metadata?.contractorProfileId;
+    if (contractorProfileId) {
+      const isTrialing = subscription.status === 'trialing';
+      const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+      const trialStart = subscription.trial_start ? new Date(subscription.trial_start * 1000) : null;
+
+      await prisma.contractorProfile.update({
+        where: { id: contractorProfileId },
+        data: {
+          subscriptionTier: tier,
+          stripeSubscriptionId: subscription.id,
+          subscriptionStatus: subscription.status,
+          ...(isTrialing && trialStart && { trialStartDate: trialStart }),
+          ...(isTrialing && trialEnd && { trialEndDate: trialEnd, trialStatus: 'trialing' }),
+          ...(!isTrialing && subscription.status === 'active' && { trialStatus: 'active' }),
+        },
+      });
     }
 
     return NextResponse.json({

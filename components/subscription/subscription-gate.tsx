@@ -64,14 +64,16 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
         landlord.subscriptionStatus === 'active' ||
         landlord.subscription?.status === 'active';
 
-      // Check trial status
+      // trialEndDate being null means they never started a trial (no plan selected yet)
+      // They must have a real trialEndDate in the future to be considered in trial
       const isInTrial = 
         landlord.trialStatus === 'trialing' && 
+        landlord.trialEndDate !== null &&
         !trialEnded;
 
       // Allow access if:
       // 1. Active subscription OR
-      // 2. In trial period OR
+      // 2. In trial period (with a real trialEndDate set) OR
       // 3. Trial expired but in grace period (read-only) OR
       // 4. Coming from Stripe checkout
       const allowAccess = 
@@ -124,8 +126,10 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
         contractor.subscriptionStatus === 'active' ||
         contractor.subscriptionTier === 'starter'; // Starter tier is always allowed (free tier)
 
+      // trialEndDate being null means they never started a trial (no plan selected yet)
       const isInTrial = 
         contractor.trialStatus === 'trialing' && 
+        contractor.trialEndDate !== null &&
         !trialEnded;
 
       const allowAccess = 
