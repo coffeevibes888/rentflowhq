@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Bell, Shield, HousePlus } from 'lucide-react';
 import HomeProfileForm from '@/components/homeowner/home-profile-form';
 import { SignOutButtonGeneric } from '@/components/shared/sign-out-button-generic';
+import AccountSecurity from './account-security';
 
 export default async function HomeownerSettingsPage() {
   const session = await auth();
@@ -22,6 +23,11 @@ export default async function HomeownerSettingsPage() {
   const homeowner = await prisma.homeowner.findUnique({
     where: { userId: session.user.id },
   }) as any;
+
+  const userRecord = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { phoneNumber: true },
+  });
 
   // Serialize for client
   const serializedHomeowner = homeowner ? {
@@ -106,19 +112,11 @@ export default async function HomeownerSettingsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-slate-200 hover:border-sky-300 transition-colors cursor-pointer">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 rounded-lg bg-slate-100">
-                      <Shield className="h-5 w-5 text-slate-700" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-900">Privacy & Security</p>
-                      <p className="text-sm text-slate-600">Password and security settings</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <AccountSecurity
+                userName={session.user.name || ''}
+                userEmail={session.user.email || ''}
+                userPhone={userRecord?.phoneNumber || null}
+              />
             </div>
 
             <Card className="bg-white border-red-200">

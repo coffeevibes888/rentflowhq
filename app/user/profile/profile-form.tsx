@@ -20,6 +20,7 @@ import PhoneVerification from './phone-verification';
 import AvatarUpload from './avatar-upload';
 import AddressForm from './address-form';
 import StripeProvider from './stripe-provider';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 
 const SavedPaymentMethods = lazy(() => import('./saved-payment-methods'));
 
@@ -36,6 +37,36 @@ const ProfileForm = () => {
   });
 
   const { toast } = useToast();
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({ variant: 'destructive', description: 'New passwords do not match' });
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      toast({ variant: 'destructive', description: 'Password must be at least 8 characters' });
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const res = await fetch('/api/user/account-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'password', ...passwordForm }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      toast({ description: 'Password updated successfully' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: unknown) {
+      toast({ variant: 'destructive', description: err instanceof Error ? err.message : 'Failed to update password' });
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof updateProfileSchema>) => {
     const res = await updateProfile(values);
@@ -199,6 +230,43 @@ const ProfileForm = () => {
               />
             </div>
           )}
+        </div>
+      </div>
+
+      <div className='bg-linear-to-r from-cyan-700 to-cyan-700 border border-white/10 rounded-xl p-8 shadow-lg'>
+        <h3 className='text-xl font-semibold text-white mb-6 flex items-center gap-2'><Lock className='h-5 w-5' /> Change Password</h3>
+        <div className='space-y-4'>
+          {(['currentPassword', 'newPassword', 'confirmPassword'] as const).map((field) => {
+            const labels = { currentPassword: 'Current Password', newPassword: 'New Password', confirmPassword: 'Confirm New Password' };
+            const showKey = field === 'currentPassword' ? 'current' : field === 'newPassword' ? 'new' : 'confirm';
+            const show = showPasswords[showKey as keyof typeof showPasswords];
+            return (
+              <div key={field} className='relative'>
+                <input
+                  type={show ? 'text' : 'password'}
+                  placeholder={labels[field]}
+                  value={passwordForm[field]}
+                  onChange={(e) => setPasswordForm(p => ({ ...p, [field]: e.target.value }))}
+                  className='w-full bg-slate-800/60 border border-white/10 rounded-lg px-4 py-2.5 pr-12 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50'
+                />
+                <button
+                  type='button'
+                  onClick={() => setShowPasswords(p => ({ ...p, [showKey]: !p[showKey as keyof typeof p] }))}
+                  className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300'
+                >
+                  {show ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                </button>
+              </div>
+            );
+          })}
+          <Button
+            type='button'
+            onClick={handleChangePassword}
+            disabled={savingPassword}
+            className='bg-cyan-600 hover:bg-cyan-500 text-white'
+          >
+            {savingPassword ? 'Updating...' : 'Update Password'}
+          </Button>
         </div>
       </div>
 

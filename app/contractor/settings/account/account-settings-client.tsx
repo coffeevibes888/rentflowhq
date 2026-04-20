@@ -41,7 +41,7 @@ interface AccountSettingsClientProps {
   } | null;
 }
 
-type Tab = 'profile' | 'password' | 'notifications';
+type Tab = 'profile' | 'password' | 'notifications' | 'data';
 
 export default function AccountSettingsClient({ user, profile }: AccountSettingsClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
@@ -154,10 +154,42 @@ export default function AccountSettingsClient({ user, profile }: AccountSettings
     }
   };
 
+  const handleRequestData = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/user/request-data', { method: 'POST' });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Failed to request data');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 4000);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm('Are you sure? This will permanently delete your account, all jobs, invoices, and data. This cannot be undone.');
+    if (!confirmed) return;
+    const doubleConfirmed = window.confirm('Final confirmation: delete everything permanently?');
+    if (!doubleConfirmed) return;
+    setSaving(true);
+    try {
+      await fetch('/api/user/delete-account', { method: 'DELETE' });
+      window.location.href = '/';
+    } catch (err: unknown) {
+      setError('Failed to delete account. Please contact support@propertyflowhq.com');
+      setSaving(false);
+    }
+  };
+
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'profile', label: 'Profile & Contact', icon: <UserCircle className="h-4 w-4" /> },
     { id: 'password', label: 'Password', icon: <Lock className="h-4 w-4" /> },
     { id: 'notifications', label: 'Notifications', icon: <Bell className="h-4 w-4" /> },
+    { id: 'data', label: 'Data & Privacy', icon: <Lock className="h-4 w-4" /> },
   ];
 
   const avatarSrc = avatarPreview || profile?.profilePhoto || user.image;
@@ -436,6 +468,46 @@ export default function AccountSettingsClient({ user, profile }: AccountSettings
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Preferences
             </button>
+          </motion.div>
+        )}
+
+        {/* ── Data & Privacy Tab ── */}
+        {activeTab === 'data' && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <Lock className="h-5 w-5 text-rose-400" /> Request Your Data
+              </h2>
+              <p className="text-sm text-slate-400">
+                Request a full export of all your personal data we hold. We will email it to <span className="text-white">{user.email}</span> within 30 days as required by law.
+              </p>
+              <button
+                onClick={handleRequestData}
+                disabled={saving}
+                className="flex items-center gap-2 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Request My Data Export
+              </button>
+            </div>
+
+            <div className="bg-red-950/30 border border-red-500/20 rounded-2xl p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-red-400">Danger Zone</h2>
+              <p className="text-sm text-slate-400">
+                Permanently delete your account, all jobs, invoices, team data, and associated records. <strong className="text-white">This cannot be undone.</strong>
+              </p>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={saving}
+                className="flex items-center gap-2 bg-red-600/20 border border-red-500/30 hover:bg-red-600/40 text-red-400 hover:text-red-300 px-6 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50"
+              >
+                Delete My Account Permanently
+              </button>
+            </div>
           </motion.div>
         )}
       </div>
