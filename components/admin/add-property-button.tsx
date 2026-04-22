@@ -21,19 +21,17 @@ export default function AddPropertyButton() {
 
   return (
     <>
-      <button
+      <Button
         type='button'
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onClick={() => {
           console.log('[AddPropertyButton] clicked, opening wizard');
           setOpen(true);
         }}
-        className='w-full sm:w-auto text-sm sm:text-base bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 sm:py-2 px-4 rounded-md touch-manipulation inline-flex items-center justify-center'
+        className='w-full sm:w-auto bg-violet-600 hover:bg-violet-500 text-white font-semibold'
         data-tour='add-property'
       >
         <span className='text-base sm:text-sm'>+ Add Property</span>
-      </button>
+      </Button>
 
       {open && (
         <div className='fixed inset-0 z-[100] overflow-y-auto bg-black/50 backdrop-blur-sm'>

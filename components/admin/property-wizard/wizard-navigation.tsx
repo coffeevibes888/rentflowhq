@@ -10,9 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 interface WizardNavigationProps {
   onValidate?: () => boolean;
   isSubmitting?: boolean;
+  onComplete?: (propertyId: string) => void;
 }
 
-export function WizardNavigation({ onValidate, isSubmitting = false }: WizardNavigationProps) {
+export function WizardNavigation({ onValidate, isSubmitting = false, onComplete }: WizardNavigationProps) {
   const { state, nextStep, prevStep, saveDraft, submitProperty } = useWizard();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
@@ -63,14 +64,17 @@ export function WizardNavigation({ onValidate, isSubmitting = false }: WizardNav
     setIsSubmittingProperty(true);
     try {
       const result = await submitProperty();
-      if (result.success) {
+      if (result.success && result.propertyId) {
         toast({
           title: state.mode === 'edit' ? 'Property updated!' : 'Property created!',
           description: result.message || (state.mode === 'edit'
             ? 'Your changes have been saved.'
             : 'Your property has been successfully created.'),
         });
-        // Navigation will be handled by parent component
+        // Call onComplete callback if provided
+        if (onComplete) {
+          onComplete(result.propertyId);
+        }
       } else {
         toast({
           variant: 'destructive',

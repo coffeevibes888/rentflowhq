@@ -173,7 +173,7 @@ function WizardContent({ draftId, mode = 'create', propertyId, onComplete, onCan
           ) : (
             <>
               {renderStep()}
-              <WizardNavigation onValidate={validateFn || undefined} />
+              <WizardNavigation onValidate={validateFn || undefined} onComplete={onComplete} />
             </>
           )}
         </div>

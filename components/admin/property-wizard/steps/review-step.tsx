@@ -1,28 +1,23 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import {
   MapPin, Bed, Bath, Square, Calendar, DollarSign, Dog,
-  CheckCircle2, Edit2, Loader2, Home, Building2, Layers
+  CheckCircle2, Edit2, Home, Building2, Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWizard } from '../wizard-context';
 import { PROPERTY_TYPE_INFO } from '../types';
-import { useToast } from '@/hooks/use-toast';
 import { getStepsForPropertyType } from '../use-wizard-state';
+import { formatCurrency } from '@/lib/utils';
 
 interface ReviewStepProps {
   onComplete?: (propertyId: string) => void;
 }
 
 export function ReviewStep({ onComplete }: ReviewStepProps) {
-  const router = useRouter();
-  const { state, goToStep, submitProperty } = useWizard();
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { state, goToStep } = useWizard();
 
   const { formData, propertyType, listingType } = state;
   const isRental = listingType === 'rent';
@@ -42,44 +37,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   };
 
   const isEditMode = state.mode === 'edit';
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const result = await submitProperty();
-      if (result.success && result.propertyId) {
-        toast({
-          title: isEditMode ? 'Property updated!' : 'Property created!',
-          description: isEditMode
-            ? 'Your changes have been saved.'
-            : 'Your property listing has been published.',
-        });
-        if (onComplete) {
-          // Use the callback from parent if provided
-          onComplete(result.propertyId);
-        } else if (isEditMode) {
-          router.push(`/admin/products/${result.propertyId}/details`);
-        } else {
-          // Default redirect for new property if no callback provided
-          router.push('/admin/documents');
-        }
-      } else {
-        toast({
-          variant: 'destructive',
-          title: isEditMode ? 'Failed to update property' : 'Failed to create property',
-          description: result.message || 'Please try again.',
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'An unexpected error occurred.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const EditButton = ({ stepId }: { stepId: string }) => (
     <Button
@@ -390,31 +347,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
         </div>
       )}
 
-      {/* Submit Button */}
-      <div className="pt-4">
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-lg"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              {isEditMode ? 'Saving Changes...' : 'Creating Property...'}
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className="h-5 w-5 mr-2" />
-              {isEditMode ? 'Save Changes' : 'Publish Property Listing'}
-            </>
-          )}
-        </Button>
-        <p className="text-center text-sm text-indigo-300 mt-3">
-          {isEditMode
-            ? 'Changes will update immediately for tenants viewing your listing'
-            : 'You can edit your listing anytime after publishing'}
-        </p>
-      </div>
+      {/* Note: Submit is handled by WizardNavigation */}
     </div>
   );
 }
