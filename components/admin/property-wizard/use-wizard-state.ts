@@ -103,6 +103,9 @@ const initialState: WizardState = {
   draftId: null,
   validationErrors: {},
   completedSteps: new Set(),
+  mode: 'create',
+  editPropertyId: null,
+  isLoading: false,
 };
 
 export function useWizardState(): WizardContextValue {
@@ -261,17 +264,49 @@ export function useWizardState(): WizardContextValue {
     }
   }, [state.draftId]);
 
+  // Load existing property for edit mode
+  const loadProperty = useCallback(async (propertyId: string) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    try {
+      const response = await fetch(`/api/properties/wizard/${propertyId}`);
+      if (!response.ok) {
+        throw new Error('Failed to load property');
+      }
+      const data = await response.json();
+      const newSteps = getStepsForPropertyType(data.propertyType);
+      // Start at step 1 (skip the Property Type selector) in edit mode
+      const startStep = Math.min(1, newSteps.length - 1);
+      setState({
+        currentStep: startStep,
+        totalSteps: newSteps.length,
+        propertyType: data.propertyType,
+        listingType: data.listingType || 'rent',
+        formData: data.formData || initialFormData,
+        isDirty: false,
+        draftId: null,
+        validationErrors: {},
+        completedSteps: new Set([0]), // mark type step as complete
+        mode: 'edit',
+        editPropertyId: propertyId,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error('Failed to load property:', error);
+      setState((prev) => ({ ...prev, isLoading: false }));
+    }
+  }, []);
+
   // Submission
   const submitProperty = useCallback(async () => {
     try {
-      console.log('Submitting property:', {
-        propertyType: state.propertyType,
-        listingType: state.listingType,
-        formData: state.formData,
-      });
-      
-      const response = await fetch('/api/properties/wizard', {
-        method: 'POST',
+      const isEdit = state.mode === 'edit' && state.editPropertyId;
+      const url = isEdit
+        ? `/api/properties/wizard/${state.editPropertyId}`
+        : '/api/properties/wizard';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           propertyType: state.propertyType,
@@ -281,24 +316,22 @@ export function useWizardState(): WizardContextValue {
         }),
       });
 
-      console.log('Response status:', response.status);
       const data = await response.json();
-      console.log('Response data:', data);
 
       if (response.ok) {
         // Delete draft after successful submission
-        if (state.draftId) {
+        if (state.draftId && !isEdit) {
           await deleteDraft();
         }
         return { success: true, propertyId: data.propertyId, message: data.message };
       } else {
-        return { success: false, message: data.message || 'Failed to create property' };
+        return { success: false, message: data.message || `Failed to ${isEdit ? 'update' : 'create'} property` };
       }
     } catch (error) {
       console.error('Failed to submit property:', error);
-      return { success: false, message: 'An error occurred while creating the property' };
+      return { success: false, message: 'An error occurred while saving the property' };
     }
-  }, [state.propertyType, state.listingType, state.formData, state.draftId, deleteDraft]);
+  }, [state.mode, state.editPropertyId, state.propertyType, state.listingType, state.formData, state.draftId, deleteDraft]);
 
   // Reset
   const resetWizard = useCallback(() => {
@@ -322,6 +355,7 @@ export function useWizardState(): WizardContextValue {
     saveDraft,
     loadDraft,
     deleteDraft,
+    loadProperty,
     submitProperty,
     resetWizard,
   };

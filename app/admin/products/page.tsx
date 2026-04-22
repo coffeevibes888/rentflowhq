@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { PropertiesMobileList, PropertiesDesktopTable } from '@/components/admin/properties-list';
+import AddPropertyButton from '@/components/admin/add-property-button';
 
 const PAGE_SIZE = 10;
 
@@ -119,15 +120,7 @@ const AdminProductsPage = async (props: {
           
           {/* Mobile-optimized action buttons */}
           <div className='flex flex-col sm:flex-row gap-2 w-full'>
-            <Button 
-              asChild 
-              className='w-full sm:w-auto text-sm sm:text-base bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 sm:py-2 touch-manipulation'
-              data-tour="add-property"
-            >
-              <Link href='/admin/products/new'>
-                <span className='text-base sm:text-sm'>+ Add Property</span>
-              </Link>
-            </Button>
+            <AddPropertyButton />
             <Button 
               asChild 
               variant='outline'

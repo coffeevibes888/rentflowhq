@@ -65,8 +65,10 @@ export function WizardNavigation({ onValidate, isSubmitting = false }: WizardNav
       const result = await submitProperty();
       if (result.success) {
         toast({
-          title: 'Property created!',
-          description: result.message || 'Your property has been successfully created.',
+          title: state.mode === 'edit' ? 'Property updated!' : 'Property created!',
+          description: result.message || (state.mode === 'edit'
+            ? 'Your changes have been saved.'
+            : 'Your property has been successfully created.'),
         });
         // Navigation will be handled by parent component
       } else {
@@ -140,7 +142,7 @@ export function WizardNavigation({ onValidate, isSubmitting = false }: WizardNav
             ) : (
               <Check className="h-4 w-4 mr-2" />
             )}
-            Create Property
+            {state.mode === 'edit' ? 'Save Changes' : 'Create Property'}
           </Button>
         ) : (
           <Button

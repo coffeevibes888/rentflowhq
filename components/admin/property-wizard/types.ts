@@ -128,6 +128,9 @@ export interface WizardState {
   draftId: string | null;
   validationErrors: Record<string, string[]>;
   completedSteps: Set<number>;
+  mode: 'create' | 'edit';
+  editPropertyId: string | null;
+  isLoading: boolean;
 }
 
 // Wizard context value
@@ -149,6 +152,8 @@ export interface WizardContextValue {
   saveDraft: () => Promise<void>;
   loadDraft: (draftId: string) => Promise<void>;
   deleteDraft: () => Promise<void>;
+  // Edit mode
+  loadProperty: (propertyId: string) => Promise<void>;
   // Submission
   submitProperty: () => Promise<{ success: boolean; propertyId?: string; message?: string }>;
   // Reset

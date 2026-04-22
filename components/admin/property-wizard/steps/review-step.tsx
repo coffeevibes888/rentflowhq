@@ -41,21 +41,29 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     }).format(value);
   };
 
+  const isEditMode = state.mode === 'edit';
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
       const result = await submitProperty();
       if (result.success && result.propertyId) {
         toast({
-          title: 'Property created!',
-          description: 'Your property listing has been published.',
+          title: isEditMode ? 'Property updated!' : 'Property created!',
+          description: isEditMode
+            ? 'Your changes have been saved.'
+            : 'Your property listing has been published.',
         });
-        // Redirect to documents page to create lease
-        router.push('/admin/documents');
+        if (isEditMode) {
+          router.push(`/admin/products/${result.propertyId}/details`);
+        } else {
+          // Redirect to documents page to create lease
+          router.push('/admin/documents');
+        }
       } else {
         toast({
           variant: 'destructive',
-          title: 'Failed to create property',
+          title: isEditMode ? 'Failed to update property' : 'Failed to create property',
           description: result.message || 'Please try again.',
         });
       }
@@ -94,9 +102,13 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white">Review Your Listing</h2>
+        <h2 className="text-2xl font-bold text-white">
+          {isEditMode ? 'Review Your Changes' : 'Review Your Listing'}
+        </h2>
         <p className="text-indigo-200 mt-2">
-          Make sure everything looks good before publishing
+          {isEditMode
+            ? 'Confirm your updates before saving'
+            : 'Make sure everything looks good before publishing'}
         </p>
       </div>
 
@@ -385,17 +397,19 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
           {isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Creating Property...
+              {isEditMode ? 'Saving Changes...' : 'Creating Property...'}
             </>
           ) : (
             <>
               <CheckCircle2 className="h-5 w-5 mr-2" />
-              Publish Property Listing
+              {isEditMode ? 'Save Changes' : 'Publish Property Listing'}
             </>
           )}
         </Button>
         <p className="text-center text-sm text-indigo-300 mt-3">
-          You can edit your listing anytime after publishing
+          {isEditMode
+            ? 'Changes will update immediately for tenants viewing your listing'
+            : 'You can edit your listing anytime after publishing'}
         </p>
       </div>
     </div>

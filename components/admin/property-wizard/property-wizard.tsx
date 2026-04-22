@@ -38,13 +38,15 @@ import {
 
 interface PropertyWizardProps {
   draftId?: string;
+  mode?: 'create' | 'edit';
+  propertyId?: string;
   onComplete?: (propertyId: string) => void;
   onCancel?: () => void;
 }
 
-function WizardContent({ draftId, onComplete, onCancel }: PropertyWizardProps) {
+function WizardContent({ draftId, mode = 'create', propertyId, onComplete, onCancel }: PropertyWizardProps) {
   const router = useRouter();
-  const { state, loadDraft, resetWizard } = useWizard();
+  const { state, loadDraft, loadProperty, resetWizard } = useWizard();
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [validateFn, setValidateFn] = useState<(() => boolean) | null>(null);
 
@@ -57,6 +59,13 @@ function WizardContent({ draftId, onComplete, onCancel }: PropertyWizardProps) {
       loadDraft(draftId);
     }
   }, [draftId, loadDraft]);
+
+  // Load existing property in edit mode
+  useEffect(() => {
+    if (mode === 'edit' && propertyId) {
+      loadProperty(propertyId);
+    }
+  }, [mode, propertyId, loadProperty]);
 
   const handleCancel = () => {
     if (state.isDirty) {
@@ -71,6 +80,8 @@ function WizardContent({ draftId, onComplete, onCancel }: PropertyWizardProps) {
     setShowExitDialog(false);
     if (onCancel) {
       onCancel();
+    } else if (mode === 'edit' && propertyId) {
+      router.push(`/admin/products/${propertyId}/details`);
     } else {
       router.push('/admin/products');
     }
@@ -126,7 +137,11 @@ function WizardContent({ draftId, onComplete, onCancel }: PropertyWizardProps) {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-white">
-                {state.draftId ? 'Continue Property Listing' : 'Create New Property'}
+                {state.mode === 'edit'
+                  ? 'Edit Property'
+                  : state.draftId
+                  ? 'Continue Property Listing'
+                  : 'Create New Property'}
               </h1>
               <p className="text-sm text-indigo-200 mt-1">
                 {state.listingType === 'rent' ? 'For Rent' : 'For Sale'}
@@ -148,8 +163,19 @@ function WizardContent({ draftId, onComplete, onCancel }: PropertyWizardProps) {
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 py-6 md:py-8">
         <div className="bg-gradient-to-r from-indigo-800/40 to-indigo-900/40 rounded-2xl border border-indigo-700/30 p-4 md:p-8 backdrop-blur-sm">
-          {renderStep()}
-          <WizardNavigation onValidate={validateFn || undefined} />
+          {state.isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="h-10 w-10 border-4 border-indigo-300 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-indigo-200">Loading property details...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {renderStep()}
+              <WizardNavigation onValidate={validateFn || undefined} />
+            </>
+          )}
         </div>
       </div>
 

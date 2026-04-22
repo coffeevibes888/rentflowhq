@@ -7,7 +7,7 @@ export default function NewPropertyPage() {
   const router = useRouter();
 
   const handleComplete = (propertyId: string) => {
-    router.push(`/admin/products/${propertyId}`);
+    router.push(`/admin/products/${propertyId}/details`);
   };
 
   const handleCancel = () => {

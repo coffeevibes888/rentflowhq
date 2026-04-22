@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
           const landlord = rentPayments[0]?.lease?.unit?.property?.landlord;
           
           logFinancialEvent('PAYMENT_COMPLETED', {
-            userId: rentPayments[0]?.tenant?.userId || undefined,
+            userId: rentPayments[0]?.tenant?.id || undefined,
             landlordId: landlord?.id,
             amount: totalPaidAmount,
             currency: 'USD',
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
             // Send email notification to landlord
             const firstPayment = rentPayments[0];
             const propertyName = firstPayment?.lease?.unit?.property?.name || 'Property';
-            const unitNumber = firstPayment?.lease?.unit?.unitNumber || '';
+            const unitNumber = firstPayment?.lease?.unit?.name || '';
             const estimatedArrival = formatEstimatedArrival(paymentMethodType);
             const paymentMethodDisplay = paymentMethodType === 'us_bank_account' ? 'Bank Transfer (ACH)' : 'Card';
 
