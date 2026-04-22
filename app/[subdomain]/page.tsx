@@ -4,6 +4,7 @@ import { prisma } from '@/db/prisma';
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import SubdomainHero from '@/components/subdomain/subdomain-hero';
 import ContractorSubdomainHero from '@/components/contractor-subdomain/contractor-hero';
 import { ContractorMessageWidget } from '@/components/contractor-subdomain/contractor-message-widget';
@@ -28,6 +29,12 @@ import {
   MapPin,
   User,
   Calendar,
+  Bed,
+  Bath,
+  Square,
+  Phone,
+  Mail,
+  Home,
 } from 'lucide-react';
 
 // Icon mapping for contractor feature cards
@@ -679,6 +686,406 @@ async function ContractorSubdomainPage({
         </div>
       </section>
     </main>
+  );
+}
+
+
+// ============================================================================
+// AGENT SUBDOMAIN PAGE
+// ============================================================================
+
+async function AgentSubdomainPage({ 
+  agent, 
+  subdomain 
+}: { 
+  agent: any; 
+  subdomain: string;
+}) {
+  const session = await auth();
+
+  // Get agent's active listings with open houses
+  const listings = await prisma.agentListing.findMany({
+    where: {
+      agentId: agent.id,
+      status: 'active',
+    },
+    include: {
+      openHouses: {
+        where: {
+          date: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          },
+        },
+        orderBy: { date: 'asc' },
+        take: 1,
+      },
+    },
+    orderBy: { isFeatured: 'desc' },
+    take: 6,
+  });
+
+  // Get upcoming open houses for all listings
+  const upcomingOpenHouses = await prisma.agentOpenHouse.findMany({
+    where: {
+      agentId: agent.id,
+      date: {
+        gte: new Date(new Date().setHours(0, 0, 0, 0)),
+      },
+    },
+    include: {
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          images: true,
+          address: true,
+        },
+      },
+    },
+    orderBy: { date: 'asc' },
+    take: 3,
+  });
+
+  const brandName = agent.companyName || agent.name;
+  const heroImages = agent.heroImages?.length ? agent.heroImages : listings.flatMap((l: any) => l.images || []).slice(0, 3);
+  const themeColor = agent.themeColor || 'amber';
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+      {/* Hero Section */}
+      <section className="relative h-[500px] w-full overflow-hidden">
+        {heroImages.length > 0 ? (
+          <div className="absolute inset-0 grid grid-cols-3 gap-1">
+            {heroImages.slice(0, 3).map((img: string, idx: number) => (
+              <div key={idx} className="relative">
+                <Image src={img} alt={`Hero ${idx + 1}`} fill className="object-cover" priority={idx === 0} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-600" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
+        
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+          <div className="max-w-4xl mx-auto space-y-4">
+            {agent.logoUrl && (
+              <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                <Image src={agent.logoUrl} alt={brandName} fill className="object-contain p-2" />
+              </div>
+            )}
+            <h1 className="text-4xl md:text-6xl font-bold text-white">
+              {brandName}
+            </h1>
+            {agent.brokerage && (
+              <p className="text-xl text-white/90">{agent.brokerage}</p>
+            )}
+            <p className="text-lg text-white/80 max-w-2xl mx-auto">
+              {agent.aboutBio?.slice(0, 150) || `Helping you find your perfect home in ${agent.serviceAreas?.join(', ') || 'your area'}`}
+            </p>
+            
+            {/* Quick Stats */}
+            <div className="flex items-center justify-center gap-6 mt-6">
+              {agent.yearsExperience && (
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-white">{agent.yearsExperience}+</p>
+                  <p className="text-sm text-white/70">Years Experience</p>
+                </div>
+              )}
+              {agent.totalSales > 0 && (
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-white">{agent.totalSales}</p>
+                  <p className="text-sm text-white/70">Homes Sold</p>
+                </div>
+              )}
+              <div className="text-center">
+                <p className="text-3xl font-bold text-white">{agent.totalListings || listings.length}</p>
+                <p className="text-sm text-white/70">Active Listings</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Agent Info Bar */}
+      <section className="bg-white border-b border-slate-200 py-6">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative w-16 h-16 rounded-full overflow-hidden bg-slate-200">
+                {agent.user?.image ? (
+                  <Image src={agent.user.image} alt={agent.name} fill className="object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-300">
+                    <User className="h-8 w-8 text-slate-500" />
+                  </div>
+                )}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">{agent.name}</h2>
+                {agent.licenseNumber && (
+                  <p className="text-sm text-slate-500">Lic # {agent.licenseNumber}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {agent.companyPhone && (
+                <a 
+                  href={`tel:${agent.companyPhone}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors"
+                >
+                  <Phone className="h-4 w-4" />
+                  Call Now
+                </a>
+              )}
+              {agent.user?.email && (
+                <a 
+                  href={`mailto:${agent.user.email}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                >
+                  <Mail className="h-4 w-4" />
+                  Email
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Open Houses Section */}
+      {upcomingOpenHouses.length > 0 && (
+        <section className="bg-amber-50 py-8">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <Calendar className="h-6 w-6 text-amber-600" />
+              Upcoming Open Houses
+            </h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              {upcomingOpenHouses.map((oh: any) => {
+                const address = oh.listing.address as any;
+                return (
+                  <Link
+                    key={oh.id}
+                    href={`/listings/${oh.listing.id}`}
+                    className="bg-white rounded-xl border border-amber-200 p-4 hover:shadow-lg transition-shadow"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="text-center bg-amber-100 rounded-lg p-2 min-w-[60px]">
+                        <p className="text-xs text-amber-600 font-semibold uppercase">
+                          {new Date(oh.date).toLocaleDateString('en-US', { month: 'short' })}
+                        </p>
+                        <p className="text-xl font-bold text-amber-700">
+                          {new Date(oh.date).getDate()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900 line-clamp-1">{oh.listing.title}</p>
+                        <p className="text-sm text-slate-500">{address?.city}, {address?.state}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-600">
+                      {oh.startTime} - {oh.endTime}
+                    </p>
+                    {oh.isVirtual && (
+                      <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        Virtual Available
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Listings */}
+      <section className="py-12 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-slate-900">Featured Listings</h2>
+            <Link href={`/${subdomain}/listings`} className="text-amber-600 font-medium hover:underline">
+              View All Listings →
+            </Link>
+          </div>
+          
+          {listings.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {listings.map((listing: any) => (
+                <AgentListingCard key={listing.id} listing={listing} subdomain={subdomain} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+              <Home className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+              <h3 className="text-lg font-semibold text-slate-900">No Active Listings</h3>
+              <p className="text-slate-500 mt-1">Check back soon for new properties</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* About Section */}
+      {(agent.aboutBio || agent.aboutPhoto) && (
+        <section className="py-12 px-4 bg-slate-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              {agent.aboutPhoto && (
+                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden">
+                  <Image src={agent.aboutPhoto} alt={agent.name} fill className="object-cover" />
+                </div>
+              )}
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold text-slate-900">About {agent.name}</h2>
+                {agent.aboutBio && (
+                  <p className="text-slate-600 leading-relaxed whitespace-pre-line">{agent.aboutBio}</p>
+                )}
+                
+                {/* Specializations */}
+                {agent.specializations?.length > 0 && (
+                  <div className="pt-4">
+                    <h3 className="font-semibold text-slate-900 mb-2">Specializations</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {agent.specializations.map((spec: string) => (
+                        <span key={spec} className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm">
+                          {spec}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Service Areas */}
+                {agent.serviceAreas?.length > 0 && (
+                  <div className="pt-2">
+                    <h3 className="font-semibold text-slate-900 mb-2">Service Areas</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {agent.serviceAreas.map((area: string) => (
+                        <span key={area} className="px-3 py-1 bg-slate-200 text-slate-700 rounded-full text-sm">
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Languages */}
+                {agent.languages?.length > 0 && (
+                  <div className="pt-2">
+                    <h3 className="font-semibold text-slate-900 mb-2">Languages</h3>
+                    <p className="text-slate-600">{agent.languages.join(', ')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Contact CTA */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-8 md:p-12 text-center text-white">
+            <h2 className="text-3xl font-bold mb-4">Ready to Find Your Dream Home?</h2>
+            <p className="text-lg mb-8 opacity-90">
+              Let {agent.name} help you navigate the real estate market
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              {agent.companyPhone && (
+                <a 
+                  href={`tel:${agent.companyPhone}`}
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-white text-amber-600 rounded-full font-bold hover:bg-amber-50 transition-colors"
+                >
+                  <Phone className="h-5 w-5" />
+                  Call {agent.companyPhone}
+                </a>
+              )}
+              {agent.user?.email && (
+                <a 
+                  href={`mailto:${agent.user.email}`}
+                  className="inline-flex items-center gap-2 px-8 py-4 border-2 border-white text-white rounded-full font-bold hover:bg-white/10 transition-colors"
+                >
+                  <Mail className="h-5 w-5" />
+                  Send Email
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+// Agent Listing Card Component
+function AgentListingCard({ listing, subdomain }: { listing: any; subdomain: string }) {
+  const address = listing.address as any;
+  const hasOpenHouse = listing.openHouses?.length > 0;
+  
+  return (
+    <Link 
+      href={`/${subdomain}/listings/${listing.id}`}
+      className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all"
+    >
+      <div className="relative aspect-[4/3]">
+        {listing.images?.[0] ? (
+          <Image
+            src={listing.images[0]}
+            alt={listing.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+            <Home className="h-12 w-12 text-slate-300" />
+          </div>
+        )}
+        <div className="absolute top-3 left-3 flex gap-2">
+          <Badge className="bg-amber-600 text-white">
+            For {listing.listingType === 'sale' ? 'Sale' : 'Rent'}
+          </Badge>
+          {hasOpenHouse && (
+            <Badge className="bg-emerald-600 text-white">
+              <Calendar className="h-3 w-3 mr-1" />
+              Open House
+            </Badge>
+          )}
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+          <p className="text-2xl font-bold text-white">
+            {formatCurrency(Number(listing.price))}
+            {listing.listingType === 'rent' && <span className="text-sm font-normal">/mo</span>}
+          </p>
+        </div>
+      </div>
+      <div className="p-4 space-y-2">
+        <h3 className="font-semibold text-slate-900 line-clamp-1">{listing.title}</h3>
+        <p className="text-sm text-slate-500">
+          {address?.city}, {address?.state} {address?.zip}
+        </p>
+        <div className="flex items-center gap-4 text-sm text-slate-600 pt-2">
+          {listing.bedrooms !== null && (
+            <span className="flex items-center gap-1">
+              <Bed className="h-4 w-4" />
+              {listing.bedrooms} bd
+            </span>
+          )}
+          {listing.bathrooms !== null && (
+            <span className="flex items-center gap-1">
+              <Bath className="h-4 w-4" />
+              {Number(listing.bathrooms)} ba
+            </span>
+          )}
+          {listing.sizeSqFt && (
+            <span className="flex items-center gap-1">
+              <Square className="h-4 w-4" />
+              {listing.sizeSqFt.toLocaleString()} sqft
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
   );
 }
 
