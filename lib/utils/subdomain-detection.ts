@@ -89,16 +89,56 @@ export interface ContractorSubdomainData {
 }
 
 /**
+ * Agent data returned from subdomain detection
+ */
+export interface AgentSubdomainData {
+  id: string;
+  userId: string;
+  name: string;
+  subdomain: string;
+  licenseNumber: string | null;
+  licenseState: string | null;
+  brokerage: string | null;
+  logoUrl: string | null;
+  companyName: string | null;
+  companyEmail: string | null;
+  companyPhone: string | null;
+  companyAddress: string | null;
+  themeColor: string;
+  heroImages: string[];
+  aboutBio: string | null;
+  aboutPhoto: string | null;
+  aboutGallery: string[];
+  website: string | null;
+  facebookUrl: string | null;
+  instagramUrl: string | null;
+  linkedinUrl: string | null;
+  youtubeUrl: string | null;
+  specializations: string[];
+  serviceAreas: string[];
+  languages: string[];
+  yearsExperience: number | null;
+  totalSales: number;
+  totalListings: number;
+  user: {
+    email: string | null;
+    image: string | null;
+    phoneNumber: string | null;
+  } | null;
+}
+
+/**
  * Result of subdomain entity detection
  */
 export type SubdomainEntityResult =
   | { type: 'landlord'; data: LandlordSubdomainData }
   | { type: 'contractor'; data: ContractorSubdomainData }
+  | { type: 'agent'; data: AgentSubdomainData }
   | { type: 'not_found' };
 
 /**
- * Detects whether a subdomain belongs to a landlord or contractor.
- * Checks Landlord table first, then ContractorProfile if not found.
+ * Detects whether a subdomain belongs to a landlord, contractor, or agent.
+ * Checks Landlord table first, then Agent, then ContractorProfile if not found.
  * 
  * @param subdomain - The subdomain string to look up
  * @returns SubdomainEntityResult with entity type and data, or 'not_found'
@@ -134,7 +174,25 @@ export async function detectSubdomainEntity(subdomain: string): Promise<Subdomai
     return { type: 'landlord', data: landlord };
   }
 
-  // If not a landlord, check if it's a contractor subdomain or slug
+  // Second, check if it's an agent subdomain
+  const agent = await prisma.agent.findUnique({
+    where: { subdomain },
+    include: {
+      user: {
+        select: {
+          email: true,
+          image: true,
+          phoneNumber: true,
+        },
+      },
+    },
+  });
+
+  if (agent) {
+    return { type: 'agent', data: agent as AgentSubdomainData };
+  }
+
+  // If not a landlord or agent, check if it's a contractor subdomain or slug
   // Contractors can use either their subdomain or slug
   const contractor = await prisma.contractorProfile.findFirst({
     where: {

@@ -6,7 +6,7 @@ import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { revalidatePath } from 'next/cache';
 import { NotificationService } from '@/lib/services/notification-service';
 
-export async function deletePropertyById(id: string) {
+export async function deletePropertyById(id: string, force: boolean = false) {
   try {
     const landlordResult = await getOrCreateCurrentLandlord();
     if (!landlordResult.success) {
@@ -53,11 +53,15 @@ export async function deletePropertyById(id: string) {
       }
     }
 
-    // Block deletion if there are uncredited payments
-    if (uncreditedPaymentCount > 0) {
+    // Block deletion if there are uncredited payments (unless forced)
+    if (uncreditedPaymentCount > 0 && !force) {
       return {
         success: false,
-        message: `Cannot delete property. There are ${uncreditedPaymentCount} payment(s) totaling $${totalUncreditedAmount.toFixed(2)} that haven't been credited to your wallet yet. Please wait for all payments to process before deleting this property.`,
+        canForce: true,
+        warningType: 'payments' as const,
+        uncreditedPaymentCount,
+        totalUncreditedAmount,
+        message: `There are ${uncreditedPaymentCount} payment(s) totaling $${totalUncreditedAmount.toFixed(2)} that haven't been credited to your wallet yet.`,
       };
     }
 
@@ -69,14 +73,18 @@ export async function deletePropertyById(id: string) {
       },
     });
 
-    if (activeLeases > 0) {
+    // Block deletion if there are active leases (unless forced)
+    if (activeLeases > 0 && !force) {
       return {
         success: false,
-        message: `Cannot delete property with ${activeLeases} active lease(s). Please end all leases first.`,
+        canForce: true,
+        warningType: 'leases' as const,
+        activeLeases,
+        message: `This property has ${activeLeases} active lease(s).`,
       };
     }
 
-    // Safe to delete - use soft delete by archiving instead of hard delete
+    // Safe to delete (or force delete) - use soft delete by archiving instead of hard delete
     // This preserves historical payment records
     await prisma.property.update({
       where: { id: property.id },
@@ -88,7 +96,11 @@ export async function deletePropertyById(id: string) {
 
     revalidatePath('/admin/products');
 
-    return { success: true, message: 'Property archived successfully. Historical payment records have been preserved.' };
+    const successMessage = force && (uncreditedPaymentCount > 0 || activeLeases > 0)
+      ? `Property archived. Warning: ${uncreditedPaymentCount > 0 ? `${uncreditedPaymentCount} uncredited payment(s) may be affected. ` : ''}${activeLeases > 0 ? `${activeLeases} active lease(s) were terminated. ` : ''}Historical records have been preserved.`
+      : 'Property archived successfully. Historical payment records have been preserved.';
+
+    return { success: true, message: successMessage };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

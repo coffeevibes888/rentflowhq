@@ -54,10 +54,13 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
             ? 'Your changes have been saved.'
             : 'Your property listing has been published.',
         });
-        if (isEditMode) {
+        if (onComplete) {
+          // Use the callback from parent if provided
+          onComplete(result.propertyId);
+        } else if (isEditMode) {
           router.push(`/admin/products/${result.propertyId}/details`);
         } else {
-          // Redirect to documents page to create lease
+          // Default redirect for new property if no callback provided
           router.push('/admin/documents');
         }
       } else {

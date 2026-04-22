@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getWorkOrder, updateWorkOrder } from '@/lib/actions/contractor.actions';
+import { getWorkOrder, updateWorkOrder, deleteWorkOrder } from '@/lib/actions/contractor.actions';
 
 export async function GET(
   request: NextRequest,
@@ -32,4 +32,18 @@ export async function PUT(
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const result = await deleteWorkOrder(id);
+
+  if (!result.success) {
+    return NextResponse.json({ error: result.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ message: result.message });
 }

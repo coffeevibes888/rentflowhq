@@ -58,7 +58,7 @@ const iconColors: Record<string, string> = {
 };
 
 /**
- * Unified subdomain page that handles both landlords and contractors
+ * Unified subdomain page that handles landlords, agents, and contractors
  * Detects entity type and renders appropriate content with same visual styling
  */
 export default async function SubdomainRootPage({
@@ -68,7 +68,7 @@ export default async function SubdomainRootPage({
 }) {
   const { subdomain } = await params;
   
-  // Detect whether this subdomain belongs to a landlord or contractor
+  // Detect whether this subdomain belongs to a landlord, agent, or contractor
   const entity = await detectSubdomainEntity(subdomain);
   
   if (entity.type === 'not_found') {
@@ -78,6 +78,11 @@ export default async function SubdomainRootPage({
   // Render landlord page
   if (entity.type === 'landlord') {
     return <LandlordSubdomainPage landlord={entity.data} subdomain={subdomain} />;
+  }
+
+  // Render agent page
+  if (entity.type === 'agent') {
+    return <AgentSubdomainPage agent={entity.data} subdomain={subdomain} />;
   }
 
   // Render contractor page

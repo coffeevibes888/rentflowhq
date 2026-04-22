@@ -1,10 +1,10 @@
 'use client';
 
-import DeleteDialog from '@/components/shared/delete-dialog';
+import { PropertyDeleteDialog } from '@/components/admin/property-delete-dialog';
 import { deletePropertyById } from '@/lib/actions/property.actions';
 
 export function PropertyActions({ propertyId }: { propertyId: string }) {
-  return <DeleteDialog id={propertyId} action={deletePropertyById} />;
+  return <PropertyDeleteDialog propertyId={propertyId} action={deletePropertyById} />;
 }
 
 export default PropertyActions;

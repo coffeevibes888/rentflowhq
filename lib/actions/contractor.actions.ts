@@ -512,6 +512,49 @@ export async function updateWorkOrder(id: string, data: {
   }
 }
 
+export async function deleteWorkOrder(id: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const existing = await prisma.workOrder.findFirst({
+      where: {
+        id,
+        landlordId: landlordResult.landlord.id,
+      },
+    });
+
+    if (!existing) {
+      return { success: false, message: 'Work order not found' };
+    }
+
+    // Only allow deleting draft or cancelled work orders
+    if (existing.status !== 'draft' && existing.status !== 'cancelled') {
+      return { success: false, message: 'Can only delete draft or cancelled work orders' };
+    }
+
+    // Delete related records first (history, media, bids)
+    await prisma.$transaction([
+      prisma.workOrderHistory.deleteMany({ where: { workOrderId: id } }),
+      prisma.workOrderMedia.deleteMany({ where: { workOrderId: id } }),
+      prisma.workOrderBid.deleteMany({ where: { workOrderId: id } }),
+      prisma.workOrder.delete({ where: { id } }),
+    ]);
+
+    return { success: true, message: 'Work order deleted successfully' };
+  } catch (error) {
+    console.error('Failed to delete work order:', error);
+    return { success: false, message: 'Failed to delete work order' };
+  }
+}
+
 
 // ============= WORK ORDER MEDIA =============
 
