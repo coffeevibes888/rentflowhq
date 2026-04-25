@@ -145,6 +145,10 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
         email: user.email,
         password: user.password,
         role: roleValue,
+        // Applicants coming from a property "Apply" link already declared
+        // intent (they're applying to rent), so we skip the generic
+        // role-selection onboarding flow.
+        onboardingCompleted: fromProperty ? true : false,
         // Enable 2FA by default for landlords and property managers
         twoFactorEnabled: roleValue === 'landlord' || roleValue === 'property_manager',
       },

@@ -31,7 +31,6 @@ export async function GET(req: NextRequest) {
       rentPaidThisMonth,
       rentPaidYtd,
       scheduledRent,
-      unpaidRent,
       recentPayments,
     ] = await Promise.all([
       prisma.rentPayment.aggregate({
@@ -45,10 +44,6 @@ export async function GET(req: NextRequest) {
       prisma.lease.aggregate({
         _sum: { rentAmount: true },
         where: { status: 'active', ...leaseFilter },
-      }),
-      prisma.rentPayment.aggregate({
-        _sum: { amount: true },
-        where: { status: 'paid', payoutId: null, lease: leaseFilter },
       }),
       prisma.rentPayment.findMany({
         where: { lease: leaseFilter },
@@ -78,7 +73,10 @@ export async function GET(req: NextRequest) {
     const collectedThisMonth = Number(rentPaidThisMonth._sum?.amount ?? 0);
     const collectedYtd = Number(rentPaidYtd._sum?.amount ?? 0);
     const scheduledMonthly = Number(scheduledRent._sum?.rentAmount ?? 0);
-    const availableBalance = Number(unpaidRent._sum?.amount ?? 0);
+    // Direct payment model: money goes straight to PM's connected bank account.
+    // "availableBalance" here represents total rent collected this month for display
+    // purposes only — it is NOT sitting in a platform wallet.
+    const availableBalance = collectedThisMonth;
     const collectionRate = scheduledMonthly > 0 ? (collectedThisMonth / scheduledMonthly) * 100 : 0;
 
     return NextResponse.json({

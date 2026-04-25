@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function ContractorSubscriptionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ plan?: string; canceled?: string }>;
+  searchParams: Promise<{ plan?: string; canceled?: string; subscription?: string }>;
 }) {
   const session = await auth();
 
@@ -22,6 +22,7 @@ export default async function ContractorSubscriptionPage({
 
   const params = await searchParams;
   const canceledCheckout = params.canceled === 'true';
+  const subscriptionSuccess = params.subscription === 'success';
 
   // If already has active subscription / in trial, go straight to dashboard
   if (!canceledCheckout) {
@@ -36,11 +37,19 @@ export default async function ContractorSubscriptionPage({
     });
 
     if (profile) {
-      // Only skip subscription page if they already have a paid Stripe subscription
-      const hasActivePaidSubscription =
-        !!profile.stripeSubscriptionId || profile.subscriptionStatus === 'active';
+      // Check for active subscription or trial
+      const hasActiveSubscription =
+        !!profile.stripeSubscriptionId || 
+        profile.subscriptionStatus === 'active' ||
+        profile.subscriptionStatus === 'trialing' ||
+        profile.trialStatus === 'trialing';
 
-      if (hasActivePaidSubscription) {
+      if (hasActiveSubscription) {
+        redirect('/contractor/dashboard');
+      }
+
+      // If subscription just completed checkout, also redirect
+      if (subscriptionSuccess && profile.stripeSubscriptionId) {
         redirect('/contractor/dashboard');
       }
     }

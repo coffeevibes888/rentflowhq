@@ -11,7 +11,6 @@ import {
   Shield,
   ArrowRight,
   AlertCircle,
-  Banknote,
   FileSignature,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,7 @@ interface PayRentClientProps {
   totalAmount: number;
 }
 
-type PaymentMethod = 'card' | 'ach' | 'apple_pay' | 'google_pay' | 'cashapp';
+type PaymentMethod = 'card' | 'ach' | 'apple_pay' | 'google_pay';
 
 const paymentMethods = [
   {
@@ -72,7 +71,7 @@ const paymentMethods = [
     icon: CreditCard,
     badge: 'Instant',
     badgeColor: 'bg-violet-500',
-    features: ['No fees', 'Instant confirmation', 'Widely accepted'],
+    features: ['2.9% + 30¢ Stripe fee', 'Instant confirmation', 'Widely accepted'],
     gradient: 'from-violet-500 to-purple-500',
   },
   {
@@ -82,7 +81,7 @@ const paymentMethods = [
     icon: Smartphone,
     badge: null,
     badgeColor: '',
-    features: ['No fees', 'Instant', 'iPhone & Mac'],
+    features: ['2.9% + 30¢ Stripe fee', 'Instant', 'iPhone & Mac'],
     gradient: 'from-slate-700 to-slate-900',
   },
   {
@@ -92,18 +91,8 @@ const paymentMethods = [
     icon: Wallet,
     badge: null,
     badgeColor: '',
-    features: ['No fees', 'Instant', 'Android & Web'],
+    features: ['2.9% + 30¢ Stripe fee', 'Instant', 'Android & Web'],
     gradient: 'from-blue-500 to-cyan-500',
-  },
-  {
-    id: 'cashapp' as PaymentMethod,
-    name: 'Cash App',
-    description: 'Pay with your Cash App balance',
-    icon: Banknote,
-    badge: null,
-    badgeColor: '',
-    features: ['No fees', 'Instant', 'Easy transfer'],
-    gradient: 'from-green-500 to-emerald-500',
   },
 ];
 
@@ -186,7 +175,7 @@ export default function PayRentClient({
             <p className='text-slate-600 max-w-md mx-auto'>
               No payments due right now. Your next rent payment will appear here when it's time.
             </p>
-            <div className='rounded-xl border border-cyan-600/30 bg-linear-to-r from-cyan-700 to-cyan-700 p-6 max-w-sm mx-auto'>
+            <div className='rounded-xl border border-white/10 bg-gradient-to-r from-cyan-700 to-cyan-700 p-6 max-w-sm mx-auto'>
               <p className='text-sm text-slate-400'>Next payment due</p>
               <p className='text-lg font-semibold text-white mt-1'>
                 Day {lease.billingDayOfMonth} of next month
@@ -284,7 +273,7 @@ export default function PayRentClient({
             <h2 className='text-xl font-semibold text-white'>Choose Payment Method</h2>
             <div className='flex items-center gap-2 text-sm text-emerald-400'>
               <CheckCircle2 className='w-4 h-4' />
-              <span>No fees on any method</span>
+              <span>No platform fees</span>
             </div>
           </div>
 
@@ -300,7 +289,7 @@ export default function PayRentClient({
                   className={`relative group text-left rounded-xl border-2 p-5 transition-all duration-200 ${
                     isSelected
                       ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/20'
-                      : 'border-cyan-600/40 bg-linear-to-r from-cyan-700 to-cyan-700 hover:border-cyan-500 hover:opacity-90'
+                      : 'border-white/10 bg-gradient-to-r from-cyan-700 to-cyan-700 hover:border-indigo-400/40 hover:opacity-90'
                   }`}
                 >
                   {method.badge && (
@@ -326,7 +315,7 @@ export default function PayRentClient({
                     {method.features.map((feature, i) => (
                       <span
                         key={i}
-                        className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-900/60 text-xs text-slate-200'
+                        className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-cyan-400/20 via-sky-200/20 to-cyan-500/20 text-xs text-slate-200'
                       >
                         <CheckCircle2 className='w-3 h-3 text-emerald-400' />
                         {feature}
@@ -364,7 +353,7 @@ export default function PayRentClient({
         </div>
 
         {/* Trust Badges */}
-        <div className='rounded-xl border border-cyan-600/30 bg-linear-to-r from-cyan-700 to-cyan-700 p-6'>
+        <div className='rounded-xl border border-white/10 bg-gradient-to-r from-cyan-700 to-cyan-700 p-6'>
           <div className='flex flex-col md:flex-row items-center justify-center gap-6 text-center'>
             <div className='flex items-center gap-3'>
               <div className='w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center'>
@@ -381,8 +370,8 @@ export default function PayRentClient({
                 <CheckCircle2 className='w-5 h-5 text-indigo-400' />
               </div>
               <div className='text-left'>
-                <p className='font-medium text-white text-sm'>No Hidden Fees</p>
-                <p className='text-xs text-slate-400'>Pay exactly what you see</p>
+                <p className='font-medium text-white text-sm'>No Platform Fees</p>
+                <p className='text-xs text-slate-400'>Stripe processing fees apply</p>
               </div>
             </div>
             <div className='hidden md:block w-px h-10 bg-slate-700' />

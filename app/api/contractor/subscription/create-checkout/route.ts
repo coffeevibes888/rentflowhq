@@ -126,12 +126,22 @@ export async function POST(req: NextRequest) {
       baseUrl = new URL(SERVER_URL).origin;
     } catch {}
 
+    // Determine redirect URL based on user role
+    let successRedirectUrl = `${baseUrl}/contractor/dashboard?subscription=success&tier=${targetTier}`;
+    
+    // If user has multiple roles, redirect to appropriate dashboard
+    if (session.user.role === 'property_manager') {
+      successRedirectUrl = `${baseUrl}/admin/overview?subscription=success&tier=${targetTier}`;
+    } else if (session.user.role === 'landlord') {
+      successRedirectUrl = `${baseUrl}/admin/overview?subscription=success&tier=${targetTier}`;
+    }
+
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_collection: 'always',
       line_items: [{ price: contractorPriceId, quantity: 1 }],
-      success_url: `${baseUrl}/contractor/dashboard?subscription=success&tier=${targetTier}`,
+      success_url: successRedirectUrl,
       cancel_url: `${baseUrl}/onboarding/contractor/subscription?canceled=true`,
       metadata: {
         contractorProfileId: profile.id,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db/prisma';
+import { onContractSigned } from '@/lib/services/contractor-automation';
 
 type Params = { params: { token: string } };
 
@@ -117,6 +118,26 @@ export async function POST(req: NextRequest, { params }: Params) {
           note: declineReason || null,
         },
       });
+
+      // Notify contractor of decline
+      try {
+        const profile = await prisma.contractorProfile.findUnique({
+          where: { id: contract.contractorId },
+          select: { userId: true },
+        });
+        if (profile?.userId) {
+          await db.notification.create({
+            data: {
+              userId: profile.userId,
+              type: 'alert',
+              title: 'Contract Declined',
+              message: `${contract.customerName} declined "${contract.title}"${declineReason ? `: ${declineReason}` : ''}`,
+              actionUrl: `/contractor/contracts/${contract.id}`,
+            },
+          });
+        }
+      } catch (_) {}
+
       return NextResponse.json({ success: true, status: 'declined' });
     }
 
@@ -167,6 +188,13 @@ export async function POST(req: NextRequest, { params }: Params) {
         }
       } catch (_) {
         // Non-critical
+      }
+
+      // Run post-signing automation (transitions job, notifies contractor, etc.)
+      try {
+        await onContractSigned(contract.id);
+      } catch (automationError) {
+        console.error('Post-signing automation error (non-blocking):', automationError);
       }
 
       return NextResponse.json({ success: true, status: 'signed', signedAt: new Date() });

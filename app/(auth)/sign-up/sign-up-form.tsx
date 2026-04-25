@@ -8,8 +8,21 @@ import Link from 'next/link';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signUpUser } from '@/lib/actions/user.actions';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import OAuthButtons from '@/components/auth/oauth-buttons';
+
+// Reserved top-level routes that are NOT landlord subdomains. Kept in sync with
+// `middleware.ts` so that `/sign-up` at the root domain resolves subdomain=""
+// rather than thinking "sign-up" is a landlord slug.
+const RESERVED_ROUTES = new Set([
+  'admin', 'user', 'super-admin', 'onboarding', 'sign-in', 'sign-up',
+  'verify-email', 'forgot-password', 'reset-password', 'unauthorized',
+  'about', 'blog', 'contact', 'cart', 'checkout', 'products', 'product',
+  'search', 'order', 'shipping-address', 'place-order', 'payment-method',
+  'verify-payment-method', 'application', 'chat', 'agent', 'contractor',
+  'employee', 'team', 'listings', 'marketplace', 'contractors', 'homeowner',
+  'dispute-center', 'faq', 'docs',
+]);
 
 const SignUpForm = () => {
   const [data, action] = useActionState(signUpUser, {
@@ -18,11 +31,19 @@ const SignUpForm = () => {
   });
 
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const callbackUrl = searchParams.get('callbackUrl') || '/onboarding';
-  
+
+  // Derive subdomain from pathname when the sign-up page is mounted under
+  // /[subdomain]/sign-up. Empty string means "root domain".
+  const firstSegment = pathname?.split('/').filter(Boolean)[0] || '';
+  const subdomain = firstSegment && !RESERVED_ROUTES.has(firstSegment) ? firstSegment : '';
+  const subdomainPrefix = subdomain ? `/${subdomain}` : '';
+
   // Check if user is coming from a property application
   const fromProperty = searchParams.get('fromProperty') === 'true';
   const propertySlug = searchParams.get('propertySlug') || '';
+  const applicationCallback = `${subdomainPrefix}/application?property=${encodeURIComponent(propertySlug)}`;
   
   // Check if user is coming from pricing page (skip onboarding flow)
   const plan = searchParams.get('plan') || '';
@@ -46,34 +67,34 @@ const SignUpForm = () => {
     <div className='space-y-4'>
       {/* Show referral message if coming from referral link */}
       {referralCode && (
-        <div className='rounded-lg bg-violet-50 border border-violet-200 p-4 mb-4'>
-          <p className='text-sm text-violet-800'>
-            🎉 <strong>Welcome!</strong> You were referred by a friend. You'll both get $50 credit after your first rent collection!
+        <div className='rounded-lg bg-violet-500/10 border border-violet-400/30 p-4 mb-4'>
+          <p className='text-sm text-violet-100'>
+            🎉 <strong className='text-white'>Welcome!</strong> You were referred by a friend. You&apos;ll both get $50 credit after your first rent collection!
           </p>
         </div>
       )}
-      
+
       {/* Show context message if coming from property application */}
       {fromProperty && (
-        <div className='rounded-lg bg-blue-50 border border-blue-200 p-4 mb-4'>
-          <p className='text-sm text-blue-800'>
-            <strong>Almost there!</strong> Create an account to complete your rental application.
+        <div className='rounded-lg bg-violet-500/10 border border-violet-400/30 p-4 mb-4'>
+          <p className='text-sm text-violet-100'>
+            <strong className='text-white'>Almost there!</strong> Create an account to complete your rental application.
           </p>
         </div>
       )}
-      
+
       {/* Show context message if coming from pricing page */}
       {plan && (
-        <div className='rounded-lg bg-violet-50 border border-violet-200 p-4 mb-4'>
-          <p className='text-sm text-violet-800'>
-            <strong>Great choice!</strong> Create your account to review your plan selection.
+        <div className='rounded-lg bg-violet-500/10 border border-violet-400/30 p-4 mb-4'>
+          <p className='text-sm text-violet-100'>
+            <strong className='text-white'>Great choice!</strong> Create your account to review your plan selection.
           </p>
         </div>
       )}
       
       <OAuthButtons callbackUrl={
         fromProperty 
-          ? `/application?property=${propertySlug}` 
+          ? applicationCallback
           : plan 
             ? role === 'contractor'
               ? `/onboarding/contractor/subscription?plan=${plan}`
@@ -84,7 +105,7 @@ const SignUpForm = () => {
       <form action={action}>
         <input type='hidden' name='callbackUrl' value={
           fromProperty 
-            ? `/application?property=${propertySlug}` 
+            ? applicationCallback
             : plan 
               ? role === 'contractor'
                 ? `/onboarding/contractor/subscription?plan=${plan}`
@@ -169,7 +190,15 @@ const SignUpForm = () => {
 
           <div className='text-sm text-center text-muted-foreground'>
             Already have an account?{' '}
-            <Link href='/sign-in' target='_self' className='link'>
+            <Link
+              href={
+                fromProperty && propertySlug
+                  ? `${subdomainPrefix}/sign-in?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
+                  : `${subdomainPrefix}/sign-in`
+              }
+              target='_self'
+              className='link'
+            >
               Sign In
             </Link>
           </div>

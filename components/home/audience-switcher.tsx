@@ -367,11 +367,13 @@ export default function AudienceSwitcher({
   contractorPricingSection,
   pmLifecycleSection,
   pmLeasePortalSection,
+  contractorLifecycleSection,
 }: {
   pmPricingSection: React.ReactNode;
   contractorPricingSection: React.ReactNode;
   pmLifecycleSection: React.ReactNode;
   pmLeasePortalSection: React.ReactNode;
+  contractorLifecycleSection?: React.ReactNode;
 }) {
   const searchParams = useSearchParams();
   const [audience, setAudience] = useState<Audience>('pm');
@@ -469,6 +471,7 @@ export default function AudienceSwitcher({
           </motion.div>
         ) : (
           <motion.div key="contractor-content" {...fadeSlide}>
+            {contractorLifecycleSection}
             {contractorPricingSection}
             <ContractorFeatures />
             <ContractorShowcase />

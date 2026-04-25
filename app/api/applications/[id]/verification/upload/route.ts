@@ -50,13 +50,24 @@ export async function POST(
       );
     }
 
-    // Get landlord ID - for applications without a unit/property, we'll use a placeholder
+    // Get landlord ID - resolve from property if available
     let landlordId = application.unit?.property?.landlord?.id;
     
-    // If no landlord is associated yet, store documents under a "pending" folder
+    // If no landlord via unit, try resolving from propertySlug directly
+    if (!landlordId && application.propertySlug) {
+      const property = await db.property.findFirst({
+        where: { slug: application.propertySlug },
+        include: { landlord: { select: { id: true } } },
+      });
+      landlordId = property?.landlord?.id;
+    }
+
+    // If still no landlord, we can't store the document securely
     if (!landlordId) {
-      // Use a placeholder for unassigned applications
-      landlordId = 'pending-review';
+      return NextResponse.json(
+        { error: 'Unable to associate document with a landlord. Please ensure the property exists.' },
+        { status: 400 }
+      );
     }
 
     // Parse form data

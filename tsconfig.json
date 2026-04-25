@@ -28,6 +28,7 @@
         "./*"
       ]
     },
+    "types": ["node"],
     // Performance optimizations
     "assumeChangesOnlyAffectDirectDependencies": true
   },

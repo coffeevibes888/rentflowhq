@@ -24,7 +24,7 @@ export async function GET(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    // Get the document and verify it belongs to this landlord
+    // Get the document and verify it belongs to this landlord's application
     const document = await prisma.verificationDocument.findUnique({
       where: { id },
       select: {
@@ -38,14 +38,42 @@ export async function GET(
       return NextResponse.json({ message: 'Document not found' }, { status: 404 });
     }
 
-    if (document.landlordId !== landlord.id) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+    // Primary check: landlordId matches directly
+    if (document.landlordId === landlord.id) {
+      const url = await DocumentService.getSecureUrl(id, 600, session.user.id, 'admin_view');
+      return NextResponse.json({ url });
     }
 
-    // Get secure URL
-    const url = await DocumentService.getSecureUrl(id, 600, session.user.id, 'admin_view');
+    // Fallback: verify via the application's property (handles legacy docs)
+    if (document.applicationId) {
+      const application = await prisma.rentalApplication.findUnique({
+        where: { id: document.applicationId },
+        include: {
+          unit: { include: { property: { select: { landlordId: true } } } },
+        },
+      });
 
-    return NextResponse.json({ url });
+      const appLandlordId = application?.unit?.property?.landlordId;
+
+      // Also try resolving via propertySlug if unit not linked
+      if (!appLandlordId && application?.propertySlug) {
+        const property = await prisma.property.findFirst({
+          where: { slug: application.propertySlug },
+          select: { landlordId: true },
+        });
+        if (property?.landlordId === landlord.id) {
+          const url = await DocumentService.getSecureUrl(id, 600, session.user.id, 'admin_view');
+          return NextResponse.json({ url });
+        }
+      }
+
+      if (appLandlordId === landlord.id) {
+        const url = await DocumentService.getSecureUrl(id, 600, session.user.id, 'admin_view');
+        return NextResponse.json({ url });
+      }
+    }
+
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
   } catch (error) {
     console.error('Error getting document URL:', error);
     return NextResponse.json(

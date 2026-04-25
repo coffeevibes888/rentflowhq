@@ -141,10 +141,10 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
         {limitInfo && limitInfo.limit !== -1 && (
           <Alert className={`${
             limitInfo.remaining === 0
-              ? 'bg-red-500/10 border-red-500/50'
+              ? 'bg-red-50 border-red-200'
               : limitInfo.percentage >= 80
-              ? 'bg-yellow-500/10 border-yellow-500/50'
-              : 'bg-blue-500/10 border-blue-500/50'
+              ? 'bg-yellow-50 border-yellow-200'
+              : 'bg-blue-50 border-blue-200'
           }`}>
             <AlertCircle className={`h-4 w-4 ${
               limitInfo.remaining === 0
@@ -153,14 +153,14 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
                 ? 'text-yellow-500'
                 : 'text-blue-500'
             }`} />
-            <AlertDescription className="text-white">
+            <AlertDescription className="text-slate-700">
               {limitInfo.remaining === 0 ? (
                 <>
                   You've reached your limit of {limitInfo.limit} active jobs.{' '}
                   <button
                     type="button"
                     onClick={() => setShowUpgradeModal(true)}
-                    className="underline font-semibold hover:text-violet-400"
+                    className="underline font-semibold hover:text-violet-600"
                   >
                     Upgrade to Pro
                   </button>{' '}
@@ -173,7 +173,7 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
                   <button
                     type="button"
                     onClick={() => setShowUpgradeModal(true)}
-                    className="underline font-semibold hover:text-violet-400"
+                    className="underline font-semibold hover:text-violet-600"
                   >
                     upgrading
                   </button>{' '}
@@ -189,41 +189,41 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
         )}
 
         {/* Basic Info */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white">Basic Information</CardTitle>
+            <CardTitle className="text-slate-900">Basic Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="title" className="text-white">Job Title *</Label>
+              <Label htmlFor="title" className="text-slate-700">Job Title *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white border-gray-300 text-slate-900"
                 placeholder="Kitchen Remodel"
               />
             </div>
 
             <div>
-              <Label htmlFor="jobType" className="text-white">Job Type</Label>
+              <Label htmlFor="jobType" className="text-slate-700">Job Type</Label>
               <Input
                 id="jobType"
                 value={formData.jobType}
                 onChange={(e) => setFormData({ ...formData, jobType: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white border-gray-300 text-slate-900"
                 placeholder="Kitchen, Bathroom, Deck, etc."
               />
             </div>
 
             <div>
-              <Label htmlFor="customerId" className="text-white">Customer</Label>
+              <Label htmlFor="customerId" className="text-slate-700">Customer</Label>
               <select
                 id="customerId"
                 value={formData.customerId}
                 onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-                className="w-full px-3 py-2 rounded-md bg-white/5 border border-white/10 text-white"
+                className="w-full px-3 py-2 rounded-md bg-white border border-gray-300 text-slate-900"
               >
                 <option value="">Select customer...</option>
                 {customers.map((customer) => (
@@ -235,12 +235,12 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="description" className="text-white">Description</Label>
+              <Label htmlFor="description" className="text-slate-700">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white border-gray-300 text-slate-900"
                 rows={4}
                 placeholder="Detailed description of the work..."
               />
@@ -248,12 +248,12 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="status" className="text-white">Status</Label>
+                <Label htmlFor="status" className="text-slate-700">Status</Label>
                 <select
                   id="status"
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-3 py-2 rounded-md bg-white/5 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-md bg-white border border-gray-300 text-slate-900"
                 >
                   <option value="quoted">Quoted</option>
                   <option value="approved">Approved</option>
@@ -265,12 +265,12 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
               </div>
 
               <div>
-                <Label htmlFor="priority" className="text-white">Priority</Label>
+                <Label htmlFor="priority" className="text-slate-700">Priority</Label>
                 <select
                   id="priority"
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="w-full px-3 py-2 rounded-md bg-white/5 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-md bg-white border border-gray-300 text-slate-900"
                 >
                   <option value="low">Low</option>
                   <option value="normal">Normal</option>
@@ -283,51 +283,51 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
         </Card>
 
         {/* Location */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white">Location</CardTitle>
+            <CardTitle className="text-slate-900">Location</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="address" className="text-white">Address</Label>
+              <Label htmlFor="address" className="text-slate-700">Address</Label>
               <Input
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white border-gray-300 text-slate-900"
                 placeholder="123 Main St"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="city" className="text-white">City</Label>
+                <Label htmlFor="city" className="text-slate-700">City</Label>
                 <Input
                   id="city"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                 />
               </div>
 
               <div>
-                <Label htmlFor="state" className="text-white">State</Label>
+                <Label htmlFor="state" className="text-slate-700">State</Label>
                 <Input
                   id="state"
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                   maxLength={2}
                 />
               </div>
 
               <div>
-                <Label htmlFor="zipCode" className="text-white">Zip Code</Label>
+                <Label htmlFor="zipCode" className="text-slate-700">Zip Code</Label>
                 <Input
                   id="zipCode"
                   value={formData.zipCode}
                   onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                 />
               </div>
             </div>
@@ -335,47 +335,47 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
         </Card>
 
         {/* Financial */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white">Financial Details</CardTitle>
+            <CardTitle className="text-slate-900">Financial Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="estimatedCost" className="text-white">Estimated Cost</Label>
+                <Label htmlFor="estimatedCost" className="text-slate-700">Estimated Cost</Label>
                 <Input
                   id="estimatedCost"
                   type="number"
                   step="0.01"
                   value={formData.estimatedCost}
                   onChange={(e) => setFormData({ ...formData, estimatedCost: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                   placeholder="0.00"
                 />
               </div>
 
               <div>
-                <Label htmlFor="laborCost" className="text-white">Labor Cost</Label>
+                <Label htmlFor="laborCost" className="text-slate-700">Labor Cost</Label>
                 <Input
                   id="laborCost"
                   type="number"
                   step="0.01"
                   value={formData.laborCost}
                   onChange={(e) => setFormData({ ...formData, laborCost: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                   placeholder="0.00"
                 />
               </div>
 
               <div>
-                <Label htmlFor="materialCost" className="text-white">Material Cost</Label>
+                <Label htmlFor="materialCost" className="text-slate-700">Material Cost</Label>
                 <Input
                   id="materialCost"
                   type="number"
                   step="0.01"
                   value={formData.materialCost}
                   onChange={(e) => setFormData({ ...formData, materialCost: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                   placeholder="0.00"
                 />
               </div>
@@ -384,42 +384,42 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
         </Card>
 
         {/* Timeline */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white">Timeline</CardTitle>
+            <CardTitle className="text-slate-900">Timeline</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="estimatedStartDate" className="text-white">Start Date</Label>
+                <Label htmlFor="estimatedStartDate" className="text-slate-700">Start Date</Label>
                 <Input
                   id="estimatedStartDate"
                   type="date"
                   value={formData.estimatedStartDate}
                   onChange={(e) => setFormData({ ...formData, estimatedStartDate: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                 />
               </div>
 
               <div>
-                <Label htmlFor="estimatedEndDate" className="text-white">End Date</Label>
+                <Label htmlFor="estimatedEndDate" className="text-slate-700">End Date</Label>
                 <Input
                   id="estimatedEndDate"
                   type="date"
                   value={formData.estimatedEndDate}
                   onChange={(e) => setFormData({ ...formData, estimatedEndDate: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                 />
               </div>
 
               <div>
-                <Label htmlFor="estimatedHours" className="text-white">Estimated Hours</Label>
+                <Label htmlFor="estimatedHours" className="text-slate-700">Estimated Hours</Label>
                 <Input
                   id="estimatedHours"
                   type="number"
                   value={formData.estimatedHours}
                   onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-gray-300 text-slate-900"
                   placeholder="0"
                 />
               </div>
@@ -428,15 +428,15 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
         </Card>
 
         {/* Notes */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white">Notes</CardTitle>
+            <CardTitle className="text-slate-900">Notes</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="bg-white/5 border-white/10 text-white"
+              className="bg-white border-gray-300 text-slate-900"
               rows={4}
               placeholder="Internal notes about this job..."
             />
@@ -457,7 +457,7 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
             type="button"
             variant="outline"
             onClick={() => router.back()}
-            className="border-white/20 text-white hover:bg-white/10"
+            className="border-gray-300 text-slate-700 hover:bg-gray-50"
           >
             Cancel
           </Button>

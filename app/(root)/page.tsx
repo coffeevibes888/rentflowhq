@@ -157,6 +157,7 @@ const Homepage = async () => {
             contractorPricingSection={<PricingSection variant="contractor" />}
             pmLifecycleSection={<PMLifecycleSection />}
             pmLeasePortalSection={<PMLeasePortalSection />}
+            contractorLifecycleSection={<ContractorLifecycleSection />}
           />
         </Suspense>
       </main>
@@ -367,6 +368,138 @@ function PMLeasePortalSection() {
             </div>
           </div>
 
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Contractor Job Lifecycle Flow ───────────────────────────────────────────
+function ContractorLifecycleSection() {
+  return (
+    <section className='w-full py-4 md:py-16 px-4'>
+      <div className='max-w-6xl mx-auto'>
+        <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
+          <div className='md:col-span-2 group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.01] bg-gradient-to-r from-rose-500 via-orange-300 to-amber-400 border border-black shadow-2xl'>
+            <div className='absolute top-4 right-4 md:top-6 md:right-6'>
+              <span className='inline-flex items-center gap-1 bg-orange-50 text-orange-600 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-orange-100'>
+                <span className='relative flex h-2 w-2'>
+                  <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75'></span>
+                  <span className='relative inline-flex rounded-full h-2 w-2 bg-orange-500'></span>
+                </span>
+                AUTOMATED
+              </span>
+            </div>
+            <div className='relative p-6 md:p-8 space-y-4 md:space-y-6'>
+              <div className='space-y-2'>
+                <h3 className='text-2xl md:text-3xl font-bold text-slate-900'>Complete Job Lifecycle</h3>
+                <p className='text-slate-700 text-sm md:text-base'>From first lead to final payment — fully automated</p>
+              </div>
+
+              {/* Mobile layout */}
+              <div className='lg:hidden space-y-2'>
+                {[
+                  [{ label: 'Lead Comes In', sub: 'Marketplace or Direct', border: 'border-rose-400', color: 'text-rose-400' }, { label: 'Send Quote', sub: 'Built-in Quote Builder', border: 'border-orange-300', color: 'text-orange-400' }],
+                  [{ label: 'Customer Accepts', sub: 'One Click Approval', border: 'border-amber-300', color: 'text-amber-400' }, { label: 'Contract Auto-Sent', sub: 'E-Signature Ready', border: 'border-emerald-300', color: 'text-emerald-400' }],
+                  [{ label: 'Customer Signs', sub: 'Legally Binding', border: 'border-emerald-300', color: 'text-emerald-400' }, { label: 'Job Created', sub: 'Auto-Scheduled', border: 'border-blue-300', color: 'text-blue-400' }],
+                  [{ label: 'Upload Photos', sub: 'Before / During / After', border: 'border-violet-300', color: 'text-violet-400' }, { label: 'Track Progress', sub: 'Real-Time Updates', border: 'border-violet-300', color: 'text-violet-400' }],
+                  [{ label: 'Job Complete', sub: 'Customer Notified', border: 'border-cyan-300', color: 'text-cyan-400' }, { label: 'Invoice Sent', sub: 'Auto-Generated', border: 'border-cyan-300', color: 'text-cyan-400' }],
+                  [{ label: 'Get Paid', sub: 'Direct to Bank', border: 'border-green-300', color: 'text-green-400' }, { label: 'Get Reviews', sub: 'Auto-Requested', border: 'border-green-300', color: 'text-green-400' }],
+                ].map((row, i) => (
+                  <div key={i} className='flex items-center gap-1 sm:gap-2'>
+                    <div className={`flex-1 bg-slate-800/90 rounded-lg px-2 py-2 border-2 ${row[0].border} text-center`}>
+                      <div className={`${row[0].color} text-[10px] sm:text-xs font-bold`}>{row[0].label}</div>
+                      <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>{row[0].sub}</div>
+                    </div>
+                    <svg className='h-4 w-4 text-slate-800 shrink-0' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                    <div className={`flex-1 bg-slate-800/90 rounded-lg px-2 py-2 border-2 ${row[1].border} text-center`}>
+                      <div className={`${row[1].color} text-[10px] sm:text-xs font-bold`}>{row[1].label}</div>
+                      <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>{row[1].sub}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop layout */}
+              <div className='hidden lg:block space-y-4'>
+                {/* Row 1: Lead → Quote → Accept → Contract Sent → Customer Signs */}
+                <div className='flex items-center justify-between gap-3'>
+                  {[
+                    { label: 'Lead Comes In', sub: 'Marketplace or Direct', border: 'border-rose-400', color: 'text-rose-400' },
+                    { label: 'Send Quote', sub: 'Built-in Quote Builder', border: 'border-orange-300', color: 'text-orange-400' },
+                    { label: 'Customer Accepts', sub: 'One Click Approval', border: 'border-amber-300', color: 'text-amber-400' },
+                    { label: 'Contract Auto-Sent', sub: 'E-Signature Ready', border: 'border-emerald-300', color: 'text-emerald-400' },
+                    { label: 'Customer Signs', sub: 'Legally Binding', border: 'border-emerald-300', color: 'text-emerald-400' },
+                  ].map((node, i, arr) => (
+                    <div key={node.label} className='flex items-center gap-3 flex-1'>
+                      <div className={`bg-slate-800/90 rounded-lg px-4 py-3 border-2 ${node.border} text-center min-w-[100px] flex-1`}>
+                        <div className={`${node.color} text-xs font-bold`}>{node.label}</div>
+                        <div className='text-white text-[10px] mt-0.5 font-semibold'>{node.sub}</div>
+                      </div>
+                      {i < arr.length - 1 && (
+                        <svg className='h-3 w-5 text-slate-800 shrink-0' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Connector down */}
+                <div className='flex justify-end pr-[50px]'>
+                  <div className='flex flex-col items-center'>
+                    <div className='w-0.5 h-4 border-l-2 border-dashed border-slate-800'></div>
+                    <svg className='h-3 w-5 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                  </div>
+                </div>
+
+                {/* Row 2: Get Reviews ← Get Paid ← Invoice Sent ← Job Complete ← Track Progress */}
+                <div className='flex items-center justify-between gap-3'>
+                  {[
+                    { label: 'Get Reviews', sub: 'Auto-Requested', border: 'border-green-300', color: 'text-green-400' },
+                    { label: 'Get Paid', sub: 'Direct to Bank', border: 'border-green-300', color: 'text-green-400' },
+                    { label: 'Invoice Sent', sub: 'Auto-Generated', border: 'border-cyan-300', color: 'text-cyan-400' },
+                    { label: 'Job Complete', sub: 'Customer Notified', border: 'border-cyan-300', color: 'text-cyan-400' },
+                    { label: 'Job Auto-Created', sub: 'Scheduled & Tracked', border: 'border-blue-300', color: 'text-blue-400' },
+                  ].map((node, i, arr) => (
+                    <div key={node.label} className='flex items-center gap-3 flex-1'>
+                      {i > 0 && (
+                        <svg className='h-4 w-4 text-slate-800 shrink-0 rotate-180' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                      )}
+                      <div className={`bg-slate-800/90 rounded-lg px-4 py-3 border-2 ${node.border} text-center min-w-[100px] flex-1`}>
+                        <div className={`${node.color} text-xs font-bold`}>{node.label}</div>
+                        <div className='text-white text-[10px] mt-0.5 font-semibold'>{node.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Connector down */}
+                <div className='flex justify-start pl-[50px]'>
+                  <div className='flex flex-col items-center'>
+                    <div className='w-0.5 h-4 border-l-2 border-dashed border-slate-800'></div>
+                    <svg className='h-4 w-4 text-slate-800 rotate-90' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                  </div>
+                </div>
+
+                {/* Row 3: Extras */}
+                <div className='flex items-center gap-3'>
+                  <div className='bg-slate-800/90 rounded-lg px-4 py-3 border-2 border-violet-300 text-center min-w-[100px]'>
+                    <div className='text-violet-400 text-xs font-bold'>Upload Photos</div>
+                    <div className='text-white text-[10px] mt-0.5 font-semibold'>Before / During / After</div>
+                  </div>
+                  <svg className='h-4 w-4 text-slate-800' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                  <div className='bg-slate-800/90 rounded-lg px-4 py-3 border-2 border-violet-300 text-center min-w-[100px]'>
+                    <div className='text-violet-400 text-xs font-bold'>Change Orders</div>
+                    <div className='text-white text-[10px] mt-0.5 font-semibold'>Scope & Price Updates</div>
+                  </div>
+                  <svg className='h-4 w-4 text-slate-800' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                  <div className='bg-slate-800/90 rounded-lg px-4 py-3 border-2 border-amber-300 text-center min-w-[100px]'>
+                    <div className='text-amber-400 text-xs font-bold'>Warranty Tracking</div>
+                    <div className='text-white text-[10px] mt-0.5 font-semibold'>Auto Reminders</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

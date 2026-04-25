@@ -59,6 +59,13 @@ export function initializeEventHandlers() {
   // Contractor lead events
   eventBus.subscribe('contractor.lead_matched', handleContractorLeadMatched);
 
+  // Contractor pipeline events
+  eventBus.subscribe('contractor.quote.accepted', handleContractorQuoteAccepted);
+  eventBus.subscribe('contractor.contract.signed', handleContractorContractSigned);
+  eventBus.subscribe('contractor.contract.declined', handleContractorContractDeclined);
+  eventBus.subscribe('contractor.job.completed', handleContractorJobCompleted);
+  eventBus.subscribe('contractor.job.status_changed', handleContractorJobStatusChanged);
+
   console.log('Event handlers initialized');
 }
 
@@ -607,4 +614,108 @@ async function handleContractorLeadMatched(event: EventPayload) {
     scheduledFor: new Date(),
     priority: 8,
   });
+}
+
+/**
+ * Handle quote accepted - notify contractor in real-time
+ */
+async function handleContractorQuoteAccepted(event: EventPayload) {
+  const { quoteId, jobId, contractId, contractorId, contractorUserId } = event.data;
+
+  const wsServer = getWebSocketServer();
+  if (wsServer && contractorUserId) {
+    wsServer.broadcastNewMessage(`contractor-${contractorUserId}`, {
+      type: 'quote_accepted',
+      quoteId,
+      jobId,
+      contractId,
+      message: 'A customer accepted your quote! Contract has been sent for signing.',
+    });
+  }
+}
+
+/**
+ * Handle contract signed - real-time notification + schedule job reminders
+ */
+async function handleContractorContractSigned(event: EventPayload) {
+  const { contractId, jobId, contractorUserId, customerName } = event.data;
+
+  const wsServer = getWebSocketServer();
+  if (wsServer && contractorUserId) {
+    wsServer.broadcastNewMessage(`contractor-${contractorUserId}`, {
+      type: 'contract_signed',
+      contractId,
+      jobId,
+      message: `${customerName} signed the contract. Job is ready to schedule!`,
+    });
+  }
+}
+
+/**
+ * Handle contract declined - notify contractor
+ */
+async function handleContractorContractDeclined(event: EventPayload) {
+  const { contractId, contractorUserId, customerName, declineReason } = event.data;
+
+  const wsServer = getWebSocketServer();
+  if (wsServer && contractorUserId) {
+    wsServer.broadcastNewMessage(`contractor-${contractorUserId}`, {
+      type: 'contract_declined',
+      contractId,
+      message: `${customerName} declined the contract.`,
+    });
+  }
+
+  await jobQueue.schedule({
+    type: 'send_notification',
+    payload: {
+      userId: contractorUserId,
+      type: 'alert',
+      title: 'Contract Declined',
+      message: `${customerName} declined the contract${declineReason ? `: ${declineReason}` : ''}. Consider following up.`,
+      actionUrl: `/contractor/contracts/${contractId}`,
+    },
+    scheduledFor: new Date(),
+    priority: 8,
+  });
+}
+
+/**
+ * Handle job completed - schedule review request
+ */
+async function handleContractorJobCompleted(event: EventPayload) {
+  const { jobId, contractorUserId, customerUserId, totalCost } = event.data;
+
+  // Schedule review request 24 hours after completion
+  if (customerUserId) {
+    await jobQueue.schedule({
+      type: 'send_notification',
+      payload: {
+        userId: customerUserId,
+        type: 'reminder',
+        title: 'How Was Your Experience?',
+        message: 'Your job has been completed. Please leave a review for your contractor.',
+        actionUrl: `/customer/reviews/new?jobId=${jobId}`,
+      },
+      scheduledFor: addHours(new Date(), 24),
+      priority: 6,
+    });
+  }
+}
+
+/**
+ * Handle job status changed - real-time updates
+ */
+async function handleContractorJobStatusChanged(event: EventPayload) {
+  const { jobId, previousStatus, newStatus, contractorUserId } = event.data;
+
+  const wsServer = getWebSocketServer();
+  if (wsServer && contractorUserId) {
+    wsServer.broadcastNewMessage(`contractor-${contractorUserId}`, {
+      type: 'job_status_changed',
+      jobId,
+      previousStatus,
+      newStatus,
+    });
+  }
 }

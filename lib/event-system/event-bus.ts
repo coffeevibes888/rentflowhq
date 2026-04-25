@@ -36,6 +36,8 @@ export type SystemEvent =
   | 'contractor.lead_responded'
   | 'contractor.job.created'
   | 'contractor.job.status_changed'
+  | 'contractor.job.completed'
+  | 'contractor.job.approved'
   | 'contractor.job.deleted'
   | 'contractor.customer.created'
   | 'contractor.employee.created'
@@ -45,6 +47,10 @@ export type SystemEvent =
   | 'contractor.campaign.send'
   | 'contractor.referral.created'
   | 'contractor.referral.updated'
+  | 'contractor.quote.accepted'
+  | 'contractor.quote.rejected'
+  | 'contractor.contract.signed'
+  | 'contractor.contract.declined'
   | 'homeowner.job_posted'
   | 'homeowner.estimate_requested';
 

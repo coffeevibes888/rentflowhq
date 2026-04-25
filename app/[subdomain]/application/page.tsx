@@ -1,69 +1,72 @@
-"use client";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { prisma } from "@/db/prisma";
+import { ApplicationWizardClient } from "./application-wizard-client";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { ApplicationWizard } from "@/components/tenant/application-wizard";
+/**
+ * Subdomain-scoped property application page.
+ *
+ * Server-side guard:
+ *   1. Unauthenticated → redirect to subdomain sign-up with Apply intent.
+ *   2. Authenticated but `onboardingCompleted=false` → auto-upgrade to
+ *      `role='tenant' + onboardingCompleted=true`. We can safely infer intent
+ *      because they arrived at a property's Apply URL. This is the single
+ *      choke-point that covers both credential signup and Google OAuth — no
+ *      cookies / intent tokens required.
+ *   3. Authenticated, onboarding-complete, non-tenant role → allow. An existing
+ *      landlord or homeowner may legitimately apply for a rental; we don't
+ *      mutate their role in that case.
+ */
+export default async function SubdomainApplicationPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ subdomain: string }>;
+  searchParams: Promise<{ property?: string }>;
+}) {
+  const { subdomain } = await params;
+  const { property: propertySlug = "" } = await searchParams;
 
-export default function SubdomainApplicationPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const propertySlug = searchParams.get("property") ?? "";
-  const [propertyName, setPropertyName] = useState<string>("");
+  const session = await auth();
 
-  // Redirect to sign-up if not authenticated or not a tenant
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.role === "tenant") {
-      // User is authenticated and is a tenant, allow access
-      return;
-    } else if (status === "unauthenticated" || (status === "authenticated" && session?.user?.role !== "tenant")) {
-      // Not authenticated or not a tenant, redirect to sign-up with propertySlug
-      const signUpUrl = propertySlug
-        ? `/sign-up?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
-        : "/sign-up?fromProperty=true";
-      router.push(signUpUrl);
-    }
-  }, [status, session?.user?.role, propertySlug, router]);
-
-  // Fetch property name if we have a slug
-  useEffect(() => {
-    if (propertySlug) {
-      fetch(`/api/products/slug/${propertySlug}`)
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data?.name) {
-            setPropertyName(data.name);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [propertySlug]);
-
-  if (status === "loading" || status === "unauthenticated" || (status === "authenticated" && session?.user?.role !== "tenant")) {
-    return (
-      <main className="flex-1 w-full flex items-center justify-center py-20">
-        <div className="text-center">
-          <p className="text-slate-200">Redirecting to sign up...</p>
-        </div>
-      </main>
-    );
+  if (!session?.user?.id) {
+    const qs = new URLSearchParams({ fromProperty: "true" });
+    if (propertySlug) qs.set("propertySlug", propertySlug);
+    redirect(`/${subdomain}/sign-up?${qs.toString()}`);
   }
 
-  const handleComplete = () => {
-    router.push("/user/dashboard");
-  };
+  // Auto-upgrade users who came here via Apply but haven't completed onboarding.
+  // PROTECTED roles (superAdmin/admin) are never silently mutated.
+  const PROTECTED = new Set(["superAdmin", "admin"]);
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, onboardingCompleted: true },
+  });
 
-  const handleCancel = () => {
-    router.back();
-  };
+  if (dbUser && !dbUser.onboardingCompleted && !PROTECTED.has(dbUser.role)) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        role: "tenant",
+        onboardingCompleted: true,
+      },
+    });
+  }
+
+  // Look up property name server-side so the wizard header is correct on first paint.
+  let propertyName = propertySlug;
+  if (propertySlug) {
+    const product = await prisma.product.findFirst({
+      where: { slug: propertySlug },
+      select: { name: true },
+    });
+    if (product?.name) propertyName = product.name;
+  }
 
   return (
-    <ApplicationWizard
+    <ApplicationWizardClient
       propertySlug={propertySlug}
-      propertyName={propertyName || propertySlug}
-      onComplete={handleComplete}
-      onCancel={handleCancel}
+      propertyName={propertyName}
     />
   );
 }

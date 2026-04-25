@@ -10,7 +10,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/sign-in',
     error: '/sign-in',
-    newUser: '/onboarding', // Redirect new OAuth users to onboarding
+    // No `newUser` override: we want the explicit `callbackUrl` to win for
+    // flows like "Apply Now" so tenants land on the application wizard, not
+    // the generic role-selection page. Users without `onboardingCompleted`
+    // are routed to onboarding by the home/dashboard pages on demand.
   },
   session: {
     strategy: 'jwt' as const,

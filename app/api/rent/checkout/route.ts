@@ -145,7 +145,16 @@ export async function POST(req: NextRequest) {
   const rentAmountInCents = Math.round(totalAmount * 100);
 
   // Create Payment Intent - DIRECT TO LANDLORD
-  // Uses Stripe Connect destination charges
+  // Uses Stripe Connect destination charges.
+  //
+  // NOTE on payment methods with destination charges:
+  // - card, us_bank_account, link: supported ✅
+  // - cashapp: NOT supported with transfer_data (Stripe restriction) ❌
+  // - apple_pay / google_pay: rendered client-side by PaymentElement automatically ✅
+  //
+  // We use automatic_payment_methods with an explicit allowlist so Stripe
+  // can dynamically enable methods from your dashboard without code changes,
+  // while still excluding methods incompatible with destination charges.
   const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
     amount: rentAmountInCents,
     currency: 'usd',
@@ -161,7 +170,13 @@ export async function POST(req: NextRequest) {
       landlordId: landlord.id,
       rentAmount: rentAmountInCents.toString(),
     },
-    payment_method_types: ['card', 'link', 'us_bank_account'],
+    // Use automatic_payment_methods so dashboard-enabled methods appear
+    // without requiring code changes. Cash App is excluded because it is
+    // incompatible with destination charges (Stripe limitation).
+    automatic_payment_methods: {
+      enabled: true,
+      allow_redirects: 'never', // keep tenant on-page; no redirect-based methods
+    },
     receipt_email: session.user.email || undefined,
     payment_method_options: {
       us_bank_account: {

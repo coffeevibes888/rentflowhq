@@ -93,29 +93,74 @@ export async function POST(req: NextRequest) {
         })
       : null;
 
-    const application = await prisma.rentalApplication.create({
-      data: {
-        fullName: data.fullName,
-        email: data.email,
-        phone: data.phone,
-        notes: notesCombined,
-        encryptedSsn, // Store encrypted SSN separately
-        status: "pending",
-        propertySlug: data.propertySlug || null,
-        unitId: unit?.id ?? null,
+    // Check if a draft application exists for this applicant + property.
+    // If so, UPDATE it instead of creating a new record so that any
+    // verification documents (ID, paystubs) uploaded during the wizard
+    // remain linked to the same applicationId.
+    const existingDraft = await prisma.rentalApplication.findFirst({
+      where: {
         applicantId,
+        propertySlug: data.propertySlug || null,
+        status: 'draft',
       },
     });
 
-    // Create verification record for the application
-    await prisma.applicationVerification.create({
-      data: {
-        applicationId: application.id,
-        identityStatus: 'pending',
-        employmentStatus: 'pending',
-        overallStatus: 'incomplete',
-      },
-    });
+    let application;
+
+    if (existingDraft) {
+      // Promote the draft to a real pending application
+      application = await prisma.rentalApplication.update({
+        where: { id: existingDraft.id },
+        data: {
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          notes: notesCombined,
+          encryptedSsn,
+          status: 'pending',
+          unitId: unit?.id ?? existingDraft.unitId,
+        },
+      });
+
+      // Update the existing verification record status if still incomplete
+      await prisma.applicationVerification.updateMany({
+        where: { applicationId: application.id, overallStatus: 'incomplete' },
+        data: { overallStatus: 'in_progress' },
+      });
+
+      // Re-link any verification documents that were uploaded under the draft
+      // and update their landlordId now that we know the property/landlord
+      if (property?.landlordId) {
+        await prisma.verificationDocument.updateMany({
+          where: { applicationId: application.id },
+          data: { landlordId: property.landlordId },
+        });
+      }
+    } else {
+      application = await prisma.rentalApplication.create({
+        data: {
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          notes: notesCombined,
+          encryptedSsn,
+          status: 'pending',
+          propertySlug: data.propertySlug || null,
+          unitId: unit?.id ?? null,
+          applicantId,
+        },
+      });
+
+      // Create verification record for the new application
+      await prisma.applicationVerification.create({
+        data: {
+          applicationId: application.id,
+          identityStatus: 'pending',
+          employmentStatus: 'pending',
+          overallStatus: 'incomplete',
+        },
+      });
+    }
 
     // Notify landlord about new application
     if (property && property.landlordId) {

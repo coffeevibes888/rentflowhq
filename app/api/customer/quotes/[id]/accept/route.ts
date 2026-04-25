@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { onQuoteAccepted } from '@/lib/services/contractor-automation';
 
 export async function POST(
   req: NextRequest,
@@ -46,22 +47,16 @@ export async function POST(
       },
     });
 
-    // Create a job from the accepted quote
-    await prisma.contractorJob.create({
-      data: {
-        jobNumber: `JOB-Q-${quoteId.slice(0, 8).toUpperCase()}`,
-        title: quote.title,
-        description: quote.description,
-        contractorId: quote.contractorId,
-        status: 'approved',
-        estimatedCost: quote.totalPrice,
-        priority: 'normal',
-      },
-    });
+    // Run the full automation pipeline:
+    // Creates job, contract, sends signing link, notifies contractor, updates lead
+    const { job, contract, signingUrl } = await onQuoteAccepted(quoteId);
 
     return NextResponse.json({
       success: true,
       quote: updatedQuote,
+      jobId: job.id,
+      contractId: contract.id,
+      signingUrl,
     });
   } catch (error) {
     console.error('Error accepting quote:', error);

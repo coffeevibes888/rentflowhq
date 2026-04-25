@@ -14,7 +14,6 @@ import {
   Building2, 
   Smartphone, 
   Wallet,
-  Banknote,
   Shield,
   CheckCircle2,
   Loader2,
@@ -27,7 +26,7 @@ const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
 );
 
-type PaymentMethod = 'card' | 'ach' | 'apple_pay' | 'google_pay' | 'cashapp';
+type PaymentMethod = 'card' | 'ach' | 'apple_pay' | 'google_pay';
 
 interface PaymentCheckoutProps {
   paymentIds: string[];
@@ -46,7 +45,6 @@ const methodInfo: Record<PaymentMethod, { name: string; icon: typeof CreditCard;
   ach: { name: 'Bank Transfer', icon: Building2, color: 'emerald' },
   apple_pay: { name: 'Apple Pay', icon: Smartphone, color: 'slate' },
   google_pay: { name: 'Google Pay', icon: Wallet, color: 'blue' },
-  cashapp: { name: 'Cash App', icon: Banknote, color: 'green' },
 };
 
 export default function PaymentCheckout({

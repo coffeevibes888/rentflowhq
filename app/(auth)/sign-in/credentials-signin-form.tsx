@@ -35,9 +35,10 @@ const CredentialsSignInForm = ({
   const [resendCooldown, setResendCooldown] = useState(0);
   
   // Build sign-up URL with property params if applicable
-  const signUpUrl = fromProperty && propertySlug && subdomain
-    ? `/sign-up?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
-    : '/sign-up';
+  const subdomainPath = subdomain ? `/${subdomain}` : '';
+  const signUpUrl = fromProperty && propertySlug
+    ? `${subdomainPath}/sign-up?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
+    : `${subdomainPath}/sign-up`;
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

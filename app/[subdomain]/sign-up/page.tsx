@@ -23,8 +23,10 @@ export default async function SubdomainSignUpPage({
   const session = await auth();
 
   if (session?.user) {
-    // If coming from property application and user is tenant, redirect to application
-    if (fromProperty === 'true' && propertySlug && session.user?.role === 'tenant') {
+    // Apply-link intent beats everything else: if the user clicked "Apply" on a
+    // property, send them straight to the application wizard. The wizard page
+    // handles auto-upgrading role/onboarding state for brand-new applicants.
+    if (fromProperty === 'true' && propertySlug) {
       redirect(`/${subdomain}/application?property=${encodeURIComponent(propertySlug)}`);
     }
     // If onboarding not completed, go to onboarding
@@ -48,40 +50,31 @@ export default async function SubdomainSignUpPage({
     : 'Create your account to get started';
 
   return (
-    <div className='w-full max-w-md mx-auto'>
-      <Card>
-        <CardHeader className='space-y-4'>
-          <Link href={`/${subdomain}`} className='flex-center'>
-            <Image
-              src='/images/logo.svg'
-              width={100}
-              height={100}
-              alt={`${APP_NAME} logo`}
-              priority={true}
-            />
-          </Link>
-          <CardTitle className='text-center'>{title}</CardTitle>
-          <CardDescription className='text-center'>
-            {description}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className='space-y-4'>
-          <SignUpForm />
-          
-          <div className='text-sm text-center text-muted-foreground pt-2'>
-            Already have an account?{' '}
-            <Link 
-              href={fromProperty === 'true' && propertySlug 
-                ? `/${subdomain}/sign-in?fromProperty=true&propertySlug=${encodeURIComponent(propertySlug)}`
-                : `/${subdomain}/sign-in`
-              } 
-              className='link'
-            >
-              Sign In
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <main className='fixed inset-0 min-h-screen w-full overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white'>
+      <div className='min-h-screen flex items-center justify-center px-4 py-10 sm:py-16'>
+        <div className='w-full max-w-md mx-auto'>
+          <Card className='border-white/10 bg-slate-900/80 backdrop-blur-sm text-white shadow-2xl'>
+            <CardHeader className='space-y-4'>
+              <Link href={`/${subdomain}`} className='flex items-center justify-center'>
+                <Image
+                  src='/images/logo.svg'
+                  width={96}
+                  height={96}
+                  alt={`${APP_NAME} logo`}
+                  priority={true}
+                />
+              </Link>
+              <CardTitle className='text-center text-white text-2xl'>{title}</CardTitle>
+              <CardDescription className='text-center text-slate-300'>
+                {description}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className='space-y-4'>
+              <SignUpForm />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </main>
   );
 }

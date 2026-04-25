@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ClipboardList, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { ClipboardList, CheckCircle, Clock, AlertCircle, Info, ArrowRight, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
 
@@ -43,7 +43,35 @@ export default async function ContractorWorkOrdersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Work Orders</h1>
-        <p className="text-slate-600 mt-1">Manage and track your jobs</p>
+        <p className="text-slate-600 mt-1">Jobs assigned to you by property managers</p>
+      </div>
+
+      {/* Explainer Banner */}
+      <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-blue-100 shrink-0">
+            <Info className="h-4 w-4 text-blue-600" />
+          </div>
+          <div className="space-y-1.5">
+            <h4 className="text-sm font-bold text-slate-900">What are Work Orders?</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Work orders are created by <span className="font-semibold">property managers and landlords</span> when they need maintenance or repairs done on their properties. They assign work orders directly to you, or post them as open bids where you can compete for the job. Payment is held in escrow and released when the work is approved.
+            </p>
+            <div className="flex items-center gap-4 pt-1">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                <Building2 className="h-3.5 w-3.5" />
+                <span>Comes from property managers</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                <ArrowRight className="h-3.5 w-3.5" />
+                <span>Escrow-protected payments</span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 pt-1">
+              Looking for your own client projects? Those are in <Link href="/contractor/jobs" className="text-blue-600 hover:text-blue-700 underline font-medium">Jobs</Link>.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Status Summary */}
@@ -86,10 +114,19 @@ export default async function ContractorWorkOrdersPage() {
           {workOrders.length === 0 ? (
             <div className="text-center py-12">
               <ClipboardList className="h-16 w-16 mx-auto text-slate-400 mb-4" />
-              <p className="text-slate-700 text-lg">No work orders yet</p>
-              <p className="text-sm text-slate-600 mt-1">
-                Work orders will appear here when property managers assign jobs to you
+              <p className="text-slate-700 text-lg font-semibold">No work orders yet</p>
+              <p className="text-sm text-slate-600 mt-1 max-w-md mx-auto">
+                Work orders appear here when property managers assign maintenance or repair jobs to you. You can also browse and bid on open jobs in the marketplace.
               </p>
+              <div className="flex items-center justify-center gap-3 mt-4">
+                <Link
+                  href="/contractors?view=jobs"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Browse Open Jobs
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="space-y-3">

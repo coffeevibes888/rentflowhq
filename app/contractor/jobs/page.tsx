@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { JobsMobileList, JobsDesktopTable } from '@/components/contractor/jobs-list';
 import { Button } from '@/components/ui/button';
-import { Plus, Filter, Briefcase } from 'lucide-react';
+import { Plus, Filter, Briefcase, Info } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -140,12 +140,30 @@ export default async function ContractorJobsPage({
               Browse Jobs
             </Button>
           </Link>
-          <Link href='/contractor/leads'>
+          <Link href='/contractor/jobs/new'>
             <Button className='bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900 border border-amber-600/50 shadow-lg font-semibold'>
               <Plus className='h-4 w-4 mr-2' />
-              New Job from Lead
+              Create New Job
             </Button>
           </Link>
+        </div>
+      </div>
+
+      {/* How Jobs Work - Info Banner */}
+      <div className='relative rounded-xl border border-slate-700 shadow-xl overflow-hidden'>
+        <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' />
+        <div className='relative p-4'>
+          <div className='flex items-start gap-3'>
+            <div className='p-2 rounded-lg bg-amber-500/20 shrink-0'>
+              <Info className='h-4 w-4 text-amber-400' />
+            </div>
+            <div className='space-y-1'>
+              <h4 className='text-sm font-bold text-white'>How do jobs get created?</h4>
+              <p className='text-xs text-slate-400 leading-relaxed'>
+                Jobs are your own business projects. You can create them manually with the button above, or they get auto-created when a customer accepts one of your quotes from the marketplace. Jobs track everything — timeline, costs, photos, contracts, and payments. This is different from <Link href='/contractor/work-orders' className='text-amber-400 hover:text-amber-300 underline'>Work Orders</Link>, which come from property managers.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -213,13 +231,22 @@ export default async function ContractorJobsPage({
             </div>
             <h3 className='text-lg font-bold text-white mb-2'>No jobs yet</h3>
             <p className='text-sm text-slate-400 mb-4'>
-              Start by responding to leads from the marketplace and converting them to jobs.
+              Create a job manually for your own clients, or respond to leads from the marketplace.
             </p>
-            <Link href='/contractor/leads'>
-              <Button className='bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900 font-semibold border-0 shadow-lg'>
-                View Leads
-              </Button>
-            </Link>
+            <div className='flex items-center justify-center gap-3'>
+              <Link href='/contractor/jobs/new'>
+                <Button className='bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900 font-semibold border-0 shadow-lg'>
+                  <Plus className='h-4 w-4 mr-2' />
+                  Create Job
+                </Button>
+              </Link>
+              <Link href='/contractor/leads'>
+                <Button variant='outline' className='border-slate-600 text-slate-300 hover:text-white hover:border-amber-500/50'>
+                  <Briefcase className='h-4 w-4 mr-2' />
+                  View Leads
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       )}

@@ -204,6 +204,43 @@ export function createDatabaseTriggers() {
         dueDate: invoice.dueDate,
       });
     },
+
+    /**
+     * Emit event when contractor contract is signed
+     */
+    async onContractorContractSigned(contract: any) {
+      await eventBus.emit('contractor.contract.signed', {
+        contractId: contract.id,
+        jobId: contract.jobId,
+        contractorId: contract.contractorId,
+        customerName: contract.customerName,
+        customerEmail: contract.customerEmail,
+      });
+    },
+
+    /**
+     * Emit event when contractor contract is declined
+     */
+    async onContractorContractDeclined(contract: any) {
+      await eventBus.emit('contractor.contract.declined', {
+        contractId: contract.id,
+        contractorId: contract.contractorId,
+        customerName: contract.customerName,
+        declineReason: contract.declineReason,
+      });
+    },
+
+    /**
+     * Emit event when contractor job status changes
+     */
+    async onContractorJobStatusChange(job: any, previousStatus: string) {
+      await eventBus.emit('contractor.job.status_changed', {
+        jobId: job.id,
+        previousStatus,
+        newStatus: job.status,
+        contractorId: job.contractorId,
+      });
+    },
   };
 }
 
