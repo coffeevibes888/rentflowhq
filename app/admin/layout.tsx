@@ -10,6 +10,7 @@ import { SubscriptionProvider } from '@/components/subscription/subscription-pro
 import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
 import { OnboardingWrapper } from '@/components/onboarding/onboarding-wrapper';
 import { SubscriptionGate } from '@/components/subscription/subscription-gate';
+import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
 
 export default async function AdminLayout({
   children,
@@ -55,6 +56,7 @@ export default async function AdminLayout({
           </div>
           <Footer />
         </div>
+        <TeamChatWidgetWrapper />
         <OnboardingWrapper />
       </SubscriptionProvider>
     </SessionProviderWrapper>

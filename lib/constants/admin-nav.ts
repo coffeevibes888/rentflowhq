@@ -1,4 +1,4 @@
-import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings, LayoutDashboard, Briefcase, MessageCircle, Wrench } from 'lucide-react';
+import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings, LayoutDashboard, Briefcase, MessageCircle, Wrench, Calendar, Clock, FileSpreadsheet, DollarSign, UserPlus } from 'lucide-react';
 
 export interface AdminNavLink {
   title: string;
@@ -91,12 +91,54 @@ export const adminNavGroups: AdminNavGroup[] = [
         href: '/admin/contractors',
         icon: HardHat,
       },
+    ],
+  },
+  {
+    label: 'Team',
+    icon: Users,
+    defaultOpen: false,
+    items: [
       {
-        title: 'Team Hub',
-        description: 'Chat, members & operations',
-        href: '/admin/team',
+        title: 'Directory',
+        description: 'Team members & roles',
+        href: '/admin/team/directory',
         icon: Users,
         proOnly: true,
+      },
+      {
+        title: 'Scheduling',
+        description: 'Shifts & calendar',
+        href: '/admin/team/schedule',
+        icon: Calendar,
+        proOnly: true,
+      },
+      {
+        title: 'Time & Attendance',
+        description: 'Clock in/out & tracking',
+        href: '/admin/team/time',
+        icon: Clock,
+        proOnly: true,
+      },
+      {
+        title: 'Timesheets',
+        description: 'Approvals & payroll',
+        href: '/admin/team/timesheets',
+        icon: FileSpreadsheet,
+        proOnly: true,
+      },
+      {
+        title: 'Hiring',
+        description: 'Job postings & applicants',
+        href: '/admin/team/hiring',
+        icon: UserPlus,
+        proOnly: true,
+      },
+      {
+        title: 'Payroll',
+        description: 'Payments & integrations',
+        href: '/admin/team/payroll',
+        icon: DollarSign,
+        enterpriseOnly: true,
       },
     ],
   },

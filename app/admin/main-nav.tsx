@@ -110,6 +110,7 @@ const MainNav = ({
                   const Icon = item.icon;
                   const active = isActive(item.href);
                   const showProBadge = item.proOnly && !isPro;
+                  const showEnterpriseBadge = item.enterpriseOnly && !isPro;
 
                   return (
                     <Link
@@ -129,6 +130,12 @@ const MainNav = ({
                         <span className='shrink-0 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white uppercase tracking-wide'>
                           <Crown className='h-2 w-2' />
                           Pro
+                        </span>
+                      )}
+                      {showEnterpriseBadge && !showProBadge && (
+                        <span className='shrink-0 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-gradient-to-r from-violet-500 to-purple-500 text-white uppercase tracking-wide'>
+                          <Crown className='h-2 w-2' />
+                          Ent
                         </span>
                       )}
                     </Link>

@@ -28,9 +28,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    if (user.role !== 'contractor' && user.role !== 'admin' && user.role !== 'superAdmin') {
+    if (user.role !== 'contractor' && user.role !== 'admin' && user.role !== 'superAdmin' && user.role !== 'tenant' && user.role !== 'homeowner' && user.role !== 'employee') {
       return NextResponse.json(
-        { error: 'Access restricted to contractors and property managers' },
+        { error: 'Access restricted' },
         { status: 403 }
       );
     }
