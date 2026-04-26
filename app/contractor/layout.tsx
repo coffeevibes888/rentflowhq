@@ -6,6 +6,7 @@ import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { ContractorSidebarWrapper } from '@/components/contractor/contractor-sidebar-wrapper';
 import ContractorMainNav from './main-nav';
 import { SubscriptionGate } from '@/components/subscription/subscription-gate';
+import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
 
 export default async function ContractorLayout({
   children,
@@ -49,6 +50,7 @@ export default async function ContractorLayout({
         </div>
         <Footer />
       </div>
+      <TeamChatWidgetWrapper />
     </SessionProviderWrapper>
   );
 }
