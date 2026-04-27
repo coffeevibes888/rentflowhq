@@ -69,8 +69,8 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     notFound();
   }
 
-  // Check if current user is the listing agent
-  const isOwner = session?.user?.id === listing.agent.userId;
+  // Check if current user is the listing agent (safely handle missing agent)
+  const isOwner = session?.user?.id != null && listing.agent?.userId === session.user.id;
 
   // Get similar listings from same agent
   const similarListings = await prisma.agentListing.findMany({
@@ -94,7 +94,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   return (
     <ListingDetailClient
       listing={listing}
-      agent={listing.agent}
+      agent={listing.agent || null}
       openHouses={listing.openHouses}
       similarListings={similarListings}
       isOwner={isOwner}

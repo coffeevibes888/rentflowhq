@@ -535,12 +535,25 @@ export async function deleteWorkOrder(id: string) {
       return { success: false, message: 'Work order not found' };
     }
 
-    // Only allow deleting draft or cancelled work orders
-    if (existing.status !== 'draft' && existing.status !== 'cancelled') {
-      return { success: false, message: 'Can only delete draft or cancelled work orders' };
+    // If a contractor has accepted the order, PM must contact Customer Service
+    const contractorAcceptedStatuses = ['assigned', 'in_progress', 'completed', 'approved', 'paid'];
+    if (contractorAcceptedStatuses.includes(existing.status)) {
+      return {
+        success: false,
+        message: 'This work order has been accepted by a contractor. Please contact Customer Service to cancel.',
+      };
     }
 
-    // Delete related records first (history, media, bids)
+    // For draft, open, cancelled, disputed — cancel then delete
+    // If not already cancelled, update status to cancelled first
+    if (existing.status !== 'cancelled') {
+      await prisma.workOrder.update({
+        where: { id },
+        data: { status: 'cancelled' },
+      });
+    }
+
+    // Delete related records and the work order
     await prisma.$transaction([
       prisma.workOrderHistory.deleteMany({ where: { workOrderId: id } }),
       prisma.workOrderMedia.deleteMany({ where: { workOrderId: id } }),

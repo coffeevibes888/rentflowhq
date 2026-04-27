@@ -16,9 +16,12 @@ export async function generateMetadata({ params }: PublicListingPageProps): Prom
     return { title: 'Not Found' };
   }
 
+  // The URL param could be a slug or a UUID
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
   const listing = await prisma.agentListing.findFirst({
     where: {
-      id,
+      ...(isUuid ? { id } : { slug: id }),
       agentId: entity.data.id,
       status: { in: ['active', 'pending'] },
     },
@@ -53,10 +56,13 @@ export default async function PublicListingPage({ params }: PublicListingPagePro
 
   const agent = entity.data;
 
-  // Fetch the listing
+  // The URL param could be a slug or a UUID
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+  // Fetch the listing by id or slug
   const listing = await prisma.agentListing.findFirst({
     where: {
-      id,
+      ...(isUuid ? { id } : { slug: id }),
       agentId: agent.id,
       status: { in: ['active', 'pending'] },
     },
@@ -80,7 +86,7 @@ export default async function PublicListingPage({ params }: PublicListingPagePro
   const similarListings = await prisma.agentListing.findMany({
     where: {
       agentId: agent.id,
-      id: { not: id },
+      id: { not: listing.id },
       status: 'active',
     },
     take: 3,

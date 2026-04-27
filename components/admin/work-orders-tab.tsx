@@ -590,21 +590,34 @@ export default function WorkOrdersTab() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-400" />
-              Delete Work Order
+              {deleteWorkOrder && ['assigned', 'in_progress', 'completed', 'approved', 'paid'].includes(deleteWorkOrder.status)
+                ? 'Cannot Cancel Work Order'
+                : 'Cancel Work Order'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
-              Are you sure you want to delete <strong className="text-white">"{deleteWorkOrder?.title}"</strong>? 
-              This action cannot be undone.
+              {deleteWorkOrder && ['assigned', 'in_progress', 'completed', 'approved', 'paid'].includes(deleteWorkOrder.status) ? (
+                <>
+                  <strong className="text-white">"{deleteWorkOrder?.title}"</strong> has already been accepted by a contractor.
+                  Please contact <strong className="text-white">Customer Service</strong> to cancel this work order.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to cancel and delete <strong className="text-white">"{deleteWorkOrder?.title}"</strong>? 
+                  This action cannot be undone.
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white">
-              Cancel
+              {deleteWorkOrder && ['assigned', 'in_progress', 'completed', 'approved', 'paid'].includes(deleteWorkOrder.status) ? 'Close' : 'Cancel'}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteWorkOrder} className="bg-red-600 hover:bg-red-700 text-white" disabled={submitting}>
-              {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Delete
-            </AlertDialogAction>
+            {deleteWorkOrder && !['assigned', 'in_progress', 'completed', 'approved', 'paid'].includes(deleteWorkOrder.status) && (
+              <AlertDialogAction onClick={handleDeleteWorkOrder} className="bg-red-600 hover:bg-red-700 text-white" disabled={submitting}>
+                {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Delete
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2 } from 'lucide-react';
+import { Building2, Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,8 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
 
 interface Listing {
@@ -49,6 +61,27 @@ export default function AgentListingsClient({ listings }: AgentListingsClientPro
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [listingTypeFilter, setListingTypeFilter] = useState<string>('all');
+  const [deletingListing, setDeletingListing] = useState<Listing | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    if (!deletingListing) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/agent/listings/${deletingListing.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete');
+      toast({ title: 'Success', description: 'Listing deleted' });
+      setDeletingListing(null);
+      router.refresh();
+    } catch (error) {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete', variant: 'destructive' });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const filteredListings = listings.filter((listing) => {
     const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -194,7 +227,7 @@ export default function AgentListingsClient({ listings }: AgentListingsClientPro
                           <Edit className="h-4 w-4 mr-2" /> Edit
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
+                      <DropdownMenuItem className="text-red-600" onClick={() => setDeletingListing(listing)}>
                         <Trash2 className="h-4 w-4 mr-2" /> Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -229,6 +262,25 @@ export default function AgentListingsClient({ listings }: AgentListingsClientPro
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingListing} onOpenChange={(open) => !open && setDeletingListing(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Listing</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>"{deletingListing?.title}"</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white" disabled={isDeleting}>
+              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
