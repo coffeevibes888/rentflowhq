@@ -3414,6 +3414,51 @@ model ApiRequestLog {
   @@index([path])
 }
 
+// ============= CONTRACTOR API & WEBHOOKS (Enterprise tier only) =============
+
+model ContractorApiKey {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId    String    @db.Uuid
+  name            String    @db.VarChar(255)
+  keyHash         String    @unique @db.VarChar(255)
+  keyPrefix       String    @db.VarChar(12)
+  scopes          String[]  @default([])
+  rateLimit       Int       @default(1000)
+  rateLimitWindow Int       @default(3600)
+  lastUsedAt      DateTime? @db.Timestamp(6)
+  expiresAt       DateTime? @db.Timestamp(6)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime  @updatedAt
+
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@index([contractorId])
+  @@index([keyPrefix])
+  @@index([isActive])
+}
+
+model ContractorWebhookEndpoint {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId      String    @db.Uuid
+  url               String    @db.VarChar(2048)
+  description       String?   @db.VarChar(500)
+  secret            String    @db.VarChar(255)
+  events            String[]  @default([])
+  isActive          Boolean   @default(true)
+  failureCount      Int       @default(0)
+  lastSuccessAt     DateTime? @db.Timestamp(6)
+  lastFailureAt     DateTime? @db.Timestamp(6)
+  lastFailureReason String?
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt
+
+  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@index([contractorId])
+  @@index([isActive])
+}
+
 // ============= STRIPE TREASURY =============
 
 // Financial Account - Stripe Treasury account for holding funds
@@ -3613,6 +3658,13 @@ model ContractorProfile {
   featureCard6Description String?
   featureCard6Icon        String? @default("briefcase")
 
+  // Marketplace Visibility & Ranking
+  featuredUntil           DateTime? @db.Timestamp(6) // paid visibility boost active until
+  visibilityCredits       Int       @default(0)       // remaining impression credits
+  newContractorBoostUntil DateTime? @db.Timestamp(6) // auto 30-day new member boost
+  lastActiveAt            DateTime? @db.Timestamp(6) // last login/activity for recency score
+  profileCompletionScore  Int       @default(0)       // 0-100 cached completeness %
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
@@ -3702,12 +3754,15 @@ model ContractorProfile {
   labelConfigs          ContractorLabelConfig[]
   labels                ContractorLabel[]
   shipments             ContractorShipment[]
+  apiKeys               ContractorApiKey[]
+  webhookEndpoints      ContractorWebhookEndpoint[]
 
   @@index([slug])
   @@index([rankScore])
   @@index([avgRating])
   @@index([isPublic, acceptingNewWork])
   @@index([baseCity, baseState])
+  @@index([featuredUntil])
 }
 
 // ContractorUsageTracking - Tracks usage metrics for subscription tier enforcement

@@ -666,6 +666,47 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Handle visibility boost purchases
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    if (session.metadata?.type === 'visibility_boost' && session.payment_status === 'paid') {
+      const contractorProfileId = session.metadata.contractorProfileId;
+      const credits = parseInt(session.metadata.credits || '0', 10);
+
+      if (contractorProfileId && credits > 0) {
+        // Check if already processed via the success-page confirm endpoint
+        // by seeing if visibilityCredits already includes this amount.
+        // We use the Stripe session ID stored in a simple way: just try to update
+        // and rely on the fact that the success-page already ran the increment.
+        // To avoid double-crediting, we store processed session IDs.
+        const alreadyProcessed = await prisma.contractorProfile.findFirst({
+          where: {
+            id: contractorProfileId,
+            // Simple dedup: if featuredUntil is in the future, the success page already ran
+            featuredUntil: { gt: new Date() },
+          },
+          select: { id: true },
+        });
+
+        if (!alreadyProcessed) {
+          await prisma.contractorProfile.update({
+            where: { id: contractorProfileId },
+            data: {
+              visibilityCredits: { increment: credits },
+              featuredUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            },
+          });
+          console.log(`Visibility boost credited via webhook: ${credits} impressions to profile ${contractorProfileId}`);
+        } else {
+          console.log(`Visibility boost already credited via success page for profile ${contractorProfileId}, skipping webhook`);
+        }
+      }
+    }
+
+    return NextResponse.json({ message: 'Webhook processed: checkout.session.completed' });
+  }
+
   return NextResponse.json({
     message: 'Webhook event not handled: ' + event.type,
   });

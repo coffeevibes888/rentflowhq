@@ -222,38 +222,107 @@ export default function PublicListingDetail({
     </Dialog>
   );
 
+  // Video Modal
+  const VideoModal = () => {
+    if (!listing.videoUrl) return null;
+    // Detect if it's a YouTube/Vimeo embed or a direct video file
+    const isYoutube = listing.videoUrl.includes('youtube.com') || listing.videoUrl.includes('youtu.be');
+    const isVimeo = listing.videoUrl.includes('vimeo.com');
+    const getEmbedUrl = (url: string) => {
+      if (isYoutube) {
+        const match = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+        return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : url;
+      }
+      if (isVimeo) {
+        const match = url.match(/vimeo\.com\/(\d+)/);
+        return match ? `https://player.vimeo.com/video/${match[1]}?autoplay=1` : url;
+      }
+      return url;
+    };
+
+    return (
+      <Dialog open={showVideo} onOpenChange={setShowVideo}>
+        <DialogContent className="max-w-4xl w-[95vw] p-0 bg-black border-none">
+          <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+            {isYoutube || isVimeo ? (
+              <iframe
+                src={getEmbedUrl(listing.videoUrl)}
+                className="absolute inset-0 w-full h-full"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                src={listing.videoUrl}
+                className="absolute inset-0 w-full h-full"
+                controls
+                autoPlay
+              />
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowVideo(false)}
+            className="absolute top-2 right-2 text-white hover:bg-white/20 z-10"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Navigation Bar */}
-      <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push(`/${subdomain}`)}
-              className="text-slate-600"
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Profile
-            </Button>
-            {agent.logoUrl && (
-              <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                <Image src={agent.logoUrl} alt={agent.name} fill className="object-contain" />
-              </div>
-            )}
-            <span className="font-semibold text-slate-900 hidden sm:inline">{agent.name}</span>
-          </div>
+      <PhotoGalleryModal />
+      <VideoModal />
+      {/* Main Site Navigation */}
+      <header className="w-full bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg text-slate-900">
+            <Home className="h-5 w-5 text-amber-600" />
+            Property Flow HQ
+          </Link>
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
+            <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
+            <Link href="/listings" className="hover:text-slate-900 transition-colors">Listings</Link>
+            <Link href="/contractors" className="hover:text-slate-900 transition-colors">Contractor Marketplace</Link>
+            <Link href="/contact" className="hover:text-slate-900 transition-colors">Contact</Link>
+          </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={handleShare}>
-              <Share2 className="h-5 w-5 text-slate-600" />
+            <Button variant="ghost" size="sm" onClick={handleShare}>
+              <Share2 className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Share</span>
             </Button>
             <Button variant="ghost" size="icon">
               <Heart className="h-5 w-5 text-slate-600" />
             </Button>
           </div>
         </div>
-      </div>
+        {/* Secondary bar: back to agent profile */}
+        <div className="border-t border-slate-100 bg-slate-50">
+          <div className="max-w-7xl mx-auto px-4 py-2 flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push(`/${subdomain}`)}
+              className="text-slate-600 h-7 px-2"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back to Profile
+            </Button>
+            {agent?.logoUrl && (
+              <div className="relative w-5 h-5 rounded-full overflow-hidden">
+                <Image src={agent.logoUrl} alt={agent.name} fill className="object-contain" />
+              </div>
+            )}
+            {agent?.name && (
+              <span className="text-sm text-slate-600">{agent.name}</span>
+            )}
+          </div>
+        </div>
+      </header>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Main Content Grid */}
@@ -845,9 +914,6 @@ export default function PublicListingDetail({
           </div>
         )}
       </div>
-
-      {/* Photo Gallery Modal */}
-      <PhotoGalleryModal />
 
       {/* Schedule Tour Modal */}
       <Dialog open={showScheduleForm} onOpenChange={setShowScheduleForm}>

@@ -131,7 +131,7 @@ export default async function ContractorProfilePage({ params }: Props) {
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <Card className="overflow-hidden bg-white/90 backdrop-blur-sm border-white/20">
-                <div className="h-32 bg-gradient-to-r from-blue-500 to-cyan-500 relative">
+                <div className="h-48 bg-gradient-to-r from-blue-500 to-cyan-500 relative">
                   <div className="absolute -bottom-16 left-6">
                     <div className="h-32 w-32 rounded-full bg-white p-1 shadow-xl">
                       {contractor.user?.image ? (
@@ -313,7 +313,7 @@ export default async function ContractorProfilePage({ params }: Props) {
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Card */}
             <Card className="overflow-hidden bg-gradient-to-br from-blue-50 via-cyan-50 to-violet-50 border-2 border-slate-200 shadow-lg">
-              <div className="h-32 bg-gradient-to-r from-blue-500 to-cyan-500 relative">
+              <div className="h-48 bg-gradient-to-r from-blue-500 to-cyan-500 relative">
                 {profile.coverPhoto && (
                   <img src={profile.coverPhoto} alt="" className="w-full h-full object-cover" />
                 )}

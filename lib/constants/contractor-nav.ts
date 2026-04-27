@@ -25,6 +25,7 @@ import {
   FileSignature,
   Tag,
   MapPin,
+  Zap,
   LucideIcon 
 } from 'lucide-react';
 
@@ -239,6 +240,12 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         icon: Palette,
       },
       {
+        title: 'Marketplace Visibility',
+        description: 'How you rank & boost impressions',
+        href: '/contractor/profile/visibility',
+        icon: TrendingUp,
+      },
+      {
         title: 'Warranties',
         description: 'Agreements & claims',
         href: '/contractor/warranties',
@@ -289,6 +296,13 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         description: 'Payment method & invoices',
         href: '/contractor/settings/billing',
         icon: CreditCard,
+      },
+      {
+        title: 'API & Webhooks',
+        description: 'Automate with API keys & webhooks',
+        href: '/contractor/settings/api',
+        icon: Zap,
+        requiredTier: 'enterprise' as const,
       },
       {
         title: 'Subscription',

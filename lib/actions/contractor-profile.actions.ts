@@ -134,7 +134,8 @@ export async function getOrCreateContractorProfile() {
         select: { name: true, email: true, image: true },
       });
 
-      // Create new profile
+      // Create new profile with 30-day new-member visibility boost
+      const newMemberBoostUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       profile = await prisma.contractorProfile.create({
         data: {
           userId,
@@ -146,6 +147,8 @@ export async function getOrCreateContractorProfile() {
           isPublic: true,
           acceptingNewWork: true,
           isAvailable: true,
+          newContractorBoostUntil: newMemberBoostUntil,
+          lastActiveAt: new Date(),
         },
       });
     }

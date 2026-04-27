@@ -278,8 +278,8 @@ export default async function ContractorBrandingPage({
               <Camera className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">Profile Photo</h2>
-              <p className="text-sm text-slate-200">Your profile photo appears on your marketplace card and profile page.</p>
+              <h2 className="text-lg font-semibold text-gray-900">Profile Photo <span className="text-xs font-normal bg-white/20 text-gray-900 px-2 py-0.5 rounded-full ml-1">Small circle on card</span></h2>
+              <p className="text-sm text-slate-200">Your face or owner photo — shows as the small circle on your marketplace card and at the top of your profile page.</p>
             </div>
           </div>
 
@@ -315,8 +315,8 @@ export default async function ContractorBrandingPage({
               <ImageIcon className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">Cover Photo</h2>
-              <p className="text-sm text-slate-200">A banner image that appears at the top of your profile page.</p>
+              <h2 className="text-lg font-semibold text-gray-900">Cover Photo / Banner Ad <span className="text-xs font-normal bg-white/20 text-gray-900 px-2 py-0.5 rounded-full ml-1">Big image on card</span></h2>
+              <p className="text-sm text-slate-200">The large background image on your marketplace card — use your logo, a flyer, or an ad. Also appears as the banner at the top of your profile page. Recommended: 1200×630px.</p>
             </div>
           </div>
 

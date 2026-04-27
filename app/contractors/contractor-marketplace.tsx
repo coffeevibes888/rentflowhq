@@ -44,7 +44,12 @@ interface Contractor {
   hourlyRate?: number | null;
   yearsExperience?: number | null;
   slug?: string | null;
+  coverPhoto?: string | null;
   source?: 'profile' | 'contractor';
+  meritScore?: number;
+  isSponsored?: boolean;
+  isNew?: boolean;
+  isBoosted?: boolean;
 }
 
 interface JobMedia {
@@ -82,6 +87,7 @@ interface ContractorMarketplaceProps {
     specialty?: string;
     sort?: string;
   };
+  activeSpecialty?: string;
 }
 
 const priorityColors: Record<string, string> = {
@@ -96,13 +102,15 @@ export default function ContractorMarketplace({
   contractors,
   openJobsCount,
   searchParams,
+  activeSpecialty,
 }: ContractorMarketplaceProps) {
   const router = useRouter();
   const [view, setView] = useState<'contractors' | 'jobs'>(initialView);
   const [openJobs, setOpenJobs] = useState<OpenJob[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
 
-  const { q, specialty, sort } = searchParams;
+  const { q, sort } = searchParams;
+  const specialty = activeSpecialty || searchParams.specialty;
   const specialties = SPECIALTIES;
 
   useEffect(() => {
@@ -277,14 +285,14 @@ export default function ContractorMarketplace({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {contractors.map((contractor) => (
                   <Link key={contractor.id} href={`/contractors/${contractor.slug || contractor.id}`}>
-                    <Card className="h-full bg-white border border-black shadow-2xl hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group">
-                      {/* Image Section - aspect-[4/3] to match listing cards */}
+                    <Card className={`h-full bg-white border shadow-2xl hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group ${contractor.isSponsored ? 'border-amber-400 border-2' : 'border-black'}`}>
+                      {/* Banner / Ad / Logo image - big background */}
                       <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500 to-cyan-500">
-                        {contractor.user?.image ? (
+                        {contractor.coverPhoto ? (
                           <img
-                            src={contractor.user.image}
-                            alt={contractor.name}
-                            className="w-full h-full object-cover"
+                            src={contractor.coverPhoto}
+                            alt={`${contractor.name} banner`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -293,15 +301,29 @@ export default function ContractorMarketplace({
                             </div>
                           </div>
                         )}
-                        
+
+                        {/* Sponsored / New / Verified badges */}
+                        <div className="absolute top-3 left-3 flex flex-col gap-1">
+                          {contractor.isSponsored && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-bold">
+                              ✦ Sponsored
+                            </span>
+                          )}
+                          {contractor.isNew && !contractor.isSponsored && (
+                            <span className="px-2 py-0.5 rounded-full bg-violet-500 text-white text-xs font-bold">
+                              ✦ New
+                            </span>
+                          )}
+                        </div>
+
                         {/* Verified Badge */}
                         {contractor.isPaymentReady && (
                           <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-emerald-500 text-white text-xs font-medium flex items-center gap-1">
                             <Shield className="h-3 w-3" /> Verified
                           </div>
                         )}
-                        
-                        {/* Profile Picture Overlay - positioned at bottom like listing cards */}
+
+                        {/* Profile / Face photo - small circle overlapping bottom */}
                         <div className="absolute -bottom-10 left-3">
                           <div className="h-20 w-20 rounded-full bg-white p-1 shadow-xl">
                             {contractor.user?.image ? (
