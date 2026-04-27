@@ -49,11 +49,19 @@ export async function POST(req: NextRequest) {
 
     const profile = await prisma.contractorProfile.findUnique({
       where: { userId: session.user.id },
-      select: { id: true, stripeCustomerId: true, businessName: true, displayName: true },
+      select: { id: true, stripeCustomerId: true, businessName: true, displayName: true, newContractorBoostUntil: true },
     });
 
     if (!profile) {
       return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
+    }
+
+    // Block purchases while free new-member boost is active
+    if (profile.newContractorBoostUntil && profile.newContractorBoostUntil > new Date()) {
+      const daysLeft = Math.ceil((profile.newContractorBoostUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      return NextResponse.json({
+        error: `You have a free new-member boost active for ${daysLeft} more day${daysLeft !== 1 ? 's' : ''}. You can purchase additional boosts after it expires.`,
+      }, { status: 400 });
     }
 
     let customerId = profile.stripeCustomerId;

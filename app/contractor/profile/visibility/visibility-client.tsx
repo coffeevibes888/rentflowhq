@@ -5,54 +5,61 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  Star, Shield, Zap, TrendingUp, Eye, CheckCircle, XCircle,
+  Star, Shield, TrendingUp, Eye, CheckCircle, XCircle,
   BarChart3, RefreshCw, Users, Award, Clock, Sparkles, Info,
-  ExternalLink, AlertCircle,
+  ExternalLink, AlertCircle, Trophy, Target, Lock,
 } from 'lucide-react';
 import Link from 'next/link';
 
 interface VisibilityPackage {
-  id: string;
-  name: string;
-  credits: number;
-  price: number;
-  description: string;
-  popular: boolean;
+  id: string; name: string; credits: number; price: number; description: string; popular: boolean;
+}
+
+interface ScoreBreakdownItem {
+  key: string; earned: number; max: number;
 }
 
 interface ProfileData {
-  id: string;
-  name: string;
-  completionScore: number;
-  missingItems: string[];
-  visibilityCredits: number;
-  featuredUntil: string | null;
-  newContractorBoostUntil: string | null;
-  hasActiveBoost: boolean;
-  isNewMember: boolean;
-  isPublic: boolean;
-  acceptingNewWork: boolean;
-  avgRating: number;
-  totalReviews: number;
-  completedJobs: number;
+  id: string; name: string; completionScore: number; missingItems: string[];
+  visibilityCredits: number; featuredUntil: string | null;
+  newContractorBoostUntil: string | null; hasActiveBoost: boolean;
+  isNewMember: boolean; isPublic: boolean; acceptingNewWork: boolean;
+  avgRating: number; totalReviews: number; completedJobs: number;
+  meritScore: number; scoreBreakdown: ScoreBreakdownItem[];
+  rankPosition: number; rankPercentile: number; totalContractors: number;
+  newBoostActive: boolean; newBoostDaysLeft: number;
+  responseRate: number; onTimeRate: number;
+  identityVerified: boolean; insuranceVerified: boolean; backgroundChecked: boolean;
 }
 
 interface Props {
-  profile: ProfileData;
-  packages: VisibilityPackage[];
-  boostResult: string | null;
+  profile: ProfileData; packages: VisibilityPackage[]; boostResult: string | null;
 }
 
-const SCORE_FACTORS = [
-  { label: 'Average Rating', weight: 25, icon: Star, color: 'text-amber-500', tip: 'Bayesian-weighted so 1 review can\'t game the system. More reviews = more weight.' },
-  { label: 'Review Volume', weight: 15, icon: Users, color: 'text-blue-500', tip: 'Log scale — going from 0→10 reviews matters more than 100→110.' },
-  { label: 'Completed Jobs', weight: 15, icon: CheckCircle, color: 'text-emerald-500', tip: 'Proven track record. Log scale so new contractors aren\'t buried.' },
-  { label: 'Response Rate', weight: 15, icon: Clock, color: 'text-violet-500', tip: 'Do you reply to messages? Clients hate being ignored.' },
-  { label: 'Profile Completeness', weight: 10, icon: BarChart3, color: 'text-cyan-500', tip: 'Photo, bio, tagline, location, specialties, hourly rate all filled in.' },
-  { label: 'Trust & Verification', weight: 10, icon: Shield, color: 'text-indigo-500', tip: 'Identity verified, insured, background checked. Each adds points.' },
-  { label: 'On-Time Rate', weight: 5, icon: Award, color: 'text-orange-500', tip: 'Do you show up when you say you will?' },
-  { label: 'Recent Activity', weight: 5, icon: RefreshCw, color: 'text-pink-500', tip: 'Active in the last 30 days gets full points. Decays over 90 days.' },
-];
+const FACTOR_META: Record<string, { label: string; icon: any; color: string; barColor: string; tip: string; action: string; actionHref: string }> = {
+  rating:       { label: 'Average Rating',       icon: Star,        color: 'text-amber-500',   barColor: 'bg-amber-500',   tip: 'Bayesian-weighted — more reviews = more weight on your actual rating.', action: 'Get more reviews', actionHref: '/contractor/profile/branding' },
+  reviews:      { label: 'Review Volume',         icon: Users,       color: 'text-blue-500',    barColor: 'bg-blue-500',    tip: 'Log scale — going from 0→10 reviews matters more than 100→110.', action: 'Ask clients for reviews', actionHref: '/contractor/customers' },
+  jobs:         { label: 'Completed Jobs',        icon: CheckCircle, color: 'text-emerald-500', barColor: 'bg-emerald-500', tip: 'Proven track record. Log scale so new contractors aren\'t buried.', action: 'Complete more jobs', actionHref: '/contractor/jobs' },
+  response:     { label: 'Response Rate',         icon: Clock,       color: 'text-violet-500',  barColor: 'bg-violet-500',  tip: 'Reply to messages fast — clients hate being ignored.', action: 'Check messages', actionHref: '/contractor/leads' },
+  completeness: { label: 'Profile Completeness',  icon: BarChart3,   color: 'text-cyan-500',    barColor: 'bg-cyan-500',    tip: 'Photo, bio, tagline, location, specialties, hourly rate.', action: 'Complete profile', actionHref: '/contractor/profile/branding' },
+  trust:        { label: 'Trust & Verification',  icon: Shield,      color: 'text-indigo-500',  barColor: 'bg-indigo-500',  tip: 'Identity verified (4pts), insured (4pts), background checked (2pts).', action: 'Get verified', actionHref: '/contractor/verification' },
+  ontime:       { label: 'On-Time Rate',          icon: Award,       color: 'text-orange-500',  barColor: 'bg-orange-500',  tip: 'Do you show up when you say you will?', action: 'Keep showing up on time', actionHref: '/contractor/jobs' },
+  recency:      { label: 'Recent Activity',       icon: RefreshCw,   color: 'text-pink-500',    barColor: 'bg-pink-500',    tip: 'Active in last 30 days = full points. Decays over 90 days.', action: 'Stay active', actionHref: '/contractor/dashboard' },
+};
+
+function getScoreColor(score: number): string {
+  if (score >= 70) return 'text-emerald-600';
+  if (score >= 40) return 'text-amber-600';
+  return 'text-red-500';
+}
+
+function getScoreLabel(score: number): string {
+  if (score >= 80) return 'Excellent';
+  if (score >= 60) return 'Good';
+  if (score >= 40) return 'Fair';
+  if (score >= 20) return 'Needs Work';
+  return 'Just Starting';
+}
 
 export default function VisibilityClient({ profile, packages, boostResult }: Props) {
   const [purchasing, setPurchasing] = useState<string | null>(null);
@@ -104,10 +111,147 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Marketplace Visibility</h1>
-        <p className="text-slate-500">Understand how clients find you, and how to show up more.</p>
+        <p className="text-slate-500">Your live ranking, score breakdown, and how to improve.</p>
       </div>
 
-      {/* Current Status */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* MERIT SCORE HERO CARD */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <Card className="border-2 border-slate-800 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+        <CardContent className="p-6">
+          <div className="grid md:grid-cols-[200px_1fr] gap-6">
+            {/* Score circle */}
+            <div className="flex flex-col items-center justify-center">
+              <div className="relative w-36 h-36">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="10" />
+                  <circle cx="60" cy="60" r="52" fill="none" stroke="url(#scoreGradient)" strokeWidth="10"
+                    strokeLinecap="round" strokeDasharray={`${(profile.meritScore / 100) * 327} 327`} />
+                  <defs>
+                    <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#8b5cf6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-4xl font-bold text-white">{profile.meritScore}</span>
+                  <span className="text-xs text-white/60">/ 100</span>
+                </div>
+              </div>
+              <p className={`text-sm font-bold mt-2 ${getScoreColor(profile.meritScore)}`}>
+                {getScoreLabel(profile.meritScore)}
+              </p>
+            </div>
+
+            {/* Rank + stats */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2">
+                  <Trophy className="h-5 w-5 text-amber-400" />
+                  <div>
+                    <p className="text-xs text-white/60">Rank</p>
+                    <p className="text-lg font-bold text-white">#{profile.rankPosition} <span className="text-sm font-normal text-white/50">of {profile.totalContractors}</span></p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2">
+                  <Target className="h-5 w-5 text-emerald-400" />
+                  <div>
+                    <p className="text-xs text-white/60">Percentile</p>
+                    <p className="text-lg font-bold text-white">Top {100 - profile.rankPercentile}%</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2">
+                  <Star className="h-5 w-5 text-amber-400" />
+                  <div>
+                    <p className="text-xs text-white/60">Rating</p>
+                    <p className="text-lg font-bold text-white">{profile.avgRating.toFixed(1)} <span className="text-sm font-normal text-white/50">({profile.totalReviews} reviews)</span></p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick stats row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="bg-white/5 rounded-lg p-2 text-center">
+                  <p className="text-xs text-white/50">Jobs Done</p>
+                  <p className="text-lg font-bold text-white">{profile.completedJobs}</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-2 text-center">
+                  <p className="text-xs text-white/50">Response</p>
+                  <p className="text-lg font-bold text-white">{profile.responseRate}%</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-2 text-center">
+                  <p className="text-xs text-white/50">On-Time</p>
+                  <p className="text-lg font-bold text-white">{profile.onTimeRate}%</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-2 text-center">
+                  <p className="text-xs text-white/50">Verified</p>
+                  <p className="text-lg font-bold text-white">
+                    {[profile.identityVerified, profile.insuranceVerified, profile.backgroundChecked].filter(Boolean).length}/3
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* PER-FACTOR SCORE BREAKDOWN */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <Card className="border-2 border-slate-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5 text-blue-500" />
+            Score Breakdown — What's Helping & What's Hurting
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {profile.scoreBreakdown.map(item => {
+            const meta = FACTOR_META[item.key];
+            if (!meta) return null;
+            const Icon = meta.icon;
+            const pct = item.max > 0 ? (item.earned / item.max) * 100 : 0;
+            const isLow = pct < 40;
+            return (
+              <div key={item.key} className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className={`h-4 w-4 ${meta.color}`} />
+                    <span className="text-sm font-medium text-slate-700">{meta.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-bold ${isLow ? 'text-red-500' : 'text-slate-700'}`}>
+                      {item.earned}/{item.max}
+                    </span>
+                    {isLow && (
+                      <Link href={meta.actionHref} className="text-xs text-blue-600 hover:underline hidden sm:inline">
+                        {meta.action} →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-2.5">
+                  <div
+                    className={`h-2.5 rounded-full transition-all ${isLow ? 'bg-red-400' : meta.barColor}`}
+                    style={{ width: `${Math.max(pct, 2)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400">{meta.tip}</p>
+                {isLow && (
+                  <Link href={meta.actionHref} className="text-xs text-blue-600 hover:underline sm:hidden inline-block">
+                    {meta.action} →
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* STATUS CARDS */}
+      {/* ═══════════════════════════════════════════════════════ */}
       <div className="grid md:grid-cols-3 gap-4">
         <Card className={`border-2 ${profile.hasActiveBoost ? 'border-amber-400 bg-amber-50' : 'border-slate-200'}`}>
           <CardContent className="p-5">
@@ -118,13 +262,13 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
             {profile.hasActiveBoost ? (
               <>
                 <p className="text-lg font-bold text-amber-600">Active ✦</p>
-                {profile.isNewMember && (
-                  <p className="text-xs text-amber-700 mt-1">Free new-member boost (30 days)</p>
+                {profile.newBoostActive && (
+                  <p className="text-xs text-amber-700 mt-1">Free new-member boost ({profile.newBoostDaysLeft} days left)</p>
                 )}
                 {profile.visibilityCredits > 0 && (
                   <p className="text-xs text-amber-700 mt-1">{profile.visibilityCredits.toLocaleString()} impressions remaining</p>
                 )}
-                {boostActiveUntil && (
+                {boostActiveUntil && !profile.newBoostActive && (
                   <p className="text-xs text-slate-500 mt-1">Until {boostActiveUntil.toLocaleDateString()}</p>
                 )}
               </>
@@ -138,17 +282,14 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-2">
               <BarChart3 className="h-5 w-5 text-blue-500" />
-              <p className="font-semibold text-slate-700">Profile Score</p>
+              <p className="font-semibold text-slate-700">Profile Completeness</p>
             </div>
             <div className="flex items-end gap-2">
               <p className="text-3xl font-bold text-blue-600">{profile.completionScore}%</p>
-              <p className="text-slate-500 text-sm mb-1">complete</p>
+              <p className="text-slate-500 text-sm mb-1">({Math.round(profile.completionScore / 10)}/10 items)</p>
             </div>
             <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-              <div
-                className="bg-blue-500 h-2 rounded-full transition-all"
-                style={{ width: `${profile.completionScore}%` }}
-              />
+              <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${profile.completionScore}%` }} />
             </div>
           </CardContent>
         </Card>
@@ -174,7 +315,9 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
         </Card>
       </div>
 
-      {/* Profile completion checklist */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* PROFILE COMPLETION CHECKLIST */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {profile.missingItems.length > 0 && (
         <Card className="border-2 border-blue-200 bg-blue-50">
           <CardHeader className="pb-2">
@@ -195,16 +338,21 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
                 </div>
               ))}
             </div>
-            <Link href="/contractor/profile/branding">
-              <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">
-                Complete My Profile
-              </Button>
-            </Link>
+            <div className="flex gap-3 mt-4">
+              <Link href="/contractor/profile/branding">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Complete My Profile</Button>
+              </Link>
+              <Link href="/contractor/verification">
+                <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">Get Verified</Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* How the algorithm works */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* HOW THE ALGORITHM WORKS */}
+      {/* ═══════════════════════════════════════════════════════ */}
       <Card className="border-2 border-slate-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
@@ -212,7 +360,7 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
             How We Rank Contractors — Full Transparency
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
           <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
             <p className="text-slate-700 font-semibold mb-2">The core principle</p>
             <p className="text-slate-600 text-sm leading-relaxed">
@@ -221,35 +369,6 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
               but always in a clearly labeled "Sponsored" slot that sits alongside organic results, not above them.
             </p>
           </div>
-
-          <div>
-            <p className="font-semibold text-slate-800 mb-3">Your Merit Score is made up of:</p>
-            <div className="space-y-3">
-              {SCORE_FACTORS.map(factor => {
-                const Icon = factor.icon;
-                return (
-                  <div key={factor.label} className="flex items-start gap-3">
-                    <div className="flex items-center gap-2 w-48 shrink-0">
-                      <Icon className={`h-4 w-4 shrink-0 ${factor.color}`} />
-                      <span className="text-sm font-medium text-slate-700">{factor.label}</span>
-                    </div>
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="flex-1 bg-slate-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-blue-500 to-violet-500 h-2 rounded-full"
-                          style={{ width: `${factor.weight * 4}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-bold text-slate-600 w-10 text-right">{factor.weight}pts</span>
-                    </div>
-                    <p className="text-xs text-slate-500 w-64 hidden lg:block">{factor.tip}</p>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-xs text-slate-400 mt-3">Total: 100 points possible</p>
-          </div>
-
           <div className="rounded-xl bg-violet-50 border border-violet-200 p-4">
             <p className="text-violet-800 font-semibold mb-2 flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
@@ -257,26 +376,26 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
             </p>
             <p className="text-violet-700 text-sm leading-relaxed">
               Contractors with active visibility boosts rotate through up to <strong>3 "Sponsored" slots</strong> at the top of results.
-              The rotation changes daily using a random seed — so no single contractor locks the top spot forever.
-              Even if 20 contractors have boosts, each gets fair exposure over time.
+              The rotation changes daily — no single contractor locks the top spot forever.
               New contractors (first 30 days) get a <strong>free automatic boost</strong> so they can build their first reviews.
             </p>
           </div>
-
           <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
             <p className="text-emerald-800 font-semibold mb-2">The best way to rank higher is free</p>
             <ul className="text-emerald-700 text-sm space-y-1">
               <li>✓ Get more reviews from happy clients</li>
               <li>✓ Complete your profile (photo, bio, location, rate)</li>
-              <li>✓ Get verified and insured</li>
-              <li>✓ Reply to messages quickly</li>
-              <li>✓ Show up on time</li>
+              <li>✓ Get verified and insured — worth 10 points</li>
+              <li>✓ Reply to messages quickly — worth 15 points</li>
+              <li>✓ Show up on time — tracked automatically</li>
             </ul>
           </div>
         </CardContent>
       </Card>
 
-      {/* Visibility Boost packages */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* VISIBILITY BOOST PACKAGES */}
+      {/* ═══════════════════════════════════════════════════════ */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Visibility Boost</h2>
         <p className="text-slate-500 mb-6">
@@ -284,22 +403,35 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
           Your organic rank is never affected — this is purely about reach.
         </p>
 
+        {/* New-member lock */}
+        {profile.newBoostActive && (
+          <div className="rounded-xl bg-violet-50 border-2 border-violet-300 p-4 mb-6 flex items-start gap-3">
+            <Lock className="h-5 w-5 text-violet-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-violet-800 font-semibold">You're already boosted for free!</p>
+              <p className="text-violet-700 text-sm">
+                As a new member, you have a free visibility boost for {profile.newBoostDaysLeft} more day{profile.newBoostDaysLeft !== 1 ? 's' : ''}.
+                Use this time to complete your profile, get your first reviews, and build your reputation.
+                You can purchase additional boosts after your free period ends.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid md:grid-cols-3 gap-6">
           {packages.map(pkg => (
             <Card
               key={pkg.id}
-              className={`border-2 relative ${pkg.popular ? 'border-violet-500 shadow-lg shadow-violet-100' : 'border-slate-200'}`}
+              className={`border-2 relative ${profile.newBoostActive ? 'opacity-50' : ''} ${pkg.popular ? 'border-violet-500 shadow-lg shadow-violet-100' : 'border-slate-200'}`}
             >
-              {pkg.popular && (
+              {pkg.popular && !profile.newBoostActive && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge className="bg-violet-600 text-white px-3 py-1">Most Popular</Badge>
                 </div>
               )}
               <CardContent className="p-6 text-center">
                 <p className="text-lg font-bold text-slate-900 mb-1">{pkg.name}</p>
-                <p className="text-4xl font-bold text-slate-900 mb-1">
-                  ${(pkg.price / 100).toFixed(2)}
-                </p>
+                <p className="text-4xl font-bold text-slate-900 mb-1">${(pkg.price / 100).toFixed(2)}</p>
                 <p className="text-slate-500 text-sm mb-4">{pkg.description}</p>
                 <div className="text-xs text-slate-400 mb-6 space-y-1">
                   <p>✦ Rotates in Sponsored slots daily</p>
@@ -308,10 +440,10 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
                 </div>
                 <Button
                   onClick={() => handlePurchase(pkg.id)}
-                  disabled={purchasing === pkg.id}
-                  className={`w-full ${pkg.popular ? 'bg-violet-600 hover:bg-violet-700' : 'bg-slate-800 hover:bg-slate-700'} text-white`}
+                  disabled={purchasing === pkg.id || profile.newBoostActive}
+                  className={`w-full ${profile.newBoostActive ? 'bg-slate-400 cursor-not-allowed' : pkg.popular ? 'bg-violet-600 hover:bg-violet-700' : 'bg-slate-800 hover:bg-slate-700'} text-white`}
                 >
-                  {purchasing === pkg.id ? 'Loading...' : `Get ${pkg.name}`}
+                  {profile.newBoostActive ? 'Free boost active' : purchasing === pkg.id ? 'Loading...' : `Get ${pkg.name}`}
                 </Button>
               </CardContent>
             </Card>
