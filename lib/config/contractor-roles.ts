@@ -432,6 +432,51 @@ export function getSelectableContractorRoles(): ContractorRoleDefinition[] {
 /**
  * Permission categories for UI grouping
  */
+/**
+ * Industry-specific role templates.
+ *
+ * When a contractor signs up with a specialty (e.g. "Plumbing"), we suggest
+ * the roles that actually make sense for that trade. The role IDs reference
+ * the predefined CONTRACTOR_ROLES above.
+ *
+ * Every industry always gets: owner, manager, office_admin, bookkeeper.
+ * The field/trade-specific roles vary.
+ */
+export const INDUSTRY_ROLE_TEMPLATES: Record<string, string[]> = {
+  // Trades
+  Plumbing:           ['owner', 'manager', 'foreman', 'technician', 'helper', 'office_admin', 'bookkeeper'],
+  Electrical:         ['owner', 'manager', 'foreman', 'technician', 'helper', 'office_admin', 'bookkeeper'],
+  HVAC:               ['owner', 'manager', 'foreman', 'technician', 'helper', 'office_admin', 'bookkeeper'],
+  'General Contracting': ['owner', 'manager', 'foreman', 'technician', 'helper', 'driver', 'warehouse', 'office_admin', 'bookkeeper', 'sales'],
+  Carpentry:          ['owner', 'manager', 'foreman', 'technician', 'helper', 'office_admin', 'bookkeeper'],
+  Painting:           ['owner', 'manager', 'foreman', 'technician', 'helper', 'office_admin', 'bookkeeper'],
+  Roofing:            ['owner', 'manager', 'foreman', 'technician', 'helper', 'driver', 'office_admin', 'bookkeeper', 'sales'],
+  Flooring:           ['owner', 'manager', 'foreman', 'technician', 'helper', 'office_admin', 'bookkeeper'],
+  Landscaping:        ['owner', 'manager', 'foreman', 'technician', 'helper', 'driver', 'office_admin', 'bookkeeper'],
+  // Specialty
+  'Appliance Repair': ['owner', 'manager', 'technician', 'office_admin', 'bookkeeper'],
+  'Garage Door Repair': ['owner', 'manager', 'technician', 'office_admin', 'bookkeeper'],
+  'Pool Maintenance': ['owner', 'manager', 'technician', 'helper', 'office_admin', 'bookkeeper'],
+  'Pest Control':     ['owner', 'manager', 'technician', 'driver', 'office_admin', 'bookkeeper'],
+  'Tree Service':     ['owner', 'manager', 'foreman', 'technician', 'helper', 'driver', 'office_admin', 'bookkeeper'],
+  Locksmith:          ['owner', 'manager', 'technician', 'office_admin', 'bookkeeper'],
+  // Remodeling
+  'Kitchen Remodeling':   ['owner', 'manager', 'foreman', 'technician', 'helper', 'sales', 'office_admin', 'bookkeeper'],
+  'Bathroom Remodeling':  ['owner', 'manager', 'foreman', 'technician', 'helper', 'sales', 'office_admin', 'bookkeeper'],
+  // General / fallback
+  'General Repairs':  ['owner', 'manager', 'foreman', 'technician', 'helper', 'driver', 'office_admin', 'bookkeeper'],
+};
+
+/** Fallback roles if the contractor's specialty isn't in the map */
+export const DEFAULT_INDUSTRY_ROLES = ['owner', 'manager', 'foreman', 'technician', 'helper', 'office_admin', 'bookkeeper'];
+
+/**
+ * Get the recommended role IDs for a given industry/specialty.
+ */
+export function getRolesForIndustry(specialty: string): string[] {
+  return INDUSTRY_ROLE_TEMPLATES[specialty] || DEFAULT_INDUSTRY_ROLES;
+}
+
 export const PERMISSION_CATEGORIES = {
   'Job Management': [
     'jobs.view', 'jobs.create', 'jobs.edit', 'jobs.delete', 

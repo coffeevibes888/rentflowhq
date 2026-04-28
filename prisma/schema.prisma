@@ -3757,6 +3757,10 @@ model ContractorProfile {
   apiKeys               ContractorApiKey[]
   webhookEndpoints      ContractorWebhookEndpoint[]
 
+  // Hiring & Applications
+  hiringPostings        ContractorHiringPost[]
+  hiringApplications    ContractorHiringApplication[]
+
   @@index([slug])
   @@index([rankScore])
   @@index([avgRating])
@@ -4655,9 +4659,16 @@ model ContractorEmployee {
   // Employment
   role            String // Lead Technician, Helper, Subcontractor, Admin (legacy - use roleId)
   employeeType    String    @default("w2") // w2, 1099, subcontractor
-  status          String    @default("active") // active, inactive, terminated
+  status          String    @default("active") // active, inactive, terminated, invited
   hireDate        DateTime  @db.Timestamp(6)
   terminationDate DateTime? @db.Timestamp(6)
+  terminationReason String? // voluntary, involuntary, contract_end, layoff
+
+  // Invite / Onboarding
+  inviteToken   String?   @unique // UUID token sent via email for account linking
+  inviteExpiry  DateTime? @db.Timestamp(6)
+  invitedAt     DateTime? @db.Timestamp(6)
+  onboardedAt   DateTime? @db.Timestamp(6) // when they accepted invite & linked account
 
   // Compensation
   payRate     Decimal @db.Decimal(10, 2)
@@ -7121,4 +7132,110 @@ model ContractorShipmentItem {
 
   @@index([shipmentId])
   @@index([itemId])
+}
+
+// ============= CONTRACTOR HIRING & APPLICATIONS =============
+
+// ContractorHiringPost - A job/position the contractor is hiring for
+model ContractorHiringPost {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
+
+  // Position details
+  title        String // "Lead Plumber", "HVAC Technician", "Office Admin"
+  description  String
+  roleId       String? @db.Uuid // Link to ContractorRole for auto-assignment on hire
+  employeeType String  @default("w2") // w2, 1099, subcontractor
+  payType      String  @default("hourly") // hourly, salary, per_job
+  payRangeMin  Decimal? @db.Decimal(10, 2)
+  payRangeMax  Decimal? @db.Decimal(10, 2)
+
+  // Requirements
+  requiredSkills    String[] @default([])
+  requiredCerts     String[] @default([])
+  experienceYears   Int?
+  driversLicense    Boolean @default(false)
+  backgroundCheck   Boolean @default(false)
+
+  // Location
+  city  String?
+  state String?
+
+  // Status
+  status    String @default("active") // draft, active, paused, closed, filled
+  openings  Int    @default(1)
+  hiredCount Int   @default(0)
+
+  // Settings
+  requireResume Boolean @default(false)
+  requireId     Boolean @default(true) // Require government ID upload
+  customQuestions Json? @db.Json // Array of { question: string, required: boolean }
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  contractor   ContractorProfile          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  applications ContractorHiringApplication[]
+
+  @@index([contractorId])
+  @@index([status])
+}
+
+// ContractorHiringApplication - An applicant's submission for a hiring post
+model ContractorHiringApplication {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
+  postId       String  @db.Uuid
+  userId       String? @db.Uuid // If applicant has an account
+
+  // Applicant info
+  firstName    String
+  lastName     String
+  email        String
+  phone        String?
+  address      String?
+  city         String?
+  state        String?
+  zipCode      String?
+
+  // Professional info
+  yearsExperience Int?
+  skills          String[] @default([])
+  certifications  String[] @default([])
+  licenseNumber   String?
+  licenseState    String?
+
+  // Documents (URLs from UploadThing)
+  resumeUrl        String?
+  governmentIdUrl  String? // Front of ID
+  governmentIdBackUrl String? // Back of ID
+  additionalDocs   String[] @default([]) // W4, I9, certs, etc.
+
+  // Cover letter / notes
+  coverLetter String?
+
+  // Custom question answers
+  customAnswers Json? @db.Json // Array of { question: string, answer: string }
+
+  // Application status
+  status       String    @default("submitted") // submitted, under_review, interview, approved, hired, rejected, withdrawn
+  reviewedBy   String?   @db.Uuid
+  reviewedAt   DateTime? @db.Timestamp(6)
+  reviewNotes  String?   // Internal notes from reviewer
+  rejectionReason String?
+
+  // If hired, link to the created employee record
+  employeeId String? @db.Uuid
+
+  // Timestamps
+  submittedAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt
+
+  contractor ContractorProfile  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  post       ContractorHiringPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([contractorId])
+  @@index([postId])
+  @@index([status])
+  @@index([email])
 }

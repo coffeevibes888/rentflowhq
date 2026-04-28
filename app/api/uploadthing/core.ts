@@ -66,5 +66,19 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       return { uploadedBy: metadata.userId, url: file.ufsUrl || file.url, type: file.type };
     }),
+
+  // Hiring application documents: ID, resume, certifications
+  hiringDocuments: f({
+    image: { maxFileSize: '10MB', maxFileCount: 10 },
+    pdf: { maxFileSize: '10MB', maxFileCount: 10 },
+  })
+    .middleware(async () => {
+      const session = await auth();
+      // Allow unauthenticated uploads for public application forms
+      return { userId: session?.user?.id || 'anonymous' };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, url: file.ufsUrl || file.url, type: file.type, name: file.name };
+    }),
 } satisfies FileRouter;
 export type OurFileRouter = typeof ourFileRouter;

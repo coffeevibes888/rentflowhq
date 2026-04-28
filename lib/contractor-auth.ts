@@ -14,6 +14,8 @@ export interface ContractorAuthResult {
   isOwner: boolean;
   permissions: ContractorPermission[];
   tier: string;
+  employeeId?: string;   // Set when user is an employee (not owner)
+  roleName?: string;     // The display name of their assigned role
 }
 
 /**
@@ -41,10 +43,11 @@ export async function resolveContractorAuth(userId: string): Promise<ContractorA
   const employee = await prisma.contractorEmployee.findFirst({
     where: { userId, status: 'active' },
     select: {
+      id: true,
       contractorId: true,
       customPermissions: true,
       assignedRole: {
-        select: { permissions: true },
+        select: { name: true, permissions: true },
       },
       contractor: {
         select: { subscriptionTier: true },
@@ -71,6 +74,8 @@ export async function resolveContractorAuth(userId: string): Promise<ContractorA
     isOwner: false,
     permissions: effective,
     tier: employee.contractor?.subscriptionTier || 'starter',
+    employeeId: employee.id,
+    roleName: employee.assignedRole?.name || undefined,
   };
 }
 

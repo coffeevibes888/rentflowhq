@@ -25,7 +25,12 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
   }
 
   // Check if user has the correct role
-  if (session.user.role !== role && session.user.role !== 'admin' && session.user.role !== 'superAdmin') {
+  // Allow contractor employees (role='contractor_employee') to access contractor routes
+  const allowedRoles = role === 'contractor'
+    ? [role, 'contractor_employee', 'admin', 'superAdmin']
+    : [role, 'admin', 'superAdmin'];
+
+  if (!allowedRoles.includes(session.user.role)) {
     redirect('/unauthorized');
   }
 
@@ -105,8 +110,21 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
   }
 
   if (role === 'contractor') {
+    // For contractor employees, look up their linked contractor's subscription
+    let contractorQuery: any;
+    if (session.user.role === 'contractor_employee') {
+      const employee = await prisma.contractorEmployee.findFirst({
+        where: { userId: session.user.id, status: 'active' },
+        select: { contractorId: true },
+      });
+      if (!employee) redirect('/unauthorized');
+      contractorQuery = { id: employee!.contractorId };
+    } else {
+      contractorQuery = { userId: session.user.id };
+    }
+
     const contractor = await prisma.contractorProfile.findFirst({
-      where: { userId: session.user.id },
+      where: contractorQuery,
       select: {
         id: true,
         trialStatus: true,

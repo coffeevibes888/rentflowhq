@@ -75,21 +75,7 @@ async function main() {
   });
   console.log('✅ Landlord created:', landlord.name);
 
-  // Create Regular Tenant User
-  console.log('👤 Creating tenant user...');
-  const tenantPassword = await hashPassword('Tenant123!');
-  const tenantUser = await prisma.user.create({
-    data: {
-      name: 'John Tenant',
-      email: 'tenant@example.com',
-      password: tenantPassword,
-      role: 'user',
-      emailVerified: new Date(),
-    },
-  });
-  console.log('✅ Tenant created:', tenantUser.email, '/ Password: Tenant123!');
-
-  // Create Super Admin (optional)
+  // Create Super Admin
   console.log('👑 Creating super admin...');
   const superAdminPassword = await hashPassword('SuperAdmin123!');
   const superAdmin = await prisma.user.create({
@@ -109,10 +95,6 @@ async function main() {
   console.log('Admin:');
   console.log('  Email: admin@propertyflowhq.com');
   console.log('  Password: Admin123!');
-  console.log('');
-  console.log('Tenant:');
-  console.log('  Email: tenant@example.com');
-  console.log('  Password: Tenant123!');
   console.log('');
   console.log('Super Admin:');
   console.log('  Email: superadmin@propertyflowhq.com');

@@ -64,7 +64,7 @@ export default async function ContractorsPage({
       include: {
         user: { select: { id: true, name: true, image: true } },
       },
-      take: 200, // fetch more, algorithm will rank and slice
+      take: 50, // fetch showcase contractors
     });
 
     // Also fetch from legacy Contractor table (landlord-added contractors with user accounts)

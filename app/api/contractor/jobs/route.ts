@@ -5,6 +5,7 @@ import { eventBus } from '@/lib/event-system';
 import { checkLimit } from '@/lib/services/contractor-feature-gate';
 import { incrementJobCount } from '@/lib/services/contractor-usage-tracker';
 import { runBackgroundOps } from '@/lib/middleware/contractor-background-ops';
+import { resolveContractorAuth, can } from '@/lib/contractor-auth';
 import { 
   SubscriptionLimitError, 
   formatSubscriptionError, 
@@ -15,20 +16,20 @@ import {
 export async function GET(request: Request) {
   try {
     const session = await auth();
-    if (!session?.user?.id || session.user.role !== 'contractor') {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const contractorProfile = await prisma.contractorProfile.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!contractorProfile) {
+    const contractorAuth = await resolveContractorAuth(session.user.id);
+    if (!contractorAuth) {
       return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
+    }
+    if (!can(contractorAuth, 'jobs.view')) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
     // Run background operations (daily check, monthly reset)
-    await runBackgroundOps(contractorProfile.id);
+    await runBackgroundOps(contractorAuth.contractorId);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
 
     const jobs = await prisma.contractorJob.findMany({
       where: {
-        contractorId: contractorProfile.id,
+        contractorId: contractorAuth.contractorId,
         ...(status && { status }),
         ...(customerId && { customerId }),
       },
@@ -71,12 +72,20 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await auth();
-    if (!session?.user?.id || session.user.role !== 'contractor') {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const contractorAuth = await resolveContractorAuth(session.user.id);
+    if (!contractorAuth) {
+      return NextResponse.json({ error: 'Contractor profile not found' }, { status: 404 });
+    }
+    if (!can(contractorAuth, 'jobs.create')) {
+      return NextResponse.json({ error: 'Insufficient permissions — jobs.create required' }, { status: 403 });
+    }
+
     const contractorProfile = await prisma.contractorProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { id: contractorAuth.contractorId },
     });
 
     if (!contractorProfile) {

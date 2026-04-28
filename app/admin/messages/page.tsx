@@ -437,3 +437,169 @@ function ComposePanel({
     </div>
   );
 }
+
+// ─── Thread Panel ─────────────────────────────────────────────────────────────
+
+function ThreadPanel({
+  thread,
+  session,
+  folder,
+}: {
+  thread: ThreadRow & { messages: MsgRow[] };
+  session: any;
+  folder: string;
+}) {
+  const sender = thread.fromEmail || thread.messages[0]?.senderName || 'Unknown';
+  const subject = thread.subject || sender;
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Thread header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/40">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-bold text-black truncate">{subject}</h2>
+          <p className="text-xs text-black/60">{thread.messages.length} message{thread.messages.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {thread.status === 'open' && (
+            <form
+              action={async () => {
+                'use server';
+                await prisma.thread.update({ where: { id: thread.id }, data: { status: 'archived' } });
+                revalidatePath('/admin/messages');
+                redirect(`/admin/messages?folder=${folder}`);
+              }}
+            >
+              <button type="submit" className="text-xs text-black/60 hover:text-black font-medium px-3 py-1.5 rounded-lg hover:bg-white/30 transition-colors">
+                Archive
+              </button>
+            </form>
+          )}
+          {thread.status === 'archived' && (
+            <form
+              action={async () => {
+                'use server';
+                await prisma.thread.update({ where: { id: thread.id }, data: { status: 'open' } });
+                revalidatePath('/admin/messages');
+                redirect(`/admin/messages?folder=${folder}`);
+              }}
+            >
+              <button type="submit" className="text-xs text-black/60 hover:text-black font-medium px-3 py-1.5 rounded-lg hover:bg-white/30 transition-colors">
+                Move to Inbox
+              </button>
+            </form>
+          )}
+          {thread.status !== 'trash' && (
+            <form
+              action={async () => {
+                'use server';
+                await prisma.thread.update({ where: { id: thread.id }, data: { status: 'trash' } });
+                revalidatePath('/admin/messages');
+                redirect(`/admin/messages?folder=${folder}`);
+              }}
+            >
+              <button type="submit" className="text-xs text-red-600/80 hover:text-red-600 font-medium px-3 py-1.5 rounded-lg hover:bg-red-50/30 transition-colors">
+                Delete
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        {thread.messages.map((msg) => {
+          const isMe = msg.senderEmail === session?.user?.email || msg.role === 'admin';
+          return (
+            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[75%] ${isMe ? 'order-2' : 'order-1'}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 rounded-full bg-white/60 flex items-center justify-center text-[10px] font-bold text-black flex-shrink-0">
+                    {initials(msg.senderName, msg.senderEmail)}
+                  </div>
+                  <span className="text-xs font-bold text-black/70">{msg.senderName || msg.senderEmail || 'Unknown'}</span>
+                  <span className="text-[10px] text-black/40">{relTime(msg.createdAt)}</span>
+                </div>
+                <div className={`rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                  isMe
+                    ? 'bg-white text-black shadow-sm'
+                    : 'bg-white/50 text-black'
+                }`}>
+                  {msg.content || <span className="text-black/40 italic">No content</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Reply form */}
+      <div className="border-t border-white/40 px-6 py-4">
+        <form
+          className="flex gap-3"
+          action={async (formData: FormData) => {
+            'use server';
+            const content = (formData.get('content') as string)?.trim();
+            if (!content) return;
+
+            const currentSession = await auth();
+            if (!currentSession?.user?.id) return;
+
+            await prisma.message.create({
+              data: {
+                threadId: thread.id,
+                senderUserId: currentSession.user.id,
+                senderName: currentSession.user.name || null,
+                senderEmail: currentSession.user.email || null,
+                content,
+                role: 'admin',
+              },
+            });
+
+            await prisma.thread.update({
+              where: { id: thread.id },
+              data: { updatedAt: new Date() },
+            });
+
+            // Notify the other participant
+            const participants = await prisma.threadParticipant.findMany({
+              where: { threadId: thread.id, userId: { not: currentSession.user.id } },
+              select: { userId: true },
+            });
+
+            const { NotificationService } = await import('@/lib/services/notification-service');
+            for (const p of participants) {
+              await NotificationService.createNotification({
+                userId: p.userId,
+                type: 'message',
+                title: `Reply: ${thread.subject || 'Message'}`,
+                message: content.slice(0, 120),
+                actionUrl: `/user/profile/inbox/${thread.id}`,
+              });
+            }
+
+            revalidatePath('/admin/messages');
+            redirect(`/admin/messages?folder=${folder}&thread=${thread.id}`);
+          }}
+        >
+          <input
+            name="content"
+            type="text"
+            placeholder="Type a reply..."
+            required
+            className="flex-1 bg-white/60 rounded-xl px-4 py-2.5 text-sm text-black placeholder:text-black/40 focus:outline-none focus:bg-white transition-colors"
+          />
+          <button
+            type="submit"
+            className="inline-flex items-center gap-2 rounded-xl bg-white text-black text-sm font-bold px-5 py-2.5 shadow-md hover:bg-sky-50 transition-colors flex-shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            Reply
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

@@ -37,6 +37,7 @@ export const authConfig = {
         /^\/forgot-password/,
         /^\/reset-password/,
         /^\/unauthorized/,
+        /^\/contractor\/invite/, // Employee invite acceptance page (redirects to sign-up if needed)
       ];
 
       // Check if it's a public path first
