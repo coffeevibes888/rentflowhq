@@ -11,6 +11,7 @@ import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
 import { OnboardingWrapper } from '@/components/onboarding/onboarding-wrapper';
 import { SubscriptionGate } from '@/components/subscription/subscription-gate';
 import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
+import { FloatingInboxWidget } from '@/components/shared/floating-inbox-widget';
 
 export default async function AdminLayout({
   children,
@@ -57,6 +58,7 @@ export default async function AdminLayout({
           <Footer />
         </div>
         <TeamChatWidgetWrapper />
+        <FloatingInboxWidget />
         <OnboardingWrapper />
       </SubscriptionProvider>
     </SessionProviderWrapper>

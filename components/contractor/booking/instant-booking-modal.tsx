@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle,
+  Shield,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import AvailabilityCalendar from './availability-calendar';
@@ -375,23 +376,57 @@ export default function InstantBookingModal({
 
               {/* Deposit Info */}
               {contractor.depositRequired && contractor.depositAmount && (
-                <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
+                <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-5 space-y-3">
                   <div className="flex items-start gap-3">
                     <DollarSign className="h-5 w-5 text-blue-400 mt-0.5" />
                     <div>
-                      <p className="font-medium text-blue-400">Deposit Required</p>
+                      <p className="font-medium text-blue-400">Deposit Required — ${contractor.depositAmount.toFixed(2)}</p>
                       <p className="text-sm text-slate-300 mt-1">
-                        A ${contractor.depositAmount.toFixed(2)} deposit will be charged to secure this booking.
+                        This deposit secures your appointment and will be charged when you confirm.
                       </p>
                     </div>
+                  </div>
+
+                  <div className="bg-slate-800/50 rounded-lg p-3 space-y-2 text-sm">
+                    <p className="font-medium text-white flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-400" />
+                      Your payment is protected by escrow
+                    </p>
+                    <ul className="space-y-1 text-slate-400 ml-6">
+                      <li>Your deposit is held securely by PropertyFlowHQ — not sent directly to the contractor.</li>
+                      <li>After the job is completed, you have 3 days to confirm the work or file a dispute.</li>
+                      <li>If the contractor cancels or doesn't show up, you get a full automatic refund.</li>
+                      <li>Funds are only released to the contractor after you approve or the review window closes.</li>
+                    </ul>
+                    <p className="text-slate-500 text-xs mt-1 pt-1 border-t border-slate-700">
+                      A $1.00 booking fee applies to help keep the platform running.
+                    </p>
                   </div>
                 </div>
               )}
 
+              {/* No-deposit escrow note */}
+              {!contractor.depositRequired && (
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                  <p className="text-sm text-emerald-300 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    No deposit required — you won't be charged until the job is complete.
+                  </p>
+                </div>
+              )}
+
               {/* Cancellation Policy */}
-              <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                <p className="text-sm text-slate-400 mb-1">Cancellation Policy</p>
+              <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-2">
+                <p className="text-sm font-medium text-white flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-slate-400" />
+                  Cancellation Policy
+                </p>
                 <p className="text-sm text-slate-300">{getCancellationPolicyText()}</p>
+                {contractor.depositRequired && (
+                  <p className="text-xs text-slate-500 pt-1 border-t border-slate-700">
+                    If the contractor cancels for any reason, you receive a full refund automatically.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -420,7 +455,7 @@ export default function InstantBookingModal({
         {/* Step 4: Success */}
         {step === 'success' && selectedSlot && (
           <>
-            <div className="text-center py-8">
+            <div className="text-center py-6">
               <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
                 <CheckCircle className="h-10 w-10 text-green-400" />
               </div>
@@ -429,28 +464,58 @@ export default function InstantBookingModal({
                 Your appointment has been scheduled with {contractor.businessName || contractor.name}
               </p>
 
-              <div className="bg-slate-800 rounded-lg p-6 border border-slate-700 text-left max-w-md mx-auto">
-                <div className="space-y-3">
+              <div className="bg-slate-800 rounded-lg p-6 border border-slate-700 text-left max-w-md mx-auto space-y-3">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-violet-400" />
+                  <div>
+                    <p className="text-sm text-slate-400">Date</p>
+                    <p className="font-medium">{format(selectedSlot.startTime, 'EEEE, MMMM d, yyyy')}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-violet-400" />
+                  <div>
+                    <p className="text-sm text-slate-400">Time</p>
+                    <p className="font-medium">
+                      {format(selectedSlot.startTime, 'h:mm a')} - {format(selectedSlot.endTime, 'h:mm a')}
+                    </p>
+                  </div>
+                </div>
+                {contractor.depositRequired && contractor.depositAmount && (
                   <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-violet-400" />
+                    <DollarSign className="h-5 w-5 text-blue-400" />
                     <div>
-                      <p className="text-sm text-slate-400">Date</p>
-                      <p className="font-medium">{format(selectedSlot.startTime, 'EEEE, MMMM d, yyyy')}</p>
+                      <p className="text-sm text-slate-400">Deposit</p>
+                      <p className="font-medium">${contractor.depositAmount.toFixed(2)} held in escrow</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-violet-400" />
-                    <div>
-                      <p className="text-sm text-slate-400">Time</p>
-                      <p className="font-medium">
-                        {format(selectedSlot.startTime, 'h:mm a')} - {format(selectedSlot.endTime, 'h:mm a')}
-                      </p>
-                    </div>
+                )}
+              </div>
+
+              {/* What happens next */}
+              <div className="bg-slate-800 rounded-lg p-5 border border-slate-700 text-left max-w-md mx-auto mt-4">
+                <p className="font-medium text-white text-sm mb-3">What happens next</p>
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex items-start gap-2.5">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">1</span>
+                    <p className="text-slate-400">The contractor will be notified and may reach out to confirm details.</p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">2</span>
+                    <p className="text-slate-400">On the scheduled date, the contractor arrives and completes the work.</p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">3</span>
+                    <p className="text-slate-400">
+                      {contractor.depositRequired
+                        ? 'Once the job is done, confirm completion to release the deposit. You have 3 days to review or file a dispute.'
+                        : 'Once the job is done, you can leave a review and settle payment directly with the contractor.'}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <p className="text-sm text-slate-400 mt-6">
+              <p className="text-sm text-slate-500 mt-4">
                 A confirmation email has been sent to your email address.
               </p>
             </div>

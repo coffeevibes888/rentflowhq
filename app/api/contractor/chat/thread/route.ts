@@ -19,13 +19,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Contractor ID required' }, { status: 400 });
     }
 
-    // Get contractor's user ID
-    const contractor = await prisma.contractor.findUnique({
+    // Get contractor's user ID — try ContractorProfile first, then Contractor
+    let contractorUserId: string | null = null;
+
+    const profile = await prisma.contractorProfile.findUnique({
       where: { id: contractorId },
       select: { userId: true },
     });
 
-    if (!contractor?.userId) {
+    if (profile?.userId) {
+      contractorUserId = profile.userId;
+    } else {
+      const contractor = await prisma.contractor.findUnique({
+        where: { id: contractorId },
+        select: { userId: true },
+      });
+      contractorUserId = contractor?.userId || null;
+    }
+
+    if (!contractorUserId) {
       return NextResponse.json({ error: 'Contractor not found' }, { status: 404 });
     }
 
@@ -35,7 +47,7 @@ export async function GET(req: NextRequest) {
         type: 'dm',
         AND: [
           { participants: { some: { userId: session.user.id } } },
-          { participants: { some: { userId: contractor.userId } } },
+          { participants: { some: { userId: contractorUserId } } },
         ],
       },
       include: {

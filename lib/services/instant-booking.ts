@@ -1,13 +1,16 @@
 import { prisma as db } from '@/db/prisma';
 import { contractorSchedulerService } from './contractor-scheduler';
-import { addMinutes, differenceInHours, isBefore } from 'date-fns';
+import { addDays, differenceInHours } from 'date-fns';
 import Stripe from 'stripe';
 
 const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-02-24.acacia',
-    })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY)
   : null;
+
+// Platform fee: $1 flat from each side (customer + contractor) per transaction
+const PLATFORM_FEE_PER_SIDE = 1.00;
+// Days after completion before auto-release (dispute window)
+const AUTO_RELEASE_DAYS = 3;
 
 export interface TimeSlot {
   startTime: Date;
@@ -46,6 +49,7 @@ export interface Booking {
   depositAmount?: number;
   depositPaid: boolean;
   depositPaymentId?: string;
+  escrowStatus: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,7 +69,6 @@ export interface PaymentIntent {
 export class InstantBookingService {
   /**
    * Get available time slots for a contractor on a specific date
-   * Respects contractor's availability, existing bookings, and calendar sync
    */
   async getAvailableSlots(
     contractorId: string,
@@ -73,7 +76,6 @@ export class InstantBookingService {
     serviceType: string,
     slotDuration: number = 60
   ): Promise<TimeSlot[]> {
-    // Check if contractor has instant booking enabled
     const contractor = await db.contractorProfile.findUnique({
       where: { id: contractorId },
       select: {
@@ -86,19 +88,16 @@ export class InstantBookingService {
       return [];
     }
 
-    // Verify contractor offers this service type
     if (!contractor.specialties.includes(serviceType)) {
       return [];
     }
 
-    // Get available slots from scheduler service
     const slots = await contractorSchedulerService.getAvailableSlots(
       contractorId,
       date,
       slotDuration
     );
 
-    // Add service type to each slot
     return slots.map((slot) => ({
       ...slot,
       serviceTypes: contractor.specialties,
@@ -106,11 +105,18 @@ export class InstantBookingService {
   }
 
   /**
-   * Create an instant booking
-   * Validates availability, creates appointment, and processes deposit if required
+   * Create an instant booking.
+   *
+   * Deposit flow (escrow):
+   * 1. Customer pays deposit → funds go to PLATFORM Stripe account (not contractor)
+   * 2. Contractor does the job → marks as completed
+   * 3. Customer confirms completion (or 3-day auto-release window passes)
+   * 4. Platform releases funds to contractor minus platform fee
+   *
+   * If contractor no-shows → customer files dispute → platform refunds from held funds
+   * If contractor cancels → automatic full refund
    */
   async createBooking(data: BookingRequest): Promise<Booking> {
-    // Verify contractor has instant booking enabled
     const contractor = await db.contractorProfile.findUnique({
       where: { id: data.contractorId },
       select: {
@@ -126,12 +132,10 @@ export class InstantBookingService {
       throw new Error('Instant booking is not enabled for this contractor');
     }
 
-    // Verify service type is offered
     if (!contractor.specialties.includes(data.serviceType)) {
       throw new Error('Contractor does not offer this service type');
     }
 
-    // Check if slot is still available
     const isAvailable = await contractorSchedulerService.isSlotAvailable(
       data.contractorId,
       data.startTime,
@@ -142,19 +146,16 @@ export class InstantBookingService {
       throw new Error('Time slot is no longer available');
     }
 
-    // Calculate deposit amount if required
+    // Calculate deposit
     let depositAmount = data.depositAmount;
     if (contractor.depositRequired && !depositAmount) {
       if (contractor.depositAmount) {
         depositAmount = Number(contractor.depositAmount);
       } else if (contractor.depositPercent) {
-        // For instant booking, we might not know the total cost yet
-        // So we use a default or require the deposit amount to be passed
         throw new Error('Deposit amount is required for this booking');
       }
     }
 
-    // Create the appointment
     const appointment = await contractorSchedulerService.createAppointment({
       contractorId: data.contractorId,
       customerId: data.customerId,
@@ -183,123 +184,15 @@ export class InstantBookingService {
         : undefined,
       depositPaid: appointment.depositPaid,
       depositPaymentId: appointment.depositPaymentId || undefined,
+      escrowStatus: appointment.escrowStatus,
       createdAt: appointment.createdAt,
       updatedAt: appointment.updatedAt,
     };
   }
 
   /**
-   * Cancel a booking and apply cancellation policy
-   * Returns refund amount based on contractor's cancellation policy
-   */
-  async cancelBooking(
-    bookingId: string,
-    cancelledBy: 'contractor' | 'customer',
-    reason?: string
-  ): Promise<CancellationResult> {
-    // Get the booking
-    const appointment = await db.contractorAppointment.findUnique({
-      where: { id: bookingId },
-      include: {
-        contractor: {
-          select: {
-            cancellationPolicy: true,
-            cancellationHours: true,
-          },
-        },
-      },
-    });
-
-    if (!appointment) {
-      throw new Error('Booking not found');
-    }
-
-    if (appointment.status === 'cancelled') {
-      throw new Error('Booking is already cancelled');
-    }
-
-    // Calculate hours until appointment
-    const hoursUntilAppointment = differenceInHours(
-      appointment.startTime,
-      new Date()
-    );
-
-    // Determine refund amount based on cancellation policy
-    let refundAmount = 0;
-    let message = 'Booking cancelled successfully';
-
-    if (
-      cancelledBy === 'customer' &&
-      appointment.depositPaid &&
-      appointment.depositAmount
-    ) {
-      const depositAmount = Number(appointment.depositAmount);
-      const cancellationHours = appointment.contractor.cancellationHours || 24;
-      const policy = appointment.contractor.cancellationPolicy || 'moderate';
-
-      // Apply cancellation policy based on policy type
-      switch (policy) {
-        case 'flexible':
-          // 50% refund regardless of timing
-          refundAmount = depositAmount * 0.5;
-          message =
-            'Booking cancelled. 50% deposit refund will be processed per flexible cancellation policy.';
-          break;
-        case 'moderate':
-          // Full refund if cancelled with enough notice, no refund if late
-          if (hoursUntilAppointment >= cancellationHours) {
-            refundAmount = depositAmount;
-            message = 'Booking cancelled. Full deposit refund will be processed.';
-          } else {
-            refundAmount = 0;
-            message = `Booking cancelled. No refund available for cancellations within ${cancellationHours} hours per moderate cancellation policy.`;
-          }
-          break;
-        case 'strict':
-          // No refund regardless of timing
-          refundAmount = 0;
-          message =
-            'Booking cancelled. No refund available per strict cancellation policy.';
-          break;
-        default:
-          refundAmount = 0;
-      }
-    } else if (cancelledBy === 'contractor' && appointment.depositPaid) {
-      // Contractor cancellation always gets full refund
-      refundAmount = Number(appointment.depositAmount || 0);
-      message =
-        'Booking cancelled by contractor. Full deposit refund will be processed.';
-    }
-
-    // Cancel the appointment
-    await contractorSchedulerService.cancelAppointment(
-      bookingId,
-      cancelledBy,
-      reason
-    );
-
-    // Process refund if applicable
-    if (refundAmount > 0 && appointment.depositPaymentId && stripe) {
-      try {
-        await stripe.refunds.create({
-          payment_intent: appointment.depositPaymentId,
-          amount: Math.round(refundAmount * 100), // Convert to cents
-        });
-      } catch (error) {
-        console.error('Refund failed:', error);
-        message += ' Refund processing failed - please contact support.';
-      }
-    }
-
-    return {
-      success: true,
-      refundAmount,
-      message,
-    };
-  }
-
-  /**
-   * Create a payment intent for deposit
+   * Create a payment intent for deposit.
+   * Funds are held by the PLATFORM (escrow) — not sent to the contractor.
    */
   async applyDeposit(
     bookingId: string,
@@ -329,20 +222,24 @@ export class InstantBookingService {
       throw new Error('Deposit has already been paid');
     }
 
-    // Create Stripe payment intent
+    // Payment goes to platform account — NO transfer_data.
+    // This is the escrow: platform holds the money until job is done.
+    // Amount = deposit + $1 customer-side platform fee
+    const totalCharge = amount + PLATFORM_FEE_PER_SIDE;
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: Math.round(totalCharge * 100),
       currency: 'usd',
       metadata: {
         bookingId: appointment.id,
         contractorId: appointment.contractorId,
         customerId: appointment.customerId,
-        type: 'booking_deposit',
+        type: 'booking_deposit_escrow',
+        depositAmount: String(amount),
+        customerFee: String(PLATFORM_FEE_PER_SIDE),
       },
-      description: `Booking deposit for ${appointment.contractor.businessName}`,
+      description: `Escrow deposit for booking with ${appointment.contractor.businessName} ($${amount.toFixed(2)} deposit + $${PLATFORM_FEE_PER_SIDE.toFixed(2)} booking fee)`,
     });
 
-    // Update appointment with payment intent ID
     await db.contractorAppointment.update({
       where: { id: bookingId },
       data: {
@@ -358,7 +255,8 @@ export class InstantBookingService {
   }
 
   /**
-   * Mark deposit as paid (called after successful payment)
+   * Mark deposit as paid and set escrow status to "held".
+   * Called after Stripe webhook confirms payment succeeded.
    */
   async markDepositPaid(bookingId: string, paymentIntentId: string): Promise<void> {
     await db.contractorAppointment.update({
@@ -366,8 +264,264 @@ export class InstantBookingService {
       data: {
         depositPaid: true,
         depositPaymentId: paymentIntentId,
+        escrowStatus: 'held',
       },
     });
+  }
+
+  /**
+   * Contractor marks job as completed.
+   * Starts the auto-release countdown (dispute window).
+   */
+  async markCompleted(bookingId: string, contractorUserId: string): Promise<void> {
+    const appointment = await db.contractorAppointment.findUnique({
+      where: { id: bookingId },
+      include: { contractor: { select: { userId: true } } },
+    });
+
+    if (!appointment) throw new Error('Booking not found');
+    if (appointment.contractor.userId !== contractorUserId) {
+      throw new Error('Only the contractor can mark this as completed');
+    }
+    if (appointment.status === 'cancelled') {
+      throw new Error('Cannot complete a cancelled booking');
+    }
+
+    const autoReleaseAt = addDays(new Date(), AUTO_RELEASE_DAYS);
+
+    await db.contractorAppointment.update({
+      where: { id: bookingId },
+      data: {
+        status: 'completed',
+        completedAt: new Date(),
+        autoReleaseAt,
+      },
+    });
+  }
+
+  /**
+   * Customer confirms the job is done.
+   * Immediately releases escrow funds to contractor.
+   */
+  async customerConfirmCompletion(bookingId: string, customerUserId: string): Promise<void> {
+    const appointment = await db.contractorAppointment.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!appointment) throw new Error('Booking not found');
+    if (appointment.customerId !== customerUserId) {
+      throw new Error('Only the customer can confirm completion');
+    }
+    if (appointment.status !== 'completed') {
+      throw new Error('Job must be marked as completed by the contractor first');
+    }
+
+    await db.contractorAppointment.update({
+      where: { id: bookingId },
+      data: { customerConfirmedAt: new Date() },
+    });
+
+    // Release escrow immediately
+    if (appointment.escrowStatus === 'held') {
+      await this.releaseEscrow(bookingId);
+    }
+  }
+
+  /**
+   * Release escrow funds to contractor.
+   * Called when customer confirms, or by cron job after auto-release window.
+   */
+  async releaseEscrow(bookingId: string): Promise<void> {
+    const appointment = await db.contractorAppointment.findUnique({
+      where: { id: bookingId },
+      include: {
+        contractor: {
+          select: { stripeCustomerId: true, businessName: true },
+        },
+      },
+    });
+
+    if (!appointment) throw new Error('Booking not found');
+    if (appointment.escrowStatus !== 'held') {
+      throw new Error('No funds held in escrow for this booking');
+    }
+    if (!appointment.depositPaymentId || !appointment.depositAmount) {
+      throw new Error('No deposit to release');
+    }
+
+    const depositAmount = Number(appointment.depositAmount);
+    const platformFee = PLATFORM_FEE_PER_SIDE; // $1 from contractor side
+    const contractorAmount = depositAmount - platformFee;
+
+    // If contractor has a Stripe Connect account, transfer funds.
+    // Otherwise, mark as released and handle payout manually.
+    if (stripe && appointment.contractor.stripeCustomerId) {
+      try {
+        await stripe.transfers.create({
+          amount: Math.round(contractorAmount * 100),
+          currency: 'usd',
+          destination: appointment.contractor.stripeCustomerId,
+          metadata: {
+            bookingId: appointment.id,
+            type: 'escrow_release',
+          },
+          description: `Escrow release for booking ${appointment.id}`,
+        });
+      } catch (error) {
+        console.error('Stripe transfer failed:', error);
+        // Don't throw — mark as released anyway and handle manually
+      }
+    }
+
+    await db.contractorAppointment.update({
+      where: { id: bookingId },
+      data: {
+        escrowStatus: 'released',
+        escrowReleasedAt: new Date(),
+        platformFee,
+      },
+    });
+  }
+
+  /**
+   * Customer files a dispute (contractor no-show, bad work, etc.)
+   * Prevents auto-release and flags for admin review.
+   */
+  async fileDispute(
+    bookingId: string,
+    customerUserId: string,
+    reason: string
+  ): Promise<void> {
+    const appointment = await db.contractorAppointment.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!appointment) throw new Error('Booking not found');
+    if (appointment.customerId !== customerUserId) {
+      throw new Error('Only the customer can file a dispute');
+    }
+    if (appointment.escrowStatus === 'released') {
+      throw new Error('Funds have already been released');
+    }
+    if (appointment.escrowStatus === 'refunded') {
+      throw new Error('Funds have already been refunded');
+    }
+
+    await db.contractorAppointment.update({
+      where: { id: bookingId },
+      data: {
+        escrowStatus: 'disputed',
+        disputeReason: reason,
+        disputeFiledAt: new Date(),
+        autoReleaseAt: null, // Cancel auto-release
+      },
+    });
+  }
+
+  /**
+   * Cancel a booking and apply cancellation policy.
+   *
+   * - Contractor cancels → full refund always
+   * - Customer cancels → refund based on cancellation policy
+   */
+  async cancelBooking(
+    bookingId: string,
+    cancelledBy: 'contractor' | 'customer',
+    reason?: string
+  ): Promise<CancellationResult> {
+    const appointment = await db.contractorAppointment.findUnique({
+      where: { id: bookingId },
+      include: {
+        contractor: {
+          select: {
+            cancellationPolicy: true,
+            cancellationHours: true,
+          },
+        },
+      },
+    });
+
+    if (!appointment) throw new Error('Booking not found');
+    if (appointment.status === 'cancelled') {
+      throw new Error('Booking is already cancelled');
+    }
+
+    const hoursUntilAppointment = differenceInHours(
+      appointment.startTime,
+      new Date()
+    );
+
+    let refundAmount = 0;
+    let message = 'Booking cancelled successfully';
+
+    if (cancelledBy === 'contractor') {
+      // Contractor cancels → always full refund to customer
+      refundAmount = Number(appointment.depositAmount || 0);
+      message = 'Booking cancelled by contractor. Full deposit refund will be processed.';
+    } else if (
+      cancelledBy === 'customer' &&
+      appointment.depositPaid &&
+      appointment.depositAmount
+    ) {
+      const depositAmount = Number(appointment.depositAmount);
+      const cancellationHours = appointment.contractor.cancellationHours || 24;
+      const policy = appointment.contractor.cancellationPolicy || 'moderate';
+
+      switch (policy) {
+        case 'flexible':
+          refundAmount = depositAmount * 0.5;
+          message = 'Booking cancelled. 50% deposit refund per flexible policy.';
+          break;
+        case 'moderate':
+          if (hoursUntilAppointment >= cancellationHours) {
+            refundAmount = depositAmount;
+            message = 'Booking cancelled. Full deposit refund will be processed.';
+          } else {
+            refundAmount = 0;
+            message = `Booking cancelled. No refund for cancellations within ${cancellationHours} hours.`;
+          }
+          break;
+        case 'strict':
+          refundAmount = 0;
+          message = 'Booking cancelled. No refund per strict cancellation policy.';
+          break;
+      }
+    }
+
+    // Cancel the appointment
+    await contractorSchedulerService.cancelAppointment(
+      bookingId,
+      cancelledBy,
+      reason
+    );
+
+    // Process Stripe refund if applicable
+    if (refundAmount > 0 && appointment.depositPaymentId && stripe) {
+      try {
+        await stripe.refunds.create({
+          payment_intent: appointment.depositPaymentId,
+          amount: Math.round(refundAmount * 100),
+        });
+
+        await db.contractorAppointment.update({
+          where: { id: bookingId },
+          data: {
+            escrowStatus: 'refunded',
+            escrowRefundedAt: new Date(),
+          },
+        });
+      } catch (error) {
+        console.error('Refund failed:', error);
+        message += ' Refund processing failed — please contact support.';
+      }
+    } else if (appointment.depositPaid && refundAmount === 0 && cancelledBy === 'customer') {
+      // Customer cancelled late — release deposit to contractor
+      if (appointment.escrowStatus === 'held') {
+        await this.releaseEscrow(bookingId);
+      }
+    }
+
+    return { success: true, refundAmount, message };
   }
 
   /**
@@ -378,9 +532,7 @@ export class InstantBookingService {
       where: { id: bookingId },
     });
 
-    if (!appointment) {
-      return null;
-    }
+    if (!appointment) return null;
 
     return {
       id: appointment.id,
@@ -398,6 +550,7 @@ export class InstantBookingService {
         : undefined,
       depositPaid: appointment.depositPaid,
       depositPaymentId: appointment.depositPaymentId || undefined,
+      escrowStatus: appointment.escrowStatus,
       createdAt: appointment.createdAt,
       updatedAt: appointment.updatedAt,
     };

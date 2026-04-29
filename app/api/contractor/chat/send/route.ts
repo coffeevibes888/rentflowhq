@@ -24,18 +24,36 @@ export async function POST(req: NextRequest) {
     let targetUserId = recipientUserId;
     
     if (!targetUserId) {
-        // Assume we are a user messaging a contractor
-        const contractor = await prisma.contractor.findUnique({
-          where: { id: contractorId },
-          include: {
-            user: { select: { id: true, name: true } },
-          },
-        });
+        // Try ContractorProfile first (marketplace), then fall back to Contractor (landlord directory)
+        let found = false;
 
-        if (!contractor?.userId) {
+        if (contractorId) {
+          const profile = await prisma.contractorProfile.findUnique({
+            where: { id: contractorId },
+            select: { userId: true },
+          });
+
+          if (profile?.userId) {
+            targetUserId = profile.userId;
+            found = true;
+          }
+
+          if (!found) {
+            const contractor = await prisma.contractor.findUnique({
+              where: { id: contractorId },
+              select: { userId: true },
+            });
+
+            if (contractor?.userId) {
+              targetUserId = contractor.userId;
+              found = true;
+            }
+          }
+        }
+
+        if (!found) {
           return NextResponse.json({ error: 'Contractor not found' }, { status: 404 });
         }
-        targetUserId = contractor.userId;
     }
 
     // Prevent self-chat loop if logic is flawed

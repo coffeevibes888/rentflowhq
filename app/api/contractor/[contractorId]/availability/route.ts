@@ -34,11 +34,18 @@ export async function GET(
       );
     }
 
-    // Parse date
-    const date = parse(dateStr, 'yyyy-MM-dd', new Date());
+    // Parse date — accept both ISO strings and yyyy-MM-dd format
+    let date: Date;
+    if (dateStr.includes('T')) {
+      // ISO string like "2026-04-28T04:00:00.000Z"
+      date = new Date(dateStr);
+    } else {
+      // yyyy-MM-dd format
+      date = parse(dateStr, 'yyyy-MM-dd', new Date());
+    }
     if (!isValid(date)) {
       return NextResponse.json(
-        { error: 'Invalid date format. Use YYYY-MM-DD' },
+        { error: 'Invalid date format. Use YYYY-MM-DD or ISO string' },
         { status: 400 }
       );
     }

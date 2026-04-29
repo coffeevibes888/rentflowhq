@@ -179,40 +179,71 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
           </div>
 
           {settings.depositRequired && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-black font-medium">Fixed Amount ($)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="10"
-                  value={settings.depositAmount}
-                  onChange={(e) =>
-                    setSettings({ ...settings, depositAmount: parseFloat(e.target.value) || 0 })
-                  }
-                  className="bg-white border-black text-black"
-                />
-                <p className="text-xs text-black/70">
-                  Fixed deposit amount per booking
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-black font-medium">Fixed Amount ($)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="10"
+                    value={settings.depositAmount}
+                    onChange={(e) =>
+                      setSettings({ ...settings, depositAmount: parseFloat(e.target.value) || 0 })
+                    }
+                    className="bg-white border-black text-black"
+                  />
+                  <p className="text-xs text-black/70">
+                    Fixed deposit amount per booking
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-black font-medium">Percentage (%)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={settings.depositPercent}
+                    onChange={(e) =>
+                      setSettings({ ...settings, depositPercent: parseFloat(e.target.value) || 0 })
+                    }
+                    className="bg-white border-black text-black"
+                  />
+                  <p className="text-xs text-black/70">
+                    Or percentage of total cost
+                  </p>
+                </div>
+              </div>
+
+              {/* Escrow Explanation for Contractor */}
+              <div className="p-4 rounded-lg bg-white border border-black text-sm space-y-2">
+                <p className="font-semibold text-black flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  How Escrow Protection Works
+                </p>
+                <ul className="space-y-1.5 text-black/80 list-none">
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold mt-0.5">1.</span>
+                    <span>Customer pays the deposit when they book. Funds are held securely by PropertyFlowHQ — not sent to you yet.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold mt-0.5">2.</span>
+                    <span>You complete the job and mark it as done in your dashboard.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold mt-0.5">3.</span>
+                    <span>The customer confirms the work is complete, or the 3-day review window passes with no dispute.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold mt-0.5">4.</span>
+                    <span>Funds are released to your account minus a flat $1 platform fee.</span>
+                  </li>
+                </ul>
+                <p className="text-black/60 text-xs pt-1 border-t border-black/10 mt-2">
+                  The customer also pays a $1 booking fee on their side. This protects both you and the customer. If you cancel, the customer gets a full refund automatically. If the customer disputes, our team reviews the case before any money moves.
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label className="text-black font-medium">Percentage (%)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={settings.depositPercent}
-                  onChange={(e) =>
-                    setSettings({ ...settings, depositPercent: parseFloat(e.target.value) || 0 })
-                  }
-                  className="bg-white border-black text-black"
-                />
-                <p className="text-xs text-black/70">
-                  Or percentage of total cost
-                </p>
-              </div>
-            </div>
+            </>
           )}
         </CardContent>
       </Card>

@@ -98,6 +98,13 @@ export default function BookingButtons({
           <MessageSquare className="h-4 w-4 mr-2" />
           Get a Quote
         </Button>
+
+        {depositRequired && (
+          <p className="text-center text-xs text-slate-500 flex items-center justify-center gap-1">
+            <svg className="h-3 w-3 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
+            Deposits held in escrow until job is complete
+          </p>
+        )}
       </div>
 
       {/* Instant Booking Modal */}

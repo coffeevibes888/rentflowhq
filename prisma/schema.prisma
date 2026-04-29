@@ -4159,15 +4159,26 @@ model ContractorAppointment {
   endTime   DateTime @db.Timestamp(6)
 
   // Status
-  status             String    @default("confirmed") // confirmed, completed, cancelled, no_show
+  status             String    @default("confirmed") // confirmed, in_progress, completed, cancelled, no_show
   cancelledAt        DateTime? @db.Timestamp(6)
   cancelledBy        String? // 'contractor' or 'customer'
   cancellationReason String?
 
-  // Payment
+  // Payment / Escrow
   depositAmount    Decimal? @db.Decimal(10, 2)
   depositPaid      Boolean  @default(false)
-  depositPaymentId String?
+  depositPaymentId String?  // Stripe PaymentIntent ID (funds held by platform)
+  escrowStatus     String   @default("none") // none, held, released, refunded, disputed
+  escrowReleasedAt DateTime? @db.Timestamp(6)
+  escrowRefundedAt DateTime? @db.Timestamp(6)
+  autoReleaseAt    DateTime? @db.Timestamp(6) // Auto-release to contractor after this date (e.g. 3 days post-completion)
+  platformFee      Decimal? @db.Decimal(10, 2) // Platform cut on release
+
+  // Completion
+  completedAt          DateTime? @db.Timestamp(6)
+  customerConfirmedAt  DateTime? @db.Timestamp(6) // Customer confirmed job done
+  disputeReason        String?
+  disputeFiledAt       DateTime? @db.Timestamp(6)
 
   // Job linkage
   jobId String? @db.Uuid
@@ -4181,6 +4192,8 @@ model ContractorAppointment {
   @@index([customerId])
   @@index([startTime])
   @@index([status])
+  @@index([escrowStatus])
+  @@index([autoReleaseAt])
 }
 
 // ContractorInvoice - Invoices created by contractors for their customers

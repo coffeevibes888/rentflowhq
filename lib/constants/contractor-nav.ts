@@ -26,6 +26,7 @@ import {
   Tag,
   MapPin,
   Zap,
+  MessageSquare,
   LucideIcon 
 } from 'lucide-react';
 
@@ -320,6 +321,12 @@ export const contractorNavLinks: ContractorNavLink[] = [
     description: 'Overview of your work',
     href: '/contractor/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    title: 'Messages',
+    description: 'Customer conversations',
+    href: '/contractor/messages',
+    icon: MessageSquare,
   },
   ...contractorNavGroups.flatMap((g) => g.items),
 ];

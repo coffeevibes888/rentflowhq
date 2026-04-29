@@ -1,174 +1,87 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/db/prisma';
-import { MarketplaceNotifications } from '@/lib/services/marketplace-notifications';
+import { instantBookingService } from '@/lib/services/instant-booking';
 
 /**
- * Auto-release escrow holds after 7 days
- * This endpoint should be called by a cron job (e.g., Vercel Cron, GitHub Actions)
- * 
- * Security: Add authorization header check in production
+ * POST /api/cron/release-escrow
+ *
+ * Cron job that auto-releases escrow funds to contractors after the dispute
+ * window has passed (3 days post-completion with no dispute filed).
+ *
+ * Should be called every hour by Vercel Cron or similar scheduler.
  */
-export async function GET(request: NextRequest) {
+export async function POST() {
   try {
-    // Verify cron secret (add this to your .env)
-    const cronSecret = process.env.CRON_SECRET;
-    const authHeader = request.headers.get('authorization');
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Find all escrow holds that are past their release date and still held
     const now = new Date();
-    const expiredHolds = await prisma.jobGuaranteeHold.findMany({
+
+    // Find all appointments where:
+    // - escrow is held
+    // - auto-release date has passed
+    // - no dispute filed
+    const readyForRelease = await prisma.contractorAppointment.findMany({
       where: {
-        status: 'held',
-        releaseAt: {
-          lte: now,
-        },
+        escrowStatus: 'held',
+        autoReleaseAt: { lte: now },
+        disputeFiledAt: null,
+        status: 'completed',
       },
+      select: { id: true },
     });
 
-    console.log(`Found ${expiredHolds.length} expired escrow holds to release`);
+    let released = 0;
+    let failed = 0;
 
-    const results = {
-      released: 0,
-      failed: 0,
-      errors: [] as string[],
-    };
-
-    // Process each hold
-    for (const hold of expiredHolds) {
+    for (const appointment of readyForRelease) {
       try {
-        await prisma.$transaction(async (tx) => {
-          // Release the hold
-          await tx.jobGuaranteeHold.update({
-            where: { id: hold.id },
-            data: {
-              status: 'released',
-              releasedAt: new Date(),
-            },
-          });
+        await instantBookingService.releaseEscrow(appointment.id);
+        released++;
+      } catch (error) {
+        console.error(`Failed to release escrow for ${appointment.id}:`, error);
+        failed++;
+      }
+    }
 
-          // Auto-create a 5-star review (since no issues were reported)
-          await tx.contractorReview.create({
-            data: {
-              contractorId: hold.contractorId,
-              customerId: hold.customerId,
-              jobId: hold.jobId,
-              overallRating: 5,
-              qualityRating: 5,
-              communicationRating: 5,
-              timelinessRating: 5,
-              valueRating: 5,
-              comment: 'Job completed successfully (auto-approved after 7 days)',
-              verified: true,
-              status: 'published',
-            },
-          });
+    // Also handle no-shows: appointments past their end time with no completion
+    // after 48 hours, auto-refund the customer
+    const noShowCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const noShows = await prisma.contractorAppointment.findMany({
+      where: {
+        escrowStatus: 'held',
+        status: 'confirmed', // Never marked as completed or in_progress
+        endTime: { lte: noShowCutoff },
+        disputeFiledAt: null,
+      },
+      select: { id: true },
+    });
 
-          // Update contractor stats
-          const contractor = await tx.contractorProfile.findUnique({
-            where: { id: hold.contractorId },
-          });
-
-          if (contractor) {
-            const allReviews = await tx.contractorReview.findMany({
-              where: { contractorId: hold.contractorId },
-            });
-            
-            const totalReviews = allReviews.length + 1;
-            const totalRating = allReviews.reduce((sum, r) => sum + Number(r.overallRating), 0) + 5;
-            const newAvgRating = totalRating / totalReviews;
-
-            await tx.contractorProfile.update({
-              where: { id: hold.contractorId },
-              data: {
-                avgRating: newAvgRating,
-                completedJobs: { increment: 1 },
-                onTimeRate: contractor.onTimeRate
-                  ? (contractor.onTimeRate * (contractor.completedJobs || 1) + 100) / ((contractor.completedJobs || 1) + 1)
-                  : 100,
-              },
-            });
-          }
+    let refunded = 0;
+    for (const appointment of noShows) {
+      try {
+        // Mark as no-show and refund
+        await prisma.contractorAppointment.update({
+          where: { id: appointment.id },
+          data: { status: 'no_show' },
         });
-
-        results.released++;
-        console.log(`Released escrow hold ${hold.id} for job ${hold.jobId}`);
-
-        // Send notifications
-        if (hold.jobId) {
-          try {
-            const [contractor, homeowner, job] = await Promise.all([
-              prisma.contractorProfile.findUnique({
-                where: { id: hold.contractorId },
-                include: { user: true },
-              }),
-              prisma.user.findUnique({
-                where: { id: hold.customerId },
-              }),
-              prisma.homeownerWorkOrder.findUnique({
-                where: { id: hold.jobId },
-              }),
-            ]);
-
-            if (contractor?.user && job) {
-              // Notify contractor of payment release
-              await MarketplaceNotifications.notifyPaymentReleased({
-                contractorId: contractor.user.id,
-                jobId: hold.jobId,
-                jobTitle: job.title,
-                amount: Number(hold.amount),
-                rating: 5,
-              });
-
-              // Notify contractor of auto-review
-              await MarketplaceNotifications.notifyReviewReceived({
-                contractorId: contractor.user.id,
-                jobId: hold.jobId,
-                jobTitle: job.title,
-                rating: 5,
-                reviewText: 'Job completed successfully (auto-approved after 7 days)',
-              });
-            }
-
-            if (homeowner && job) {
-              // Notify homeowner that payment was auto-released
-              await MarketplaceNotifications.notifyPaymentAutoReleased({
-                homeownerId: homeowner.id,
-                jobId: hold.jobId,
-                jobTitle: job.title,
-                amount: Number(hold.amount),
-              });
-            }
-          } catch (notifError) {
-            console.error('Error sending notifications:', notifError);
-          }
-        }
-
-        // TODO: Transfer funds via Stripe (when Treasury is implemented)
-      } catch (error: any) {
-        results.failed++;
-        results.errors.push(`Failed to release hold ${hold.id}: ${error.message}`);
-        console.error(`Error releasing hold ${hold.id}:`, error);
+        await instantBookingService.cancelBooking(
+          appointment.id,
+          'contractor', // Treat as contractor cancellation → full refund
+          'Contractor no-show — automatic refund'
+        );
+        refunded++;
+      } catch (error) {
+        console.error(`Failed to process no-show for ${appointment.id}:`, error);
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Processed ${expiredHolds.length} escrow holds`,
-      results,
+      released,
+      failed,
+      refunded,
+      noShowsProcessed: noShows.length,
     });
-  } catch (error: any) {
-    console.error('Error in escrow release cron:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to process escrow releases' },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error('Escrow release cron error:', error);
+    return NextResponse.json({ error: 'Cron job failed' }, { status: 500 });
   }
-}
-
-// Also support POST for manual triggering
-export async function POST(request: NextRequest) {
-  return GET(request);
 }
