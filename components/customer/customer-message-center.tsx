@@ -76,7 +76,7 @@ export function CustomerMessageCenter({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contractorId: selectedContractor,
+          contractorUserId: selectedContractor,
           message: newMessage,
         }),
       });
@@ -85,6 +85,9 @@ export function CustomerMessageCenter({
         setNewMessage('');
         // Refresh messages
         window.location.reload();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        console.error('Failed to send message:', data.error || response.statusText);
       }
     } catch (error) {
       console.error('Error sending message:', error);

@@ -82,26 +82,29 @@ export function LeadChat({ contractorId, customerId, customerName, leadId, viewM
     setSending(true);
 
     try {
-        // Reuse the chat/send endpoint. It should handle thread creation.
         const res = await fetch('/api/contractor/chat/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contractorId, // We are the contractor, but the API might expect "target" depending on implementation.
-                // Wait, /api/contractor/chat/send assumes the SENDER is the User (Homeowner) and TARGET is Contractor.
-                // If I am the contractor, I need to send TO the customer.
-                
-                // I need to check /api/contractor/chat/send implementation.
-                // If it doesn't support Contractor -> Customer, I need to fix it.
+                contractorId,
                 message: message.trim(),
-                recipientUserId: viewMode === 'contractor' ? customerId : undefined, // Only needed if sending TO customer
+                recipientUserId: viewMode === 'contractor' ? customerId : undefined,
+                ...(threadId ? { threadId } : {}),
             }),
         });
 
-        // If the existing API is strictly Homeowner -> Contractor, we need a new one or update it.
-        // Let's assume for this step I'll create a new function in the API or update it.
-        
-        // Let's just simulate the UI update for now and fix the API in the next step if needed.
+        const data = await res.json();
+
+        if (!res.ok) {
+            toast.error(data.error || 'Failed to send message');
+            return;
+        }
+
+        // Store the threadId for subsequent messages
+        if (data.threadId && !threadId) {
+            setThreadId(data.threadId);
+        }
+
         const newMessage: Message = {
             id: Date.now().toString(),
             content: message,
@@ -113,6 +116,7 @@ export function LeadChat({ contractorId, customerId, customerName, leadId, viewM
         setMessage('');
     } catch (error) {
         console.error(error);
+        toast.error('Failed to send message');
     } finally {
         setSending(false);
     }

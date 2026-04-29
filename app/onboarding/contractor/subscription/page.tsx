@@ -37,12 +37,12 @@ export default async function ContractorSubscriptionPage({
     });
 
     if (profile) {
-      // Check for active subscription or trial
+      // Only skip subscription page if user has a PAID subscription (active with Stripe)
+      // or has already completed checkout. Trialing users should still see the plan
+      // selection page so they can choose their tier before the trial starts.
       const hasActiveSubscription =
         !!profile.stripeSubscriptionId || 
-        profile.subscriptionStatus === 'active' ||
-        profile.subscriptionStatus === 'trialing' ||
-        profile.trialStatus === 'trialing';
+        profile.subscriptionStatus === 'active';
 
       if (hasActiveSubscription) {
         redirect('/contractor/dashboard');

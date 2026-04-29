@@ -11,11 +11,59 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { contractorUserId, message, subject } = body;
+    const { contractorUserId, message, subject, threadId: existingThreadId } = body;
 
-    if (!contractorUserId || !message) {
+    if (!message) {
       return NextResponse.json(
-        { error: 'Contractor user ID and message are required' },
+        { error: 'Message is required' },
+        { status: 400 }
+      );
+    }
+
+    // If replying to an existing thread, use that directly
+    if (existingThreadId) {
+      // Verify the user is a participant in this thread
+      const participant = await prisma.threadParticipant.findFirst({
+        where: {
+          threadId: existingThreadId,
+          userId: session.user.id,
+        },
+      });
+
+      if (!participant) {
+        return NextResponse.json(
+          { error: 'You are not a participant in this thread' },
+          { status: 403 }
+        );
+      }
+
+      const newMessage = await prisma.message.create({
+        data: {
+          threadId: existingThreadId,
+          senderUserId: session.user.id,
+          senderName: session.user.name || undefined,
+          senderEmail: session.user.email || undefined,
+          content: message,
+          role: 'user',
+        },
+      });
+
+      await prisma.thread.update({
+        where: { id: existingThreadId },
+        data: { updatedAt: new Date() },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: newMessage,
+        threadId: existingThreadId,
+      });
+    }
+
+    // Starting a new conversation requires contractorUserId
+    if (!contractorUserId) {
+      return NextResponse.json(
+        { error: 'Contractor user ID is required for new conversations' },
         { status: 400 }
       );
     }

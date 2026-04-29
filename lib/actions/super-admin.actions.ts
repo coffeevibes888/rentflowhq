@@ -3,6 +3,7 @@
 import { prisma } from '@/db/prisma';
 import { formatError } from '../utils';
 import { requireSuperAdmin } from '../auth-guard';
+import Stripe from 'stripe';
 
 // Helper to normalize tier names (map legacy tiers to current ones)
 function normalizeTierName(tier: string | null | undefined): string {
@@ -599,20 +600,115 @@ export async function listLandlordsForSuperAdmin() {
 export async function deleteUserBySuperAdmin(userId: string) {
   await requireSuperAdmin();
   if (!userId) throw new Error('User id required');
-  
-  // Check if this user owns a landlord account
+
+  // Fetch the user to understand their role and related data
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      role: true,
+      email: true,
+      stripeCustomerId: true,
+    },
+  });
+
+  if (!user) throw new Error('User not found');
+
+  // --- 1. Clean up Landlord (onDelete: SetNull, so must delete manually) ---
   const landlord = await prisma.landlord.findFirst({
     where: { ownerUserId: userId },
-    select: { id: true },
+    select: { id: true, stripeSubscriptionId: true, stripeCustomerId: true },
   });
-  
-  // If user is a landlord owner, delete the landlord first (cascades to properties, units, etc.)
+
   if (landlord) {
+    // Cancel Stripe subscription if active
+    if (landlord.stripeSubscriptionId) {
+      try {
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        if (stripeSecretKey) {
+          const stripeClient = new Stripe(stripeSecretKey);
+          await stripeClient.subscriptions.cancel(landlord.stripeSubscriptionId).catch(() => {});
+        }
+      } catch {
+        // Non-fatal: Stripe cleanup is best-effort
+      }
+    }
     await prisma.landlord.delete({ where: { id: landlord.id } });
   }
-  
-  // Now delete the user
+
+  // --- 2. Clean up ContractorProfile (onDelete: Cascade handles this, but cancel Stripe first) ---
+  const contractorProfile = await prisma.contractorProfile.findUnique({
+    where: { userId },
+    select: { id: true, stripeSubscriptionId: true, stripeCustomerId: true },
+  });
+
+  if (contractorProfile?.stripeSubscriptionId) {
+    try {
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (stripeSecretKey) {
+        const stripeClient = new Stripe(stripeSecretKey);
+        await stripeClient.subscriptions.cancel(contractorProfile.stripeSubscriptionId).catch(() => {});
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  // --- 3. Clean up Agent profile Stripe subscription (onDelete: Cascade handles the record) ---
+  const agent = await prisma.agent.findUnique({
+    where: { userId },
+    select: { id: true, stripeSubscriptionId: true },
+  });
+
+  if (agent?.stripeSubscriptionId) {
+    try {
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (stripeSecretKey) {
+        const stripeClient = new Stripe(stripeSecretKey);
+        await stripeClient.subscriptions.cancel(agent.stripeSubscriptionId).catch(() => {});
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  // --- 4. Unlink Contractor directory entries (onDelete: SetNull leaves orphans) ---
+  // These are landlord-directory contractor records that reference this user.
+  // Setting userId to null is what the schema does, but we should also clear the link cleanly.
+  await prisma.contractor.updateMany({
+    where: { userId },
+    data: { userId: null },
+  });
+
+  // --- 5. Clean up threads where this user is the ONLY participant ---
+  // Find threads where this user participates
+  const userThreads = await prisma.threadParticipant.findMany({
+    where: { userId },
+    select: { threadId: true },
+  });
+
+  if (userThreads.length > 0) {
+    const threadIds = userThreads.map(t => t.threadId);
+
+    // Find threads that will have zero participants after this user is removed
+    for (const threadId of threadIds) {
+      const otherParticipants = await prisma.threadParticipant.count({
+        where: {
+          threadId,
+          userId: { not: userId },
+        },
+      });
+
+      if (otherParticipants === 0) {
+        // This thread will be empty — delete it and its messages
+        await prisma.thread.delete({ where: { id: threadId } });
+      }
+    }
+  }
+
+  // --- 6. Delete the user (cascades to ContractorProfile, Agent, Homeowner, etc.) ---
   await prisma.user.delete({ where: { id: userId } });
+
   return { success: true };
 }
 
@@ -779,16 +875,14 @@ export async function deletePropertyPermanently(propertyId: string) {
       };
     }
 
-    // Soft delete instead of hard delete to preserve payment history
-    await prisma.property.update({
+    // No active leases and no uncredited payments — safe to hard delete.
+    // Cascade will handle: Units → Leases → RentPayments, CashPayments,
+    // MaintenanceTickets, WorkOrders, Inspections, Expenses, etc.
+    await prisma.property.delete({
       where: { id: propertyId },
-      data: {
-        status: 'deleted',
-        deletedAt: new Date(),
-      },
     });
 
-    return { success: true, message: 'Property archived (soft deleted). Payment history preserved.' };
+    return { success: true, message: 'Property and all related data permanently deleted.' };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
