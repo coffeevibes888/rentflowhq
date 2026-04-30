@@ -188,7 +188,7 @@ export default function ContractorMarketplace({
                 onClick={() => handleViewChange('jobs')}
               >
                 <Briefcase className="h-4 w-4 mr-2" />
-                Open Jobs
+                Open Bids
                 {openJobsCount > 0 && (
                   <Badge className="ml-2 bg-emerald-500 text-white font-bold">{openJobsCount}</Badge>
                 )}

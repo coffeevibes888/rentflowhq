@@ -85,6 +85,7 @@ const Header = async () => {
           <Link href='/' className="px-2.5 py-1.5 text-black hover:underline">Home</Link>
           <Link href='/listings' className="px-2.5 py-1.5 text-black hover:underline">Listings</Link>
           {/* <Link href='/about' className="px-2.5 py-1.5 text-black hover:underline">About Me</Link> */}
+          <Link href='/jobs' className="px-2.5 py-1.5 text-black hover:underline">Jobs</Link>
           <Link href='/contractors' className="px-2.5 py-1.5 text-black hover:underline">Contractor Marketplace</Link>
 
           {/* Resources Dropdown */}

@@ -2598,30 +2598,45 @@ model PayrollSettings {
 // Job postings for hiring
 model JobPosting {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  landlordId   String   @db.Uuid
+  landlordId   String?  @db.Uuid
+  userId       String   @db.Uuid // The user who posted the job
   title        String
   description  String
-  type         String   @default("full-time") // full-time, part-time, contract
+  type         String   @default("full-time") // full-time, part-time, contract, temporary, internship
+  category     String   @default("general") // property-management, maintenance, virtual-assistant, leasing, accounting, admin, construction, landscaping, cleaning, other
   location     String
+  isRemote     Boolean  @default(false)
   salary       String?
+  salaryMin    Decimal? @db.Decimal(12, 2)
+  salaryMax    Decimal? @db.Decimal(12, 2)
+  salaryType   String   @default("yearly") // hourly, yearly, per-project
   requirements String?
   benefits     String?
-  status       String   @default("draft") // draft, active, closed
+  companyName  String?
+  companyLogo  String?
+  companyAbout String?
+  experienceLevel String @default("entry") // entry, mid, senior, executive
+  status       String   @default("draft") // draft, active, closed, filled
+  views        Int      @default(0)
   createdAt    DateTime @default(now()) @db.Timestamp(6)
   updatedAt    DateTime @updatedAt
 
-  landlord   Landlord       @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  landlord   Landlord?      @relation(fields: [landlordId], references: [id], onDelete: Cascade)
   applicants JobApplicant[]
+  reviews    CompanyReview[]
 
   @@index([landlordId])
+  @@index([userId])
   @@index([status])
+  @@index([category])
 }
 
 // Job applicants
 model JobApplicant {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   jobId       String   @db.Uuid
-  landlordId  String   @db.Uuid
+  landlordId  String?  @db.Uuid
+  userId      String?  @db.Uuid // If applicant has an account
   name        String
   email       String
   phone       String?
@@ -2633,11 +2648,70 @@ model JobApplicant {
   updatedAt   DateTime @updatedAt
 
   job      JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  landlord Landlord   @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  landlord Landlord?  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
 
   @@index([jobId])
   @@index([landlordId])
+  @@index([userId])
   @@index([status])
+}
+
+// Company reviews from employees/applicants
+model CompanyReview {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId       String?  @db.Uuid
+  companyName String
+  userId      String   @db.Uuid
+  rating      Int      // 1-5
+  title       String
+  review      String
+  pros        String?
+  cons        String?
+  isAnonymous Boolean  @default(false)
+  status      String   @default("published") // published, flagged, removed
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+
+  job JobPosting? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@index([companyName])
+  @@index([userId])
+}
+
+// Job seeker profiles - people looking for work in the industry
+model JobSeekerProfile {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @unique @db.Uuid
+  headline        String   // "Experienced Property Manager" or "Licensed Electrician"
+  bio             String?
+  profilePhoto    String?
+  coverPhoto      String?
+  firstName       String
+  lastName        String
+  email           String
+  phone           String?
+  city            String?
+  state           String?
+  isAvailable     Boolean  @default(true)
+  availableFrom   DateTime? @db.Timestamp(6)
+  desiredJobTypes String[] @default([]) // full-time, part-time, contract
+  desiredCategories String[] @default([]) // property-management, maintenance, etc.
+  desiredSalaryMin Decimal? @db.Decimal(12, 2)
+  desiredSalaryMax Decimal? @db.Decimal(12, 2)
+  salaryType      String   @default("yearly") // hourly, yearly
+  skills          String[] @default([])
+  certifications  String[] @default([])
+  yearsExperience Int?
+  education       String?
+  resumeUrl       String?
+  portfolioUrl    String?
+  isPublic        Boolean  @default(true)
+  views           Int      @default(0)
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isPublic, isAvailable])
+  @@index([city, state])
 }
 
 // ============= REAL ESTATE AGENTS =============
