@@ -9,7 +9,6 @@ import { Prisma } from '@prisma/client';
 import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { canAddUnits } from './subscription.actions';
 import { uploadUrlToCloudinary } from '@/lib/cloudinary';
-// Printful sync disabled: imports removed
 
 // Type for variant creation
 type VariantInput = {
@@ -84,11 +83,6 @@ export async function getLatestProductsByCategory(category: string, limit = LATE
       rating: Number(p.rating),
     }))
   );
-}
-
-// Sync products from Printful Store API into local Product/ProductVariant tables
-export async function syncProductsFromPrintful() {
-  return { success: false, message: 'Printful sync is disabled' };
 }
 
 // Get single product by it's slug

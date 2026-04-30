@@ -5,6 +5,7 @@ import { formatError } from '../utils';
 import { sendVerificationEmail, sendPasswordResetEmail } from '@/email';
 import { hash } from '../encrypt';
 import { randomBytes } from 'crypto';
+import { cookies } from 'next/headers';
 import { signOut } from '@/auth';
 import { logAuthEvent } from '@/lib/security/audit-logger';
 
@@ -334,5 +335,33 @@ export async function incrementPhoneOtpAttempts(userId: string, otp: string) {
     }
   } catch (error) {
     console.error('Failed to increment OTP attempts:', error);
+  }
+}
+
+export async function transferSessionCartToUser(userId: string) {
+  try {
+    const cookiesObject = await cookies();
+    const sessionCartId = cookiesObject.get('sessionCartId')?.value;
+
+    if (sessionCartId) {
+      const sessionCart = await prisma.cart.findFirst({
+        where: { sessionCartId },
+      });
+
+      if (sessionCart) {
+        // Delete current user cart
+        await prisma.cart.deleteMany({
+          where: { userId },
+        });
+
+        // Assign new cart
+        await prisma.cart.update({
+          where: { id: sessionCart.id },
+          data: { userId },
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error transferring session cart:', error);
   }
 }

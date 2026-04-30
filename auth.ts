@@ -147,7 +147,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // This avoids using next/headers in the auth config
           if (user.id) {
             try {
-              const { transferSessionCartToUser } = await import('./lib/actions/auth-actions');
+              const { transferSessionCartToUser } = await import('./lib/actions/auth.actions');
               await transferSessionCartToUser(user.id);
             } catch (error) {
               console.error('Failed to transfer session cart:', error);
