@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { 
   Briefcase, Plus, Users, FileText, CheckCircle, 
   XCircle, Clock, Mail, Phone, MapPin, Calendar,
-  ChevronRight, Eye, Trash2, Edit, Send, Loader2
+  ChevronRight, ChevronLeft, Eye, Trash2, Edit, Send, Loader2,
+  Building2, DollarSign, GraduationCap, ListChecks, Sparkles,
+  Monitor, HardHat, Wrench, Leaf, Home, Calculator, Headphones, Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,14 +74,61 @@ export function HiringTab({ landlordId }: HiringTabProps) {
   const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
 
-  // New job form state
+  // New job wizard state
+  const [wizardStep, setWizardStep] = useState(0);
   const [newJob, setNewJob] = useState({
+    // Step 1: Basics
     title: '',
-    description: '',
-    type: 'full-time' as const,
+    category: 'general',
+    type: 'full-time',
+    experienceLevel: 'entry',
+    // Step 2: Location & Schedule
     location: '',
-    salary: '',
+    isRemote: false,
+    // Step 3: Compensation
+    salaryMin: '',
+    salaryMax: '',
+    salaryType: 'yearly',
+    benefits: '',
+    // Step 4: Description & Requirements
+    description: '',
+    requirements: '',
+    // Step 5: Company Info
+    companyName: '',
+    companyAbout: '',
   });
+
+  const WIZARD_STEPS = [
+    { id: 'basics', title: 'Job Basics', icon: Briefcase },
+    { id: 'location', title: 'Location', icon: MapPin },
+    { id: 'compensation', title: 'Compensation', icon: DollarSign },
+    { id: 'details', title: 'Details', icon: ListChecks },
+    { id: 'company', title: 'Company', icon: Building2 },
+  ];
+
+  const JOB_CATEGORIES = [
+    { id: 'property-management', label: 'Property Management', icon: Building2 },
+    { id: 'maintenance', label: 'Maintenance', icon: Wrench },
+    { id: 'virtual-assistant', label: 'Virtual Assistant', icon: Headphones },
+    { id: 'leasing', label: 'Leasing', icon: FileText },
+    { id: 'accounting', label: 'Accounting', icon: Calculator },
+    { id: 'construction', label: 'Construction', icon: HardHat },
+    { id: 'landscaping', label: 'Landscaping', icon: Leaf },
+    { id: 'cleaning', label: 'Cleaning', icon: Home },
+    { id: 'admin', label: 'Admin & Office', icon: Monitor },
+    { id: 'other', label: 'Other', icon: Settings },
+  ];
+
+  const canAdvance = () => {
+    switch (wizardStep) {
+      case 0: return !!newJob.title && !!newJob.category && !!newJob.type;
+      case 1: return !!newJob.location;
+      case 2: return true; // salary is optional
+      case 3: return !!newJob.description;
+      case 4: return true; // company info optional
+      default: return false;
+    }
+  };
 
   // Fetch data on mount
   useEffect(() => {
@@ -118,14 +167,25 @@ export function HiringTab({ landlordId }: HiringTabProps) {
       const res = await fetch('/api/landlord/hiring/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newJob),
+        body: JSON.stringify({
+          ...newJob,
+          salaryMin: newJob.salaryMin || null,
+          salaryMax: newJob.salaryMax || null,
+        }),
       });
       const data = await res.json();
       
       if (data.success) {
         setJobPostings([{ ...data.job, applicantCount: 0 }, ...jobPostings]);
         setShowCreateJob(false);
-        setNewJob({ title: '', description: '', type: 'full-time', location: '', salary: '' });
+        setWizardStep(0);
+        setNewJob({
+          title: '', category: 'general', type: 'full-time', experienceLevel: 'entry',
+          location: '', isRemote: false,
+          salaryMin: '', salaryMax: '', salaryType: 'yearly', benefits: '',
+          description: '', requirements: '',
+          companyName: '', companyAbout: '',
+        });
       } else {
         alert(data.message || 'Failed to create job');
       }
@@ -420,95 +480,331 @@ export function HiringTab({ landlordId }: HiringTabProps) {
         </TabsContent>
       </Tabs>
 
-      {/* Create Job Dialog */}
-      <Dialog open={showCreateJob} onOpenChange={setShowCreateJob}>
-        <DialogContent className="bg-slate-900 border-white/10 max-w-lg">
+      {/* Create Job Wizard */}
+      <Dialog open={showCreateJob} onOpenChange={(open) => { setShowCreateJob(open); if (!open) setWizardStep(0); }}>
+        <DialogContent className="bg-slate-900 border-white/10 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Create Job Posting</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-emerald-400" />
+              Create Job Posting
+            </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Post a new job opening to attract candidates.
+              Step {wizardStep + 1} of {WIZARD_STEPS.length}: {WIZARD_STEPS[wizardStep].title}
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Job Title</label>
-              <Input
-                placeholder="e.g. Property Manager"
-                value={newJob.title}
-                onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
-                className="bg-slate-800 border-white/10 text-white"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Description</label>
-              <Textarea
-                placeholder="Describe the role and responsibilities..."
-                value={newJob.description}
-                onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
-                className="bg-slate-800 border-white/10 text-white min-h-[100px]"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Employment Type</label>
-                <Select 
-                  value={newJob.type} 
-                  onValueChange={(v) => setNewJob({ ...newJob, type: v as any })}
-                >
-                  <SelectTrigger className="bg-slate-800 border-white/10 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-white/10">
-                    <SelectItem value="full-time" className="text-white">Full-time</SelectItem>
-                    <SelectItem value="part-time" className="text-white">Part-time</SelectItem>
-                    <SelectItem value="contract" className="text-white">Contract</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Location</label>
-                <Input
-                  placeholder="e.g. Las Vegas, NV"
-                  value={newJob.location}
-                  onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
-                  className="bg-slate-800 border-white/10 text-white"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Salary Range (optional)</label>
-              <Input
-                placeholder="e.g. $50,000 - $65,000"
-                value={newJob.salary}
-                onChange={(e) => setNewJob({ ...newJob, salary: e.target.value })}
-                className="bg-slate-800 border-white/10 text-white"
-              />
-            </div>
+
+          {/* Progress Steps */}
+          <div className="flex items-center gap-1 py-2">
+            {WIZARD_STEPS.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.id} className="flex items-center flex-1">
+                  <button
+                    onClick={() => i < wizardStep && setWizardStep(i)}
+                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all w-full ${
+                      i === wizardStep
+                        ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                        : i < wizardStep
+                        ? 'bg-emerald-600/10 text-emerald-500 cursor-pointer hover:bg-emerald-600/20'
+                        : 'text-slate-500'
+                    }`}
+                  >
+                    {i < wizardStep ? (
+                      <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                    ) : (
+                      <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                    )}
+                    <span className="hidden sm:inline truncate">{step.title}</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
           
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowCreateJob(false)} disabled={isSaving}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCreateJob}
-              disabled={!newJob.title || !newJob.description || !newJob.location || isSaving}
-              className="bg-emerald-600 hover:bg-emerald-500"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Draft'
+          <div className="py-4 min-h-[300px]">
+            {/* Step 1: Job Basics */}
+            {wizardStep === 0 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Job Title *</label>
+                  <Input
+                    placeholder="e.g. Property Manager, Maintenance Technician, Leasing Agent"
+                    value={newJob.title}
+                    onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
+                    className="bg-slate-800 border-white/10 text-white text-base h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Category *</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {JOB_CATEGORIES.map((cat) => {
+                      const CatIcon = cat.icon;
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => setNewJob({ ...newJob, category: cat.id })}
+                          className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                            newJob.category === cat.id
+                              ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30'
+                              : 'bg-slate-800 text-slate-300 border-white/10 hover:border-white/20'
+                          }`}
+                        >
+                          <CatIcon className="h-4 w-4 flex-shrink-0" />
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-300">Employment Type</label>
+                    <Select value={newJob.type} onValueChange={(v) => setNewJob({ ...newJob, type: v })}>
+                      <SelectTrigger className="bg-slate-800 border-white/10 text-white h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-white/10">
+                        <SelectItem value="full-time" className="text-white">Full-Time</SelectItem>
+                        <SelectItem value="part-time" className="text-white">Part-Time</SelectItem>
+                        <SelectItem value="contract" className="text-white">Contract</SelectItem>
+                        <SelectItem value="temporary" className="text-white">Temporary</SelectItem>
+                        <SelectItem value="internship" className="text-white">Internship</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-300">Experience Level</label>
+                    <Select value={newJob.experienceLevel} onValueChange={(v) => setNewJob({ ...newJob, experienceLevel: v })}>
+                      <SelectTrigger className="bg-slate-800 border-white/10 text-white h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-white/10">
+                        <SelectItem value="entry" className="text-white">Entry Level</SelectItem>
+                        <SelectItem value="mid" className="text-white">Mid Level</SelectItem>
+                        <SelectItem value="senior" className="text-white">Senior</SelectItem>
+                        <SelectItem value="executive" className="text-white">Executive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Location */}
+            {wizardStep === 1 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Location *</label>
+                  <Input
+                    placeholder="e.g. Las Vegas, NV or Multiple Locations"
+                    value={newJob.location}
+                    onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
+                    className="bg-slate-800 border-white/10 text-white text-base h-11"
+                  />
+                  <p className="text-xs text-slate-500">City, State or &quot;Remote&quot;</p>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-800 border border-white/10">
+                  <input
+                    type="checkbox"
+                    checked={newJob.isRemote}
+                    onChange={(e) => setNewJob({ ...newJob, isRemote: e.target.checked })}
+                    className="rounded border-slate-600 h-5 w-5"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-white">Remote friendly</p>
+                    <p className="text-xs text-slate-400">This position can be done remotely or has a hybrid option</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Compensation */}
+            {wizardStep === 2 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Pay Type</label>
+                  <div className="flex gap-2">
+                    {[
+                      { value: 'yearly', label: 'Annual Salary' },
+                      { value: 'hourly', label: 'Hourly Rate' },
+                      { value: 'per-project', label: 'Per Project' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setNewJob({ ...newJob, salaryType: opt.value })}
+                        className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                          newJob.salaryType === opt.value
+                            ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30'
+                            : 'bg-slate-800 text-slate-300 border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-300">
+                      Minimum {newJob.salaryType === 'hourly' ? '($/hr)' : newJob.salaryType === 'yearly' ? '($/yr)' : '($)'}
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder={newJob.salaryType === 'hourly' ? '18' : '40000'}
+                      value={newJob.salaryMin}
+                      onChange={(e) => setNewJob({ ...newJob, salaryMin: e.target.value })}
+                      className="bg-slate-800 border-white/10 text-white h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-300">
+                      Maximum {newJob.salaryType === 'hourly' ? '($/hr)' : newJob.salaryType === 'yearly' ? '($/yr)' : '($)'}
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder={newJob.salaryType === 'hourly' ? '25' : '65000'}
+                      value={newJob.salaryMax}
+                      onChange={(e) => setNewJob({ ...newJob, salaryMax: e.target.value })}
+                      className="bg-slate-800 border-white/10 text-white h-11"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Benefits</label>
+                  <Textarea
+                    placeholder="e.g. Health insurance, 401k match, PTO, flexible schedule, company vehicle..."
+                    value={newJob.benefits}
+                    onChange={(e) => setNewJob({ ...newJob, benefits: e.target.value })}
+                    className="bg-slate-800 border-white/10 text-white min-h-[100px]"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Description & Requirements */}
+            {wizardStep === 3 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Job Description *</label>
+                  <Textarea
+                    placeholder="Describe the role, day-to-day responsibilities, team structure, and what success looks like in this position..."
+                    value={newJob.description}
+                    onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
+                    className="bg-slate-800 border-white/10 text-white min-h-[150px]"
+                  />
+                  <p className="text-xs text-slate-500">Tip: Be specific about responsibilities. Good descriptions attract better candidates.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Requirements</label>
+                  <Textarea
+                    placeholder="e.g. 3+ years property management experience, real estate license preferred, proficiency in Yardi or AppFolio, strong communication skills..."
+                    value={newJob.requirements}
+                    onChange={(e) => setNewJob({ ...newJob, requirements: e.target.value })}
+                    className="bg-slate-800 border-white/10 text-white min-h-[120px]"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Company Info */}
+            {wizardStep === 4 && (
+              <div className="space-y-5">
+                <div className="p-4 rounded-lg bg-emerald-600/10 border border-emerald-500/20">
+                  <p className="text-sm text-emerald-300">
+                    This info helps candidates learn about your company. If left blank, your account name will be used.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Company / Business Name</label>
+                  <Input
+                    placeholder="Your company name"
+                    value={newJob.companyName}
+                    onChange={(e) => setNewJob({ ...newJob, companyName: e.target.value })}
+                    className="bg-slate-800 border-white/10 text-white h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">About the Company</label>
+                  <Textarea
+                    placeholder="Tell candidates about your company, culture, mission, and what makes it a great place to work..."
+                    value={newJob.companyAbout}
+                    onChange={(e) => setNewJob({ ...newJob, companyAbout: e.target.value })}
+                    className="bg-slate-800 border-white/10 text-white min-h-[120px]"
+                  />
+                </div>
+
+                {/* Review Summary */}
+                <div className="p-4 rounded-lg bg-slate-800 border border-white/10 space-y-2">
+                  <h4 className="text-sm font-semibold text-white">Review</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="text-slate-400">Title:</div>
+                    <div className="text-white font-medium">{newJob.title || '—'}</div>
+                    <div className="text-slate-400">Type:</div>
+                    <div className="text-white">{newJob.type} • {newJob.experienceLevel}</div>
+                    <div className="text-slate-400">Location:</div>
+                    <div className="text-white">{newJob.location || '—'} {newJob.isRemote && '(Remote)'}</div>
+                    <div className="text-slate-400">Salary:</div>
+                    <div className="text-white">
+                      {newJob.salaryMin || newJob.salaryMax
+                        ? `$${newJob.salaryMin || '?'} - $${newJob.salaryMax || '?'} ${newJob.salaryType}`
+                        : 'Not specified'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <div>
+              {wizardStep > 0 && (
+                <Button variant="ghost" onClick={() => setWizardStep(wizardStep - 1)} className="text-slate-300">
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Back
+                </Button>
               )}
-            </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={() => { setShowCreateJob(false); setWizardStep(0); }} disabled={isSaving}>
+                Cancel
+              </Button>
+              {wizardStep < WIZARD_STEPS.length - 1 ? (
+                <Button
+                  onClick={() => setWizardStep(wizardStep + 1)}
+                  disabled={!canAdvance()}
+                  className="bg-emerald-600 hover:bg-emerald-500"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleCreateJob}
+                  disabled={!newJob.title || !newJob.description || !newJob.location || isSaving}
+                  className="bg-emerald-600 hover:bg-emerald-500"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Publishing...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Publish Job
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

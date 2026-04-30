@@ -125,6 +125,10 @@ export default function JobBoard({
 
   const handleViewChange = (newView: 'jobs' | 'seekers' | 'post') => {
     if (newView === 'post') {
+      if (!isAuthenticated) {
+        router.push('/sign-in?callbackUrl=/jobs?view=post');
+        return;
+      }
       setShowPostDialog(true);
       return;
     }
@@ -132,6 +136,14 @@ export default function JobBoard({
     const params = new URLSearchParams();
     if (newView !== 'jobs') params.set('view', newView);
     router.push(`/jobs?${params.toString()}`);
+  };
+
+  const handleApplyClick = (job: Job) => {
+    if (!isAuthenticated) {
+      router.push(`/sign-in?callbackUrl=/jobs`);
+      return;
+    }
+    setApplyingToJob(job);
   };
 
   useEffect(() => {
@@ -348,7 +360,7 @@ export default function JobBoard({
                     <Briefcase className="h-16 w-16 mx-auto text-slate-400 mb-4" />
                     <h3 className="text-xl font-bold text-slate-900 mb-2">No jobs found</h3>
                     <p className="text-slate-600 font-semibold mb-4">Try adjusting your search or be the first to post a job</p>
-                    <Button onClick={() => setShowPostDialog(true)} className="bg-emerald-600 hover:bg-emerald-700 font-bold">
+                    <Button onClick={() => handleViewChange('post')} className="bg-emerald-600 hover:bg-emerald-700 font-bold">
                       <Plus className="h-4 w-4 mr-2" /> Post a Job
                     </Button>
                   </div>
@@ -360,7 +372,7 @@ export default function JobBoard({
                   <Card
                     key={job.id}
                     className="h-full bg-white border border-black shadow-2xl hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group"
-                    onClick={() => setApplyingToJob(job)}
+                    onClick={() => handleApplyClick(job)}
                   >
                     {/* Company Banner */}
                     <div className="relative h-32 bg-gradient-to-br from-emerald-500 to-teal-600">
@@ -583,13 +595,13 @@ export default function JobBoard({
                     Create Your Profile
                   </Button>
                 </Link>
-                <Button size="lg" variant="brand" className="font-bold" onClick={() => setShowPostDialog(true)}>
+                <Button size="lg" variant="brand" className="font-bold" onClick={() => handleViewChange('post')}>
                   Post a Job
                 </Button>
               </>
             ) : (
               <>
-                <Button size="lg" variant="brand" className="font-bold bg-white text-emerald-700 hover:bg-white/90" onClick={() => setShowPostDialog(true)}>
+                <Button size="lg" variant="brand" className="font-bold bg-white text-emerald-700 hover:bg-white/90" onClick={() => handleViewChange('post')}>
                   Post a Job
                 </Button>
                 <Link href={isAuthenticated ? '/jobs/profile' : '/sign-up'}>
@@ -607,7 +619,6 @@ export default function JobBoard({
       {applyingToJob && (
         <JobApplyDialog
           job={applyingToJob}
-          isAuthenticated={isAuthenticated}
           onClose={() => setApplyingToJob(null)}
         />
       )}
@@ -615,7 +626,6 @@ export default function JobBoard({
       {/* Post Job Dialog */}
       {showPostDialog && (
         <PostJobDialog
-          isAuthenticated={isAuthenticated}
           onClose={() => setShowPostDialog(false)}
           onJobPosted={handleJobPosted}
         />

@@ -65,7 +65,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, type, location, salary, requirements, benefits } = body;
+    const {
+      title, description, type, location, salary, requirements, benefits,
+      category, isRemote, salaryMin, salaryMax, salaryType,
+      companyName, companyLogo, companyAbout, experienceLevel,
+    } = body;
 
     if (!title || !description || !location) {
       return NextResponse.json({ success: false, message: 'Title, description, and location are required' }, { status: 400 });
@@ -74,14 +78,24 @@ export async function POST(request: NextRequest) {
     const job = await prisma.jobPosting.create({
       data: {
         landlordId: landlord.id,
+        userId: session.user.id,
         title,
         description,
         type: type || 'full-time',
+        category: category || 'general',
         location,
+        isRemote: isRemote || false,
         salary,
+        salaryMin: salaryMin ? parseFloat(salaryMin) : null,
+        salaryMax: salaryMax ? parseFloat(salaryMax) : null,
+        salaryType: salaryType || 'yearly',
         requirements,
         benefits,
-        status: 'draft',
+        companyName: companyName || landlord.companyName || landlord.name,
+        companyLogo: companyLogo || landlord.logoUrl || null,
+        companyAbout,
+        experienceLevel: experienceLevel || 'entry',
+        status: 'active',
       },
     });
 

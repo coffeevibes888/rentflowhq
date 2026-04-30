@@ -57,11 +57,10 @@ interface Job {
 
 interface JobApplyDialogProps {
   job: Job;
-  isAuthenticated: boolean;
   onClose: () => void;
 }
 
-export function JobApplyDialog({ job, isAuthenticated, onClose }: JobApplyDialogProps) {
+export function JobApplyDialog({ job, onClose }: JobApplyDialogProps) {
   const [step, setStep] = useState<'details' | 'apply' | 'success'>('details');
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({

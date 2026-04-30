@@ -8,54 +8,72 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import {
-  Briefcase, CheckCircle, Loader2, Plus,
+  Briefcase, Building2, CheckCircle, ChevronLeft, ChevronRight,
+  DollarSign, ListChecks, Loader2, MapPin, Send, Sparkles,
+  Wrench, Headphones, FileText, Calculator, HardHat, Leaf,
+  Home, Monitor, Settings,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import Link from 'next/link';
+
+const WIZARD_STEPS = [
+  { id: 'basics', title: 'Job Basics', icon: Briefcase },
+  { id: 'location', title: 'Location', icon: MapPin },
+  { id: 'compensation', title: 'Compensation', icon: DollarSign },
+  { id: 'details', title: 'Details', icon: ListChecks },
+  { id: 'company', title: 'Company', icon: Building2 },
+];
 
 const JOB_CATEGORIES = [
-  { id: 'property-management', label: 'Property Management' },
-  { id: 'maintenance', label: 'Maintenance' },
-  { id: 'virtual-assistant', label: 'Virtual Assistant' },
-  { id: 'leasing', label: 'Leasing' },
-  { id: 'accounting', label: 'Accounting' },
-  { id: 'construction', label: 'Construction' },
-  { id: 'landscaping', label: 'Landscaping' },
-  { id: 'cleaning', label: 'Cleaning' },
-  { id: 'admin', label: 'Admin & Office' },
-  { id: 'other', label: 'Other' },
+  { id: 'property-management', label: 'Property Management', icon: Building2 },
+  { id: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { id: 'virtual-assistant', label: 'Virtual Assistant', icon: Headphones },
+  { id: 'leasing', label: 'Leasing', icon: FileText },
+  { id: 'accounting', label: 'Accounting', icon: Calculator },
+  { id: 'construction', label: 'Construction', icon: HardHat },
+  { id: 'landscaping', label: 'Landscaping', icon: Leaf },
+  { id: 'cleaning', label: 'Cleaning', icon: Home },
+  { id: 'admin', label: 'Admin & Office', icon: Monitor },
+  { id: 'other', label: 'Other', icon: Settings },
 ];
 
 interface PostJobDialogProps {
-  isAuthenticated: boolean;
   onClose: () => void;
   onJobPosted: (job: any) => void;
 }
 
-export function PostJobDialog({ isAuthenticated, onClose, onJobPosted }: PostJobDialogProps) {
+export function PostJobDialog({ onClose, onJobPosted }: PostJobDialogProps) {
+  const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [form, setForm] = useState({
     title: '',
-    description: '',
-    type: 'full-time',
     category: 'general',
+    type: 'full-time',
+    experienceLevel: 'entry',
     location: '',
     isRemote: false,
     salaryMin: '',
     salaryMax: '',
     salaryType: 'yearly',
-    requirements: '',
     benefits: '',
+    description: '',
+    requirements: '',
     companyName: '',
     companyAbout: '',
-    experienceLevel: 'entry',
   });
 
-  const updateForm = (field: string, value: any) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+  const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
+
+  const canAdvance = () => {
+    switch (step) {
+      case 0: return !!form.title && !!form.category && !!form.type;
+      case 1: return !!form.location;
+      case 2: return true;
+      case 3: return !!form.description;
+      case 4: return true;
+      default: return false;
+    }
   };
 
   const handleSubmit = async () => {
@@ -63,12 +81,6 @@ export function PostJobDialog({ isAuthenticated, onClose, onJobPosted }: PostJob
       toast.error('Title, description, and location are required');
       return;
     }
-
-    if (!isAuthenticated) {
-      toast.error('Please sign in to post a job');
-      return;
-    }
-
     setSubmitting(true);
     try {
       const res = await fetch('/api/jobs', {
@@ -101,35 +113,6 @@ export function PostJobDialog({ isAuthenticated, onClose, onJobPosted }: PostJob
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <Dialog open onOpenChange={() => onClose()}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Sign in to Post a Job</DialogTitle>
-            <DialogDescription>
-              You need an account to post jobs. It&apos;s free to sign up.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="text-center py-6">
-            <Briefcase className="h-16 w-16 mx-auto text-emerald-500 mb-4" />
-            <p className="text-slate-600 mb-6">
-              Create a free account as a Property Manager, Contractor, or regular user to start posting jobs.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Link href="/sign-in">
-                <Button variant="outline" className="font-bold">Sign In</Button>
-              </Link>
-              <Link href="/sign-up">
-                <Button className="bg-emerald-600 hover:bg-emerald-700 font-bold">Sign Up Free</Button>
-              </Link>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   if (success) {
     return (
       <Dialog open onOpenChange={() => onClose()}>
@@ -154,190 +137,272 @@ export function PostJobDialog({ isAuthenticated, onClose, onJobPosted }: PostJob
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5 text-emerald-600" />
+            <Sparkles className="h-5 w-5 text-emerald-600" />
             Post a Job
           </DialogTitle>
           <DialogDescription>
-            Fill out the details below to create your job listing. It&apos;s free.
+            Step {step + 1} of {WIZARD_STEPS.length}: {WIZARD_STEPS[step].title} — It&apos;s free.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Title */}
-          <div>
-            <Label className="font-semibold">Job Title *</Label>
-            <Input
-              value={form.title}
-              onChange={(e) => updateForm('title', e.target.value)}
-              placeholder="e.g. Property Manager, Maintenance Technician, Virtual Assistant"
-              className="mt-1"
-            />
-          </div>
-
-          {/* Company */}
-          <div>
-            <Label className="font-semibold">Company / Business Name</Label>
-            <Input
-              value={form.companyName}
-              onChange={(e) => updateForm('companyName', e.target.value)}
-              placeholder="Your company name"
-              className="mt-1"
-            />
-          </div>
-
-          {/* Category & Type */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="font-semibold">Category</Label>
-              <select
-                value={form.category}
-                onChange={(e) => updateForm('category', e.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        {/* Progress */}
+        <div className="flex items-center gap-1 py-2">
+          {WIZARD_STEPS.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.id}
+                onClick={() => i < step && setStep(i)}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all flex-1 ${
+                  i === step
+                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                    : i < step
+                    ? 'bg-emerald-50 text-emerald-600 cursor-pointer hover:bg-emerald-100'
+                    : 'text-slate-400'
+                }`}
               >
-                <option value="general">General</option>
-                {JOB_CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label className="font-semibold">Job Type</Label>
-              <select
-                value={form.type}
-                onChange={(e) => updateForm('type', e.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="full-time">Full-Time</option>
-                <option value="part-time">Part-Time</option>
-                <option value="contract">Contract</option>
-                <option value="temporary">Temporary</option>
-                <option value="internship">Internship</option>
-              </select>
-            </div>
-          </div>
+                {i < step ? (
+                  <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                ) : (
+                  <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                )}
+                <span className="hidden sm:inline truncate">{s.title}</span>
+              </button>
+            );
+          })}
+        </div>
 
-          {/* Location */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="font-semibold">Location *</Label>
-              <Input
-                value={form.location}
-                onChange={(e) => updateForm('location', e.target.value)}
-                placeholder="e.g. Austin, TX"
-                className="mt-1"
-              />
+        <div className="py-4 min-h-[280px]">
+          {/* Step 1: Basics */}
+          {step === 0 && (
+            <div className="space-y-5">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Job Title *</label>
+                <Input
+                  placeholder="e.g. Property Manager, Maintenance Technician, Virtual Assistant"
+                  value={form.title}
+                  onChange={(e) => update('title', e.target.value)}
+                  className="mt-1 h-11"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Category *</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                  {JOB_CATEGORIES.map((cat) => {
+                    const CatIcon = cat.icon;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => update('category', cat.id)}
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                          form.category === cat.id
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <CatIcon className="h-4 w-4 flex-shrink-0" />
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Employment Type</label>
+                  <select value={form.type} onChange={(e) => update('type', e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm">
+                    <option value="full-time">Full-Time</option>
+                    <option value="part-time">Part-Time</option>
+                    <option value="contract">Contract</option>
+                    <option value="temporary">Temporary</option>
+                    <option value="internship">Internship</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Experience Level</label>
+                  <select value={form.experienceLevel} onChange={(e) => update('experienceLevel', e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm">
+                    <option value="entry">Entry Level</option>
+                    <option value="mid">Mid Level</option>
+                    <option value="senior">Senior</option>
+                    <option value="executive">Executive</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 cursor-pointer pb-2">
+          )}
+
+          {/* Step 2: Location */}
+          {step === 1 && (
+            <div className="space-y-5">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Location *</label>
+                <Input
+                  placeholder="e.g. Austin, TX or Multiple Locations"
+                  value={form.location}
+                  onChange={(e) => update('location', e.target.value)}
+                  className="mt-1 h-11"
+                />
+                <p className="text-xs text-slate-500 mt-1">City, State or &quot;Remote&quot;</p>
+              </div>
+              <label className="flex items-center gap-3 p-4 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50">
                 <input
                   type="checkbox"
                   checked={form.isRemote}
-                  onChange={(e) => updateForm('isRemote', e.target.checked)}
-                  className="rounded border-gray-300"
+                  onChange={(e) => update('isRemote', e.target.checked)}
+                  className="rounded border-slate-300 h-5 w-5"
                 />
-                <span className="text-sm font-semibold">Remote friendly</span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">Remote friendly</p>
+                  <p className="text-xs text-slate-500">This position can be done remotely or has a hybrid option</p>
+                </div>
               </label>
             </div>
-          </div>
+          )}
 
-          {/* Salary */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label className="font-semibold">Salary Min</Label>
-              <Input
-                type="number"
-                value={form.salaryMin}
-                onChange={(e) => updateForm('salaryMin', e.target.value)}
-                placeholder="40000"
-                className="mt-1"
-              />
+          {/* Step 3: Compensation */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Pay Type</label>
+                <div className="flex gap-2 mt-2">
+                  {[
+                    { value: 'yearly', label: 'Annual Salary' },
+                    { value: 'hourly', label: 'Hourly Rate' },
+                    { value: 'per-project', label: 'Per Project' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => update('salaryType', opt.value)}
+                      className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                        form.salaryType === opt.value
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Minimum {form.salaryType === 'hourly' ? '($/hr)' : form.salaryType === 'yearly' ? '($/yr)' : '($)'}
+                  </label>
+                  <Input type="number" placeholder={form.salaryType === 'hourly' ? '18' : '40000'} value={form.salaryMin} onChange={(e) => update('salaryMin', e.target.value)} className="mt-1 h-11" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Maximum {form.salaryType === 'hourly' ? '($/hr)' : form.salaryType === 'yearly' ? '($/yr)' : '($)'}
+                  </label>
+                  <Input type="number" placeholder={form.salaryType === 'hourly' ? '25' : '65000'} value={form.salaryMax} onChange={(e) => update('salaryMax', e.target.value)} className="mt-1 h-11" />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Benefits</label>
+                <Textarea
+                  placeholder="e.g. Health insurance, 401k match, PTO, flexible schedule, company vehicle..."
+                  value={form.benefits}
+                  onChange={(e) => update('benefits', e.target.value)}
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
             </div>
-            <div>
-              <Label className="font-semibold">Salary Max</Label>
-              <Input
-                type="number"
-                value={form.salaryMax}
-                onChange={(e) => updateForm('salaryMax', e.target.value)}
-                placeholder="60000"
-                className="mt-1"
-              />
+          )}
+
+          {/* Step 4: Description & Requirements */}
+          {step === 3 && (
+            <div className="space-y-5">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Job Description *</label>
+                <Textarea
+                  placeholder="Describe the role, day-to-day responsibilities, team structure, and what success looks like..."
+                  value={form.description}
+                  onChange={(e) => update('description', e.target.value)}
+                  className="mt-1"
+                  rows={6}
+                />
+                <p className="text-xs text-slate-500 mt-1">Tip: Be specific about responsibilities. Good descriptions attract better candidates.</p>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Requirements</label>
+                <Textarea
+                  placeholder="e.g. 3+ years property management experience, real estate license preferred, proficiency in Yardi or AppFolio..."
+                  value={form.requirements}
+                  onChange={(e) => update('requirements', e.target.value)}
+                  className="mt-1"
+                  rows={4}
+                />
+              </div>
             </div>
-            <div>
-              <Label className="font-semibold">Pay Type</Label>
-              <select
-                value={form.salaryType}
-                onChange={(e) => updateForm('salaryType', e.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="yearly">Per Year</option>
-                <option value="hourly">Per Hour</option>
-                <option value="per-project">Per Project</option>
-              </select>
+          )}
+
+          {/* Step 5: Company Info + Review */}
+          {step === 4 && (
+            <div className="space-y-5">
+              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                <p className="text-sm text-emerald-700">
+                  This info helps candidates learn about your company. If left blank, your account name will be used.
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Company / Business Name</label>
+                <Input placeholder="Your company name" value={form.companyName} onChange={(e) => update('companyName', e.target.value)} className="mt-1 h-11" />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">About the Company</label>
+                <Textarea
+                  placeholder="Tell candidates about your company, culture, mission..."
+                  value={form.companyAbout}
+                  onChange={(e) => update('companyAbout', e.target.value)}
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+              {/* Review Summary */}
+              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                <h4 className="text-sm font-bold text-slate-800">Review</h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <span className="text-slate-500">Title:</span>
+                  <span className="font-medium">{form.title || '—'}</span>
+                  <span className="text-slate-500">Type:</span>
+                  <span>{form.type} · {form.experienceLevel}</span>
+                  <span className="text-slate-500">Location:</span>
+                  <span>{form.location || '—'} {form.isRemote && '(Remote)'}</span>
+                  <span className="text-slate-500">Salary:</span>
+                  <span>
+                    {form.salaryMin || form.salaryMax
+                      ? `$${form.salaryMin || '?'} – $${form.salaryMax || '?'} ${form.salaryType}`
+                      : 'Not specified'}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Experience Level */}
-          <div>
-            <Label className="font-semibold">Experience Level</Label>
-            <select
-              value={form.experienceLevel}
-              onChange={(e) => updateForm('experienceLevel', e.target.value)}
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="entry">Entry Level</option>
-              <option value="mid">Mid Level</option>
-              <option value="senior">Senior</option>
-              <option value="executive">Executive</option>
-            </select>
-          </div>
-
-          {/* Description */}
-          <div>
-            <Label className="font-semibold">Job Description *</Label>
-            <Textarea
-              value={form.description}
-              onChange={(e) => updateForm('description', e.target.value)}
-              placeholder="Describe the role, responsibilities, and what a typical day looks like..."
-              rows={5}
-              className="mt-1"
-            />
-          </div>
-
-          {/* Requirements */}
-          <div>
-            <Label className="font-semibold">Requirements</Label>
-            <Textarea
-              value={form.requirements}
-              onChange={(e) => updateForm('requirements', e.target.value)}
-              placeholder="List qualifications, certifications, experience needed..."
-              rows={3}
-              className="mt-1"
-            />
-          </div>
-
-          {/* Benefits */}
-          <div>
-            <Label className="font-semibold">Benefits</Label>
-            <Textarea
-              value={form.benefits}
-              onChange={(e) => updateForm('benefits', e.target.value)}
-              placeholder="Health insurance, PTO, flexible schedule, etc."
-              rows={3}
-              className="mt-1"
-            />
-          </div>
+          )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            className="bg-emerald-600 hover:bg-emerald-700 font-bold"
-            onClick={handleSubmit}
-            disabled={submitting}
-          >
-            {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
-            Post Job
-          </Button>
+        <DialogFooter className="flex justify-between sm:justify-between">
+          <div>
+            {step > 0 && (
+              <Button variant="ghost" onClick={() => setStep(step - 1)}>
+                <ChevronLeft className="h-4 w-4 mr-1" /> Back
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} disabled={submitting}>Cancel</Button>
+            {step < WIZARD_STEPS.length - 1 ? (
+              <Button onClick={() => setStep(step + 1)} disabled={!canAdvance()} className="bg-emerald-600 hover:bg-emerald-700 font-bold">
+                Next <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            ) : (
+              <Button onClick={handleSubmit} disabled={!form.title || !form.description || !form.location || submitting} className="bg-emerald-600 hover:bg-emerald-700 font-bold">
+                {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                Publish Job
+              </Button>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
