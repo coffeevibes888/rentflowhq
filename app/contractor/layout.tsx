@@ -7,7 +7,6 @@ import { ContractorSidebarWrapper } from '@/components/contractor/contractor-sid
 import ContractorMainNav from './main-nav';
 import { SubscriptionGate } from '@/components/subscription/subscription-gate';
 import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
-import { FloatingInboxWidget } from '@/components/shared/floating-inbox-widget';
 
 export default async function ContractorLayout({
   children,
@@ -52,7 +51,6 @@ export default async function ContractorLayout({
         <Footer />
       </div>
       <TeamChatWidgetWrapper />
-      <FloatingInboxWidget />
     </SessionProviderWrapper>
   );
 }

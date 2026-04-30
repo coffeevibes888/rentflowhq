@@ -8,9 +8,8 @@ export default function AddPropertyButton() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  const handleComplete = (propertyId: string) => {
+  const handleComplete = (_propertyId: string) => {
     setOpen(false);
-   
     router.refresh();
   };
 
@@ -18,14 +17,8 @@ export default function AddPropertyButton() {
     setOpen(false);
   };
 
-  const handleClick = (e: React.MouseEvent) => {
-    console.log('[AddPropertyButton] CLICK START');
-    debugger; // This will pause execution in DevTools
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('[AddPropertyButton] event prevented, setting open state');
+  const handleClick = () => {
     setOpen(true);
-    console.log('[AddPropertyButton] CLICK END');
   };
 
   return (
@@ -36,7 +29,7 @@ export default function AddPropertyButton() {
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            handleClick(e as any);
+            handleClick();
           }
         }}
         className='w-full sm:w-auto bg-violet-600 hover:bg-violet-500 text-white font-semibold px-4 py-2 rounded-md cursor-pointer inline-flex items-center justify-center select-none'

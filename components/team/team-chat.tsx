@@ -5,7 +5,7 @@ import {
   Send, Hash, Users, Plus, Settings, ChevronDown, 
   MessageSquare, Search, X, MoreVertical, Bell, BellOff,
   Smile, Paperclip, AtSign, UserPlus, Mail, Heart, ThumbsUp,
-  Image as ImageIcon, File, Download, Trash2
+  Image as ImageIcon, File, Download, Trash2, Inbox, ArrowLeft, Circle, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import dynamic from 'next/dynamic';
 import { Theme } from 'emoji-picker-react';
+import { formatDistanceToNow } from 'date-fns';
 
 // Dynamically import emoji picker to avoid SSR issues
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
@@ -110,6 +111,36 @@ const STATUS_COLORS = {
   offline: 'bg-slate-500',
 };
 
+// Inbox thread types (from marketplace/contractor messages)
+interface InboxThreadUser {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+}
+
+interface InboxThreadSummary {
+  id: string;
+  subject: string | null;
+  updatedAt: string;
+  otherUser: InboxThreadUser | null;
+  lastMessage: {
+    id: string;
+    content: string;
+    senderUserId: string | null;
+    createdAt: string;
+  } | null;
+  isUnread: boolean;
+}
+
+interface InboxMessage {
+  id: string;
+  content: string;
+  senderUserId: string | null;
+  senderName: string | null;
+  createdAt: string;
+}
+
 export function TeamChat({ 
   currentUser, 
   landlordId, 
@@ -186,6 +217,21 @@ export function TeamChat({
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const mentionPickerRef = useRef<HTMLDivElement>(null);
 
+  // Inbox state (marketplace/contractor messages integrated into team chat)
+  const [inboxView, setInboxView] = useState<'none' | 'threads' | 'chat'>('none');
+  const [inboxThreads, setInboxThreads] = useState<InboxThreadSummary[]>([]);
+  const [selectedInboxThreadId, setSelectedInboxThreadId] = useState<string | null>(null);
+  const [inboxMessages, setInboxMessages] = useState<InboxMessage[]>([]);
+  const [inboxNewMessage, setInboxNewMessage] = useState('');
+  const [inboxSending, setInboxSending] = useState(false);
+  const [inboxLoadingThreads, setInboxLoadingThreads] = useState(true);
+  const [inboxLoadingMessages, setInboxLoadingMessages] = useState(false);
+  const inboxMessagesEndRef = useRef<HTMLDivElement>(null);
+  const inboxPollRef = useRef<NodeJS.Timeout | null>(null);
+
+  const selectedInboxThread = inboxThreads.find((t) => t.id === selectedInboxThreadId);
+  const inboxUnreadCount = inboxThreads.filter((t) => t.isUnread).length;
+
   // Load team members
   useEffect(() => {
     const loadMembers = async () => {
@@ -216,6 +262,117 @@ export function TeamChat({
     };
     loadMembers();
   }, [currentUser, apiPrefix]);
+
+  // --- Inbox (marketplace/contractor messages) logic ---
+  const fetchInboxThreads = useCallback(async () => {
+    if (!currentUser.id) return;
+    try {
+      const res = await fetch('/api/contractor/chat/threads');
+      if (res.ok) {
+        const data = await res.json();
+        setInboxThreads(data.threads || []);
+      }
+    } catch {
+      // silent
+    } finally {
+      setInboxLoadingThreads(false);
+    }
+  }, [currentUser.id]);
+
+  useEffect(() => {
+    if (!currentUser.id) return;
+    fetchInboxThreads();
+    const interval = setInterval(fetchInboxThreads, 15000);
+    return () => clearInterval(interval);
+  }, [currentUser.id, fetchInboxThreads]);
+
+  const fetchInboxMessages = useCallback(async () => {
+    if (!selectedInboxThreadId) return;
+    try {
+      const res = await fetch(
+        `/api/contractor/chat/messages?threadId=${selectedInboxThreadId}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setInboxMessages(data.messages || []);
+      }
+    } catch {
+      // silent
+    } finally {
+      setInboxLoadingMessages(false);
+    }
+  }, [selectedInboxThreadId]);
+
+  useEffect(() => {
+    if (selectedInboxThreadId) {
+      setInboxLoadingMessages(true);
+      fetchInboxMessages();
+      if (inboxPollRef.current) clearInterval(inboxPollRef.current);
+      inboxPollRef.current = setInterval(fetchInboxMessages, 5000);
+    }
+    return () => {
+      if (inboxPollRef.current) clearInterval(inboxPollRef.current);
+    };
+  }, [selectedInboxThreadId, fetchInboxMessages]);
+
+  useEffect(() => {
+    inboxMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [inboxMessages]);
+
+  const handleInboxSend = async () => {
+    if (!inboxNewMessage.trim() || !selectedInboxThreadId) return;
+    setInboxSending(true);
+    try {
+      const res = await fetch('/api/contractor/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: inboxNewMessage.trim(),
+          threadId: selectedInboxThreadId,
+          recipientUserId: selectedInboxThread?.otherUser?.id,
+        }),
+      });
+      if (res.ok) {
+        setInboxNewMessage('');
+        fetchInboxMessages();
+        fetchInboxThreads();
+      }
+    } catch {
+      // silent
+    } finally {
+      setInboxSending(false);
+    }
+  };
+
+  const openInboxThread = (threadId: string) => {
+    setSelectedInboxThreadId(threadId);
+    setInboxView('chat');
+    // Clear the active channel so the main area shows inbox chat
+    setActiveChannel(null);
+  };
+
+  const backToInboxThreads = () => {
+    setSelectedInboxThreadId(null);
+    setInboxView('threads');
+    setInboxMessages([]);
+  };
+
+  const openInboxList = () => {
+    setInboxView('threads');
+    setSelectedInboxThreadId(null);
+    setActiveChannel(null);
+  };
+
+  const exitInbox = () => {
+    setInboxView('none');
+    setSelectedInboxThreadId(null);
+    setInboxMessages([]);
+    // Re-select first channel if available
+    if (channels.length > 0) {
+      setActiveChannel(channels[0]);
+    }
+  };
+  // --- End Inbox logic ---
 
   // WebSocket integration
   const {
@@ -851,9 +1008,11 @@ export function TeamChat({
                 onClick={() => {
                   setActiveChannel(channel);
                   setIsMobileMenuOpen(false);
+                  setInboxView('none');
+                  setSelectedInboxThreadId(null);
                 }}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${
-                  activeChannel?.id === channel.id
+                  activeChannel?.id === channel.id && inboxView === 'none'
                     ? 'bg-violet-600/20 text-white'
                     : 'text-slate-300 hover:bg-white/5'
                 }`}
@@ -889,9 +1048,11 @@ export function TeamChat({
                 onClick={() => {
                   setActiveChannel(channel);
                   setIsMobileMenuOpen(false);
+                  setInboxView('none');
+                  setSelectedInboxThreadId(null);
                 }}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${
-                  activeChannel?.id === channel.id
+                  activeChannel?.id === channel.id && inboxView === 'none'
                     ? 'bg-violet-600/20 text-white'
                     : 'text-slate-300 hover:bg-white/5'
                 }`}
@@ -936,6 +1097,29 @@ export function TeamChat({
               </button>
             ))}
           </div>
+
+          {/* Inbox - Marketplace & Client Messages */}
+          <div className="px-2 py-2 border-t border-white/5">
+            <button
+              onClick={() => {
+                openInboxList();
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${
+                inboxView !== 'none'
+                  ? 'bg-blue-600/20 text-white'
+                  : 'text-slate-300 hover:bg-white/5'
+              }`}
+            >
+              <Inbox className="h-4 w-4 text-blue-400" />
+              <span className="truncate">Inbox</span>
+              {inboxUnreadCount > 0 && (
+                <span className="ml-auto bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {inboxUnreadCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -951,19 +1135,40 @@ export function TeamChat({
               <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
             </button>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                {activeChannel?.type === 'direct' ? (
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
-                ) : (
-                  <Hash className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
-                )}
-                <span className="font-semibold text-white text-sm sm:text-base truncate">{activeChannel?.name || 'Select a channel'}</span>
-              </div>
-              {activeChannel?.description && (
-                <p className="text-[10px] sm:text-xs text-slate-400 truncate max-w-[120px] sm:max-w-[200px]">{activeChannel.description}</p>
-              )}
-              {activeChannel?.type === 'direct' && (
-                <p className="text-[10px] sm:text-xs text-slate-400">Direct message</p>
+              {inboxView !== 'none' ? (
+                <>
+                  <div className="flex items-center gap-1.5">
+                    {inboxView === 'chat' && (
+                      <button onClick={backToInboxThreads} className="p-0.5 hover:bg-white/10 rounded mr-1">
+                        <ArrowLeft className="h-3.5 w-3.5 text-slate-400" />
+                      </button>
+                    )}
+                    <Inbox className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400 flex-shrink-0" />
+                    <span className="font-semibold text-white text-sm sm:text-base truncate">
+                      {inboxView === 'chat' && selectedInboxThread
+                        ? selectedInboxThread.otherUser?.name || 'Chat'
+                        : 'Inbox'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] sm:text-xs text-slate-400">Marketplace & client messages</p>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5">
+                    {activeChannel?.type === 'direct' ? (
+                      <Users className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
+                    ) : (
+                      <Hash className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
+                    )}
+                    <span className="font-semibold text-white text-sm sm:text-base truncate">{activeChannel?.name || 'Select a channel'}</span>
+                  </div>
+                  {activeChannel?.description && (
+                    <p className="text-[10px] sm:text-xs text-slate-400 truncate max-w-[120px] sm:max-w-[200px]">{activeChannel.description}</p>
+                  )}
+                  {activeChannel?.type === 'direct' && (
+                    <p className="text-[10px] sm:text-xs text-slate-400">Direct message</p>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -1049,6 +1254,165 @@ export function TeamChat({
         </header>
 
         <div className="flex-1 flex overflow-hidden min-h-0">
+          {/* Inbox View */}
+          {inboxView !== 'none' ? (
+            <div className="flex-1 flex flex-col min-w-0 min-h-0">
+              {inboxView === 'threads' ? (
+                /* Inbox Thread List */
+                <div className="flex-1 overflow-y-auto divide-y divide-white/5">
+                  {inboxLoadingThreads ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin h-6 w-6 border-2 border-blue-400 border-t-transparent rounded-full" />
+                    </div>
+                  ) : inboxThreads.length === 0 ? (
+                    <div className="text-center py-12 px-4">
+                      <Inbox className="h-10 w-10 mx-auto text-slate-600 mb-3" />
+                      <p className="text-slate-400 text-sm">No messages yet</p>
+                      <p className="text-slate-500 text-xs mt-1">Messages from clients and the marketplace will appear here</p>
+                    </div>
+                  ) : (
+                    inboxThreads.map((thread) => (
+                      <button
+                        key={thread.id}
+                        onClick={() => openInboxThread(thread.id)}
+                        className="w-full p-3 text-left hover:bg-white/5 transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="relative flex-shrink-0">
+                            {thread.otherUser?.image ? (
+                              <img
+                                src={thread.otherUser.image}
+                                alt=""
+                                className="h-9 w-9 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-9 w-9 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                <User className="h-4 w-4 text-blue-400" />
+                              </div>
+                            )}
+                            {thread.isUnread && (
+                              <Circle className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 fill-blue-500 text-blue-500" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p
+                                className={`text-sm truncate ${
+                                  thread.isUnread
+                                    ? 'font-semibold text-white'
+                                    : 'font-medium text-slate-300'
+                                }`}
+                              >
+                                {thread.otherUser?.name || 'Unknown'}
+                              </p>
+                              {thread.lastMessage && (
+                                <span className="text-[10px] text-slate-500 ml-2 flex-shrink-0">
+                                  {formatDistanceToNow(
+                                    new Date(thread.lastMessage.createdAt),
+                                    { addSuffix: false }
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                            {thread.lastMessage && (
+                              <p className="text-xs text-slate-500 truncate mt-0.5">
+                                {thread.lastMessage.senderUserId === currentUser.id
+                                  ? 'You: '
+                                  : ''}
+                                {thread.lastMessage.content}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              ) : (
+                /* Inbox Chat View */
+                <>
+                  <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-900/30">
+                    {inboxLoadingMessages ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="animate-spin h-5 w-5 border-2 border-blue-400 border-t-transparent rounded-full" />
+                      </div>
+                    ) : inboxMessages.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-slate-500 text-sm">
+                          Start the conversation
+                        </p>
+                      </div>
+                    ) : (
+                      inboxMessages.map((msg) => {
+                        const isMe = msg.senderUserId === currentUser.id;
+                        return (
+                          <div
+                            key={msg.id}
+                            className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div
+                              className={`max-w-[80%] rounded-2xl px-3 py-2 ${
+                                isMe
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-slate-800 border border-white/10 text-slate-200'
+                              }`}
+                            >
+                              <p className="text-sm whitespace-pre-wrap">
+                                {msg.content}
+                              </p>
+                              <p
+                                className={`text-[10px] mt-0.5 text-right ${
+                                  isMe ? 'text-white/60' : 'text-slate-500'
+                                }`}
+                              >
+                                {new Date(msg.createdAt).toLocaleTimeString(
+                                  [],
+                                  { hour: '2-digit', minute: '2-digit' }
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                    <div ref={inboxMessagesEndRef} />
+                  </div>
+
+                  {/* Inbox Input */}
+                  <div className="p-3 border-t border-white/10 bg-slate-900/50">
+                    <div className="flex gap-2">
+                      <Input
+                        value={inboxNewMessage}
+                        onChange={(e) => setInboxNewMessage(e.target.value)}
+                        placeholder="Type a message..."
+                        className="text-sm bg-slate-800 border-white/10 text-white placeholder:text-slate-500"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleInboxSend();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={handleInboxSend}
+                        disabled={inboxSending || !inboxNewMessage.trim()}
+                        size="icon"
+                        className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
+                      >
+                        {inboxSending ? (
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+          /* Team Chat Messages */
+          <div className="flex-1 flex overflow-hidden min-h-0">
           {/* Messages */}
           <div className="flex-1 flex flex-col min-w-0 min-h-0">
             <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-2 sm:py-4">
@@ -1417,6 +1781,8 @@ export function TeamChat({
                 </div>
               </div>
             </aside>
+          )}
+        </div>
           )}
         </div>
       </div>
