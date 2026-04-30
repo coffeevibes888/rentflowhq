@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
-import { JobApplyDialog } from './job-apply-dialog';
 import { PostJobDialog } from './post-job-dialog';
 
 const JOB_CATEGORIES = [
@@ -120,7 +119,6 @@ export default function JobBoard({
   const [locationQuery, setLocationQuery] = useState(searchParams.location || '');
   const [activeCategory, setActiveCategory] = useState(searchParams.category || '');
   const [activeType, setActiveType] = useState(searchParams.type || '');
-  const [applyingToJob, setApplyingToJob] = useState<Job | null>(null);
   const [showPostDialog, setShowPostDialog] = useState(initialView === 'post');
 
   const handleViewChange = (newView: 'jobs' | 'seekers' | 'post') => {
@@ -139,11 +137,7 @@ export default function JobBoard({
   };
 
   const handleApplyClick = (job: Job) => {
-    if (!isAuthenticated) {
-      router.push(`/sign-in?callbackUrl=/jobs`);
-      return;
-    }
-    setApplyingToJob(job);
+    router.push(`/jobs/${job.id}`);
   };
 
   useEffect(() => {
@@ -359,10 +353,7 @@ export default function JobBoard({
                   <div className="text-center">
                     <Briefcase className="h-16 w-16 mx-auto text-slate-400 mb-4" />
                     <h3 className="text-xl font-bold text-slate-900 mb-2">No jobs found</h3>
-                    <p className="text-slate-600 font-semibold mb-4">Try adjusting your search or be the first to post a job</p>
-                    <Button onClick={() => handleViewChange('post')} className="bg-emerald-600 hover:bg-emerald-700 font-bold">
-                      <Plus className="h-4 w-4 mr-2" /> Post a Job
-                    </Button>
+                    <p className="text-slate-600 font-semibold">Try adjusting your search or check back later for new opportunities</p>
                   </div>
                 </CardContent>
               </Card>
@@ -614,14 +605,6 @@ export default function JobBoard({
           </div>
         </div>
       </div>
-
-      {/* Apply Dialog */}
-      {applyingToJob && (
-        <JobApplyDialog
-          job={applyingToJob}
-          onClose={() => setApplyingToJob(null)}
-        />
-      )}
 
       {/* Post Job Dialog */}
       {showPostDialog && (
