@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
+import { decryptField } from '@/lib/encrypt';
 import { NextResponse } from 'next/server';
 
 /**
@@ -39,35 +40,48 @@ export async function GET() {
       orderBy: { updatedAt: 'desc' },
     });
 
-    const formatted = threads.map((thread) => {
-      const otherParticipant = thread.participants.find(
-        (p) => p.userId !== session.user.id
-      );
-      const myParticipant = thread.participants.find(
-        (p) => p.userId === session.user.id
-      );
-      const lastMessage = thread.messages[0] || null;
-      const isUnread =
-        lastMessage &&
-        myParticipant?.lastReadAt &&
-        new Date(lastMessage.createdAt) > new Date(myParticipant.lastReadAt);
+    const formatted = await Promise.all(
+      threads.map(async (thread) => {
+        const otherParticipant = thread.participants.find(
+          (p) => p.userId !== session.user.id
+        );
+        const myParticipant = thread.participants.find(
+          (p) => p.userId === session.user.id
+        );
+        const lastMessage = thread.messages[0] || null;
+        const isUnread =
+          lastMessage &&
+          myParticipant?.lastReadAt &&
+          new Date(lastMessage.createdAt) > new Date(myParticipant.lastReadAt);
 
-      return {
-        id: thread.id,
-        subject: thread.subject,
-        updatedAt: thread.updatedAt,
-        otherUser: otherParticipant?.user || null,
-        lastMessage: lastMessage
-          ? {
-              id: lastMessage.id,
-              content: lastMessage.content,
-              senderUserId: lastMessage.senderUserId,
-              createdAt: lastMessage.createdAt,
-            }
-          : null,
-        isUnread: !!isUnread,
-      };
-    });
+        // Nested `include` bypasses the prisma message decrypt extension,
+        // so decrypt the preview content here.
+        let decryptedContent: string | null = null;
+        if (lastMessage && typeof lastMessage.content === 'string') {
+          try {
+            decryptedContent = await decryptField(lastMessage.content);
+          } catch {
+            decryptedContent = lastMessage.content;
+          }
+        }
+
+        return {
+          id: thread.id,
+          subject: thread.subject,
+          updatedAt: thread.updatedAt,
+          otherUser: otherParticipant?.user || null,
+          lastMessage: lastMessage
+            ? {
+                id: lastMessage.id,
+                content: decryptedContent ?? '',
+                senderUserId: lastMessage.senderUserId,
+                createdAt: lastMessage.createdAt,
+              }
+            : null,
+          isUnread: !!isUnread,
+        };
+      })
+    );
 
     return NextResponse.json({ threads: formatted });
   } catch (error) {
