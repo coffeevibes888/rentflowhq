@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Briefcase, MapPin, Clock, DollarSign, Building2, Users, Search,
-  Star, Shield, ChevronRight, Loader2, Plus, Filter, User,
+  Star, Shield, ChevronRight, Loader2, Filter, User,
   GraduationCap, Wrench, Home, Paintbrush, Calculator, Headphones,
   HardHat, Leaf, Settings, Monitor, FileText,
 } from 'lucide-react';
@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
-import { PostJobDialog } from './post-job-dialog';
 
 const JOB_CATEGORIES = [
   { id: 'property-management', label: 'Property Management', icon: Building2 },
@@ -87,7 +86,7 @@ interface Seeker {
 }
 
 interface JobBoardProps {
-  initialView: 'jobs' | 'seekers' | 'post';
+  initialView: 'jobs' | 'seekers';
   initialJobs: Job[];
   seekerCount: number;
   jobCount: number;
@@ -111,7 +110,7 @@ export default function JobBoard({
   searchParams,
 }: JobBoardProps) {
   const router = useRouter();
-  const [view, setView] = useState<'jobs' | 'seekers' | 'post'>(initialView);
+  const [view, setView] = useState<'jobs' | 'seekers'>(initialView);
   const [jobs, setJobs] = useState<Job[]>(initialJobs);
   const [seekers, setSeekers] = useState<Seeker[]>([]);
   const [loading, setLoading] = useState(false);
@@ -119,17 +118,8 @@ export default function JobBoard({
   const [locationQuery, setLocationQuery] = useState(searchParams.location || '');
   const [activeCategory, setActiveCategory] = useState(searchParams.category || '');
   const [activeType, setActiveType] = useState(searchParams.type || '');
-  const [showPostDialog, setShowPostDialog] = useState(initialView === 'post');
 
-  const handleViewChange = (newView: 'jobs' | 'seekers' | 'post') => {
-    if (newView === 'post') {
-      if (!isAuthenticated) {
-        router.push('/sign-in?callbackUrl=/jobs?view=post');
-        return;
-      }
-      setShowPostDialog(true);
-      return;
-    }
+  const handleViewChange = (newView: 'jobs' | 'seekers') => {
     setView(newView);
     const params = new URLSearchParams();
     if (newView !== 'jobs') params.set('view', newView);
@@ -190,11 +180,6 @@ export default function JobBoard({
     return null;
   };
 
-  const handleJobPosted = (newJob: Job) => {
-    setJobs(prev => [newJob, ...prev]);
-    setShowPostDialog(false);
-    setView('jobs');
-  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -236,13 +221,6 @@ export default function JobBoard({
                 {seekerCount > 0 && (
                   <Badge className="ml-2 bg-cyan-500 text-white font-bold">{seekerCount}</Badge>
                 )}
-              </Button>
-              <Button
-                className="text-white hover:bg-white/20 font-bold"
-                onClick={() => handleViewChange('post')}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Post a Job
               </Button>
             </div>
           </div>
@@ -568,51 +546,22 @@ export default function JobBoard({
       <div className="bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 border-t border-black text-white py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            {view === 'jobs' ? 'Looking for work?' : 'Need to hire?'}
+            Looking for work?
           </h2>
           <p className="text-white font-semibold mb-4 text-lg">
-            {view === 'jobs'
-              ? 'Create your free profile and let employers find you'
-              : 'Post a job and reach thousands of qualified professionals'}
+            Create your free profile and let employers find you
           </p>
           <p className="text-emerald-200 mb-8 text-sm font-bold">
-            ✓ 100% free for job seekers • Free to post jobs
+            ✓ 100% free for job seekers
           </p>
-          <div className="flex gap-4 justify-center">
-            {view === 'jobs' ? (
-              <>
-                <Link href={isAuthenticated ? '/jobs/profile' : '/sign-up'}>
-                  <Button size="lg" variant="brand" className="font-bold bg-white text-emerald-700 hover:bg-white/90">
-                    Create Your Profile
-                  </Button>
-                </Link>
-                <Button size="lg" variant="brand" className="font-bold" onClick={() => handleViewChange('post')}>
-                  Post a Job
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button size="lg" variant="brand" className="font-bold bg-white text-emerald-700 hover:bg-white/90" onClick={() => handleViewChange('post')}>
-                  Post a Job
-                </Button>
-                <Link href={isAuthenticated ? '/jobs/profile' : '/sign-up'}>
-                  <Button size="lg" variant="brand" className="font-bold">
-                    Create Your Profile
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
+          <Link href={isAuthenticated ? '/jobs/profile' : '/sign-up'}>
+            <Button size="lg" variant="brand" className="font-bold bg-white text-emerald-700 hover:bg-white/90">
+              Create Your Profile
+            </Button>
+          </Link>
         </div>
       </div>
 
-      {/* Post Job Dialog */}
-      {showPostDialog && (
-        <PostJobDialog
-          onClose={() => setShowPostDialog(false)}
-          onJobPosted={handleJobPosted}
-        />
-      )}
     </div>
   );
 }

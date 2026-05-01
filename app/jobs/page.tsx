@@ -25,7 +25,7 @@ export default async function JobsPage({
 }) {
   const params = await searchParams;
   const session = await auth();
-  const initialView = (params.view === 'seekers' ? 'seekers' : params.view === 'post' ? 'post' : 'jobs') as 'jobs' | 'seekers' | 'post';
+  const initialView = (params.view === 'seekers' ? 'seekers' : 'jobs') as 'jobs' | 'seekers';
 
   // Fetch initial job postings
   const jobs = await prisma.jobPosting.findMany({

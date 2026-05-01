@@ -2631,7 +2631,7 @@ model JobPosting {
   @@index([category])
 }
 
-// Job applicants
+// Job applicants - full employment application (wizard-style)
 model JobApplicant {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   jobId       String   @db.Uuid
@@ -2642,18 +2642,82 @@ model JobApplicant {
   phone       String?
   resumeUrl   String?
   coverLetter String?
-  status      String   @default("new") // new, reviewing, interview, offered, hired, rejected
+  status      String   @default("draft") // draft, new, reviewing, interview, offered, hired, rejected, withdrawn
   notes       String?
+
+  // Personal / identity (encrypted at rest ideally)
+  dateOfBirth     String?
+  ssnLast4        String? // only store last 4 for display
+  ssnEncrypted    String? // full encrypted SSN for background checks
+  addressLine1    String?
+  addressLine2    String?
+  city            String?
+  stateRegion     String?
+  postalCode      String?
+  country         String? @default("US")
+
+  // Work authorization
+  workAuth        String? // us_citizen, perm_resident, work_visa, requires_sponsorship
+  requiresSponsorship Boolean @default(false)
+
+  // Employment / education / references stored as structured JSON
+  workHistory     Json? @db.Json // [{ employer, title, startDate, endDate, current, description, supervisorName, supervisorPhone, mayContact }]
+  education       Json? @db.Json // [{ institution, degree, field, graduationYear, gpa }]
+  references      Json? @db.Json // [{ name, relationship, phone, email, yearsKnown }]
+  skills          String[] @default([])
+  certifications  String[] @default([])
+  yearsExperience Int?
+
+  // Documents uploaded during application
+  documents       Json? @db.Json // [{ id, type: 'id'|'resume'|'certification'|'other', url, name, uploadedAt }]
+
+  // Consents / signature
+  backgroundCheckConsent Boolean @default(false)
+  creditCheckConsent     Boolean @default(false)
+  signatureUrl           String? // data URL or uploaded signature image
+  signedAt               DateTime? @db.Timestamp(6)
+  signedName             String?
+  signedIp               String?
+
+  // Wizard progress
+  currentStep     Int      @default(0)
+  completedAt     DateTime? @db.Timestamp(6)
+
+  // Review workflow metadata
+  reviewedAt      DateTime? @db.Timestamp(6)
+  reviewedById    String?  @db.Uuid
+  rejectionReason String?
+  offerAmount     Decimal? @db.Decimal(12, 2)
+  offerMessage    String?
+
   appliedAt   DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @updatedAt
 
   job      JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
   landlord Landlord?  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  messages JobApplicantMessage[]
 
   @@index([jobId])
   @@index([landlordId])
   @@index([userId])
   @@index([status])
+}
+
+// Messages between applicant and employer
+model JobApplicantMessage {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  applicantId String   @db.Uuid
+  senderId    String?  @db.Uuid // null for system messages
+  senderRole  String   // applicant, employer, system
+  content     String
+  readAt      DateTime? @db.Timestamp(6)
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+
+  applicant JobApplicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId])
+  @@index([senderId])
+  @@index([createdAt])
 }
 
 // Company reviews from employees/applicants

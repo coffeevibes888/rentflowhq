@@ -88,8 +88,11 @@ export function JobDetailView({ job, isAuthenticated, hasApplied }: Props) {
   };
 
   const handleApplyClick = () => {
-    if (!isAuthenticated) { router.push(`/sign-in?callbackUrl=/jobs/${job.id}`); return; }
-    setShowApplyForm(true);
+    if (!isAuthenticated) {
+      router.push(`/sign-in?callbackUrl=/jobs/${job.id}/apply`);
+      return;
+    }
+    router.push(`/jobs/${job.id}/apply`);
   };
 
   // Build a static map URL using OpenStreetMap embed
