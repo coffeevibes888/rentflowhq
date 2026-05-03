@@ -4,17 +4,10 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import PropertyActions from '@/components/admin/property-actions';
 import ScheduleHoursButton from '@/components/admin/schedule-hours-button';
 import { PropertyUnitsList } from '@/components/admin/property-units-list';
+import { Building2, ChevronRight, MapPin } from 'lucide-react';
 
 interface PropertyUnit {
   id: string;
@@ -43,22 +36,18 @@ interface PropertiesListProps {
 export function PropertiesMobileList({ properties }: PropertiesListProps) {
   const router = useRouter();
 
-  const handleCardClick = (propertyId: string) => {
-    router.push(`/admin/products/${propertyId}/details`);
-  };
-
   return (
     <div className='md:hidden space-y-3'>
       {properties.length === 0 ? (
-        <div className='text-center text-slate-400 py-8 text-sm'>
-          No properties found. Add your first property to get started.
+        <div className='text-center text-gray-400 py-8 text-sm'>
+          No properties found.
         </div>
       ) : (
         properties.map((property) => (
-          <div 
-            key={property.id} 
-            onClick={() => handleCardClick(property.id)}
-            className='block rounded-xl border border-black bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 hover:border-violet-400/60 hover:bg-slate-900/90 transition-colors cursor-pointer active:scale-[0.98]'
+          <div
+            key={property.id}
+            onClick={() => router.push(`/admin/products/${property.id}/details`)}
+            className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99]'
           >
             <div className='flex gap-3'>
               <div className='flex-shrink-0'>
@@ -68,34 +57,34 @@ export function PropertiesMobileList({ properties }: PropertiesListProps) {
                     alt={property.name}
                     width={72}
                     height={72}
-                    className='rounded-lg object-cover w-[72px] h-[72px] bg-blue-800'
+                    className='rounded-lg object-cover w-[72px] h-[72px]'
                   />
                 ) : (
-                  <div className='w-[72px] h-[72px] bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 rounded-lg flex items-center justify-center text-black text-xs'>
-                    No Image
+                  <div className='w-[72px] h-[72px] bg-gray-100 rounded-lg flex items-center justify-center'>
+                    <Building2 className='h-6 w-6 text-gray-300' />
                   </div>
                 )}
               </div>
               <div className='flex-1 min-w-0'>
-                <h3 className='text-base font-semibold text-black truncate'>{property.name}</h3>
-                <p className='text-xs text-black mt-0.5'>{property.type}</p>
-                <div className='flex items-center gap-3 mt-2'>
-                  <div className='text-sm font-medium text-emerald-800'>
+                <h3 className='text-sm font-semibold text-gray-800 truncate'>{property.name}</h3>
+                <p className='text-[11px] text-gray-500 mt-0.5 capitalize'>{property.type}</p>
+                <div className='flex items-center gap-3 mt-1.5'>
+                  <span className='text-sm font-bold text-gray-900'>
                     {property.lowestRent > 0 ? formatCurrency(property.lowestRent) : '—'}
-                    <span className='text-xs text-slate-400 font-normal'>/mo</span>
-                  </div>
-                  <div className='text-xs text-black'>
+                    <span className='text-[10px] text-gray-400 font-normal'>/mo</span>
+                  </span>
+                  <span className='text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600'>
                     {property.availableUnitsCount} available
-                  </div>
+                  </span>
                 </div>
               </div>
             </div>
-            <div className='flex gap-2 mt-3 pt-3 border-t border-white/5' onClick={(e) => e.stopPropagation()}>
+            <div className='flex gap-2 mt-3 pt-3 border-t border-gray-100' onClick={(e) => e.stopPropagation()}>
               <ScheduleHoursButton propertyId={property.id} />
-              <Button 
-                variant='outline' 
-                size='sm' 
-                className='flex-1 h-9 text-sm'
+              <Button
+                variant='outline'
+                size='sm'
+                className='flex-1 h-8 text-xs'
                 onClick={(e) => {
                   e.stopPropagation();
                   router.push(`/admin/products/${property.id}`);
@@ -115,90 +104,84 @@ export function PropertiesMobileList({ properties }: PropertiesListProps) {
 export function PropertiesDesktopTable({ properties }: PropertiesListProps) {
   const router = useRouter();
 
-  const handleRowClick = (propertyId: string) => {
-    router.push(`/admin/products/${propertyId}/details`);
-  };
-
   return (
-    <div className='hidden md:block overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0'>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>PHOTO</TableHead>
-            <TableHead>PROPERTY</TableHead>
-            <TableHead className='text-right'>MONTHLY RENT</TableHead>
-            <TableHead>TYPE</TableHead>
-            <TableHead>UNIT AVAILABILITY</TableHead>
-            <TableHead className='w-[100px]'>ACTIONS</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+    <div className='hidden md:block rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+      <table className='w-full'>
+        <thead>
+          <tr className='bg-gray-50/80'>
+            <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5 w-20'>Photo</th>
+            <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Property</th>
+            <th className='text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Rent</th>
+            <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Type</th>
+            <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Units</th>
+            <th className='text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5 w-44'>Actions</th>
+          </tr>
+        </thead>
+        <tbody className='divide-y divide-gray-100'>
           {properties.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={6} className='text-center text-black py-8'>
-                No properties found. Add your first property to get started.
-              </TableCell>
-            </TableRow>
+            <tr>
+              <td colSpan={6} className='text-center text-gray-400 py-12 text-sm'>
+                No properties found.
+              </td>
+            </tr>
           )}
           {properties.map((property) => (
-            <TableRow 
-              key={property.id} 
-              className='group cursor-pointer hover:bg-slate-800/60 bg-linear-to-r from-sky-500 via-cyan-200 to-sky-500 text-black border border-black'
-              onClick={() => handleRowClick(property.id)}
+            <tr
+              key={property.id}
+              className='hover:bg-gray-50/50 transition-colors cursor-pointer group border-b border-gray-200 shadow-sm'
+              onClick={() => router.push(`/admin/products/${property.id}/details`)}
             >
-              <TableCell>
+              <td className='px-4 py-4'>
                 {property.firstImage ? (
                   <Image
                     src={property.firstImage}
                     alt={property.name}
-                    width={80}
-                    height={80}
-                    className='rounded-lg object-cover group-hover:ring-2 group-hover:ring-violet-400 transition-all'
+                    width={56}
+                    height={56}
+                    className='rounded-lg object-cover w-14 h-14 group-hover:ring-2 group-hover:ring-cyan-400 transition-all'
                   />
                 ) : (
-                  <div className='w-20 h-20 bg-slate-800 rounded-lg flex items-center justify-center text-black text-sm group-hover:ring-2 group-hover:ring-violet-400 transition-all'>
-                    No Image
+                  <div className='w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center group-hover:ring-2 group-hover:ring-cyan-400 transition-all'>
+                    <Building2 className='h-5 w-5 text-gray-300' />
                   </div>
                 )}
-              </TableCell>
-              <TableCell className='text-black'>
-                {property.name}
-              </TableCell>
-              <TableCell className='text-right text-black'>
-                {property.lowestRent > 0 ? formatCurrency(property.lowestRent) : '—'}
-              </TableCell>
-              <TableCell className='text-black'>
-                {property.type}
-              </TableCell>
-              <TableCell className='text-black' onClick={(e) => e.stopPropagation()}>
-                <PropertyUnitsList
-                  propertyId={property.id}
-                  units={property.units}
-                />
-              </TableCell>
-              <TableCell onClick={(e) => e.stopPropagation()}>
-                <div className='flex flex-col gap-2'>
+              </td>
+              <td className='px-4 py-4'>
+                <p className='text-xs font-semibold text-gray-800'>{property.name}</p>
+                <p className='text-[10px] text-gray-500'>{property.units.length} units</p>
+              </td>
+              <td className='px-4 py-3 text-right'>
+                <span className='text-xs font-bold text-gray-800'>
+                  {property.lowestRent > 0 ? formatCurrency(property.lowestRent) : '—'}
+                </span>
+              </td>
+              <td className='px-4 py-4'>
+                <span className='text-xs text-gray-600 capitalize'>{property.type}</span>
+              </td>
+              <td className='px-4 py-3' onClick={(e) => e.stopPropagation()}>
+                <PropertyUnitsList propertyId={property.id} units={property.units} />
+              </td>
+              <td className='px-4 py-3' onClick={(e) => e.stopPropagation()}>
+                <div className='flex items-center justify-end gap-1.5'>
                   <ScheduleHoursButton propertyId={property.id} />
-                  <div className='flex gap-1'>
-                    <Button 
-                      variant='outline' 
-                      size='sm' 
-                      className='flex-1'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/admin/products/${property.id}`);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <PropertyActions propertyId={property.id} />
-                  </div>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='h-7 text-[11px] px-2'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/admin/products/${property.id}`);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <PropertyActions propertyId={property.id} />
                 </div>
-              </TableCell>
-            </TableRow>
+              </td>
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 }

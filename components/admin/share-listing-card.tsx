@@ -94,23 +94,22 @@ export default function ShareListingCard({ listingUrl, landlordName }: ShareList
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button className='w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 border border-violet-400/30 p-4 space-y-2 backdrop-blur-sm hover:from-violet-500 hover:to-purple-500 transition-all shadow-2xl drop-shadow-2xl text-left'>
-          <div className='flex items-center justify-between'>
-            <div className='text-xs text-violet-100 font-medium'>Share Listings</div>
-            <Share2 className='h-4 w-4 text-white' />
+        <button className='inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-xs'>
+          <div className='h-6 w-6 rounded-md bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-white shrink-0'>
+            <Share2 className='h-3 w-3' />
           </div>
-          <div className='text-lg font-bold text-white'>Send Link</div>
-          <div className='text-[10px] text-violet-200'>QR code, text, or email</div>
+          <span className='font-medium text-gray-700'>Share Listing</span>
+          <QrCode className='h-3.5 w-3.5 text-gray-400' />
         </button>
       </DialogTrigger>
       
-      <DialogContent className='sm:max-w-md bg-slate-900 border-white/10 text-white'>
+      <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle className='text-white flex items-center gap-2'>
-            <Share2 className='h-5 w-5 text-violet-400' />
+          <DialogTitle className='flex items-center gap-2'>
+            <Share2 className='h-5 w-5 text-cyan-500' />
             Share Your Listings
           </DialogTitle>
-          <DialogDescription className='text-slate-400'>
+          <DialogDescription className='text-gray-500'>
             Send your property listing link to potential tenants
           </DialogDescription>
         </DialogHeader>
@@ -118,18 +117,18 @@ export default function ShareListingCard({ listingUrl, landlordName }: ShareList
         <div className='space-y-4 py-4'>
           {/* Copy Link */}
           <div className='space-y-2'>
-            <label className='text-xs font-medium text-slate-300'>Your Listing URL</label>
+            <label className='text-xs font-medium text-gray-600'>Your Listing URL</label>
             <div className='flex gap-2'>
               <Input
                 value={listingUrl}
                 readOnly
-                className='bg-slate-800 border-white/10 text-white text-sm'
+                className='bg-gray-50 border-gray-200 text-gray-800 text-sm'
               />
               <Button
                 onClick={handleCopy}
                 variant='outline'
                 size='sm'
-                className='border-white/10 bg-slate-800 hover:bg-slate-700 px-3'
+                className='border-gray-200 bg-slate-800 hover:bg-slate-700 px-3'
               >
                 {copied ? <Check className='h-4 w-4 text-emerald-400' /> : <Copy className='h-4 w-4' />}
               </Button>
@@ -141,9 +140,9 @@ export default function ShareListingCard({ listingUrl, landlordName }: ShareList
             <Button
               onClick={() => setShowQR(!showQR)}
               variant='outline'
-              className='w-full border-white/10 bg-slate-800 hover:bg-slate-700 justify-start gap-2'
+              className='w-full border-gray-200 bg-slate-800 hover:bg-slate-700 justify-start gap-2'
             >
-              <QrCode className='h-4 w-4 text-violet-400' />
+              <QrCode className='h-4 w-4 text-cyan-500' />
               {showQR ? 'Hide QR Code' : 'Show QR Code'}
             </Button>
             
@@ -165,7 +164,7 @@ export default function ShareListingCard({ listingUrl, landlordName }: ShareList
           {'share' in navigator && (
             <Button
               onClick={handleNativeShare}
-              className='w-full bg-violet-600 hover:bg-violet-500 gap-2'
+              className='w-full bg-cyan-600 hover:bg-cyan-500 gap-2'
             >
               <Smartphone className='h-4 w-4' />
               Share via Apps
@@ -174,20 +173,20 @@ export default function ShareListingCard({ listingUrl, landlordName }: ShareList
 
           {/* Send via Text */}
           <div className='space-y-2'>
-            <label className='text-xs font-medium text-slate-300'>Send via Text Message</label>
+            <label className='text-xs font-medium text-gray-600'>Send via Text Message</label>
             <div className='flex gap-2'>
               <Input
                 type='tel'
                 placeholder='Phone number'
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className='bg-slate-800 border-white/10 text-white text-sm'
+                className='bg-gray-50 border-gray-200 text-gray-800 text-sm'
               />
               <Button
                 onClick={handleSendText}
                 variant='outline'
                 size='sm'
-                className='border-white/10 bg-slate-800 hover:bg-slate-700 px-3'
+                className='border-gray-200 bg-slate-800 hover:bg-slate-700 px-3'
               >
                 <MessageSquare className='h-4 w-4' />
               </Button>
@@ -196,20 +195,20 @@ export default function ShareListingCard({ listingUrl, landlordName }: ShareList
 
           {/* Send via Email */}
           <div className='space-y-2'>
-            <label className='text-xs font-medium text-slate-300'>Send via Email</label>
+            <label className='text-xs font-medium text-gray-600'>Send via Email</label>
             <div className='flex gap-2'>
               <Input
                 type='email'
                 placeholder='Email address'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className='bg-slate-800 border-white/10 text-white text-sm'
+                className='bg-gray-50 border-gray-200 text-gray-800 text-sm'
               />
               <Button
                 onClick={handleSendEmail}
                 variant='outline'
                 size='sm'
-                className='border-white/10 bg-slate-800 hover:bg-slate-700 px-3'
+                className='border-gray-200 bg-slate-800 hover:bg-slate-700 px-3'
               >
                 <Mail className='h-4 w-4' />
               </Button>
@@ -220,7 +219,7 @@ export default function ShareListingCard({ listingUrl, landlordName }: ShareList
           <Button
             onClick={() => window.open(listingUrl, '_blank')}
             variant='outline'
-            className='w-full border-white/10 bg-slate-800 hover:bg-slate-700 gap-2'
+            className='w-full border-gray-200 bg-slate-800 hover:bg-slate-700 gap-2'
           >
             <ExternalLink className='h-4 w-4' />
             Preview Your Listing Page

@@ -155,23 +155,22 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button className='w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 border border-emerald-400/30 p-4 space-y-2 backdrop-blur-sm hover:from-emerald-500 hover:to-teal-500 transition-all shadow-2xl drop-shadow-2xl text-left'>
-          <div className='flex items-center justify-between'>
-            <div className='text-xs text-emerald-100 font-medium'>Invite Contractor</div>
-            <Wrench className='h-4 w-4 text-white' />
+        <button className='inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-xs'>
+          <div className='h-6 w-6 rounded-md bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center text-white shrink-0'>
+            <Wrench className='h-3 w-3' />
           </div>
-          <div className='text-lg font-bold text-white'>Send Link</div>
-          <div className='text-[10px] text-emerald-200'>QR code, text, or email</div>
+          <span className='font-medium text-gray-700'>Invite Contractor</span>
+          <QrCode className='h-3.5 w-3.5 text-gray-400' />
         </button>
       </DialogTrigger>
       
-      <DialogContent className='sm:max-w-md bg-slate-900 border-white/10 text-white max-h-[90vh] overflow-y-auto'>
+      <DialogContent className='sm:max-w-md max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle className='text-white flex items-center gap-2'>
-            <Wrench className='h-5 w-5 text-emerald-400' />
+          <DialogTitle className='flex items-center gap-2'>
+            <Wrench className='h-5 w-5 text-orange-500' />
             Invite a Contractor
           </DialogTitle>
-          <DialogDescription className='text-slate-400'>
+          <DialogDescription className='text-gray-500'>
             Send your contractor sign-up link and invite code
           </DialogDescription>
         </DialogHeader>
@@ -179,12 +178,12 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
         <div className='space-y-4 py-4'>
           {/* Invite Code Section */}
           <div className='space-y-2'>
-            <label className='text-xs font-medium text-slate-300 flex items-center gap-2'>
+            <label className='text-xs font-medium text-gray-600 flex items-center gap-2'>
               <Ticket className='h-3 w-3' />
               Invite Code
             </label>
             <div className='flex gap-2'>
-              <div className='flex-1 bg-slate-800 border border-white/10 rounded-md px-3 py-2 font-mono text-lg tracking-wider text-emerald-400'>
+              <div className='flex-1 bg-slate-800 border border-gray-200 rounded-md px-3 py-2 font-mono text-lg tracking-wider text-orange-500'>
                 {isLoading ? '...' : inviteCode || 'No code yet'}
               </div>
               <Button
@@ -192,16 +191,16 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
                 variant='outline'
                 size='sm'
                 disabled={!inviteCode}
-                className='border-white/10 bg-slate-800 hover:bg-slate-700 px-3'
+                className='border-gray-200 bg-slate-800 hover:bg-slate-700 px-3'
               >
-                {codeCopied ? <Check className='h-4 w-4 text-emerald-400' /> : <Copy className='h-4 w-4' />}
+                {codeCopied ? <Check className='h-4 w-4 text-orange-500' /> : <Copy className='h-4 w-4' />}
               </Button>
               <Button
                 onClick={generateNewCode}
                 variant='outline'
                 size='sm'
                 disabled={isGenerating}
-                className='border-white/10 bg-slate-800 hover:bg-slate-700 px-3'
+                className='border-gray-200 bg-slate-800 hover:bg-slate-700 px-3'
               >
                 <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
               </Button>
@@ -213,20 +212,20 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
 
           {/* Copy Link */}
           <div className='space-y-2'>
-            <label className='text-xs font-medium text-slate-300'>Contractor Sign-up URL</label>
+            <label className='text-xs font-medium text-gray-600'>Contractor Sign-up URL</label>
             <div className='flex gap-2'>
               <Input
                 value={contractorUrl}
                 readOnly
-                className='bg-slate-800 border-white/10 text-white text-sm'
+                className='bg-gray-50 border-gray-200 text-gray-800 text-sm'
               />
               <Button
                 onClick={handleCopy}
                 variant='outline'
                 size='sm'
-                className='border-white/10 bg-slate-800 hover:bg-slate-700 px-3'
+                className='border-gray-200 bg-slate-800 hover:bg-slate-700 px-3'
               >
-                {copied ? <Check className='h-4 w-4 text-emerald-400' /> : <Copy className='h-4 w-4' />}
+                {copied ? <Check className='h-4 w-4 text-orange-500' /> : <Copy className='h-4 w-4' />}
               </Button>
             </div>
           </div>
@@ -236,9 +235,9 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
             <Button
               onClick={() => setShowQR(!showQR)}
               variant='outline'
-              className='w-full border-white/10 bg-slate-800 hover:bg-slate-700 justify-start gap-2'
+              className='w-full border-gray-200 bg-slate-800 hover:bg-slate-700 justify-start gap-2'
             >
-              <QrCode className='h-4 w-4 text-emerald-400' />
+              <QrCode className='h-4 w-4 text-orange-500' />
               {showQR ? 'Hide QR Code' : 'Show QR Code'}
             </Button>
             
@@ -265,7 +264,7 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
           {'share' in navigator && (
             <Button
               onClick={handleNativeShare}
-              className='w-full bg-emerald-600 hover:bg-emerald-500 gap-2'
+              className='w-full bg-orange-600 hover:bg-orange-500 gap-2'
             >
               <Smartphone className='h-4 w-4' />
               Share via Apps
@@ -274,20 +273,20 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
 
           {/* Send via Text */}
           <div className='space-y-2'>
-            <label className='text-xs font-medium text-slate-300'>Send via Text Message</label>
+            <label className='text-xs font-medium text-gray-600'>Send via Text Message</label>
             <div className='flex gap-2'>
               <Input
                 type='tel'
                 placeholder='Phone number'
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className='bg-slate-800 border-white/10 text-white text-sm'
+                className='bg-gray-50 border-gray-200 text-gray-800 text-sm'
               />
               <Button
                 onClick={handleSendText}
                 variant='outline'
                 size='sm'
-                className='border-white/10 bg-slate-800 hover:bg-slate-700 px-3'
+                className='border-gray-200 bg-slate-800 hover:bg-slate-700 px-3'
               >
                 <MessageSquare className='h-4 w-4' />
               </Button>
@@ -296,20 +295,20 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
 
           {/* Send via Email */}
           <div className='space-y-2'>
-            <label className='text-xs font-medium text-slate-300'>Send via Email</label>
+            <label className='text-xs font-medium text-gray-600'>Send via Email</label>
             <div className='flex gap-2'>
               <Input
                 type='email'
                 placeholder='Email address'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className='bg-slate-800 border-white/10 text-white text-sm'
+                className='bg-gray-50 border-gray-200 text-gray-800 text-sm'
               />
               <Button
                 onClick={handleSendEmail}
                 variant='outline'
                 size='sm'
-                className='border-white/10 bg-slate-800 hover:bg-slate-700 px-3'
+                className='border-gray-200 bg-slate-800 hover:bg-slate-700 px-3'
               >
                 <Mail className='h-4 w-4' />
               </Button>
@@ -320,7 +319,7 @@ export default function ShareContractorCard({ contractorUrl, landlordName }: Sha
           <Button
             onClick={() => window.open(contractorUrl, '_blank')}
             variant='outline'
-            className='w-full border-white/10 bg-slate-800 hover:bg-slate-700 gap-2'
+            className='w-full border-gray-200 bg-slate-800 hover:bg-slate-700 gap-2'
           >
             <ExternalLink className='h-4 w-4' />
             Preview Sign-up Page

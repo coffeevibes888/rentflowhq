@@ -530,14 +530,14 @@ export default function DocumentsClientV2({
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-gray-500">
                 Lease agreements, addendums, and disclosure forms.
               </p>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => openUploadDialog('legal', 'lease')}
-                className="border-violet-400/50 text-violet-300 hover:bg-violet-500/20"
+                className="border-cyan-400/50 text-cyan-500 hover:bg-cyan-500/20"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Document
@@ -563,7 +563,7 @@ export default function DocumentsClientV2({
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-gray-500">
                 Eviction notices, legal notices, and communications.
               </p>
               <Button
@@ -596,7 +596,7 @@ export default function DocumentsClientV2({
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-gray-500">
                 Active leases and pending signatures.
               </p>
             </div>
@@ -608,7 +608,7 @@ export default function DocumentsClientV2({
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-gray-500">
                 Rent receipts, invoices, and payment records.
               </p>
               <Button
@@ -632,37 +632,15 @@ export default function DocumentsClientV2({
       case 'templates':
         return (
           <div className="space-y-4">
-            {/* Featured CTA: Free Lease Builder (moved from page header for context) */}
-            <div className="rounded-xl border-2 border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-4 md:p-5 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <div className="h-11 w-11 rounded-lg bg-violet-600 flex items-center justify-center shadow-md shrink-0">
-                  <Wand2 className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-base md:text-lg font-bold text-black leading-tight">Free Lease Builder</h3>
-                  <p className="text-xs md:text-sm text-black/80 font-medium">
-                    Generate a state-aware, court-ready lease for any property in minutes.
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={() => setSelectPropertyDialogOpen(true)}
-                className="bg-violet-600 hover:bg-violet-700 text-white font-semibold border-2 border-black shadow-lg shrink-0 h-11 px-5"
-              >
-                <Wand2 className="h-4 w-4 mr-2" />
-                Build a Lease
-              </Button>
-            </div>
-
             <div className="flex items-center justify-between">
-              <p className="text-sm md:text-base text-white/80">
+              <p className="text-sm md:text-base text-gray-600">
                 Lease templates for automatic generation when applications are approved.
               </p>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => openUploadDialog('legal', 'lease')}
-                className="border-violet-400/50 text-violet-300 hover:bg-violet-500/20"
+                className="border-cyan-400/50 text-cyan-500 hover:bg-cyan-500/20"
               >
                 <Upload className="h-4 w-4 mr-1" />
                 Upload Lease PDF
@@ -707,19 +685,19 @@ export default function DocumentsClientV2({
         return (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-gray-500">
                 All scanned and OCR-processed documents.
               </p>
               <div className="flex items-center gap-2">
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-[140px] bg-white/10 border-white/20 text-white">
+                  <SelectTrigger className="w-[140px] bg-white border-gray-200 text-gray-700">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Filter" />
                   </SelectTrigger>
-                  <SelectContent className="bg-indigo-900 border-white/20 text-white">
-                    <SelectItem value="all" className="text-white hover:bg-white/10 focus:bg-white/10">All Types</SelectItem>
+                  <SelectContent className="bg-white border-gray-200 text-gray-800">
+                    <SelectItem value="all" className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100">All Types</SelectItem>
                     {SCANNED_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value} className="text-white hover:bg-white/10 focus:bg-white/10">
+                      <SelectItem key={cat.value} value={cat.value} className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100">
                         {cat.label}
                       </SelectItem>
                     ))}
@@ -756,14 +734,14 @@ export default function DocumentsClientV2({
         {/* Header */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-violet-300 font-medium">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-cyan-500 font-medium">
               Documents
             </p>
-            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-white leading-tight flex items-center gap-2">
-              <FolderOpen className="h-5 w-5 md:h-7 md:w-7 text-violet-300 shrink-0" />
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-black leading-tight flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 md:h-7 md:w-7 text-cyan-500 shrink-0" />
               Document Center
             </h1>
-            <p className="text-slate-400 text-xs sm:text-sm mt-0.5">
+            <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
               Leases, notices, receipts, and templates for every property.
             </p>
           </div>
@@ -771,30 +749,61 @@ export default function DocumentsClientV2({
 
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-white/50" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-gray-400" />
           <Input
             placeholder="Search documents..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white/10 border-white/20 focus:border-violet-400 h-11 md:h-12 text-sm md:text-base text-white placeholder:text-white/50"
+            className="pl-10 bg-white border-gray-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 h-11 md:h-12 text-sm md:text-base text-gray-800 placeholder:text-gray-400"
           />
+        </div>
+
+        {/* Free Lease Builder — Prominent CTA */}
+        <div className="rounded-xl border border-cyan-200 bg-gradient-to-r from-cyan-50 via-sky-50 to-blue-50 p-5 md:p-6 shadow-lg overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-cyan-200/30 to-transparent rounded-bl-full" />
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg shrink-0">
+                <Wand2 className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-bold text-gray-900">Free Lease Builder</h3>
+                <p className="text-sm text-gray-600 mt-1 max-w-lg">
+                  Generate a state-aware, court-ready lease for any property in minutes. Covers security deposits, late fees, maintenance responsibilities, and more.
+                </p>
+                <p className="text-[11px] text-amber-600 mt-2 flex items-center gap-1">
+                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  This tool generates a template. Have a licensed attorney in your state review before use.
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => setSelectPropertyDialogOpen(true)}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:shadow-xl text-white font-bold shadow-lg shrink-0 h-12 px-6 text-sm"
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              Build a Lease
+            </Button>
+          </div>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full flex justify-around overflow-x-auto gap-1 sm:gap-2 bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border-2 border-black p-1 sm:p-1.5 rounded-lg sm:rounded-xl h-auto text-black mobile-scroll-x shadow-xl">
+          <TabsList className="w-full flex gap-1 bg-white border border-gray-200 p-1 rounded-lg shadow-sm h-auto overflow-x-auto">
             {browserTabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base whitespace-nowrap flex-shrink-0 font-bold text-white"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm whitespace-nowrap flex-1 font-medium text-gray-600"
                 >
                   <Icon className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
                   <span className="hidden sm:inline font-medium">{tab.label}</span>
                   {tab.count > 0 && (
-                    <Badge className="ml-1.5 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs px-1.5 sm:px-2 border-0">
+                    <Badge className="ml-1.5 bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs px-1.5 sm:px-2 border-0">
                       {tab.count}
                     </Badge>
                   )}
@@ -805,7 +814,7 @@ export default function DocumentsClientV2({
 
           {/* Single content slot driven by activeTab */}
           <TabsContent value={activeTab} forceMount className="mt-4 md:mt-5">
-            <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-4 md:p-6">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
               {renderTabContent()}
             </div>
           </TabsContent>
@@ -813,12 +822,12 @@ export default function DocumentsClientV2({
 
         {/* Upload Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogContent className="bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 border-white/20 text-white max-w-lg mx-4">
+          <DialogContent className="bg-white border-gray-200 text-gray-800 max-w-lg mx-4">
             <DialogHeader>
               <DialogTitle>
                 {uploadType === 'legal' ? 'Upload Document' : 'Scan & Categorize'}
               </DialogTitle>
-              <DialogDescription className="text-white/70">
+              <DialogDescription className="text-gray-500">
                 {uploadType === 'legal'
                   ? 'Upload a lease, notice, or legal document.'
                   : 'Upload a receipt or document to automatically categorize.'}
@@ -829,7 +838,7 @@ export default function DocumentsClientV2({
               {/* File Upload Area */}
               <div className="space-y-2">
                 <Label>Document File</Label>
-                <div className="border-2 border-dashed border-white/30 rounded-lg p-6 text-center hover:border-violet-400/50 transition-colors cursor-pointer">
+                <div className="border-2 border-dashed border-white/30 rounded-lg p-6 text-center hover:border-cyan-400/50 transition-colors cursor-pointer">
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
@@ -845,9 +854,9 @@ export default function DocumentsClientV2({
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <Upload className="h-8 w-8 mx-auto text-white/50" />
-                        <p className="text-sm text-white/70">Click or drag to upload</p>
-                        <p className="text-xs text-white/50">PDF, Word, JPG, PNG (max 10MB)</p>
+                        <Upload className="h-8 w-8 mx-auto text-gray-300" />
+                        <p className="text-sm text-gray-500">Click or drag to upload</p>
+                        <p className="text-xs text-gray-400">PDF, Word, JPG, PNG (max 10MB)</p>
                       </div>
                     )}
                   </label>
@@ -862,7 +871,7 @@ export default function DocumentsClientV2({
                       value={uploadForm.name}
                       onChange={(e) => setUploadForm((prev) => ({ ...prev, name: e.target.value }))}
                       placeholder="e.g., Standard Lease Agreement"
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      className="bg-white border-gray-200 text-gray-800 placeholder:text-gray-400"
                     />
                   </div>
 
@@ -872,12 +881,12 @@ export default function DocumentsClientV2({
                       value={uploadForm.type}
                       onValueChange={(value) => setUploadForm((prev) => ({ ...prev, type: value }))}
                     >
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-white border-gray-200 text-gray-800">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-indigo-900 border-white/20 text-white">
+                      <SelectContent className="bg-white border-gray-200 text-gray-800">
                         {DOCUMENT_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value} className="text-white hover:bg-white/10 focus:bg-white/10">
+                          <SelectItem key={type.value} value={type.value} className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100">
                             {type.label}
                           </SelectItem>
                         ))}
@@ -891,7 +900,7 @@ export default function DocumentsClientV2({
                       value={uploadForm.description}
                       onChange={(e) => setUploadForm((prev) => ({ ...prev, description: e.target.value }))}
                       placeholder="Brief description..."
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 min-h-[80px]"
+                      className="bg-white border-gray-200 text-gray-800 placeholder:text-gray-400 min-h-[80px]"
                     />
                   </div>
 
@@ -917,12 +926,12 @@ export default function DocumentsClientV2({
                     value={uploadForm.type}
                     onValueChange={(value) => setUploadForm((prev) => ({ ...prev, type: value }))}
                   >
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectTrigger className="bg-white border-gray-200 text-gray-800">
                       <SelectValue placeholder="Auto-detect" />
                     </SelectTrigger>
-                    <SelectContent className="bg-indigo-900 border-white/20 text-white">
+                    <SelectContent className="bg-white border-gray-200 text-gray-800">
                       {SCANNED_CATEGORIES.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value} className="text-white hover:bg-white/10 focus:bg-white/10">
+                        <SelectItem key={cat.value} value={cat.value} className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100">
                           {cat.label}
                         </SelectItem>
                       ))}
@@ -937,13 +946,13 @@ export default function DocumentsClientV2({
                   value={uploadForm.propertyId || 'none'}
                   onValueChange={(value) => setUploadForm((prev) => ({ ...prev, propertyId: value === 'none' ? '' : value }))}
                 >
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectTrigger className="bg-white border-gray-200 text-gray-800">
                     <SelectValue placeholder="Select property..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-indigo-900 border-white/20 text-white">
-                    <SelectItem value="none" className="text-white hover:bg-white/10 focus:bg-white/10">No property</SelectItem>
+                  <SelectContent className="bg-white border-gray-200 text-gray-800">
+                    <SelectItem value="none" className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100">No property</SelectItem>
                     {properties.map((prop) => (
-                      <SelectItem key={prop.id} value={prop.id} className="text-white hover:bg-white/10 focus:bg-white/10">
+                      <SelectItem key={prop.id} value={prop.id} className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100">
                         {prop.name}
                       </SelectItem>
                     ))}
@@ -954,7 +963,7 @@ export default function DocumentsClientV2({
               <Button
                 onClick={handleUpload}
                 disabled={!uploadForm.file || uploading}
-                className="w-full bg-violet-600 hover:bg-violet-700"
+                className="w-full bg-cyan-600 hover:bg-cyan-700"
               >
                 {uploading ? (
                   <>
@@ -975,10 +984,10 @@ export default function DocumentsClientV2({
 
         {/* Assign to Property Dialog */}
         <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-          <DialogContent className="bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 border-white/20 text-white max-w-md mx-4">
+          <DialogContent className="bg-white border-gray-200 text-gray-800 max-w-md mx-4">
             <DialogHeader>
               <DialogTitle>Set as Default Lease</DialogTitle>
-              <DialogDescription className="text-white/70">
+              <DialogDescription className="text-gray-500">
                 Choose a property to use "{selectedDocForAssign?.name}" as the default lease template.
               </DialogDescription>
             </DialogHeader>
@@ -987,17 +996,17 @@ export default function DocumentsClientV2({
               <div className="space-y-2">
                 <Label>Select Property</Label>
                 <Select value={assignPropertyId} onValueChange={setAssignPropertyId}>
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectTrigger className="bg-white border-gray-200 text-gray-800">
                     <SelectValue placeholder="Choose property..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-indigo-900 border-white/20 text-white">
+                  <SelectContent className="bg-white border-gray-200 text-gray-800">
                     {properties.map((prop) => (
-                      <SelectItem key={prop.id} value={prop.id} className="text-white hover:bg-white/10 focus:bg-white/10">
+                      <SelectItem key={prop.id} value={prop.id} className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100">
                         <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-white/70" />
+                          <Building2 className="h-4 w-4 text-gray-800/70" />
                           <span>{prop.name}</span>
                           {prop.address?.city && (
-                            <span className="text-white/50 text-xs">
+                            <span className="text-gray-400 text-xs">
                               ({prop.address.city}, {prop.address.state})
                             </span>
                           )}
@@ -1012,14 +1021,14 @@ export default function DocumentsClientV2({
                 <Button
                   variant="outline"
                   onClick={() => setAssignDialogOpen(false)}
-                  className="flex-1 border-white/30 text-white hover:bg-white/10"
+                  className="flex-1 border-white/30 text-gray-800 hover:bg-white/10"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => selectedDocForAssign && handleSetDefault(selectedDocForAssign.id, assignPropertyId)}
                   disabled={!assignPropertyId}
-                  className="flex-1 bg-violet-600 hover:bg-violet-700"
+                  className="flex-1 bg-cyan-600 hover:bg-cyan-700"
                 >
                   <Star className="h-4 w-4 mr-2" />
                   Set as Default
@@ -1031,13 +1040,13 @@ export default function DocumentsClientV2({
 
         {/* Select Property/Unit Dialog for Lease Builder */}
         <Dialog open={selectPropertyDialogOpen} onOpenChange={setSelectPropertyDialogOpen}>
-          <DialogContent className="bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 border-white/20 text-white max-w-lg !overflow-visible">
+          <DialogContent className="bg-white border-gray-200 text-gray-800 max-w-lg !overflow-visible">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Wand2 className="h-5 w-5 text-emerald-300" />
                 Create Custom Lease
               </DialogTitle>
-              <DialogDescription className="text-white/70">
+              <DialogDescription className="text-gray-500">
                 Select a property to generate a comprehensive, state-aware lease agreement.
               </DialogDescription>
             </DialogHeader>
@@ -1048,16 +1057,16 @@ export default function DocumentsClientV2({
                   value={leaseBuilderProperty?.id || ''}
                   onValueChange={handlePropertySelectForLease}
                 >
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectTrigger className="bg-white border-gray-200 text-gray-800">
                     <SelectValue placeholder="Select a property..." />
                   </SelectTrigger>
                   <SelectContent 
-                    className="bg-indigo-900 border-white/20 text-white z-[9999]" 
+                    className="bg-white border-gray-200 text-gray-800 z-[9999]" 
                     position="popper" 
                     sideOffset={4}
                   >
                     {properties.map((prop) => (
-                      <SelectItem key={prop.id} value={prop.id} className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white">
+                      <SelectItem key={prop.id} value={prop.id} className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:text-gray-800">
                         {prop.name}
                       </SelectItem>
                     ))}
@@ -1067,9 +1076,9 @@ export default function DocumentsClientV2({
               
               {leaseBuilderProperty && (
                 <div className="space-y-2">
-                  <Label>Unit <span className="text-white/50 text-xs font-normal">(Optional)</span></Label>
+                  <Label>Unit <span className="text-gray-400 text-xs font-normal">(Optional)</span></Label>
                   {units.length === 0 ? (
-                    <p className="text-xs text-white/70 bg-white/10 rounded-lg p-3 border border-white/20">
+                    <p className="text-xs text-gray-800/70 bg-white/10 rounded-lg p-3 border border-gray-200">
                       No units found for this property. You can still create a lease template - just enter the rent amount in the next step.
                     </p>
                   ) : (
@@ -1084,19 +1093,19 @@ export default function DocumentsClientV2({
                         }
                       }}
                     >
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-white border-gray-200 text-gray-800">
                         <SelectValue placeholder="Select a unit (optional)..." />
                       </SelectTrigger>
                       <SelectContent 
-                        className="bg-indigo-900 border-white/20 text-white z-[9999]" 
+                        className="bg-white border-gray-200 text-gray-800 z-[9999]" 
                         position="popper" 
                         sideOffset={4}
                       >
-                        <SelectItem value="_none" className="text-white/70 hover:bg-white/10 focus:bg-white/10">
+                        <SelectItem value="_none" className="text-gray-800/70 hover:bg-white/10 focus:bg-white/10">
                           No specific unit (create template)
                         </SelectItem>
                         {units.map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id} className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white">
+                          <SelectItem key={unit.id} value={unit.id} className="text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:text-gray-800">
                             {unit.name} ({unit.type}) - ${Number(unit.rentAmount).toLocaleString()}/mo
                           </SelectItem>
                         ))}
@@ -1175,11 +1184,11 @@ export default function DocumentsClientV2({
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-violet-600 to-indigo-600">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
-                    <FileSignature className="h-5 w-5 text-white" />
+                    <FileSignature className="h-5 w-5 text-gray-800" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-white">{viewingDocument.name}</h2>
-                    <p className="text-sm text-white/70">{getTypeLabel(viewingDocument.type)}</p>
+                    <h2 className="text-lg font-semibold text-gray-800">{viewingDocument.name}</h2>
+                    <p className="text-sm text-gray-500">{getTypeLabel(viewingDocument.type)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1188,7 +1197,7 @@ export default function DocumentsClientV2({
                       href={viewingDocument.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-800 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                     >
                       <Download className="h-4 w-4" />
                       Download PDF
@@ -1202,7 +1211,7 @@ export default function DocumentsClientV2({
                     }}
                     className="p-2 rounded-lg hover:bg-white/20 transition-colors"
                   >
-                    <X className="h-5 w-5 text-white" />
+                    <X className="h-5 w-5 text-gray-800" />
                   </button>
                 </div>
               </div>
@@ -1235,7 +1244,7 @@ export default function DocumentsClientV2({
                         href={viewingDocument.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-gray-800 rounded-lg hover:bg-cyan-700"
                       >
                         <Download className="h-4 w-4" />
                         Download Document
@@ -1275,12 +1284,12 @@ function DocumentGrid({
 }) {
   if (documents.length === 0) {
     return (
-      <Card className="border-white/20 bg-white/5">
+      <Card className="border-gray-200 bg-white/5">
         <CardContent className="py-12">
           <div className="text-center">
-            <FileText className="h-12 w-12 mx-auto text-white/40 mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No Documents</h3>
-            <p className="text-white/70 text-sm">
+            <FileText className="h-12 w-12 mx-auto text-gray-800/40 mb-4" />
+            <h3 className="text-lg font-medium text-gray-800 mb-2">No Documents</h3>
+            <p className="text-gray-800/70 text-sm">
               Upload your first document to get started.
             </p>
           </div>
@@ -1296,20 +1305,20 @@ function DocumentGrid({
         return (
           <Card
             key={doc.id}
-            className="border-white/20 bg-white/5 hover:bg-white/10 hover:border-violet-400/40 transition-all group overflow-hidden cursor-pointer"
+            className="border-gray-200 bg-white/5 hover:bg-white/10 hover:border-cyan-400/40 transition-all group overflow-hidden cursor-pointer"
             onClick={() => onView(doc)}
           >
             <CardHeader className="pb-2 md:pb-3 p-3 md:p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-start gap-2 md:gap-3 min-w-0 flex-1">
-                  <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-violet-500/30 flex items-center justify-center shrink-0">
-                    <Icon className="h-4 w-4 md:h-5 md:w-5 text-violet-300" />
+                  <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-cyan-500/30 flex items-center justify-center shrink-0">
+                    <Icon className="h-4 w-4 md:h-5 md:w-5 text-cyan-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-xs md:text-sm font-medium text-white truncate">
+                    <CardTitle className="text-xs md:text-sm font-medium text-gray-800 truncate">
                       {doc.name}
                     </CardTitle>
-                    <CardDescription className="text-[10px] md:text-xs text-white/70 mt-0.5 truncate">
+                    <CardDescription className="text-[10px] md:text-xs text-gray-800/70 mt-0.5 truncate">
                       {getTypeLabel(doc.type)}
                       {doc.state && ` • ${doc.state}`}
                     </CardDescription>
@@ -1322,19 +1331,19 @@ function DocumentGrid({
                       size="sm"
                       className="h-7 w-7 md:h-8 md:w-8 p-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0"
                     >
-                      <MoreVertical className="h-4 w-4 text-white" />
+                      <MoreVertical className="h-4 w-4 text-gray-800" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-indigo-900 border-white/20 text-white">
+                  <DropdownMenuContent align="end" className="bg-white border-gray-200 text-gray-800">
                     <DropdownMenuItem
                       onClick={() => onView(doc)}
-                      className="cursor-pointer text-white focus:text-white focus:bg-white/10"
+                      className="cursor-pointer text-gray-800 focus:text-gray-800 focus:bg-white/10"
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View
                     </DropdownMenuItem>
                     {doc.fileUrl && (
-                      <DropdownMenuItem asChild className="cursor-pointer text-white focus:text-white focus:bg-white/10" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem asChild className="cursor-pointer text-gray-800 focus:text-gray-800 focus:bg-white/10" onClick={(e) => e.stopPropagation()}>
                         <a href={doc.fileUrl} download onClick={(e) => e.stopPropagation()}>
                           <Download className="h-4 w-4 mr-2" />
                           Download
@@ -1342,7 +1351,7 @@ function DocumentGrid({
                       </DropdownMenuItem>
                     )}
                     {doc.type === 'lease' && (
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onAssign(doc); }} className="cursor-pointer text-white focus:text-white focus:bg-white/10">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onAssign(doc); }} className="cursor-pointer text-gray-800 focus:text-gray-800 focus:bg-white/10">
                         <Star className="h-4 w-4 mr-2" />
                         Set as Default
                       </DropdownMenuItem>
@@ -1360,10 +1369,10 @@ function DocumentGrid({
             </CardHeader>
             <CardContent className="pt-0 p-3 md:p-4 md:pt-0">
               {doc.description && (
-                <p className="text-[10px] md:text-xs text-white/70 line-clamp-2 mb-2 md:mb-3">{doc.description}</p>
+                <p className="text-[10px] md:text-xs text-gray-800/70 line-clamp-2 mb-2 md:mb-3">{doc.description}</p>
               )}
               <div className="flex items-center justify-between flex-wrap gap-1">
-                <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-white/60">
+                <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-gray-800/60">
                   {doc.fileType && (
                     <span className="uppercase bg-white/10 px-1 md:px-1.5 py-0.5 rounded">
                       {doc.fileType}
@@ -1379,7 +1388,7 @@ function DocumentGrid({
                   )}
                 </div>
               </div>
-              <p className="text-[10px] md:text-xs text-white/60 mt-2">
+              <p className="text-[10px] md:text-xs text-gray-800/60 mt-2">
                 {formatDistanceToNow(new Date(doc.createdAt), { addSuffix: true })}
               </p>
             </CardContent>
@@ -1405,12 +1414,12 @@ function ScannedDocumentGrid({
 }) {
   if (documents.length === 0) {
     return (
-      <Card className="border-white/20 bg-white/5">
+      <Card className="border-gray-200 bg-white/5">
         <CardContent className="py-12">
           <div className="text-center">
-            <Camera className="h-12 w-12 mx-auto text-white/40 mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No Scanned Documents</h3>
-            <p className="text-white/70 text-sm">
+            <Camera className="h-12 w-12 mx-auto text-gray-800/40 mb-4" />
+            <h3 className="text-lg font-medium text-gray-800 mb-2">No Scanned Documents</h3>
+            <p className="text-gray-800/70 text-sm">
               Upload receipts, invoices, or other documents to categorize them.
             </p>
           </div>
@@ -1467,7 +1476,7 @@ function ScannedDocumentGrid({
         return (
           <Card
             key={doc.id}
-            className="border-white/20 bg-white/5 hover:bg-white/10 hover:border-emerald-400/40 transition-all group overflow-hidden"
+            className="border-gray-200 bg-white/5 hover:bg-white/10 hover:border-emerald-400/40 transition-all group overflow-hidden"
           >
             <CardContent className="p-3 md:p-4">
               <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
@@ -1481,18 +1490,18 @@ function ScannedDocumentGrid({
                       size="sm"
                       className="h-7 w-7 md:h-8 md:w-8 p-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0"
                     >
-                      <MoreVertical className="h-4 w-4 text-white" />
+                      <MoreVertical className="h-4 w-4 text-gray-800" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-indigo-900 border-white/20 text-white">
+                  <DropdownMenuContent align="end" className="bg-white border-gray-200 text-gray-800">
                     <DropdownMenuItem
                       onClick={() => window.open(doc.fileUrl, '_blank')}
-                      className="cursor-pointer text-white focus:text-white focus:bg-white/10"
+                      className="cursor-pointer text-gray-800 focus:text-gray-800 focus:bg-white/10"
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer text-white focus:text-white focus:bg-white/10">
+                    <DropdownMenuItem asChild className="cursor-pointer text-gray-800 focus:text-gray-800 focus:bg-white/10">
                       <a href={doc.fileUrl} download>
                         <Download className="h-4 w-4 mr-2" />
                         Download
@@ -1509,26 +1518,26 @@ function ScannedDocumentGrid({
                 </DropdownMenu>
               </div>
 
-              <h4 className="text-xs md:text-sm font-medium text-white truncate mb-1">
+              <h4 className="text-xs md:text-sm font-medium text-gray-800 truncate mb-1">
                 {doc.originalFileName}
               </h4>
 
               <div className="flex items-center gap-1 md:gap-2 mb-2 md:mb-3 flex-wrap">
                 {getStatusBadge(doc.classificationStatus)}
                 {doc.documentType && (
-                  <span className="text-[10px] md:text-xs text-white/70 capitalize">{doc.documentType}</span>
+                  <span className="text-[10px] md:text-xs text-gray-800/70 capitalize">{doc.documentType}</span>
                 )}
               </div>
 
               {/* Property badge */}
               {doc.property && (
                 <div className="flex items-center gap-1 mb-2 text-[10px] md:text-xs">
-                  <Building2 className="h-3 w-3 text-violet-300" />
-                  <span className="text-violet-300 truncate">{doc.property.name}</span>
+                  <Building2 className="h-3 w-3 text-cyan-500" />
+                  <span className="text-cyan-500 truncate">{doc.property.name}</span>
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-[10px] md:text-xs text-white/60">
+              <div className="flex items-center justify-between text-[10px] md:text-xs text-gray-800/60">
                 <div className="flex items-center gap-1 md:gap-2">
                   <span className="uppercase bg-white/10 px-1 md:px-1.5 py-0.5 rounded">
                     {doc.fileType}
@@ -1540,8 +1549,8 @@ function ScannedDocumentGrid({
               {doc.ocrConfidence !== undefined && doc.ocrConfidence > 0 && (
                 <div className="mt-2">
                   <div className="flex items-center justify-between text-[10px] md:text-xs mb-1">
-                    <span className="text-white/60">OCR Confidence</span>
-                    <span className="text-white/80">{doc.ocrConfidence.toFixed(0)}%</span>
+                    <span className="text-gray-800/60">OCR Confidence</span>
+                    <span className="text-gray-800/80">{doc.ocrConfidence.toFixed(0)}%</span>
                   </div>
                   <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                     <div
@@ -1552,7 +1561,7 @@ function ScannedDocumentGrid({
                 </div>
               )}
 
-              <p className="text-[10px] md:text-xs text-white/60 mt-2">
+              <p className="text-[10px] md:text-xs text-gray-800/60 mt-2">
                 {formatDistanceToNow(new Date(doc.createdAt), { addSuffix: true })}
               </p>
             </CardContent>
@@ -1576,12 +1585,12 @@ function LeaseTemplateGrid({
 }) {
   if (templates.length === 0) {
     return (
-      <Card className="border-white/20 bg-white/5">
+      <Card className="border-gray-200 bg-white/5">
         <CardContent className="py-12">
           <div className="text-center">
-            <Wand2 className="h-12 w-12 mx-auto text-white/40 mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No Lease Templates</h3>
-            <p className="text-white/70 text-sm">
+            <Wand2 className="h-12 w-12 mx-auto text-gray-800/40 mb-4" />
+            <h3 className="text-lg font-medium text-gray-800 mb-2">No Lease Templates</h3>
+            <p className="text-gray-800/70 text-sm">
               Create a lease template to automatically generate leases when applications are approved.
             </p>
           </div>
@@ -1595,7 +1604,7 @@ function LeaseTemplateGrid({
       {templates.map((template) => (
         <Card
           key={template.id}
-          className="border-white/20 bg-white/5 hover:bg-white/10 hover:border-emerald-400/40 transition-all group overflow-hidden"
+          className="border-gray-200 bg-white/5 hover:bg-white/10 hover:border-emerald-400/40 transition-all group overflow-hidden"
         >
           <CardHeader className="pb-2 md:pb-3 p-3 md:p-4">
             <div className="flex items-start justify-between gap-2">
@@ -1608,10 +1617,10 @@ function LeaseTemplateGrid({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="text-xs md:text-sm font-medium text-white truncate">
+                  <CardTitle className="text-xs md:text-sm font-medium text-gray-800 truncate">
                     {template.name}
                   </CardTitle>
-                  <CardDescription className="text-[10px] md:text-xs text-white/70 mt-0.5">
+                  <CardDescription className="text-[10px] md:text-xs text-gray-800/70 mt-0.5">
                     {template.type === 'builder' ? 'Builder Template' : 'PDF Template'}
                   </CardDescription>
                 </div>
@@ -1623,14 +1632,14 @@ function LeaseTemplateGrid({
                     size="sm"
                     className="h-7 w-7 md:h-8 md:w-8 p-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0"
                   >
-                    <MoreVertical className="h-4 w-4 text-white" />
+                    <MoreVertical className="h-4 w-4 text-gray-800" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-indigo-900 border-white/20 text-white">
+                <DropdownMenuContent align="end" className="bg-white border-gray-200 text-gray-800">
                   {template.pdfUrl && (
                     <DropdownMenuItem
                       onClick={() => window.open(template.pdfUrl!, '_blank')}
-                      className="cursor-pointer text-white focus:text-white focus:bg-white/10"
+                      className="cursor-pointer text-gray-800 focus:text-gray-800 focus:bg-white/10"
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View PDF
@@ -1639,7 +1648,7 @@ function LeaseTemplateGrid({
                   {!template.isDefault && (
                     <DropdownMenuItem
                       onClick={() => onSetDefault(template.id)}
-                      className="cursor-pointer text-white focus:text-white focus:bg-white/10"
+                      className="cursor-pointer text-gray-800 focus:text-gray-800 focus:bg-white/10"
                     >
                       <Star className="h-4 w-4 mr-2" />
                       Set as Default
@@ -1664,31 +1673,31 @@ function LeaseTemplateGrid({
                   Default
                 </Badge>
               )}
-              <Badge variant="outline" className="text-[10px] md:text-xs border-white/30 text-white/80">
+              <Badge variant="outline" className="text-[10px] md:text-xs border-white/30 text-gray-800/80">
                 {template.type === 'builder' ? 'Builder' : 'PDF'}
               </Badge>
             </div>
             {template.properties.length > 0 && (
               <div className="mt-2">
-                <p className="text-[10px] text-white/60 mb-1">Assigned to:</p>
+                <p className="text-[10px] text-gray-800/60 mb-1">Assigned to:</p>
                 <div className="flex flex-wrap gap-1">
                   {template.properties.slice(0, 3).map((prop) => (
                     <span
                       key={prop.id}
-                      className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-white/80"
+                      className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-gray-800/80"
                     >
                       {prop.name}
                     </span>
                   ))}
                   {template.properties.length > 3 && (
-                    <span className="text-[10px] text-white/60">
+                    <span className="text-[10px] text-gray-800/60">
                       +{template.properties.length - 3} more
                     </span>
                   )}
                 </div>
               </div>
             )}
-            <p className="text-[10px] md:text-xs text-white/60 mt-2">
+            <p className="text-[10px] md:text-xs text-gray-800/60 mt-2">
               {formatDistanceToNow(new Date(template.createdAt), { addSuffix: true })}
             </p>
           </CardContent>
@@ -1702,12 +1711,12 @@ function LeaseTemplateGrid({
 function ActiveLeasesGrid({ leases }: { leases: ActiveLease[] }) {
   if (leases.length === 0) {
     return (
-      <Card className="border-white/20 bg-white/5">
+      <Card className="border-gray-200 bg-white/5">
         <CardContent className="py-12">
           <div className="text-center">
-            <FileSignature className="h-12 w-12 mx-auto text-white/40 mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No Active Leases</h3>
-            <p className="text-white/70 text-sm">
+            <FileSignature className="h-12 w-12 mx-auto text-gray-800/40 mb-4" />
+            <h3 className="text-lg font-medium text-gray-800 mb-2">No Active Leases</h3>
+            <p className="text-gray-800/70 text-sm">
               Active leases will appear here once tenants sign their agreements.
             </p>
           </div>
@@ -1749,19 +1758,19 @@ function ActiveLeasesGrid({ leases }: { leases: ActiveLease[] }) {
       {leases.map((lease) => (
         <Card
           key={lease.id}
-          className="border-white/20 bg-white/5 hover:bg-white/10 hover:border-violet-400/40 transition-all group overflow-hidden"
+          className="border-gray-200 bg-white/5 hover:bg-white/10 hover:border-cyan-400/40 transition-all group overflow-hidden"
         >
           <CardHeader className="pb-2 md:pb-3 p-3 md:p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-start gap-2 md:gap-3 min-w-0 flex-1">
-                <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-violet-500/30 flex items-center justify-center shrink-0">
-                  <FileSignature className="h-4 w-4 md:h-5 md:w-5 text-violet-300" />
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-cyan-500/30 flex items-center justify-center shrink-0">
+                  <FileSignature className="h-4 w-4 md:h-5 md:w-5 text-cyan-500" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="text-xs md:text-sm font-medium text-white truncate">
+                  <CardTitle className="text-xs md:text-sm font-medium text-gray-800 truncate">
                     {lease.unit.property?.name || 'Property'} - {lease.unit.name}
                   </CardTitle>
-                  <CardDescription className="text-[10px] md:text-xs text-white/70 mt-0.5 truncate">
+                  <CardDescription className="text-[10px] md:text-xs text-gray-800/70 mt-0.5 truncate">
                     {lease.tenant?.name || 'Tenant'} • ${lease.rentAmount.toLocaleString()}/mo
                   </CardDescription>
                 </div>
@@ -1770,32 +1779,32 @@ function ActiveLeasesGrid({ leases }: { leases: ActiveLease[] }) {
             </div>
           </CardHeader>
           <CardContent className="pt-0 p-3 md:p-4 md:pt-0">
-            <div className="space-y-2 text-[10px] md:text-xs text-white/80">
+            <div className="space-y-2 text-[10px] md:text-xs text-gray-800/80">
               <div className="flex justify-between">
-                <span className="text-white/60">Start Date</span>
+                <span className="text-gray-800/60">Start Date</span>
                 <span>{new Date(lease.startDate).toLocaleDateString()}</span>
               </div>
               {lease.endDate && (
                 <div className="flex justify-between">
-                  <span className="text-white/60">End Date</span>
+                  <span className="text-gray-800/60">End Date</span>
                   <span>{new Date(lease.endDate).toLocaleDateString()}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-white/60">Tenant Email</span>
+                <span className="text-gray-800/60">Tenant Email</span>
                 <span className="truncate max-w-[120px]">{lease.tenant?.email || 'N/A'}</span>
               </div>
             </div>
             
             {/* Signature Status */}
-            <div className="mt-3 pt-3 border-t border-white/10">
-              <p className="text-[10px] text-white/60 mb-2">Signatures</p>
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-[10px] text-gray-800/60 mb-2">Signatures</p>
               <div className="flex gap-2">
-                <div className={`flex items-center gap-1 text-[10px] ${lease.tenantSignedAt ? 'text-emerald-300' : 'text-white/50'}`}>
+                <div className={`flex items-center gap-1 text-[10px] ${lease.tenantSignedAt ? 'text-emerald-300' : 'text-gray-400'}`}>
                   {lease.tenantSignedAt ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                   Tenant
                 </div>
-                <div className={`flex items-center gap-1 text-[10px] ${lease.landlordSignedAt ? 'text-emerald-300' : 'text-white/50'}`}>
+                <div className={`flex items-center gap-1 text-[10px] ${lease.landlordSignedAt ? 'text-emerald-300' : 'text-gray-400'}`}>
                   {lease.landlordSignedAt ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                   Landlord
                 </div>

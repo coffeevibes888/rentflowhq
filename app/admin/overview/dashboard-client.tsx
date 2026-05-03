@@ -13,6 +13,8 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
+import ShareListingCard from '@/components/admin/share-listing-card';
+import ShareContractorCard from '@/components/admin/share-contractor-card';
 
 interface DashboardStats {
   totalUnits: number;
@@ -106,60 +108,14 @@ export default function DashboardClient({
             Manage your properties, tenants, and operations
           </p>
         </div>
-        <div className='flex items-center gap-2'>
-          <Link
-            href='/admin/products/new'
-            className='px-3 py-1.5 text-xs font-medium rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5'
-          >
-            <Plus className='h-3.5 w-3.5' />
-            Add Property
-          </Link>
-        </div>
       </div>
 
       {/* Share Links Bar */}
       <div className='flex flex-wrap gap-2'>
         {listingUrl && (
-          <button
-            onClick={() => handleCopy(listingUrl, 'listing')}
-            className='inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-xs'
-          >
-            <div className='h-6 w-6 rounded-md bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-white shrink-0'>
-              <Home className='h-3 w-3' />
-            </div>
-            <span className='font-medium text-gray-700'>Share Listing</span>
-            {copiedUrl === 'listing' ? (
-              <CheckCircle2 className='h-3.5 w-3.5 text-green-500' />
-            ) : (
-              <Copy className='h-3.5 w-3.5 text-gray-400' />
-            )}
-          </button>
+          <ShareListingCard listingUrl={listingUrl} landlordName={landlordName} />
         )}
-        <button
-          onClick={() => handleCopy(contractorUrl, 'contractor')}
-          className='inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-xs'
-        >
-          <div className='h-6 w-6 rounded-md bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center text-white shrink-0'>
-            <Wrench className='h-3 w-3' />
-          </div>
-          <span className='font-medium text-gray-700'>Invite Contractor</span>
-          {copiedUrl === 'contractor' ? (
-            <CheckCircle2 className='h-3.5 w-3.5 text-green-500' />
-          ) : (
-            <Copy className='h-3.5 w-3.5 text-gray-400' />
-          )}
-        </button>
-        {listingUrl && (
-          <a
-            href={listingUrl}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-xs'
-          >
-            <ExternalLink className='h-3.5 w-3.5 text-gray-400' />
-            <span className='font-medium text-gray-700'>View Listing Page</span>
-          </a>
-        )}
+        <ShareContractorCard contractorUrl={contractorUrl} landlordName={landlordName} />
       </div>
 
       {/* KPI Cards */}

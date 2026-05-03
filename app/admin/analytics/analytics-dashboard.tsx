@@ -3,6 +3,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs/index';
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell,
+} from 'recharts';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -272,9 +276,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       <div className='space-y-6'>
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
           {[...Array(4)].map((_, i) => (
-            <div key={i} className='rounded-2xl bg-gradient-to-r from-fuchsia-500 to-cyan-500 border border-violet-500/20 p-5 animate-pulse'>
-              <div className='h-4 bg-white/10 rounded w-3/4 mb-3'></div>
-              <div className='h-8 bg-white/10 rounded w-1/2'></div>
+            <div key={i} className='rounded-2xl border border-gray-300 bg-white shadow-xl p-5 animate-pulse'>
+              <div className='h-4 bg-gray-200 rounded w-3/4 mb-3'></div>
+              <div className='h-8 bg-gray-200 rounded w-1/2'></div>
             </div>
           ))}
         </div>
@@ -284,8 +288,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
 
   if (!data) {
     return (
-      <div className='rounded-2xl bg-gradient-to-br from-violet-900/60 to-indigo-900/60 border border-violet-500/20 p-8 text-center'>
-        <p className='text-violet-200'>Unable to load analytics data</p>
+      <div className='rounded-2xl border border-gray-300 bg-white shadow-xl p-8 text-center'>
+        <p className='text-gray-500'>Unable to load analytics data</p>
       </div>
     );
   }
@@ -330,53 +334,53 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
       </div>
 
       {/* Portfolio Overview Stats - Like Property Dashboard */}
-      <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+      <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
         <div className='flex items-center justify-between mb-4'>
           <h2 className='text-lg font-semibold text-white'>Portfolio Overview</h2>
-          <span className='text-xs text-violet-300 bg-violet-500/20 px-2 py-1 rounded-full'>Live</span>
+          <span className='text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full'>Live</span>
         </div>
         
         <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
           {/* Rent Collected */}
-          <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+          <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
             <div className='flex items-center justify-between mb-2'>
-              <span className='text-xs text-cyan-200 uppercase tracking-wide'>Rent Collected</span>
+              <span className='text-xs text-gray-500 uppercase tracking-wide'>Rent Collected</span>
               <DollarSign className='h-4 w-4 text-cyan-300' />
             </div>
-            <div className='text-2xl font-bold text-white'>{formatMoney(data.rentCollectedThisMonth)}</div>
-            <div className='text-xs text-cyan-200/70 mt-1'>of {formatMoney(data.rentPossibleThisMonth)} possible</div>
+            <div className='text-2xl font-bold text-gray-900'>{formatMoney(data.rentCollectedThisMonth)}</div>
+            <div className='text-xs text-gray-400 mt-1'>of {formatMoney(data.rentPossibleThisMonth)} possible</div>
           </div>
 
           {/* Total Expenses */}
-          <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+          <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
             <div className='flex items-center justify-between mb-2'>
-              <span className='text-xs text-rose-200 uppercase tracking-wide'>Expenses</span>
+              <span className='text-xs text-gray-500 uppercase tracking-wide'>Expenses</span>
               <Wrench className='h-4 w-4 text-rose-300' />
             </div>
-            <div className='text-2xl font-bold text-white'>{formatMoney(data.totalExpensesThisMonth)}</div>
-            <div className='text-xs text-rose-200/70 mt-1'>{data.expensesRecordedThisMonth ? 'this month' : 'no expenses'}</div>
+            <div className='text-2xl font-bold text-gray-900'>{formatMoney(data.totalExpensesThisMonth)}</div>
+            <div className='text-xs text-gray-400 mt-1'>{data.expensesRecordedThisMonth ? 'this month' : 'no expenses'}</div>
           </div>
 
           {/* Net Cash Flow */}
-          <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+          <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
             <div className='flex items-center justify-between mb-2'>
-              <span className='text-xs text-emerald-200 uppercase tracking-wide'>Net Cash Flow</span>
+              <span className='text-xs text-gray-500 uppercase tracking-wide'>Net Cash Flow</span>
               <LineChart className='h-4 w-4 text-emerald-300' />
             </div>
             <div className={`text-2xl font-bold ${data.netProfitThisMonth >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               {data.netProfitThisMonth >= 0 ? '' : '-'}{formatMoney(data.netProfitThisMonth)}
             </div>
-            <div className='text-xs text-emerald-200/70 mt-1'>{formatPct(data.profitMarginThisMonth)} margin</div>
+            <div className='text-xs text-gray-400 mt-1'>{formatPct(data.profitMarginThisMonth)} margin</div>
           </div>
 
           {/* Portfolio Health */}
-          <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+          <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
             <div className='flex items-center justify-between mb-2'>
-              <span className='text-xs text-amber-200 uppercase tracking-wide'>Portfolio Health</span>
+              <span className='text-xs text-gray-500 uppercase tracking-wide'>Portfolio Health</span>
               <Activity className='h-4 w-4 text-amber-300' />
             </div>
             <div className={`text-2xl font-bold ${healthColor}`}>{data.portfolioHealth.score}/100</div>
-            <div className='text-xs text-amber-200/70 mt-1 flex items-center gap-1'>
+            <div className='text-xs text-gray-400 mt-1 flex items-center gap-1'>
               {trendIcon} {data.portfolioHealth.trend}
             </div>
           </div>
@@ -385,61 +389,61 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
 
       {/* Quick Stats Row */}
       <div className='grid grid-cols-2 md:grid-cols-5 gap-4'>
-        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+        <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
           <div className='flex items-center gap-2 mb-2'>
             <Building2 className='h-4 w-4 text-black' />
-            <span className='text-xs text-black font-bold uppercase'>Properties</span>
+            <span className='text-xs text-gray-600 font-semibold uppercase'>Properties</span>
           </div>
-          <div className='text-xl font-bold text-white'>{data.totalProperties}</div>
+          <div className='text-xl font-bold text-gray-900'>{data.totalProperties}</div>
         </div>
-        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+        <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
           <div className='flex items-center gap-2 mb-2'>
             <Home className='h-4 w-4 text-black' />
             <span className='text-xs text-black uppercase'>Units</span>
           </div>
-          <div className='text-xl font-bold text-white'>{data.totalUnits}</div>
-          <div className='text-xs text-black'>{data.occupiedUnits} occupied</div>
+          <div className='text-xl font-bold text-gray-900'>{data.totalUnits}</div>
+          <div className='text-xs text-gray-500'>{data.occupiedUnits} occupied</div>
         </div>
-        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+        <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
           <div className='flex items-center gap-2 mb-2'>
             <Users className='h-4 w-4 text-black' />
-            <span className='text-xs text-black font-bold uppercase'>Tenants</span>
+            <span className='text-xs text-gray-600 font-semibold uppercase'>Tenants</span>
           </div>
-          <div className='text-xl font-bold text-white'>{data.totalTenants}</div>
+          <div className='text-xl font-bold text-gray-900'>{data.totalTenants}</div>
         </div>
-        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+        <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
           <div className='flex items-center gap-2 mb-2'>
             <Percent className='h-4 w-4 text-black' />
-            <span className='text-xs text-blackfont-bold uppercase'>Occupancy</span>
+            <span className='text-xs text-gray-600 font-semibold uppercase'>Occupancy</span>
           </div>
-          <div className='text-xl font-bold text-white'>{formatPct(data.physicalOccupancy)}</div>
+          <div className='text-xl font-bold text-gray-900'>{formatPct(data.physicalOccupancy)}</div>
         </div>
-        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+        <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
           <div className='flex items-center gap-2 mb-2'>
             <DollarSign className='h-4 w-4 text-black' />
-            <span className='text-xs text-black font-bold uppercase'>Avg Rent</span>
+            <span className='text-xs text-gray-600 font-semibold uppercase'>Avg Rent</span>
           </div>
-          <div className='text-xl font-bold text-white'>{formatMoney(data.averageRent)}</div>
+          <div className='text-xl font-bold text-gray-900'>{formatMoney(data.averageRent)}</div>
         </div>
       </div>
 
       {/* Tabs Section */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
-          <TabsList className='bg-gradient-to-r from-blue-200 to-cyan-200 border border-violet-500/20'>
+          <TabsList className='bg-white border border-gray-200 shadow-sm'>
             <TabsTrigger triggerValue='overview'>Overview</TabsTrigger>
             <TabsTrigger triggerValue='properties'>Properties</TabsTrigger>
             <TabsTrigger triggerValue='market'>Market</TabsTrigger>
           </TabsList>
 
           <div className='flex flex-wrap gap-2'>
-            <Button variant='outline' size='sm' onClick={() => setExpenseDialogOpen(true)} className='border-violet-500/30 text-violet-200 hover:bg-violet-500/20'>
+            <Button variant='outline' size='sm' onClick={() => setExpenseDialogOpen(true)} className='border-gray-200 text-gray-700 hover:bg-gray-100'>
               <Plus className='h-4 w-4 mr-1' /> Add Expense
             </Button>
-            <Button variant='outline' size='sm' onClick={() => downloadReport('csv')} className='border-violet-500/30 text-violet-200 hover:bg-violet-500/20'>
+            <Button variant='outline' size='sm' onClick={() => downloadReport('csv')} className='border-gray-200 text-gray-700 hover:bg-gray-100'>
               <Download className='h-4 w-4 mr-1' /> CSV
             </Button>
-            <Button variant='outline' size='sm' onClick={() => downloadReport('excel')} className='border-violet-500/30 text-violet-200 hover:bg-violet-500/20'>
+            <Button variant='outline' size='sm' onClick={() => downloadReport('excel')} className='border-gray-200 text-gray-700 hover:bg-gray-100'>
               <Download className='h-4 w-4 mr-1' /> Excel
             </Button>
           </div>
@@ -447,46 +451,129 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
 
         {/* Overview Tab */}
         <TabsContent contentValue='overview' className='space-y-6 mt-6'>
+          {/* Charts Row */}
+          <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+            {/* Revenue Trend Chart */}
+            <div className='lg:col-span-2 rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
+              <div className='flex items-center justify-between mb-4'>
+                <div>
+                  <h3 className='text-sm font-bold text-gray-800'>Revenue Trend</h3>
+                  <p className='text-[11px] text-gray-500'>Monthly revenue vs expenses (12 months)</p>
+                </div>
+              </div>
+              <div className='h-[240px]'>
+                <ResponsiveContainer width='100%' height='100%'>
+                  <AreaChart data={data.monthlyRevenue.map((rev, i) => ({
+                    month: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i],
+                    revenue: rev,
+                    expenses: data.monthlyExpenses[i] || 0,
+                  }))}>
+                    <defs>
+                      <linearGradient id='analyticsRevGrad' x1='0' y1='0' x2='0' y2='1'>
+                        <stop offset='5%' stopColor='#06B6D4' stopOpacity={0.3} />
+                        <stop offset='95%' stopColor='#06B6D4' stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id='analyticsExpGrad' x1='0' y1='0' x2='0' y2='1'>
+                        <stop offset='5%' stopColor='#F43F5E' stopOpacity={0.15} />
+                        <stop offset='95%' stopColor='#F43F5E' stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
+                    <XAxis dataKey='month' tick={{ fontSize: 11, fill: '#9CA3AF' }} />
+                    <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} tickFormatter={(v) => v >= 1000 ? '$' + (v/1000).toFixed(0) + 'k' : '$' + v} />
+                    <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: '12px' }} formatter={(v: number, n: string) => ['$' + v.toLocaleString(), n === 'revenue' ? 'Revenue' : 'Expenses']} />
+                    <Area type='monotone' dataKey='revenue' stroke='#06B6D4' strokeWidth={2.5} fill='url(#analyticsRevGrad)' />
+                    <Area type='monotone' dataKey='expenses' stroke='#F43F5E' strokeWidth={1.5} fill='url(#analyticsExpGrad)' strokeDasharray='4 4' />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Expense Breakdown Donut */}
+            <div className='rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
+              <div className='mb-4'>
+                <h3 className='text-sm font-bold text-gray-800'>Expense Breakdown</h3>
+                <p className='text-[11px] text-gray-500'>This month by category</p>
+              </div>
+              <div className='h-[160px]'>
+                <ResponsiveContainer width='100%' height='100%'>
+                  <RechartsPie>
+                    <Pie
+                      data={data.expenseBreakdownThisMonth.length > 0
+                        ? data.expenseBreakdownThisMonth.map(e => ({ name: e.category.replace(/_/g, ' '), value: e.amount }))
+                        : [{ name: 'No expenses', value: 1 }]
+                      }
+                      cx='50%' cy='50%' innerRadius={45} outerRadius={70} paddingAngle={3} dataKey='value'
+                    >
+                      {(data.expenseBreakdownThisMonth.length > 0
+                        ? data.expenseBreakdownThisMonth
+                        : [{ category: 'none', amount: 1 }]
+                      ).map((_, i) => (
+                        <Cell key={i} fill={['#06B6D4','#8B5CF6','#F59E0B','#10B981','#F43F5E','#6366F1'][i % 6]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v: number, n: string) => ['$' + v.toLocaleString(), n]} contentStyle={{ borderRadius: '10px', fontSize: '12px' }} />
+                  </RechartsPie>
+                </ResponsiveContainer>
+              </div>
+              <div className='space-y-1.5 mt-2'>
+                {data.expenseBreakdownThisMonth.length > 0 ? (
+                  data.expenseBreakdownThisMonth.slice(0, 5).map((e, i) => (
+                    <div key={e.category} className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <div className='h-2.5 w-2.5 rounded-full' style={{ backgroundColor: ['#06B6D4','#8B5CF6','#F59E0B','#10B981','#F43F5E','#6366F1'][i % 6] }} />
+                        <span className='text-xs text-gray-700 font-medium capitalize'>{e.category.replace(/_/g, ' ')}</span>
+                      </div>
+                      <span className='text-xs font-bold text-gray-800'>${e.amount.toLocaleString()}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className='text-xs text-gray-400 text-center'>No expenses this month</p>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
             {/* Occupancy Card */}
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-              <h3 className='text-lg font-semibold text-white mb-1'>Occupancy</h3>
-              <p className='text-xs text-black mb-4'>Physical vs economic (this month)</p>
+            <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
+              <h3 className='text-lg font-semibold text-gray-800 mb-1'>Occupancy</h3>
+              <p className='text-xs text-gray-500 mb-4'>Physical vs economic (this month)</p>
               
               <div className='grid grid-cols-2 gap-3 mb-4'>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-white uppercase'>Physical</div>
-                  <div className='text-xl font-bold text-white'>{formatPct(data.physicalOccupancy)}</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Physical</div>
+                  <div className='text-xl font-bold text-gray-900'>{formatPct(data.physicalOccupancy)}</div>
                 </div>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-violet-300 uppercase'>Economic</div>
-                  <div className='text-xl font-bold text-white'>{formatPct(data.economicOccupancy)}</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Economic</div>
+                  <div className='text-xl font-bold text-gray-900'>{formatPct(data.economicOccupancy)}</div>
                 </div>
               </div>
               
-              <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+              <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
                 <div>
-                  <div className='text-xs text-rose-800 uppercase'>Vacancy Loss (Month)</div>
-                  <div className='text-xl font-bold text-white'>-{formatMoney(data.vacancyLossThisMonth)}</div>
+                  <div className='text-xs text-red-600 uppercase'>Vacancy Loss (Month)</div>
+                  <div className='text-xl font-bold text-gray-900'>-{formatMoney(data.vacancyLossThisMonth)}</div>
                 </div>
                 <ShieldAlert className='h-5 w-5 text-rose-800' />
               </div>
             </div>
 
             {/* Expenses Card */}
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-              <h3 className='text-lg font-semibold text-white mb-1'>Expenses</h3>
-              <p className='text-xs text-black mb-4'>Breakdown (this month)</p>
+            <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
+              <h3 className='text-lg font-semibold text-gray-800 mb-1'>Expenses</h3>
+              <p className='text-xs text-gray-500 mb-4'>Breakdown (this month)</p>
               
               {!data.expensesRecordedThisMonth ? (
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
                   No expenses recorded this period
                 </div>
               ) : (
                 <div className='space-y-2 mb-4'>
                   {data.expenseBreakdownThisMonth.slice(0, 4).map((row) => (
                     <div key={row.category} className='flex items-center justify-between text-sm'>
-                      <span className='text-violet-200 capitalize'>{row.category.replace(/_/g, ' ')}</span>
+                      <span className='text-gray-700 capitalize'>{row.category.replace(/_/g, ' ')}</span>
                       <span className='font-semibold text-white'>{formatMoney(row.amount)}</span>
                     </div>
                   ))}
@@ -494,42 +581,42 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
               )}
 
               <div className='grid grid-cols-2 gap-3'>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-violet-300 uppercase'>Maintenance</div>
-                  <div className='text-lg font-bold text-white'>{formatMoney(data.maintenanceCostsThisMonth)}</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Maintenance</div>
+                  <div className='text-lg font-bold text-gray-900'>{formatMoney(data.maintenanceCostsThisMonth)}</div>
                 </div>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-600 via-sky-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-violet-300 uppercase'>Platform Fees</div>
-                  <div className='text-lg font-bold text-white'>{formatMoney(data.platformFeesThisMonth)}</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Platform Fees</div>
+                  <div className='text-lg font-bold text-gray-900'>{formatMoney(data.platformFeesThisMonth)}</div>
                 </div>
               </div>
             </div>
 
             {/* Tenant Quality Card */}
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-              <h3 className='text-lg font-semibold text-white mb-1'>Tenant Quality</h3>
-              <p className='text-xs text-black mb-4'>On-time & behavior signals</p>
+            <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
+              <h3 className='text-lg font-semibold text-gray-800 mb-1'>Tenant Quality</h3>
+              <p className='text-xs text-gray-500 mb-4'>On-time & behavior signals</p>
               
               <div className='grid grid-cols-3 gap-2 mb-4'>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>On-time</div>
+                <div className='rounded-lg bg-gray-50 border border-gray-300 p-3'>
+                  <div className='text-xs text-gray-500 uppercase'>On-time</div>
                   <div className='text-lg font-bold text-emerald-400'>{formatPct(data.tenantQuality.onTimePaymentPercent)}</div>
                 </div>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>Late Freq</div>
+                <div className='rounded-lg bg-gray-50 border border-gray-300 p-3'>
+                  <div className='text-xs text-gray-500 uppercase'>Late Freq</div>
                   <div className='text-lg font-bold text-amber-400'>{formatPct(data.tenantQuality.latePaymentFrequency)}</div>
                 </div>
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase'>Avg Days Late</div>
-                  <div className='text-lg font-bold text-white'>{data.tenantQuality.avgDaysLate.toFixed(1)}</div>
+                <div className='rounded-lg bg-gray-50 border border-gray-300 p-3'>
+                  <div className='text-xs text-gray-500 uppercase'>Avg Days Late</div>
+                  <div className='text-lg font-bold text-gray-900'>{data.tenantQuality.avgDaysLate.toFixed(1)}</div>
                 </div>
               </div>
 
               {data.tenantQuality.worstTenants.length > 0 && (
-                <div className='rounded-lg bg-amber-500/10 border border-amber-500/30 p-3'>
-                  <div className='text-xs text-amber-300 uppercase mb-2'>Needs Attention</div>
+                <div className='rounded-lg bg-amber-50 border border-amber-300 shadow-md p-3'>
+                  <div className='text-xs text-amber-600 uppercase mb-2'>Needs Attention</div>
                   {data.tenantQuality.worstTenants.slice(0, 2).map((t) => (
-                    <div key={t.tenantId} className='flex items-center justify-between text-xs text-violet-200'>
+                    <div key={t.tenantId} className='flex items-center justify-between text-xs text-gray-600'>
                       <span>Tenant ...{t.tenantId.slice(-6)}</span>
                       <span className='text-amber-400'>{formatPct(t.onTimePercent)} on-time</span>
                     </div>
@@ -542,34 +629,34 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           {/* Second Row - Maintenance & Vacancy */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             {/* Maintenance Analytics */}
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-              <h3 className='text-lg font-semibold text-white mb-1'>Maintenance Analytics</h3>
-              <p className='text-xs text-black mb-4'>Costs + speed + repeat issues</p>
+            <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
+              <h3 className='text-lg font-semibold text-gray-800 mb-1'>Maintenance Analytics</h3>
+              <p className='text-xs text-gray-500 mb-4'>Costs + speed + repeat issues</p>
               
               <div className='grid grid-cols-4 gap-2 mb-4'>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-white uppercase'>Cost/Unit</div>
-                  <div className='text-lg font-bold text-black'>{formatMoney(data.maintenanceAnalytics.costPerUnit)}</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Cost/Unit</div>
+                  <div className='text-lg font-bold text-gray-900'>{formatMoney(data.maintenanceAnalytics.costPerUnit)}</div>
                 </div>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-white uppercase'>Total Cost</div>
-                  <div className='text-lg font-bold text-black'>{formatMoney(data.maintenanceAnalytics.totalCost)}</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Total Cost</div>
+                  <div className='text-lg font-bold text-gray-900'>{formatMoney(data.maintenanceAnalytics.totalCost)}</div>
                 </div>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-white uppercase'>Avg Resolve</div>
-                  <div className='text-lg font-bold text-black'>{data.maintenanceAnalytics.avgResolutionTimeDays.toFixed(1)}d</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
+                  <div className='text-xs text-gray-500 uppercase'>Avg Resolve</div>
+                  <div className='text-lg font-bold text-gray-900'>{data.maintenanceAnalytics.avgResolutionTimeDays.toFixed(1)}d</div>
                 </div>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-white uppercase'>Emergency</div>
-                  <div className='text-lg font-bold text-black'>{formatPct(data.maintenanceAnalytics.emergencyRatio)}</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Emergency</div>
+                  <div className='text-lg font-bold text-gray-900'>{formatPct(data.maintenanceAnalytics.emergencyRatio)}</div>
                 </div>
               </div>
 
               {data.maintenanceAnalytics.repeatIssues.length > 0 && (
-                <div className='rounded-lg bg-violet-800/50 border border-violet-500/30 p-3'>
-                  <div className='text-xs text-violet-300 uppercase mb-2'>Repeat Issues</div>
+                <div className='rounded-lg bg-gray-50 border border-gray-300 p-3'>
+                  <div className='text-xs text-gray-500 uppercase mb-2'>Repeat Issues</div>
                   {data.maintenanceAnalytics.repeatIssues.slice(0, 3).map((issue) => (
-                    <div key={`${issue.unitId}-${issue.title}`} className='flex items-center justify-between text-xs text-violet-200'>
+                    <div key={`${issue.unitId}-${issue.title}`} className='flex items-center justify-between text-xs text-gray-600'>
                       <span>Unit ...{issue.unitId.slice(-4)} • {issue.title}</span>
                       <span className='text-amber-400'>{issue.count}x</span>
                     </div>
@@ -579,24 +666,24 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             </div>
 
             {/* Vacancy Analytics */}
-            <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-              <h3 className='text-lg font-semibold text-white mb-1'>Vacancy Analytics</h3>
-              <p className='text-xs text-black mb-4'>Days vacant + cost impact</p>
+            <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-white p-4 shadow-xl'>
+              <h3 className='text-lg font-semibold text-gray-800 mb-1'>Vacancy Analytics</h3>
+              <p className='text-xs text-gray-500 mb-4'>Days vacant + cost impact</p>
               
               <div className='grid grid-cols-2 gap-3 mb-4'>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-white uppercase'>Avg Days Vacant</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Avg Days Vacant</div>
                   <div className='text-xl font-bold text-black'>{data.vacancyAnalytics.avgDaysVacant.toFixed(1)}</div>
                 </div>
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-white uppercase'>Vacancy Cost (YTD)</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase'>Vacancy Cost (YTD)</div>
                   <div className='text-xl font-bold text-black'>-{formatMoney(data.vacancyAnalytics.vacancyCostYtd)}</div>
                 </div>
               </div>
 
               {data.vacancyAnalytics.currentVacantUnits.length > 0 && (
-                <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-sky-600 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'>
-                  <div className='text-xs text-white uppercase mb-2'>Currently Vacant</div>
+                <div className='rounded-lg sm:rounded-xl border border-gray-300 bg-gray-50 p-3 shadow-md'>
+                  <div className='text-xs text-gray-500 uppercase mb-2'>Currently Vacant</div>
                   {data.vacancyAnalytics.currentVacantUnits.slice(0, 4).map((u) => (
                     <div key={u.unitId} className='flex items-center justify-between text-xs text-black'>
                       <span>Unit ...{u.unitId.slice(-4)}</span>
@@ -617,7 +704,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             
             <div className='space-y-4'>
               {data.propertyPerformance.map((property) => (
-                <div key={property.id} className='rounded-xl bg-violet-800/50 border border-violet-500/30 p-4'>
+                <div key={property.id} className='rounded-xl bg-gray-50 border border-gray-300 p-4'>
                   <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3'>
                     <div className='flex items-center gap-3'>
                       <div className='w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center'>
@@ -650,7 +737,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
                     </div>
                     <div className='rounded-lg bg-violet-900/50 p-3'>
                       <div className='text-xs text-violet-300'>ROI</div>
-                      <div className='text-lg font-bold text-white'>
+                      <div className='text-lg font-bold text-gray-900'>
                         {property.revenue > 0 ? formatPct(((property.revenue - property.expenses) / property.revenue) * 100) : '0%'}
                       </div>
                     </div>
@@ -673,7 +760,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             <h3 className='text-lg font-semibold text-white mb-4'>Market Comparison</h3>
             
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-              <div className='text-center rounded-xl bg-violet-800/50 border border-violet-500/30 p-6'>
+              <div className='text-center rounded-xl bg-gray-50 border border-gray-300 p-6'>
                 <div className='text-3xl font-bold text-cyan-400'>{formatMoney(data.averageRent)}</div>
                 <div className='text-sm text-violet-300 mt-1'>Your Avg Rent</div>
                 {data.marketComparison.marketAverageRent != null && data.marketComparison.delta != null ? (
@@ -686,13 +773,13 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
                 )}
               </div>
               
-              <div className='text-center rounded-xl bg-violet-800/50 border border-violet-500/30 p-6'>
+              <div className='text-center rounded-xl bg-gray-50 border border-gray-300 p-6'>
                 <div className='text-3xl font-bold text-emerald-400'>{formatPct(data.physicalOccupancy)}</div>
                 <div className='text-sm text-violet-300 mt-1'>Physical Occupancy</div>
                 <div className='text-xs text-violet-400 mt-2'>Economic: {formatPct(data.economicOccupancy)}</div>
               </div>
               
-              <div className='text-center rounded-xl bg-violet-800/50 border border-violet-500/30 p-6'>
+              <div className='text-center rounded-xl bg-gray-50 border border-gray-300 p-6'>
                 <div className={`text-3xl font-bold ${healthColor}`}>{data.portfolioHealth.score}</div>
                 <div className='text-sm text-violet-300 mt-1'>Portfolio Health</div>
                 <div className='text-xs text-violet-400 mt-2 flex items-center justify-center gap-1'>
@@ -716,7 +803,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
 
           <div className='grid gap-4'>
             <div className='grid gap-2'>
-              <label className='text-sm font-medium text-violet-200'>Category</label>
+              <label className='text-sm font-medium text-gray-600'>Category</label>
               <Select value={expenseCategory} onValueChange={setExpenseCategory}>
                 <SelectTrigger className='bg-violet-800/50 border-violet-500/30 text-white'>
                   <SelectValue placeholder='Select category' />
@@ -734,7 +821,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             </div>
 
             <div className='grid gap-2'>
-              <label className='text-sm font-medium text-violet-200'>Amount</label>
+              <label className='text-sm font-medium text-gray-600'>Amount</label>
               <Input
                 type='number'
                 value={expenseAmount}
@@ -745,7 +832,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             </div>
 
             <div className='grid gap-2'>
-              <label className='text-sm font-medium text-violet-200'>Incurred date</label>
+              <label className='text-sm font-medium text-gray-600'>Incurred date</label>
               <Input
                 type='date'
                 value={expenseIncurredAt}
@@ -755,7 +842,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
             </div>
 
             <div className='grid gap-2'>
-              <label className='text-sm font-medium text-violet-200'>Description (optional)</label>
+              <label className='text-sm font-medium text-gray-600'>Description (optional)</label>
               <Textarea
                 value={expenseDescription}
                 onChange={(e) => setExpenseDescription(e.target.value)}
@@ -766,7 +853,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
 
             <div className='flex items-center justify-between gap-3 rounded-md border border-violet-500/30 px-3 py-2'>
               <div className='flex items-center gap-2 text-sm'>
-                <span className='font-medium text-violet-200'>Recurring</span>
+                <span className='font-medium text-gray-600'>Recurring</span>
                 <span className='text-violet-400'>Mark if this repeats monthly</span>
               </div>
               <input
@@ -779,7 +866,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ landlordId }) =
           </div>
 
           <DialogFooter>
-            <Button variant='outline' onClick={() => setExpenseDialogOpen(false)} disabled={expenseSubmitting} className='border-violet-500/30 text-violet-200'>
+            <Button variant='outline' onClick={() => setExpenseDialogOpen(false)} disabled={expenseSubmitting} className='border-violet-500/30 text-gray-600'>
               Cancel
             </Button>
             <Button onClick={submitExpense} disabled={expenseSubmitting} className='bg-violet-600 hover:bg-violet-500'>
