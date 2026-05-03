@@ -54,6 +54,7 @@ import {
   ScanLine,
   X,
   FileCheck,
+  Sparkles,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -607,19 +608,59 @@ export default function DocumentsClientV2({
       case 'receipts':
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500">
-                Rent receipts, invoices, and payment records.
-              </p>
-              <Button
-                size="sm"
-                onClick={() => setReceiptDialogOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                <Camera className="h-4 w-4 mr-1" />
-                Scan Receipt
-              </Button>
+            {/* AI Receipt Scanner Explanation */}
+            <div className="rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 p-4 md:p-5 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-start gap-4">
+                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shrink-0">
+                  <Sparkles className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-gray-900 mb-1">AI-Powered Receipt Scanner</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Upload a photo or PDF of any receipt and our system automatically extracts the data and creates an expense record for you.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                    <div className="flex items-start gap-2 bg-white/70 rounded-lg p-2.5 border border-emerald-100">
+                      <div className="h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-bold shrink-0">1</div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-gray-800">Upload Receipt</p>
+                        <p className="text-[10px] text-gray-500">Photo, PDF, or scan</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 bg-white/70 rounded-lg p-2.5 border border-emerald-100">
+                      <div className="h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-bold shrink-0">2</div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-gray-800">AI Extracts Data</p>
+                        <p className="text-[10px] text-gray-500">Vendor, amount, date, category</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 bg-white/70 rounded-lg p-2.5 border border-emerald-100">
+                      <div className="h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-bold shrink-0">3</div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-gray-800">Select Property</p>
+                        <p className="text-[10px] text-gray-500">Choose which property</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 bg-white/70 rounded-lg p-2.5 border border-emerald-100">
+                      <div className="h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-bold shrink-0">4</div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-gray-800">Auto-Create Expense</p>
+                        <p className="text-[10px] text-gray-500">Expense logged automatically</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setReceiptDialogOpen(true)}
+                  className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:shadow-lg text-white font-semibold shadow-md shrink-0 h-10 px-4"
+                >
+                  <Camera className="h-4 w-4 mr-1.5" />
+                  Scan Receipt
+                </Button>
+              </div>
             </div>
+
             <ScannedDocumentGrid
               documents={filteredScannedDocs}
               onDelete={(id) => handleDelete(id, 'scanned')}
