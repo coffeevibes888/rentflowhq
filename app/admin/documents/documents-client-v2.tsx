@@ -59,7 +59,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { LeaseBuilderModal } from '@/components/admin/lease-builder';
 import { ReceiptUploadDialog } from '@/components/admin/documents/receipt-upload-dialog';
-import { BrowserTabs, BrowserTab } from '@/components/admin/documents/browser-tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 // Interfaces
@@ -231,7 +231,7 @@ export default function DocumentsClientV2({
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
 
   // Memoize browser tabs to prevent recalculation on every render
-  const browserTabs: BrowserTab[] = useMemo(() => [
+  const browserTabs = useMemo(() => [
     {
       id: 'legal',
       label: 'Legal Documents',
@@ -632,17 +632,40 @@ export default function DocumentsClientV2({
       case 'templates':
         return (
           <div className="space-y-4">
+            {/* Featured CTA: Free Lease Builder (moved from page header for context) */}
+            <div className="rounded-xl border-2 border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-4 md:p-5 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="h-11 w-11 rounded-lg bg-violet-600 flex items-center justify-center shadow-md shrink-0">
+                  <Wand2 className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base md:text-lg font-bold text-black leading-tight">Free Lease Builder</h3>
+                  <p className="text-xs md:text-sm text-black/80 font-medium">
+                    Generate a state-aware, court-ready lease for any property in minutes.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setSelectPropertyDialogOpen(true)}
+                className="bg-violet-600 hover:bg-violet-700 text-white font-semibold border-2 border-black shadow-lg shrink-0 h-11 px-5"
+              >
+                <Wand2 className="h-4 w-4 mr-2" />
+                Build a Lease
+              </Button>
+            </div>
+
             <div className="flex items-center justify-between">
-              <p className="text-sm text-white/70">
+              <p className="text-sm md:text-base text-white/80">
                 Lease templates for automatic generation when applications are approved.
               </p>
               <Button
                 size="sm"
-                onClick={() => setSelectPropertyDialogOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                variant="outline"
+                onClick={() => openUploadDialog('legal', 'lease')}
+                className="border-violet-400/50 text-violet-300 hover:bg-violet-500/20"
               >
-                <Plus className="h-4 w-4 mr-1" />
-                Create Template
+                <Upload className="h-4 w-4 mr-1" />
+                Upload Lease PDF
               </Button>
             </div>
             <LeaseTemplateGrid
@@ -728,55 +751,65 @@ export default function DocumentsClientV2({
 
 
   return (
-    <main className="w-full px-2 py-4 md:px-6 lg:px-8 md:py-6">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+    <main className="w-full">
+      <div className="space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-700 to-indigo-900 rounded-2xl p-4 md:p-6 border border-white/10">
-          <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-xl md:text-3xl font-bold text-white flex items-center gap-2">
-                <FolderOpen className="h-5 w-5 md:h-7 md:w-7 text-violet-300" />
-                Document Center
-              </h1>
-              <p className="text-xs md:text-sm text-white/70 mt-1">
-                Manage all your property documents in one place
-              </p>
-            </div>
-
-            <Button
-              onClick={() => setSelectPropertyDialogOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 h-10 text-sm px-4"
-            >
-              <Wand2 className="h-4 w-4 mr-2" />
-              Create Your Lease With Our Free Lease Builder
-            </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-violet-300 font-medium">
+              Documents
+            </p>
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-white leading-tight flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 md:h-7 md:w-7 text-violet-300 shrink-0" />
+              Document Center
+            </h1>
+            <p className="text-slate-400 text-xs sm:text-sm mt-0.5">
+              Leases, notices, receipts, and templates for every property.
+            </p>
           </div>
         </div>
 
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-white/50" />
           <Input
             placeholder="Search documents..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white/10 border-white/20 focus:border-violet-400 h-10 text-white placeholder:text-white/50"
+            className="pl-10 bg-white/10 border-white/20 focus:border-violet-400 h-11 md:h-12 text-sm md:text-base text-white placeholder:text-white/50"
           />
         </div>
 
-        {/* Browser-Style Tabs */}
-        <div className="bg-gradient-to-r from-indigo-700 to-indigo-900 rounded-t-2xl pt-3 px-2 md:px-4">
-          <BrowserTabs
-            tabs={browserTabs}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        </div>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full flex justify-around overflow-x-auto gap-1 sm:gap-2 bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border-2 border-black p-1 sm:p-1.5 rounded-lg sm:rounded-xl h-auto text-black mobile-scroll-x shadow-xl">
+            {browserTabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="data-[state=active]:bg-violet-600 data-[state=active]:text-white rounded-md sm:rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base whitespace-nowrap flex-shrink-0 font-bold text-white"
+                >
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
+                  <span className="hidden sm:inline font-medium">{tab.label}</span>
+                  {tab.count > 0 && (
+                    <Badge className="ml-1.5 bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-xs px-1.5 sm:px-2 border-0">
+                      {tab.count}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
 
-        {/* Tab Content Panel */}
-        <div className="bg-gradient-to-b from-indigo-900/80 to-indigo-950 border border-white/10 border-t-0 rounded-b-2xl p-4 md:p-6 -mt-4 md:-mt-6">
-          {renderTabContent()}
-        </div>
+          {/* Single content slot driven by activeTab */}
+          <TabsContent value={activeTab} forceMount className="mt-4 md:mt-5">
+            <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-4 md:p-6">
+              {renderTabContent()}
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Upload Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>

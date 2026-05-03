@@ -1,4 +1,4 @@
-import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings, LayoutDashboard, Briefcase, MessageCircle, Wrench, Calendar, Clock, FileSpreadsheet, DollarSign, UserPlus } from 'lucide-react';
+import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings, LayoutDashboard, Briefcase, MessageCircle, Wrench, Calendar, Clock, FileSpreadsheet, DollarSign, UserPlus, Home, Sparkles, Globe, Star, Receipt } from 'lucide-react';
 
 export interface AdminNavLink {
   title: string;
@@ -139,6 +139,90 @@ export const adminNavGroups: AdminNavGroup[] = [
         href: '/admin/team/payroll',
         icon: DollarSign,
         enterpriseOnly: true,
+      },
+    ],
+  },
+  {
+    label: 'Short-Term Rentals',
+    icon: Home,
+    defaultOpen: false,
+    items: [
+      {
+        title: 'STR Dashboard',
+        description: 'Overview & performance',
+        href: '/admin/str',
+        icon: Home,
+        proOnly: true,
+      },
+      {
+        title: 'Listings',
+        description: 'Manage rental properties',
+        href: '/admin/str/listings',
+        icon: Building2,
+        proOnly: true,
+      },
+      {
+        title: 'Reservations',
+        description: 'Bookings & check-ins',
+        href: '/admin/str/reservations',
+        icon: Calendar,
+        proOnly: true,
+      },
+      {
+        title: 'Calendar',
+        description: 'Availability & pricing',
+        href: '/admin/str/calendar',
+        icon: Calendar,
+        proOnly: true,
+      },
+      {
+        title: 'Guests',
+        description: 'Guest profiles & reviews',
+        href: '/admin/str/guests',
+        icon: Users,
+        proOnly: true,
+      },
+      {
+        title: 'Inbox',
+        description: 'Guest messaging',
+        href: '/admin/str/inbox',
+        icon: MessageCircle,
+        proOnly: true,
+      },
+      {
+        title: 'Earnings',
+        description: 'Revenue & payouts',
+        href: '/admin/str/earnings',
+        icon: DollarSign,
+        proOnly: true,
+      },
+      {
+        title: 'Cleaning',
+        description: 'Turnover schedules',
+        href: '/admin/str/cleaning',
+        icon: Sparkles,
+        proOnly: true,
+      },
+      {
+        title: 'Channel Manager',
+        description: 'Airbnb, VRBO & more',
+        href: '/admin/str/channels',
+        icon: Globe,
+        proOnly: true,
+      },
+      {
+        title: 'Reviews',
+        description: 'Ratings & responses',
+        href: '/admin/str/reviews',
+        icon: Star,
+        proOnly: true,
+      },
+      {
+        title: 'Analytics',
+        description: 'Occupancy & insights',
+        href: '/admin/str/analytics',
+        icon: TrendingUp,
+        proOnly: true,
       },
     ],
   },
