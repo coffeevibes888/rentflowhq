@@ -270,7 +270,7 @@ const ContactClient = () => {
 
               <div className="relative mt-6 flex items-center justify-between gap-3 text-[11px] text-slate-300/80">
                 <p className="max-w-[70%]">
-                  Free for landlords with up to 24 units. No credit card required.
+                  Free for landlords with up to 24 units.
                 </p>
                 <div className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5 text-[10px] font-medium tracking-wide text-emerald-200/90 ring-1 ring-emerald-400/40">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
