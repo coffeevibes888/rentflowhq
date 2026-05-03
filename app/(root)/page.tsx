@@ -173,7 +173,38 @@ export default Homepage;
 function PMLifecycleSection() {
   return (
     <section className='w-full py-10 md:py-20 px-4'>
-      <div className='max-w-6xl mx-auto'>
+      <div className='max-w-6xl mx-auto space-y-8'>
+        {/* Headline — sells the automation */}
+        <div className='text-center space-y-3 max-w-3xl mx-auto'>
+          <h2 className='text-2xl sm:text-3xl md:text-4xl font-bold text-black'>
+            Every Step. Fully Automated.
+          </h2>
+          <p className='text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed'>
+            From listing your property to collecting rent and handling move-outs — the entire tenant lifecycle runs on autopilot. 
+            Unlimited leases, unlimited applications, built-in e-signatures, and automated late fees. 
+            No per-unit charges. No hidden costs.
+          </p>
+          <div className='flex flex-wrap items-center justify-center gap-3 pt-2'>
+            <span className='inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200'>
+              <svg className='h-3.5 w-3.5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}><path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' /></svg>
+              Unlimited Leases
+            </span>
+            <span className='inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200'>
+              <svg className='h-3.5 w-3.5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}><path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' /></svg>
+              Unlimited Applications
+            </span>
+            <span className='inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200'>
+              <svg className='h-3.5 w-3.5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}><path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' /></svg>
+              Built-in E-Signatures
+            </span>
+            <span className='inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200'>
+              <svg className='h-3.5 w-3.5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}><path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' /></svg>
+              Auto Late Fees
+            </span>
+          </div>
+        </div>
+
+        {/* Lifecycle Card */}
         <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
           <div className='md:col-span-2 group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.01] bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border border-black shadow-2xl'>
             <div className='absolute top-4 right-4 md:top-6 md:right-6'>
@@ -192,7 +223,7 @@ function PMLifecycleSection() {
               </div>
 
               {/* Mobile layout */}
-              <div className='lg:hidden space-y-2'>
+              <div className='lg:hidden space-y-1.5'>
                 {[
                   [{ label: 'Add Property', sub: 'Listed On White Label Domain', border: 'border-blue-400', color: 'text-cyan-400' }, { label: 'Free Lease Builder', sub: 'Or Upload Your Own', border: 'border-cyan-300', color: 'text-cyan-400' }],
                   [{ label: 'One Click Approval', sub: 'Or Schedule Viewing', border: 'border-violet-300', color: 'text-violet-400' }, { label: "Tenant Apply's", sub: 'E-mail Notified', border: 'border-emerald-300', color: 'text-emerald-400' }],
@@ -200,17 +231,24 @@ function PMLifecycleSection() {
                   [{ label: 'Contractor Marketplace', sub: 'Find and Hire Contractors', border: 'border-violet-300', color: 'text-violet-400' }, { label: 'Maintenance Tickets', sub: 'Urgency System', border: 'border-emerald-300', color: 'text-emerald-400' }],
                   [{ label: 'Late Rent?', sub: "Auto Late Fee's", border: 'border-amber-300', color: 'text-amber-400' }, { label: 'Internal Communications', sub: 'Notices Sent', border: 'border-amber-300', color: 'text-amber-400' }],
                   [{ label: 'Move-Out', sub: 'Inspection Check list', border: 'border-slate-300', color: 'text-slate-300' }, { label: 'Eviction', sub: 'Legal Docs', border: 'border-red-300', color: 'text-red-400' }],
-                ].map((row, i) => (
-                  <div key={i} className='flex items-center gap-1 sm:gap-2'>
-                    <div className={`flex-1 bg-slate-800/90 rounded-lg px-2 py-2 border-2 ${row[0].border} text-center`}>
-                      <div className={`${row[0].color} text-[10px] sm:text-xs font-bold`}>{row[0].label}</div>
-                      <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>{row[0].sub}</div>
+                ].map((row, i, arr) => (
+                  <div key={i}>
+                    <div className='flex items-center gap-2'>
+                      <div className={`flex-1 bg-slate-800/90 rounded-lg px-3 py-2.5 border-2 ${row[0].border} text-center`}>
+                        <div className={`${row[0].color} text-[11px] sm:text-xs font-bold`}>{row[0].label}</div>
+                        <div className='text-white text-[9px] sm:text-[10px] mt-0.5 font-semibold'>{row[0].sub}</div>
+                      </div>
+                      <svg className='h-5 w-5 text-slate-700 shrink-0' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                      <div className={`flex-1 bg-slate-800/90 rounded-lg px-3 py-2.5 border-2 ${row[1].border} text-center`}>
+                        <div className={`${row[1].color} text-[11px] sm:text-xs font-bold`}>{row[1].label}</div>
+                        <div className='text-white text-[9px] sm:text-[10px] mt-0.5 font-semibold'>{row[1].sub}</div>
+                      </div>
                     </div>
-                    <svg className='h-4 w-4 text-slate-800 shrink-0' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
-                    <div className={`flex-1 bg-slate-800/90 rounded-lg px-2 py-2 border-2 ${row[1].border} text-center`}>
-                      <div className={`${row[1].color} text-[10px] sm:text-xs font-bold`}>{row[1].label}</div>
-                      <div className='text-white text-[8px] sm:text-[10px] mt-0.5 font-semibold'>{row[1].sub}</div>
-                    </div>
+                    {i < arr.length - 1 && (
+                      <div className={`flex py-0.5 ${i % 2 === 0 ? 'justify-end pr-[25%]' : 'justify-start pl-[25%]'}`}>
+                        <svg className='h-4 w-4 text-slate-600' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clipRule='evenodd' /></svg>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
