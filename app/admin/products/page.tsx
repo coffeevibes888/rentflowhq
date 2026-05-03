@@ -1,13 +1,12 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import Pagination from '@/components/shared/pagination';
 import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { PropertiesMobileList, PropertiesDesktopTable } from '@/components/admin/properties-list';
-import AddPropertyButton from '@/components/admin/add-property-button';
+import { Building2, Plus, Search, ChevronRight } from 'lucide-react';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20; // Increased for scale — 20 per page handles 500+ well
 
 const AdminProductsPage = async (props: {
   searchParams: Promise<{
@@ -29,7 +28,6 @@ const AdminProductsPage = async (props: {
 
   const where = {
     landlordId,
-    // Exclude soft-deleted properties
     status: { not: 'deleted' },
     ...(searchText && searchText !== 'all'
       ? { name: { contains: searchText, mode: 'insensitive' as const } }
@@ -41,22 +39,20 @@ const AdminProductsPage = async (props: {
       where,
       include: {
         units: {
-          select: { 
-            id: true, 
+          select: {
+            id: true,
             name: true,
-            rentAmount: true, 
-            images: true, 
+            rentAmount: true,
+            images: true,
             isAvailable: true,
             leases: {
               where: { status: 'active' },
               select: {
                 id: true,
-                tenant: {
-                  select: { name: true }
-                }
+                tenant: { select: { name: true } },
               },
-              take: 1
-            }
+              take: 1,
+            },
           },
         },
       },
@@ -69,23 +65,27 @@ const AdminProductsPage = async (props: {
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  // Transform properties for client components
+  // Summary stats
+  const totalUnits = properties.reduce((s, p) => s + p.units.length, 0);
+  const availableUnits = properties.reduce((s, p) => s + p.units.filter(u => u.isAvailable).length, 0);
+  const occupiedUnits = totalUnits - availableUnits;
+
   const transformedProperties = properties.map((property) => {
     const firstImage = property.units.find(u => u.images?.length > 0)?.images?.[0] || null;
-    const availableUnits = property.units.filter(u => u.isAvailable);
-    const lowestRent = availableUnits.length > 0
-      ? Math.min(...availableUnits.map(u => Number(u.rentAmount)))
+    const avail = property.units.filter(u => u.isAvailable);
+    const lowestRent = avail.length > 0
+      ? Math.min(...avail.map(u => Number(u.rentAmount)))
       : property.units.length > 0
       ? Math.min(...property.units.map(u => Number(u.rentAmount)))
       : 0;
-    
+
     return {
       id: property.id,
       name: property.name,
       type: property.type,
       firstImage,
       lowestRent,
-      availableUnitsCount: availableUnits.length,
+      availableUnitsCount: avail.length,
       units: property.units.map(u => ({
         id: u.id,
         name: u.name,
@@ -99,47 +99,110 @@ const AdminProductsPage = async (props: {
   });
 
   return (
-    <div className='w-full space-y-4'>
-      <div className='space-y-4'>
-        <div className='flex flex-col gap-3'>
-          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
-            <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3'>
-              <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50'>Properties</h1>
-              {searchText && (
-                <div className='text-xs sm:text-sm text-slate-300/80'>
-                  Filtered by <i>&quot;{searchText}&quot;</i>{' '}
-                  <Link href='/admin/products'>
-                    <Button variant='outline' size='sm' className='border-white/10 text-slate-200/90 hover:bg-slate-900/80 h-7 text-xs'>
-                      Remove Filter
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Mobile-optimized action buttons */}
-          <div className='flex flex-col sm:flex-row gap-2 w-full'>
-            <AddPropertyButton />
-            <Button 
-              asChild 
-              variant='outline'
-              className='w-full sm:w-auto text-sm sm:text-base border-white/20 text-slate-200 hover:bg-slate-800/50 font-semibold py-3 sm:py-2 touch-manipulation'
-            >
-              <Link href='/admin/tenants/add'>
-                <span className='text-base sm:text-sm'>+ Add Tenant</span>
-              </Link>
-            </Button>
-          </div>
+    <div className='w-full space-y-5'>
+      {/* Header */}
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+        <div>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Properties</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>
+            Manage your buildings and units
+          </p>
         </div>
-
-        <PropertiesMobileList properties={transformedProperties} />
-        <PropertiesDesktopTable properties={transformedProperties} />
-
-        {totalPages > 1 && (
-          <Pagination page={page} totalPages={totalPages} />
-        )}
+        <div className='flex items-center gap-2'>
+          <Link
+            href='/admin/tenants/add'
+            className='px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all flex items-center gap-1.5'
+          >
+            <Plus className='h-3.5 w-3.5' />
+            Add Tenant
+          </Link>
+          <Link
+            href='/admin/products/new'
+            className='px-3 py-1.5 text-xs font-medium rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5'
+          >
+            <Plus className='h-3.5 w-3.5' />
+            Add Property
+          </Link>
+        </div>
       </div>
+
+      {/* Stats */}
+      <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
+        <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+          <p className='text-[10px] text-gray-500 font-medium'>Properties</p>
+          <p className='text-lg font-bold text-gray-900 mt-0.5'>{totalCount}</p>
+        </div>
+        <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+          <p className='text-[10px] text-gray-500 font-medium'>Total Units</p>
+          <p className='text-lg font-bold text-gray-900 mt-0.5'>{totalUnits}</p>
+        </div>
+        <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+          <p className='text-[10px] text-gray-500 font-medium'>Occupied</p>
+          <p className='text-lg font-bold text-gray-900 mt-0.5'>{occupiedUnits}</p>
+        </div>
+        <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+          <p className='text-[10px] text-gray-500 font-medium'>Available</p>
+          <p className='text-lg font-bold text-emerald-600 mt-0.5'>{availableUnits}</p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className='flex items-center gap-3'>
+        <form className='relative flex-1' action='/admin/products' method='GET'>
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400' />
+          <input
+            name='query'
+            type='text'
+            placeholder='Search properties...'
+            defaultValue={searchText}
+            className='w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 transition-all'
+          />
+        </form>
+        {searchText && (
+          <Link
+            href='/admin/products'
+            className='text-xs text-gray-500 hover:text-gray-700 font-medium whitespace-nowrap'
+          >
+            Clear filter
+          </Link>
+        )}
+        <span className='text-xs text-gray-400 whitespace-nowrap'>
+          Page {page} of {totalPages || 1}
+        </span>
+      </div>
+
+      {/* Properties List */}
+      {transformedProperties.length === 0 ? (
+        <div className='rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm'>
+          <Building2 className='mx-auto h-12 w-12 text-gray-300 mb-4' />
+          <h3 className='text-lg font-semibold text-gray-800 mb-2'>
+            {searchText ? 'No properties match your search' : 'No Properties Yet'}
+          </h3>
+          <p className='text-sm text-gray-500 mb-4 max-w-md mx-auto'>
+            {searchText
+              ? `No properties found for "${searchText}". Try a different search.`
+              : 'Add your first property to start managing units and tenants.'}
+          </p>
+          {!searchText && (
+            <Link
+              href='/admin/products/new'
+              className='inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:shadow-lg transition-all'
+            >
+              <Plus className='h-4 w-4' />
+              Add Property
+            </Link>
+          )}
+        </div>
+      ) : (
+        <>
+          <PropertiesMobileList properties={transformedProperties} />
+          <PropertiesDesktopTable properties={transformedProperties} />
+        </>
+      )}
+
+      {totalPages > 1 && (
+        <Pagination page={page} totalPages={totalPages} />
+      )}
     </div>
   );
 };

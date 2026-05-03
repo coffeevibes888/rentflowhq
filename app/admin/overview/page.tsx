@@ -317,6 +317,33 @@ const AdminOverviewPage = async (props: {
     createdAt: t.createdAt?.toISOString(),
   }));
 
+  // Build monthly rent collection data for chart (last 6 months)
+  const monthlyRentData: { month: string; collected: number; scheduled: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    const label = d.toLocaleDateString('en-US', { month: 'short' });
+
+    const [collected, scheduled] = await Promise.all([
+      prisma.rentPayment.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: 'paid',
+          paidAt: { gte: d, lt: monthEnd },
+          lease: { unit: { property: { landlordId } } },
+        },
+      }),
+      // Use current scheduled rent as proxy for each month
+      Promise.resolve(scheduledRentMonthly),
+    ]);
+
+    monthlyRentData.push({
+      month: label,
+      collected: Number(collected._sum?.amount || 0),
+      scheduled: scheduledRentMonthly,
+    });
+  }
+
   return (
     <DashboardClient
       stats={{
@@ -341,6 +368,7 @@ const AdminOverviewPage = async (props: {
       recentLeases={serializedLeases}
       recentApplications={serializedApplications}
       recentTickets={serializedTickets}
+      monthlyRentData={monthlyRentData}
       listingUrl={listingUrl}
       contractorUrl={contractorUrl}
       landlordName={landlordName}

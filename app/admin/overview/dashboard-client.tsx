@@ -9,6 +9,10 @@ import {
   ChevronRight, Calendar, AlertTriangle, CheckCircle2, Clock,
   Home, ClipboardList, Shield, Plus, ExternalLink, Copy, Share2,
 } from 'lucide-react';
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
+} from 'recharts';
 
 interface DashboardStats {
   totalUnits: number;
@@ -62,6 +66,7 @@ interface DashboardClientProps {
   recentLeases: RecentLease[];
   recentApplications: RecentApplication[];
   recentTickets: RecentTicket[];
+  monthlyRentData: { month: string; collected: number; scheduled: number }[];
   listingUrl: string;
   contractorUrl: string;
   landlordName: string;
@@ -73,6 +78,7 @@ export default function DashboardClient({
   recentLeases,
   recentApplications,
   recentTickets,
+  monthlyRentData,
   listingUrl,
   contractorUrl,
   landlordName,
@@ -100,13 +106,58 @@ export default function DashboardClient({
         </div>
         <div className='flex items-center gap-2'>
           <Link
-            href='/admin/products'
+            href='/admin/products/new'
             className='px-3 py-1.5 text-xs font-medium rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5'
           >
             <Plus className='h-3.5 w-3.5' />
             Add Property
           </Link>
         </div>
+      </div>
+
+      {/* Share Links Bar */}
+      <div className='flex flex-wrap gap-2'>
+        {listingUrl && (
+          <button
+            onClick={() => handleCopy(listingUrl, 'listing')}
+            className='inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-xs'
+          >
+            <div className='h-6 w-6 rounded-md bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-white shrink-0'>
+              <Home className='h-3 w-3' />
+            </div>
+            <span className='font-medium text-gray-700'>Share Listing</span>
+            {copiedUrl === 'listing' ? (
+              <CheckCircle2 className='h-3.5 w-3.5 text-green-500' />
+            ) : (
+              <Copy className='h-3.5 w-3.5 text-gray-400' />
+            )}
+          </button>
+        )}
+        <button
+          onClick={() => handleCopy(contractorUrl, 'contractor')}
+          className='inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-xs'
+        >
+          <div className='h-6 w-6 rounded-md bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center text-white shrink-0'>
+            <Wrench className='h-3 w-3' />
+          </div>
+          <span className='font-medium text-gray-700'>Invite Contractor</span>
+          {copiedUrl === 'contractor' ? (
+            <CheckCircle2 className='h-3.5 w-3.5 text-green-500' />
+          ) : (
+            <Copy className='h-3.5 w-3.5 text-gray-400' />
+          )}
+        </button>
+        {listingUrl && (
+          <a
+            href={listingUrl}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-xs'
+          >
+            <ExternalLink className='h-3.5 w-3.5 text-gray-400' />
+            <span className='font-medium text-gray-700'>View Listing Page</span>
+          </a>
+        )}
       </div>
 
       {/* KPI Cards */}
@@ -313,89 +364,6 @@ export default function DashboardClient({
             </div>
           </div>
 
-          {/* Recent Applications */}
-          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-            <div className='flex items-center justify-between mb-3'>
-              <h3 className='text-sm font-bold text-gray-800'>Applications</h3>
-              <Link href='/admin/applications' className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1'>
-                View All <ChevronRight className='h-3 w-3' />
-              </Link>
-            </div>
-            {recentApplications.length === 0 ? (
-              <p className='text-xs text-gray-400 text-center py-4'>No applications yet</p>
-            ) : (
-              <div className='space-y-2'>
-                {recentApplications.slice(0, 4).map((app) => (
-                  <Link
-                    key={app.id}
-                    href={`/admin/applications/${app.id}`}
-                    className='flex items-center gap-2.5 p-2 rounded-lg hover:bg-gray-50 transition-colors'
-                  >
-                    <div className='h-7 w-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0'>
-                      {(app.fullName || '?')[0].toUpperCase()}
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <p className='text-[11px] font-semibold text-gray-800 truncate'>{app.fullName || 'Unknown'}</p>
-                      <p className='text-[10px] text-gray-500 truncate'>
-                        {app.unit?.property?.name} · {app.unit?.name}
-                      </p>
-                    </div>
-                    <StatusBadge status={app.status} />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Share Links */}
-          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-            <h3 className='text-sm font-bold text-gray-800 mb-3'>Share Links</h3>
-            <div className='space-y-2'>
-              {listingUrl && (
-                <div className='flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-100'>
-                  <div className='h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-white shrink-0'>
-                    <Home className='h-4 w-4' />
-                  </div>
-                  <div className='flex-1 min-w-0'>
-                    <p className='text-[11px] font-semibold text-gray-800'>Listing Page</p>
-                    <p className='text-[10px] text-gray-500 truncate'>{listingUrl}</p>
-                  </div>
-                  <button
-                    onClick={() => handleCopy(listingUrl, 'listing')}
-                    className='p-1.5 rounded-md hover:bg-gray-200 transition-colors'
-                    title='Copy link'
-                  >
-                    {copiedUrl === 'listing' ? (
-                      <CheckCircle2 className='h-3.5 w-3.5 text-green-500' />
-                    ) : (
-                      <Copy className='h-3.5 w-3.5 text-gray-400' />
-                    )}
-                  </button>
-                </div>
-              )}
-              <div className='flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-100'>
-                <div className='h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center text-white shrink-0'>
-                  <Wrench className='h-4 w-4' />
-                </div>
-                <div className='flex-1 min-w-0'>
-                  <p className='text-[11px] font-semibold text-gray-800'>Contractor Sign-up</p>
-                  <p className='text-[10px] text-gray-500 truncate'>Invite contractors</p>
-                </div>
-                <button
-                  onClick={() => handleCopy(contractorUrl, 'contractor')}
-                  className='p-1.5 rounded-md hover:bg-gray-200 transition-colors'
-                  title='Copy link'
-                >
-                  {copiedUrl === 'contractor' ? (
-                    <CheckCircle2 className='h-3.5 w-3.5 text-green-500' />
-                  ) : (
-                    <Copy className='h-3.5 w-3.5 text-gray-400' />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* Financial Summary */}
           <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
             <div className='flex items-center justify-between mb-3'>
@@ -421,30 +389,109 @@ export default function DashboardClient({
           </div>
         </div>
       </div>
+
+      {/* Charts Row */}
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
+        {/* Rent Collection Trend */}
+        <div className='lg:col-span-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+          <div className='flex items-center justify-between mb-4'>
+            <div>
+              <h3 className='text-sm font-bold text-gray-800'>Rent Collection</h3>
+              <p className='text-[11px] text-gray-500'>Monthly collected vs scheduled rent</p>
+            </div>
+            <Link href='/admin/revenue' className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1'>
+              View Details <ChevronRight className='h-3 w-3' />
+            </Link>
+          </div>
+          <div className='h-[220px]'>
+            <ResponsiveContainer width='100%' height='100%'>
+              <AreaChart data={monthlyRentData}>
+                <defs>
+                  <linearGradient id='pmCollectedGrad' x1='0' y1='0' x2='0' y2='1'>
+                    <stop offset='5%' stopColor='#06B6D4' stopOpacity={0.3} />
+                    <stop offset='95%' stopColor='#06B6D4' stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
+                <XAxis dataKey='month' tick={{ fontSize: 11, fill: '#9CA3AF' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} tickFormatter={formatYAxis} />
+                <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: '12px' }} formatter={formatTooltip} />
+                <Area type='monotone' dataKey='scheduled' stroke='#D1D5DB' strokeWidth={1.5} fill='none' strokeDasharray='4 4' />
+                <Area type='monotone' dataKey='collected' stroke='#06B6D4' strokeWidth={2.5} fill='url(#pmCollectedGrad)' />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Occupancy Donut */}
+        <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+          <div className='mb-4'>
+            <h3 className='text-sm font-bold text-gray-800'>Occupancy</h3>
+            <p className='text-[11px] text-gray-500'>Unit breakdown</p>
+          </div>
+          <div className='h-[160px]'>
+            <ResponsiveContainer width='100%' height='100%'>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Occupied', value: stats.occupiedUnits || 0 },
+                    { name: 'Vacant', value: stats.vacantUnits || 0 },
+                  ].filter(d => d.value > 0)}
+                  cx='50%' cy='50%' innerRadius={45} outerRadius={70} paddingAngle={3} dataKey='value'
+                >
+                  <Cell fill='#06B6D4' />
+                  <Cell fill='#E5E7EB' />
+                </Pie>
+                <Tooltip formatter={(v: number, n: string) => [`${v} units`, n]} contentStyle={{ borderRadius: '10px', fontSize: '12px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className='space-y-2 mt-2'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-2'>
+                <div className='h-2.5 w-2.5 rounded-full bg-cyan-500' />
+                <span className='text-xs text-gray-700 font-medium'>Occupied</span>
+              </div>
+              <span className='text-xs font-bold text-gray-800'>{stats.occupiedUnits} units</span>
+            </div>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-2'>
+                <div className='h-2.5 w-2.5 rounded-full bg-gray-300' />
+                <span className='text-xs text-gray-700 font-medium'>Vacant</span>
+              </div>
+              <span className='text-xs font-bold text-gray-800'>{stats.vacantUnits} units</span>
+            </div>
+            <div className='pt-2 border-t border-gray-100'>
+              <div className='flex items-center justify-between'>
+                <span className='text-xs text-gray-500'>Occupancy Rate</span>
+                <span className='text-sm font-bold text-gray-900'>{stats.occupancyRate}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
+}
+
+// Chart formatters (extracted to avoid template literal issues in JSX)
+function formatYAxis(v: number): string {
+  return v >= 1000 ? '$' + (v / 1000).toFixed(0) + 'k' : '$' + v;
+}
+
+function formatTooltip(value: number, name: string): [string, string] {
+  return ['$' + value.toLocaleString(), name === 'collected' ? 'Collected' : 'Scheduled'];
 }
 
 // --- Sub-components ---
 
 function KPICard({ title, value, subtitle, icon: Icon, gradient, href, alert }: {
-  title: string;
-  value: string;
-  subtitle: string;
-  icon: React.ElementType;
-  gradient: string;
-  href: string;
-  alert?: boolean;
+  title: string; value: string; subtitle: string; icon: React.ElementType; gradient: string; href: string; alert?: boolean;
 }) {
   return (
-    <Link
-      href={href}
-      className='relative rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transition-all overflow-hidden group'
-    >
+    <Link href={href} className='relative rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transition-all overflow-hidden group'>
       <div className={`absolute top-0 right-0 h-20 w-20 bg-gradient-to-bl ${gradient} opacity-10 rounded-bl-full group-hover:opacity-20 transition-opacity`} />
-      {alert && (
-        <div className='absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 animate-pulse' />
-      )}
+      {alert && <div className='absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 animate-pulse' />}
       <div className='flex items-start justify-between'>
         <div className='space-y-1'>
           <p className='text-[10px] sm:text-xs text-gray-500 font-medium'>{title}</p>
@@ -483,14 +530,8 @@ function StatusBadge({ status }: { status: string }) {
     draft: { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Draft' },
     signed: { bg: 'bg-green-50', text: 'text-green-600', label: 'Signed' },
   };
-
   const c = config[status] || { bg: 'bg-gray-100', text: 'text-gray-500', label: status.replace(/_/g, ' ') };
-
-  return (
-    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${c.bg} ${c.text} capitalize`}>
-      {c.label}
-    </span>
-  );
+  return <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${c.bg} ${c.text} capitalize`}>{c.label}</span>;
 }
 
 function FinancialRow({ label, value, color, bold }: { label: string; value: string; color: string; bold?: boolean }) {
