@@ -1,17 +1,12 @@
 import { Metadata } from 'next';
 import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
-import { Building2, FileText, Wrench, DollarSign, Wallet, MessageCircle} from 'lucide-react';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { adminNavLinks } from '@/lib/constants/admin-nav';
-import { formatCurrency } from '@/lib/utils';
 import { cookies } from 'next/headers';
 import { SERVER_URL } from '@/lib/constants';
-import ShareListingCard from '@/components/admin/share-listing-card';
-import ShareContractorCard from '@/components/admin/share-contractor-card';
 import { unstable_cache } from 'next/cache';
+import DashboardClient from './dashboard-client';
 
 export const metadata: Metadata = {
   title: 'Property Dashboard',
@@ -21,7 +16,7 @@ export const metadata: Metadata = {
 const getCachedDashboardStats = unstable_cache(
   async (landlordId: string, startOfMonth: Date, startOfYear: Date) => {
     const prismaAny = prisma as any;
-    
+
     const [
       propertiesCount,
       applicationsCount,
@@ -30,10 +25,15 @@ const getCachedDashboardStats = unstable_cache(
       totalUnits,
       occupiedUnits,
       urgentTickets,
+      openTickets,
       rentPaidThisMonth,
       rentPaidYtd,
       scheduledRent,
       unpaidRent,
+      recentLeases,
+      recentApplications,
+      recentTickets,
+      leasesExpiringSoon,
     ] = await Promise.all([
       prisma.property.count({ where: { landlordId } }),
       prisma.rentalApplication.count({
@@ -56,6 +56,12 @@ const getCachedDashboardStats = unstable_cache(
         where: {
           status: { in: ['open', 'in_progress'] },
           priority: 'urgent',
+          unit: { property: { landlordId } },
+        },
+      }),
+      prisma.maintenanceTicket.count({
+        where: {
+          status: { in: ['open', 'in_progress'] },
           unit: { property: { landlordId } },
         },
       }),
@@ -87,6 +93,59 @@ const getCachedDashboardStats = unstable_cache(
           lease: { unit: { property: { landlordId } } },
         },
       }),
+      // Recent leases for activity feed
+      prisma.lease.findMany({
+        where: { unit: { property: { landlordId } } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          status: true,
+          rentAmount: true,
+          startDate: true,
+          createdAt: true,
+          tenant: { select: { name: true } },
+          unit: { select: { name: true, property: { select: { name: true } } } },
+        },
+      }),
+      // Recent applications
+      prisma.rentalApplication.findMany({
+        where: { unit: { property: { landlordId } } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          fullName: true,
+          status: true,
+          createdAt: true,
+          unit: { select: { name: true, property: { select: { name: true } } } },
+        },
+      }),
+      // Recent maintenance tickets
+      prisma.maintenanceTicket.findMany({
+        where: { unit: { property: { landlordId } } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          createdAt: true,
+          tenant: { select: { name: true } },
+        },
+      }),
+      // Leases expiring in next 60 days
+      prisma.lease.count({
+        where: {
+          status: 'active',
+          endDate: {
+            gte: new Date(),
+            lte: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          },
+          unit: { property: { landlordId } },
+        },
+      }),
     ]);
 
     return {
@@ -97,14 +156,19 @@ const getCachedDashboardStats = unstable_cache(
       totalUnits,
       occupiedUnits,
       urgentTickets,
+      openTickets,
       rentPaidThisMonth,
       rentPaidYtd,
       scheduledRent,
       unpaidRent,
+      recentLeases,
+      recentApplications,
+      recentTickets,
+      leasesExpiringSoon,
     };
   },
-  ['admin-dashboard-stats'],
-  { revalidate: 60 } // Cache for 60 seconds
+  ['admin-dashboard-stats-v2'],
+  { revalidate: 60 }
 );
 
 const AdminOverviewPage = async (props: {
@@ -148,13 +212,10 @@ const AdminOverviewPage = async (props: {
   const landlordSubdomain = landlordResult.landlord.subdomain;
   const landlordName = landlordResult.landlord.companyName || landlordResult.landlord.name;
 
-  // Build the listing URL for sharing
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'propertyflowhq.com';
   const isLocalhost = rootDomain.includes('localhost');
   const protocol = isLocalhost ? 'http' : 'https';
   const listingUrl = landlordSubdomain ? `${protocol}://${rootDomain}/${landlordSubdomain}` : '';
-  
-  // Build the contractor sign-up URL
   const contractorUrl = `${protocol}://${rootDomain}/sign-up?callbackUrl=${encodeURIComponent('/onboarding/contractor')}`;
 
   const now = new Date();
@@ -167,9 +228,8 @@ const AdminOverviewPage = async (props: {
 
   const prismaAny = prisma as any;
 
-  // Use cached dashboard stats for main metrics
   const cachedStats = await getCachedDashboardStats(landlordId, startOfMonth, startOfYear);
-  
+
   const {
     propertiesCount,
     applicationsCount,
@@ -178,20 +238,22 @@ const AdminOverviewPage = async (props: {
     totalUnits,
     occupiedUnits,
     urgentTickets,
+    openTickets,
     rentPaidThisMonth,
     rentPaidYtd,
     scheduledRent,
     unpaidRent,
+    recentLeases,
+    recentApplications,
+    recentTickets,
+    leasesExpiringSoon,
   } = cachedStats;
 
-  // These need to be fetched fresh (user-specific)
+  // Fresh user-specific data
   const [openSupportThreads, threadParticipants] = await Promise.all([
     isAdmin
       ? prismaAny.thread.count({
-          where: {
-            type: { in: ['contact', 'support'] },
-            status: 'open',
-          },
+          where: { type: { in: ['contact', 'support'] }, status: 'open' },
         })
       : Promise.resolve(0),
     userId
@@ -199,12 +261,7 @@ const AdminOverviewPage = async (props: {
           where: { userId },
           include: {
             thread: {
-              include: {
-                messages: {
-                  orderBy: { createdAt: 'desc' },
-                  take: 1,
-                },
-              },
+              include: { messages: { orderBy: { createdAt: 'desc' }, take: 1 } },
             },
           },
         })
@@ -218,20 +275,17 @@ const AdminOverviewPage = async (props: {
   const totalUnitsSafe = Number(totalUnits || 0);
   const occupiedUnitsSafe = Number(occupiedUnits || 0);
   const vacantUnits = Math.max(totalUnitsSafe - occupiedUnitsSafe, 0);
+  const occupancyRate = totalUnitsSafe > 0 ? Math.round((occupiedUnitsSafe / totalUnitsSafe) * 100) : 0;
 
   const rentCollectedThisMonth = Number(rentPaidThisMonth?._sum?.amount || 0);
   const rentCollectedYtd = Number(rentPaidYtd?._sum?.amount || 0);
   const scheduledRentMonthly = Number(scheduledRent?._sum?.rentAmount || 0);
-
-  const collectionRate = scheduledRentMonthly > 0 ? (rentCollectedThisMonth / scheduledRentMonthly) * 100 : 0;
-
+  const collectionRate = scheduledRentMonthly > 0 ? Math.round((rentCollectedThisMonth / scheduledRentMonthly) * 100) : 0;
   const availableBalance = Number(unpaidRent?._sum?.amount || 0);
 
   type ThreadParticipantWithThread = {
     lastReadAt: Date | null;
-    thread: {
-      messages: { createdAt: Date }[];
-    };
+    thread: { messages: { createdAt: Date }[] };
   };
 
   const unreadThreads = Array.isArray(threadParticipants)
@@ -243,131 +297,55 @@ const AdminOverviewPage = async (props: {
       }).length
     : 0;
 
-  const messagesCountToShow = isAdmin ? Number(openSupportThreads || 0) : unreadThreads;
+  const messagesCount = isAdmin ? Number(openSupportThreads || 0) : unreadThreads;
+
+  // Serialize dates for client component
+  const serializedLeases = (recentLeases as any[]).map((l: any) => ({
+    ...l,
+    startDate: l.startDate?.toISOString(),
+    createdAt: l.createdAt?.toISOString(),
+    rentAmount: Number(l.rentAmount || 0),
+  }));
+
+  const serializedApplications = (recentApplications as any[]).map((a: any) => ({
+    ...a,
+    createdAt: a.createdAt?.toISOString(),
+  }));
+
+  const serializedTickets = (recentTickets as any[]).map((t: any) => ({
+    ...t,
+    createdAt: t.createdAt?.toISOString(),
+  }));
 
   return (
-    <div className='w-full space-y-4 sm:space-y-6'>
-      <div>
-        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-black mb-1'>Property Dashboard</h1>
-        <p className='text-xs sm:text-sm text-black'>High-level snapshot of properties, tenants, and operations.</p>
-      </div>
-
-      {/* Stats Cards - Clickable on mobile */}
-      <div className='relative rounded-xl sm:rounded-2xl border border-white shadow-xl overflow-hidden'>
-        <div className='absolute inset-0 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-300' />
-        <div className='relative p-3 sm:p-4 md:p-6'>
-          <div className='flex items-center justify-between mb-3'>
-            <h3 className='text-sm sm:text-base font-bold text-black'>Your Dashboard</h3>
-            <span className='text-[10px] text-black bg-white/30 px-1.5 py-0.5 rounded-full ring-1 ring-black/20 font-semibold'>Live</span>
-          </div>
-
-          <div className='grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3'>
-            {/* Share Listing Card - Prominent position */}
-            {listingUrl && (
-              <ShareListingCard listingUrl={listingUrl} landlordName={landlordName} />
-            )}
-
-            {/* Share Contractor Card */}
-            <ShareContractorCard contractorUrl={contractorUrl} landlordName={landlordName} />
-
-            <Link
-              href='/admin/products'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
-            >
-              <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black font-bold'>Total Units</div>
-                <Building2 className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
-              </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{totalUnitsSafe}</div>
-              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{vacantUnits} vacant</div>
-            </Link>
-
-            <Link
-              href='/admin/revenue'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
-            >
-              <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black font-bold'>Rent This Month</div>
-                <DollarSign className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600' />
-              </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{formatCurrency(rentCollectedThisMonth)}</div>
-              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{collectionRate.toFixed(0)}% collected</div>
-            </Link>
-
-            <Link
-              href='/admin/maintenance'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
-            >
-              <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black font-bold'>Maintenance</div>
-                <Wrench className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600' />
-              </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{ticketsCount}</div>
-              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{urgentTickets} urgent</div>
-            </Link>
-
-            <Link
-              href='/admin/applications'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
-            >
-              <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black font-bold'>Applications</div>
-                <FileText className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-600' />
-              </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{applicationsCount}</div>
-              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>Review now</div>
-            </Link>
-
-            <Link
-              href='/admin/payouts'
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
-            >
-              <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black font-bold'>Available Balance</div>
-                <Wallet className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600' />
-              </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{formatCurrency(availableBalance)}</div>
-              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>Ready to cash out</div>
-            </Link>
-
-            <Link
-              href={isAdmin ? '/admin/messages' : '/admin/tenant-messages'}
-              className='rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-white p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]'
-            >
-              <div className='flex items-center justify-between'>
-                <div className='text-[10px] sm:text-xs text-black font-bold'>Messages</div>
-                <MessageCircle className='h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600' />
-              </div>
-              <div className='text-lg sm:text-xl md:text-2xl font-bold text-black'>{messagesCountToShow}</div>
-              <div className='text-[9px] sm:text-[10px] text-black font-semibold'>{isAdmin ? 'Open inbox threads' : 'Unread threads'}</div>
-            </Link>
-          </div>
-
-          <div className='mt-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-2.5 sm:p-3 md:p-4 border border-white shadow-2xl'>
-            <div className='grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4'>
-              <div className='space-y-0.5'>
-                <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Occupied</div>
-                <div className='text-xs sm:text-md font-bold text-black'>{occupiedUnitsSafe}</div>
-              </div>
-              <div className='space-y-0.5'>
-                <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Tenants</div>
-                <div className='text-xs sm:text-md font-bold text-black'>{tenantsCount}</div>
-              </div>
-              <div className='space-y-0.5'>
-                <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Rent (YTD)</div>
-                <div className='text-xs sm:text-md font-bold text-black'>{formatCurrency(rentCollectedYtd)}</div>
-              </div>
-              <div className='space-y-0.5'>
-                <div className='text-[9px] sm:text-[10px] text-black font-bold uppercase tracking-wide'>Properties</div>
-                <div className='text-xs sm:text-md font-bold text-black'>{propertiesCount}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-    </div>
+    <DashboardClient
+      stats={{
+        totalUnits: totalUnitsSafe,
+        occupiedUnits: occupiedUnitsSafe,
+        vacantUnits,
+        occupancyRate,
+        propertiesCount,
+        tenantsCount,
+        applicationsCount,
+        ticketsCount,
+        urgentTickets,
+        openTickets,
+        messagesCount,
+        rentCollectedThisMonth,
+        rentCollectedYtd,
+        scheduledRentMonthly,
+        collectionRate,
+        availableBalance,
+        leasesExpiringSoon,
+      }}
+      recentLeases={serializedLeases}
+      recentApplications={serializedApplications}
+      recentTickets={serializedTickets}
+      listingUrl={listingUrl}
+      contractorUrl={contractorUrl}
+      landlordName={landlordName}
+      isAdmin={isAdmin}
+    />
   );
 };
 

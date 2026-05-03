@@ -1,180 +1,148 @@
 import { requireAdmin } from '@/lib/auth-guard';
 import { getLandlordTenants } from '@/lib/actions/tenant.actions';
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, ChevronRight, MapPin } from 'lucide-react';
 
 export default async function TenantsPage() {
   await requireAdmin();
   const { tenants } = await getLandlordTenants();
 
+  const activeTenants = tenants.filter((t) => t.leaseStatus === 'active');
+  const otherTenants = tenants.filter((t) => t.leaseStatus !== 'active');
+
   return (
-    <main className="w-full space-y-4">
-      <div className="flex items-start justify-between gap-4">
+    <main className='w-full space-y-5'>
+      {/* Header */}
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-slate-50 mb-1">
-            Tenants
-          </h1>
-          <p className="text-xs text-slate-300/80">
-            Manage your tenants and their lease information.
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Tenants</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>
+            Manage your tenants and their lease information
           </p>
         </div>
-        <Link href="/admin/tenants/add">
-          <Button className="bg-violet-600 hover:bg-violet-500">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Tenant
-          </Button>
+        <Link
+          href='/admin/tenants/add'
+          className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:shadow-lg transition-all'
+        >
+          <Plus className='h-3.5 w-3.5' />
+          Add Tenant
         </Link>
       </div>
 
+      {/* Stats */}
+      <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
+        <StatCard label='Total Tenants' value={String(tenants.length)} />
+        <StatCard label='Active Leases' value={String(activeTenants.length)} />
+        <StatCard label='Avg Rent' value={tenants.length > 0 ? `$${Math.round(tenants.reduce((s, t) => s + t.rentAmount, 0) / tenants.length).toLocaleString()}` : '$0'} />
+        <StatCard label='Monthly Revenue' value={`$${activeTenants.reduce((s, t) => s + t.rentAmount, 0).toLocaleString()}`} />
+      </div>
+
       {tenants.length === 0 ? (
-        <div className="text-center py-12 rounded-lg border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 shadow-2xl">
-          <Users className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-          <h3 className="text-lg font-medium text-black mb-2">No Tenants Yet</h3>
-          <p className="text-black/70 mb-4 text-sm">
-            Add your first tenant to get started.
+        <div className='rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm'>
+          <Users className='mx-auto h-12 w-12 text-gray-300 mb-4' />
+          <h3 className='text-lg font-semibold text-gray-800 mb-2'>No Tenants Yet</h3>
+          <p className='text-sm text-gray-500 mb-4 max-w-md mx-auto'>
+            Add your first tenant to start managing leases and collecting rent.
           </p>
-          <Link href="/admin/tenants/add">
-            <Button className="bg-violet-600 hover:bg-violet-500">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Tenant
-            </Button>
+          <Link
+            href='/admin/tenants/add'
+            className='inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:shadow-lg transition-all'
+          >
+            <Plus className='h-4 w-4' />
+            Add Tenant
           </Link>
         </div>
       ) : (
         <>
-          {/* Mobile Cards */}
-          <div className="md:hidden space-y-2">
-            {tenants.map((tenant) => (
-              <Link
-                key={`${tenant.id}-${tenant.leaseId}`}
-                href={`/admin/leases/${tenant.leaseId}`}
-                className="block rounded-lg border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 transition-all active:scale-[0.99] shadow-2xl"
-              >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-black truncate">
-                      {tenant.name}
-                    </p>
-                    <p className="text-[10px] text-blue-800 truncate">
-                      {tenant.email}
-                    </p>
-                  </div>
-                  <Badge
-                    className={cn(
-                      'text-[9px] capitalize shrink-0',
-                      tenant.leaseStatus === 'active'
-                        ? 'bg-emerald-500/20 text-emerald-300'
-                        : 'bg-slate-500/20 text-slate-300'
-                    )}
-                  >
-                    {tenant.leaseStatus}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                  <div className="rounded bg-white/40 p-1.5 border border-black/10">
-                    <span className="text-black/70 font-semibold block">Property</span>
-                    <span className="text-black font-bold truncate block">
-                      {tenant.propertyName}
-                    </span>
-                  </div>
-                  <div className="rounded bg-white/40 p-1.5 border border-black/10">
-                    <span className="text-black/70 font-semibold block">Unit</span>
-                    <span className="text-black font-bold">{tenant.unitName}</span>
-                  </div>
-                  <div className="rounded bg-white/40 p-1.5 border border-black/10">
-                    <span className="text-black/70 font-semibold block">Rent</span>
-                    <span className="text-black font-bold">
-                      ${tenant.rentAmount.toLocaleString()}/mo
-                    </span>
-                  </div>
-                  <div className="rounded bg-white/40 p-1.5 border border-black/10">
-                    <span className="text-black/70 font-semibold block">Since</span>
-                    <span className="text-black font-bold">
-                      {new Date(tenant.startDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+          {/* Search bar area */}
+          <div className='flex items-center gap-3'>
+            <div className='relative flex-1'>
+              <svg className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+              </svg>
+              <input
+                type='text'
+                placeholder='Search tenants...'
+                className='w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 transition-all'
+                disabled
+              />
+            </div>
           </div>
 
-          {/* Desktop Table */}
-          <div className="hidden md:block rounded-lg border border-black bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 shadow-2xl overflow-hidden">
-            <table className="min-w-full text-xs">
-              <thead className="bg-white/40 border-b border-black">
-                <tr>
-                  <th className="px-3 py-2 text-left font-medium text-black">
-                    Tenant
-                  </th>
-                  <th className="px-3 py-2 text-left font-medium text-black">
-                    Property / Unit
-                  </th>
-                  <th className="px-3 py-2 text-left font-medium text-black">
-                    Rent
-                  </th>
-                  <th className="px-3 py-2 text-left font-medium text-black">
-                    Lease Start
-                  </th>
-                  <th className="px-3 py-2 text-left font-medium text-black">
-                    Status
-                  </th>
-                  <th className="px-3 py-2 text-left font-medium text-black">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {tenants.map((tenant) => (
-                  <tr
-                    key={`${tenant.id}-${tenant.leaseId}`}
-                    className="border-t border-black/10"
-                  >
-                    <td className="px-3 py-2 text-black">
-                      {tenant.name}
-                      <span className="block text-[10px] text-blue-800">
-                        {tenant.email}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-black">
-                      {tenant.propertyName} • {tenant.unitName}
-                    </td>
-                    <td className="px-3 py-2 text-black">
-                      ${tenant.rentAmount.toLocaleString()}/mo
-                    </td>
-                    <td className="px-3 py-2 text-black/70">
-                      {new Date(tenant.startDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-2">
-                      <Badge
-                        className={cn(
-                          'text-[9px] capitalize',
-                          tenant.leaseStatus === 'active'
-                            ? 'bg-emerald-500/20 text-emerald-300'
-                            : 'bg-slate-500/20 text-slate-300'
-                        )}
-                      >
-                        {tenant.leaseStatus}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-2">
-                      <Link
-                        href={`/admin/leases/${tenant.leaseId}`}
-                        className="inline-flex items-center rounded-full bg-violet-600 px-2.5 py-1 text-[10px] font-medium text-white hover:bg-violet-500"
-                      >
-                        View Lease
-                      </Link>
-                    </td>
+          {/* Table */}
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+            <div className='overflow-x-auto'>
+              <table className='w-full'>
+                <thead>
+                  <tr className='bg-gray-50/80'>
+                    <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Tenant</th>
+                    <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5 hidden sm:table-cell'>Property / Unit</th>
+                    <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5 hidden md:table-cell'>Rent</th>
+                    <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5 hidden lg:table-cell'>Lease Start</th>
+                    <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Status</th>
+                    <th className='text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className='divide-y divide-gray-50'>
+                  {tenants.map((tenant) => (
+                    <tr key={`${tenant.id}-${tenant.leaseId}`} className='hover:bg-gray-50/50 transition-colors'>
+                      <td className='px-4 py-3'>
+                        <div className='flex items-center gap-2.5'>
+                          <div className='h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0'>
+                            {(tenant.name || '?')[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className='text-xs font-semibold text-gray-800'>{tenant.name}</p>
+                            <p className='text-[10px] text-gray-500'>{tenant.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className='px-4 py-3 hidden sm:table-cell'>
+                        <div className='flex items-center gap-1.5'>
+                          <MapPin className='h-3 w-3 text-gray-400' />
+                          <span className='text-xs text-gray-700'>{tenant.propertyName} · {tenant.unitName}</span>
+                        </div>
+                      </td>
+                      <td className='px-4 py-3 hidden md:table-cell'>
+                        <span className='text-xs font-bold text-gray-800'>${tenant.rentAmount.toLocaleString()}/mo</span>
+                      </td>
+                      <td className='px-4 py-3 hidden lg:table-cell'>
+                        <span className='text-xs text-gray-500'>{new Date(tenant.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </td>
+                      <td className='px-4 py-3'>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                          tenant.leaseStatus === 'active' ? 'bg-green-50 text-green-600' :
+                          tenant.leaseStatus === 'pending' ? 'bg-amber-50 text-amber-600' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          {tenant.leaseStatus}
+                        </span>
+                      </td>
+                      <td className='px-4 py-3 text-right'>
+                        <Link
+                          href={`/admin/leases/${tenant.leaseId}`}
+                          className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-0.5 justify-end'
+                        >
+                          View <ChevronRight className='h-3 w-3' />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
     </main>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+      <p className='text-[10px] text-gray-500 font-medium'>{label}</p>
+      <p className='text-lg font-bold text-gray-900 mt-0.5'>{value}</p>
+    </div>
   );
 }

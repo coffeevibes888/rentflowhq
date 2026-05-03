@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Users, UserPlus, Mail, Shield, ShieldCheck, Crown, 
   MoreVertical, Trash2, Clock, Search,
-  Building2, Briefcase, Wrench, Calculator, RotateCcw
+  Building2, Briefcase, Wrench, Calculator, RotateCcw,
+  Truck, HardHat, FileText, DollarSign, Package, Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -35,15 +36,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { UpgradeModal } from '@/components/contractor/subscription/UpgradeModal';
 
+/** Shape returned by GET /api/contractor/team/roles */
+interface ContractorRoleRecord {
+  id: string;
+  name: string;
+  description?: string | null;
+  permissions: string[];
+  isCustom: boolean;
+  _count?: { employees: number };
+}
+
 interface TeamMember {
   id: string;
   userId: string;
-  role: 'owner' | 'admin' | 'property_manager' | 'leasing_agent' | 'showing_agent' | 'maintenance_tech' | 'accountant' | 'employee';
+  role: string;
+  roleId?: string | null;
   status: 'pending' | 'active' | 'inactive';
   invitedEmail?: string;
   permissions: string[];
   joinedAt?: string;
   createdAt: string;
+  assignedRole?: { id: string; name: string } | null;
   user?: {
     id: string;
     name: string;
@@ -59,54 +72,36 @@ interface TeamMembersTabProps {
   currentUserRole?: string;
 }
 
-const ROLE_CONFIG = {
-  owner: { icon: Crown, color: 'text-amber-400', bg: 'bg-amber-500/20', label: 'Owner' },
-  admin: { icon: ShieldCheck, color: 'text-violet-400', bg: 'bg-violet-500/20', label: 'Admin' },
-  property_manager: { icon: Briefcase, color: 'text-blue-400', bg: 'bg-blue-500/20', label: 'Property Manager' },
-  leasing_agent: { icon: Building2, color: 'text-cyan-400', bg: 'bg-cyan-500/20', label: 'Leasing Agent' },
-  showing_agent: { icon: Users, color: 'text-teal-400', bg: 'bg-teal-500/20', label: 'Showing Agent' },
-  maintenance_tech: { icon: Wrench, color: 'text-orange-400', bg: 'bg-orange-500/20', label: 'Maintenance Tech' },
-  accountant: { icon: Calculator, color: 'text-emerald-400', bg: 'bg-emerald-500/20', label: 'Accountant' },
-  employee: { icon: Clock, color: 'text-slate-400', bg: 'bg-slate-500/20', label: 'Employee' },
-  // Legacy role mappings
-  manager: { icon: Briefcase, color: 'text-blue-400', bg: 'bg-blue-500/20', label: 'Property Manager' },
-  member: { icon: Wrench, color: 'text-orange-400', bg: 'bg-orange-500/20', label: 'Maintenance Tech' },
+// Icon lookup by role key / name (case-insensitive partial match)
+const ROLE_ICON_MAP: Record<string, { icon: typeof Crown; color: string; bg: string }> = {
+  owner:             { icon: Crown,       color: 'text-amber-400',   bg: 'bg-amber-500/20' },
+  manager:           { icon: Briefcase,   color: 'text-blue-400',    bg: 'bg-blue-500/20' },
+  foreman:           { icon: HardHat,     color: 'text-orange-400',  bg: 'bg-orange-500/20' },
+  technician:        { icon: Wrench,      color: 'text-green-400',   bg: 'bg-green-500/20' },
+  driver:            { icon: Truck,       color: 'text-cyan-400',    bg: 'bg-cyan-500/20' },
+  office_admin:      { icon: FileText,    color: 'text-pink-400',    bg: 'bg-pink-500/20' },
+  bookkeeper:        { icon: Calculator,  color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
+  sales:             { icon: DollarSign,  color: 'text-yellow-400',  bg: 'bg-yellow-500/20' },
+  warehouse_manager: { icon: Package,     color: 'text-indigo-400',  bg: 'bg-indigo-500/20' },
+  payroll_manager:   { icon: DollarSign,  color: 'text-teal-400',    bg: 'bg-teal-500/20' },
+  helper:            { icon: Users,       color: 'text-slate-400',   bg: 'bg-slate-500/20' },
 };
 
-const PERMISSION_CONFIG: Record<string, { label: string; description: string; category: string }> = {
-  view_properties: { label: 'View Properties', description: 'View property listings and details', category: 'properties' },
-  manage_properties: { label: 'Manage Properties', description: 'Add, edit, and delete properties', category: 'properties' },
-  manage_tenants: { label: 'Manage Tenants', description: 'Add, edit tenant information', category: 'tenants' },
-  process_applications: { label: 'Process Applications', description: 'Review and approve/deny applications', category: 'tenants' },
-  schedule_showings: { label: 'Schedule Showings', description: 'Schedule property showings', category: 'tenants' },
-  manage_maintenance: { label: 'Manage Maintenance', description: 'Create and manage work orders', category: 'maintenance' },
-  view_financials: { label: 'View Financials', description: 'View financial reports (read-only)', category: 'finances' },
-  manage_finances: { label: 'Manage Finances', description: 'Process payments and refunds', category: 'finances' },
-  manage_team: { label: 'Manage Team', description: 'Invite and manage team members', category: 'team' },
-  manage_schedule: { label: 'Manage Schedule', description: 'Create team schedules and shifts', category: 'team' },
-  approve_timesheets: { label: 'Approve Timesheets', description: 'Review and approve timesheets', category: 'team' },
-  view_reports: { label: 'View Reports', description: 'Access analytics dashboards', category: 'reports' },
-};
+const DEFAULT_ROLE_STYLE = { icon: Shield, color: 'text-slate-400', bg: 'bg-slate-500/20' };
 
-const PERMISSION_CATEGORIES = [
-  { id: 'properties', label: 'Properties', icon: Building2 },
-  { id: 'tenants', label: 'Tenants', icon: Users },
-  { id: 'maintenance', label: 'Maintenance', icon: Wrench },
-  { id: 'finances', label: 'Finances', icon: Calculator },
-  { id: 'team', label: 'Team', icon: Briefcase },
-  { id: 'reports', label: 'Reports', icon: ShieldCheck },
-];
+/** Resolve icon/color for a role name (fuzzy match on key words) */
+function getRoleStyle(roleName: string) {
+  const lower = roleName.toLowerCase().replace(/[^a-z]/g, '');
+  for (const [key, style] of Object.entries(ROLE_ICON_MAP)) {
+    if (lower.includes(key.replace('_', ''))) return style;
+  }
+  return DEFAULT_ROLE_STYLE;
+}
 
-const DEFAULT_PERMISSIONS: Record<string, string[]> = {
-  owner: Object.keys(PERMISSION_CONFIG),
-  admin: Object.keys(PERMISSION_CONFIG),
-  property_manager: ['view_properties', 'manage_properties', 'manage_tenants', 'process_applications', 'schedule_showings', 'manage_maintenance', 'view_financials', 'manage_schedule', 'approve_timesheets', 'view_reports'],
-  leasing_agent: ['view_properties', 'manage_tenants', 'process_applications', 'schedule_showings'],
-  showing_agent: ['view_properties', 'schedule_showings'],
-  maintenance_tech: ['view_properties', 'manage_maintenance'],
-  accountant: ['view_properties', 'view_financials', 'manage_finances', 'view_reports'],
-  employee: ['view_properties'],
-};
+/** Get display name for a member — prefer assignedRole.name, fall back to legacy role field */
+function getMemberRoleName(member: TeamMember): string {
+  return member.assignedRole?.name || member.role || 'Team Member';
+}
 
 export function TeamMembersTab({ 
   members: initialMembers, 
@@ -117,7 +112,7 @@ export function TeamMembersTab({
   const [members, setMembers] = useState<TeamMember[]>(initialMembers);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<string>('employee');
+  const [inviteRoleId, setInviteRoleId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
@@ -128,17 +123,60 @@ export function TeamMembersTab({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<'limit' | 'feature'>('limit');
 
+  // Roles fetched from the API (ContractorRole records)
+  const [roles, setRoles] = useState<ContractorRoleRecord[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+
+  // Fetch contractor roles on mount
+  useEffect(() => {
+    async function fetchRoles() {
+      setRolesLoading(true);
+      try {
+        const res = await fetch('/api/contractor/team/roles');
+        const data = await res.json();
+        if (data.roles && Array.isArray(data.roles)) {
+          // Filter out the Owner role — you can't invite someone as Owner
+          const assignable = (data.roles as ContractorRoleRecord[]).filter(
+            (r) => r.name.toLowerCase() !== 'owner'
+          );
+          setRoles(assignable);
+          // Default to the first assignable role
+          if (assignable.length > 0 && !inviteRoleId) {
+            setInviteRoleId(assignable[0].id);
+          }
+        }
+      } catch {
+        console.error('Failed to fetch contractor roles');
+      } finally {
+        setRolesLoading(false);
+      }
+    }
+    fetchRoles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleInvite = async () => {
     if (!inviteEmail.trim()) return;
+    if (!inviteRoleId) {
+      setInviteError('Please select a role');
+      return;
+    }
     
     setIsLoading(true);
     setInviteError(null);
+
+    // Find the selected role record so we can send both roleId and a legacy role name
+    const selectedRole = roles.find((r) => r.id === inviteRoleId);
     
     try {
       const res = await fetch('/api/contractor/team/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+        body: JSON.stringify({
+          email: inviteEmail,
+          roleId: inviteRoleId,
+          role: selectedRole?.name.toLowerCase().replace(/[\s/]+/g, '_') || 'technician',
+        }),
       });
       const data = await res.json();
       
@@ -150,12 +188,12 @@ export function TeamMembersTab({
         setTimeout(() => {
           setShowInviteDialog(false);
           setInviteEmail('');
-          setInviteRole('employee');
+          setInviteRoleId(roles[0]?.id || '');
           setInviteSuccess(false);
         }, 1500);
       } else {
         // Check if it's a feature lock or limit error
-        if (data.featureLocked) {
+        if (data.featureLocked || data.limitReached) {
           setShowInviteDialog(false);
           setUpgradeReason(data.limitReached ? 'limit' : 'feature');
           setShowUpgradeModal(true);
@@ -209,19 +247,27 @@ export function TeamMembersTab({
     }
   };
 
-  const handleUpdateRole = async (memberId: string, newRole: string) => {
+  const handleUpdateRole = async (memberId: string, newRoleId: string) => {
     try {
       const res = await fetch(`/api/contractor/team/${memberId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole, keepCustomPermissions: false }),
+        body: JSON.stringify({ roleId: newRoleId, keepCustomPermissions: false }),
       });
       const data = await res.json();
       
       if (data.success) {
+        // Refresh the member in local state
+        const updatedRole = roles.find((r) => r.id === newRoleId);
         setMembers(members.map(m => 
           m.id === memberId 
-            ? { ...m, role: data.newRole || newRole as TeamMember['role'], permissions: data.newPermissions || DEFAULT_PERMISSIONS[newRole] || [] } 
+            ? { 
+                ...m, 
+                roleId: newRoleId,
+                assignedRole: updatedRole ? { id: updatedRole.id, name: updatedRole.name } : m.assignedRole,
+                role: data.newRole || m.role,
+                permissions: data.newPermissions || m.permissions,
+              } 
             : m
         ));
       } else {
@@ -290,10 +336,6 @@ export function TeamMembersTab({
   };
 
   const togglePermission = (permission: string) => {
-    // Don't allow removing view_properties (minimum access)
-    if (permission === 'view_properties' && selectedPermissions.includes(permission)) {
-      return;
-    }
     setSelectedPermissions(prev => 
       prev.includes(permission) 
         ? prev.filter(p => p !== permission)
@@ -317,18 +359,12 @@ export function TeamMembersTab({
     );
   });
 
-  // Pro plan roles
-  const proRoles = ['admin', 'property_manager', 'leasing_agent', 'showing_agent'];
-  // Enterprise-only roles
-  const enterpriseRoles = ['maintenance_tech', 'accountant', 'employee'];
-  
-  const availableRoles = isEnterprise 
-    ? [...proRoles, ...enterpriseRoles]
-    : proRoles;
-
   // Check if member has custom permissions (different from role defaults)
   const hasCustomPermissions = (member: TeamMember) => {
-    const defaults = DEFAULT_PERMISSIONS[member.role] || [];
+    if (!member.assignedRole) return false;
+    const roleRecord = roles.find((r) => r.id === member.roleId);
+    if (!roleRecord) return false;
+    const defaults = roleRecord.permissions || [];
     if (!member.permissions || member.permissions.length !== defaults.length) return true;
     return !defaults.every(p => member.permissions.includes(p));
   };
@@ -460,9 +496,9 @@ export function TeamMembersTab({
           ) : (
             <div className="divide-y divide-white/5">
               {filteredActive.map((member) => {
-                const roleKey = member.role as keyof typeof ROLE_CONFIG;
-                const config = ROLE_CONFIG[roleKey] || ROLE_CONFIG.employee;
-                const RoleIcon = config.icon;
+                const roleName = getMemberRoleName(member);
+                const style = getRoleStyle(roleName);
+                const RoleIcon = style.icon;
                 const isCustomized = hasCustomPermissions(member);
                 
                 return (
@@ -492,18 +528,18 @@ export function TeamMembersTab({
                     
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
-                        <Badge className={`${config.bg} ${config.color} border-0`}>
+                        <Badge className={`${style.bg} ${style.color} border-0`}>
                           <RoleIcon className="h-3 w-3 mr-1" />
-                          {config.label}
+                          {roleName}
                         </Badge>
-                        {isCustomized && member.role !== 'owner' && (
+                        {isCustomized && roleName.toLowerCase() !== 'owner' && (
                           <Badge variant="outline" className="border-violet-500/30 text-violet-400 text-xs">
                             Custom
                           </Badge>
                         )}
                       </div>
                       
-                      {member.role !== 'owner' && canManageTeam && (
+                      {roleName.toLowerCase() !== 'owner' && canManageTeam && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
@@ -512,16 +548,18 @@ export function TeamMembersTab({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-slate-800 border-white/10 w-52">
                             <div className="px-2 py-1.5 text-xs text-slate-400 font-medium">Change Role</div>
-                            {availableRoles.map(role => {
-                              const roleConfig = ROLE_CONFIG[role as keyof typeof ROLE_CONFIG];
+                            {roles.map(roleRecord => {
+                              const rStyle = getRoleStyle(roleRecord.name);
+                              const isActive = member.roleId === roleRecord.id;
                               return (
                                 <DropdownMenuItem 
-                                  key={role}
-                                  onClick={() => handleUpdateRole(member.id, role)}
-                                  className={`text-slate-200 focus:bg-white/10 ${member.role === role ? 'bg-white/5' : ''}`}
+                                  key={roleRecord.id}
+                                  onClick={() => handleUpdateRole(member.id, roleRecord.id)}
+                                  className={`text-slate-200 focus:bg-white/10 ${isActive ? 'bg-white/5' : ''}`}
                                 >
-                                  {roleConfig?.label || role}
-                                  {member.role === role && <span className="ml-auto text-violet-400">✓</span>}
+                                  <rStyle.icon className={`h-4 w-4 mr-2 ${rStyle.color}`} />
+                                  {roleRecord.name}
+                                  {isActive && <span className="ml-auto text-violet-400">✓</span>}
                                 </DropdownMenuItem>
                               );
                             })}
@@ -589,7 +627,7 @@ export function TeamMembersTab({
                   
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="border-amber-500/30 text-amber-400">
-                      {ROLE_CONFIG[member.role]?.label || member.role}
+                      {getMemberRoleName(member)}
                     </Badge>
                     <Button 
                       variant="ghost" 
@@ -661,48 +699,55 @@ export function TeamMembersTab({
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">Role</label>
-              <Select 
-                value={inviteRole} 
-                onValueChange={setInviteRole}
-                disabled={isLoading || inviteSuccess}
-              >
-                <SelectTrigger className="bg-slate-800 border-white/10 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-white/10">
-                  {availableRoles.map(role => {
-                    const config = ROLE_CONFIG[role as keyof typeof ROLE_CONFIG];
-                    const Icon = config?.icon || Shield;
-                    return (
-                      <SelectItem key={role} value={role} className="text-white">
-                        <div className="flex items-center gap-2">
-                          <Icon className={`h-4 w-4 ${config?.color || 'text-slate-400'}`} />
-                          {config?.label || role}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+              {rolesLoading ? (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-800 border border-white/10 text-slate-400 text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading roles...
+                </div>
+              ) : roles.length === 0 ? (
+                <div className="p-3 rounded-lg bg-slate-800 border border-white/10 text-slate-400 text-sm">
+                  No roles available. Roles will be created automatically.
+                </div>
+              ) : (
+                <Select 
+                  value={inviteRoleId} 
+                  onValueChange={setInviteRoleId}
+                  disabled={isLoading || inviteSuccess}
+                >
+                  <SelectTrigger className="bg-slate-800 border-white/10 text-white">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-white/10">
+                    {roles.map(roleRecord => {
+                      const style = getRoleStyle(roleRecord.name);
+                      const Icon = style.icon;
+                      return (
+                        <SelectItem key={roleRecord.id} value={roleRecord.id} className="text-white">
+                          <div className="flex items-center gap-2">
+                            <Icon className={`h-4 w-4 ${style.color}`} />
+                            {roleRecord.name}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              )}
               
-              {/* Role descriptions */}
-              <div className="text-xs text-slate-500 space-y-1.5 mt-3 p-3 rounded-lg bg-slate-800/40 border border-white/5">
-                <p className="text-slate-400 font-medium mb-2">Role Descriptions:</p>
-                <p><span className="text-violet-400">Admin:</span> Full operational access, can manage team</p>
-                <p><span className="text-blue-400">Property Manager:</span> Manages properties, tenants, schedules</p>
-                <p><span className="text-cyan-400">Leasing Agent:</span> Handles applications and leasing</p>
-                <p><span className="text-teal-400">Showing Agent:</span> Conducts property showings</p>
-                {isEnterprise && (
-                  <>
-                    <p><span className="text-orange-400">Maintenance Tech:</span> Handles repairs and work orders</p>
-                    <p><span className="text-emerald-400">Accountant:</span> Manages financial records</p>
-                    <p><span className="text-slate-400">Employee:</span> Basic access, time clock only</p>
-                  </>
-                )}
-                <p className="text-slate-500 mt-2 pt-2 border-t border-white/5">
-                  You can customize permissions after inviting.
-                </p>
-              </div>
+              {/* Role description for selected role */}
+              {inviteRoleId && (() => {
+                const selected = roles.find((r) => r.id === inviteRoleId);
+                if (!selected?.description) return null;
+                return (
+                  <div className="text-xs text-slate-500 mt-2 p-3 rounded-lg bg-slate-800/40 border border-white/5">
+                    <p className="text-slate-400 font-medium mb-1">{selected.name}</p>
+                    <p>{selected.description}</p>
+                    <p className="mt-1 text-slate-500">
+                      {(selected.permissions as string[]).length} permissions assigned
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
           
@@ -732,7 +777,7 @@ export function TeamMembersTab({
               Customize Permissions
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              {showPermissionsDialog?.user?.name || showPermissionsDialog?.invitedEmail} • {ROLE_CONFIG[showPermissionsDialog?.role as keyof typeof ROLE_CONFIG]?.label || showPermissionsDialog?.role}
+              {showPermissionsDialog?.user?.name || showPermissionsDialog?.invitedEmail} • {getMemberRoleName(showPermissionsDialog!)}
             </DialogDescription>
           </DialogHeader>
           
@@ -745,65 +790,85 @@ export function TeamMembersTab({
               </p>
             </div>
 
-            {/* Permissions by category */}
-            {PERMISSION_CATEGORIES.map(category => {
-              const categoryPermissions = Object.entries(PERMISSION_CONFIG)
-                .filter(([_, config]) => config.category === category.id);
+            {/* Permissions grouped by category (derived from permission keys like "jobs.view") */}
+            {(() => {
+              // Build categories from the member's current permissions + their role's default permissions
+              const memberRole = roles.find((r) => r.id === showPermissionsDialog?.roleId);
+              const rolePerms: string[] = (memberRole?.permissions as string[]) || [];
+              const allPerms = Array.from(new Set([...selectedPermissions, ...rolePerms]));
               
-              if (categoryPermissions.length === 0) return null;
-              
-              const CategoryIcon = category.icon;
-              
-              return (
-                <div key={category.id} className="space-y-3">
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <CategoryIcon className="h-4 w-4" />
-                    <span className="font-medium">{category.label}</span>
-                  </div>
-                  <div className="space-y-2">
-                    {categoryPermissions.map(([permKey, permConfig]) => {
-                      const isEnabled = selectedPermissions.includes(permKey);
-                      const isDefault = DEFAULT_PERMISSIONS[showPermissionsDialog?.role || 'employee']?.includes(permKey);
-                      const isViewProperties = permKey === 'view_properties';
-                      
-                      return (
-                        <div 
-                          key={permKey}
-                          className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
-                            isEnabled 
-                              ? 'bg-slate-800/80 border-violet-500/30' 
-                              : 'bg-slate-800/40 border-white/5'
-                          }`}
-                        >
-                          <div className="flex-1 pr-4">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-white">{permConfig.label}</p>
-                              {isDefault && (
-                                <Badge variant="outline" className="border-slate-500/30 text-slate-400 text-xs">
-                                  Default
-                                </Badge>
-                              )}
+              // Group by prefix (e.g. "jobs", "customers", "invoices")
+              const grouped: Record<string, string[]> = {};
+              for (const perm of allPerms) {
+                const [category] = perm.split('.');
+                if (!grouped[category]) grouped[category] = [];
+                if (!grouped[category].includes(perm)) grouped[category].push(perm);
+              }
+
+              const categoryIcons: Record<string, typeof Wrench> = {
+                jobs: Wrench, customers: Users, invoices: FileText, payments: DollarSign,
+                estimates: FileText, team: Users, time: Clock, inventory: Package,
+                equipment: Wrench, trucks: Truck, financials: DollarSign, expenses: DollarSign,
+                payroll: DollarSign, reports: Shield, analytics: Shield, settings: Shield,
+                messages: Mail, leads: Users, marketing: Users,
+              };
+
+              return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([category, perms]) => {
+                const CategoryIcon = categoryIcons[category] || Shield;
+                return (
+                  <div key={category} className="space-y-3">
+                    <div className="flex items-center gap-2 text-slate-300">
+                      <CategoryIcon className="h-4 w-4" />
+                      <span className="font-medium capitalize">{category}</span>
+                    </div>
+                    <div className="space-y-2">
+                      {perms.sort().map((perm) => {
+                        const isEnabled = selectedPermissions.includes(perm);
+                        const isDefault = rolePerms.includes(perm);
+                        const [, action] = perm.split('.');
+                        const label = perm.replace('.', ' → ').replace(/_/g, ' ');
+                        
+                        return (
+                          <div 
+                            key={perm}
+                            className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                              isEnabled 
+                                ? 'bg-slate-800/80 border-violet-500/30' 
+                                : 'bg-slate-800/40 border-white/5'
+                            }`}
+                          >
+                            <div className="flex-1 pr-4">
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium text-white capitalize">{label}</p>
+                                {isDefault && (
+                                  <Badge variant="outline" className="border-slate-500/30 text-slate-400 text-xs">
+                                    Default
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-400 mt-0.5 capitalize">
+                                {action?.replace(/_/g, ' ')} access for {category}
+                              </p>
                             </div>
-                            <p className="text-xs text-slate-400 mt-0.5">{permConfig.description}</p>
+                            <Switch
+                              checked={isEnabled}
+                              onCheckedChange={() => togglePermission(perm)}
+                              disabled={isSavingPermissions}
+                              className="data-[state=checked]:bg-violet-600"
+                            />
                           </div>
-                          <Switch
-                            checked={isEnabled}
-                            onCheckedChange={() => togglePermission(permKey)}
-                            disabled={isViewProperties || isSavingPermissions}
-                            className="data-[state=checked]:bg-violet-600"
-                          />
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              });
+            })()}
             
-            {/* Note about view_properties */}
+            {/* Note about minimum access */}
             <div className="p-3 rounded-lg bg-slate-800/60 border border-white/5">
               <p className="text-xs text-slate-500">
-                <strong>Note:</strong> &quot;View Properties&quot; is always enabled as it&apos;s required for basic access.
+                <strong>Note:</strong> Permissions are based on the assigned role. Custom overrides replace the role defaults entirely.
               </p>
             </div>
           </div>

@@ -3,19 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatCurrency, cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  Building2,
-  DollarSign,
-  Calendar,
-  Loader2,
-  ExternalLink
+import {
+  Clock, CheckCircle2, XCircle, Building2, DollarSign,
+  Calendar, Loader2, ChevronRight, FileText, MapPin,
 } from 'lucide-react';
 
 interface Application {
@@ -41,6 +31,7 @@ interface Application {
 export default function AdminApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   useEffect(() => {
     fetchApplications();
@@ -64,10 +55,14 @@ export default function AdminApplicationsPage() {
   const approvedApps = applications.filter(app => app.status === 'approved');
   const rejectedApps = applications.filter(app => app.status === 'rejected' || app.status === 'denied');
 
+  const filteredApps = activeTab === 'all' ? applications :
+    activeTab === 'pending' ? pendingApps :
+    activeTab === 'approved' ? approvedApps : rejectedApps;
+
   const formatUnitLabel = (app: Application) => {
     const unitName = app.unit?.name;
     const propertyName = app.unit?.property?.name;
-    if (unitName && propertyName) return `${propertyName} • ${unitName}`;
+    if (unitName && propertyName) return `${propertyName} · ${unitName}`;
     if (propertyName) return propertyName;
     return unitName || 'Unit';
   };
@@ -76,263 +71,210 @@ export default function AdminApplicationsPage() {
     return (
       <main className='w-full'>
         <div className='flex items-center justify-center py-20'>
-          <Loader2 className='w-8 h-8 animate-spin text-violet-400' />
+          <Loader2 className='w-8 h-8 animate-spin text-cyan-500' />
         </div>
       </main>
     );
   }
 
   return (
-    <main className='w-full space-y-4'>
+    <main className='w-full space-y-5'>
       {/* Header */}
-      <div>
-        <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-black mb-1'>
-          Rental Applications
-        </h1>
-        <p className='text-xs text-black'>
-          Review and respond to incoming applications.
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className='grid grid-cols-3 gap-2'>
-        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-400 to-yellow-200 border border-black p-2.5 sm:p-3'>
-          <div className='flex items-center justify-between mb-1'>
-            <Clock className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-black' />
-            <span className='text-base sm:text-xl font-bold text-white'>{pendingApps.length}</span>
-          </div>
-          <p className='text-[9px] sm:text-[10px] text-black'>Pending</p>
-        </div>
-        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-200 to-teal-500 border border-black p-2.5 sm:p-3'>
-          <div className='flex items-center justify-between mb-1'>
-            <CheckCircle2 className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-black' />
-            <span className='text-base sm:text-xl font-bold text-white'>{approvedApps.length}</span>
-          </div>
-          <p className='text-[9px] sm:text-[10px] text-black'>Approved</p>
-        </div>
-        <div className='rounded-lg sm:rounded-xl bg-gradient-to-r from-red-500 to-orange-500 border border-black p-2.5 sm:p-3'>
-          <div className='flex items-center justify-between mb-1'>
-            <XCircle className='w-3.5 h-3.5 sm:w-4 sm:h-4 text-black' />
-            <span className='text-base sm:text-xl font-bold text-white'>{rejectedApps.length}</span>
-          </div>
-          <p className='text-[9px] sm:text-[10px] text-black'>Rejected</p>
-        </div>
-      </div>
-
-        {/* Applications Card with Tabs */}
-        <Card className='bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98] overflow-hidden'>
-          <Tabs defaultValue='pending' className='w-full'>
-            {/* Browser-style tabs at the top */}
-            <div className='border-b border-white/10'>
-              <TabsList className='h-auto p-0 bg-transparent rounded-none'>
-                <TabsTrigger 
-                  value='pending' 
-                  className='relative px-3 sm:px-5 py-2 text-xs font-medium text-black rounded-none border-b-2 border-transparent data-[state=active]:border-amber-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
-                >
-                  Pending
-                  {pendingApps.length > 0 && (
-                    <Badge className='ml-1.5 bg-amber-500/20 text-black text-[9px]'>
-                      {pendingApps.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value='approved' 
-                  className='relative px-3 sm:px-5 py-2 text-xs font-medium text-black rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
-                >
-                  Approved
-                  {approvedApps.length > 0 && (
-                    <Badge className='ml-1.5 bg-emerald-500/20 text-black text-[9px]'>
-                      {approvedApps.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value='rejected' 
-                  className='relative px-3 sm:px-5 py-2 text-xs font-medium text-black rounded-none border-b-2 border-transparent data-[state=active]:border-red-500 data-[state=active]:text-white data-[state=active]:bg-slate-900/60 hover:text-white transition-colors'
-                >
-                  Rejected
-                  {rejectedApps.length > 0 && (
-                    <Badge className='ml-1.5 bg-red-500/20 text-black text-[9px]'>
-                      {rejectedApps.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <CardContent className='p-2.5 sm:p-4'>
-              {/* Pending Applications */}
-              <TabsContent value='pending' className='mt-0'>
-                <ApplicationsList 
-                  applications={pendingApps} 
-                  formatUnitLabel={formatUnitLabel}
-                  emptyMessage='No pending applications'
-                  statusColor='amber'
-                />
-              </TabsContent>
-
-              {/* Approved Applications */}
-              <TabsContent value='approved' className='mt-0'>
-                <ApplicationsList 
-                  applications={approvedApps} 
-                  formatUnitLabel={formatUnitLabel}
-                  emptyMessage='No approved applications'
-                  statusColor='emerald'
-                />
-              </TabsContent>
-
-              {/* Rejected Applications */}
-              <TabsContent value='rejected' className='mt-0'>
-                <ApplicationsList 
-                  applications={rejectedApps} 
-                  formatUnitLabel={formatUnitLabel}
-                  emptyMessage='No rejected applications'
-                  statusColor='red'
-                />
-              </TabsContent>
-            </CardContent>
-          </Tabs>
-        </Card>
-    </main>
-  );
-}
-
-function ApplicationsList({ 
-  applications, 
-  formatUnitLabel, 
-  emptyMessage,
-  statusColor 
-}: { 
-  applications: Application[];
-  formatUnitLabel: (app: Application) => string;
-  emptyMessage: string;
-  statusColor: 'amber' | 'emerald' | 'red';
-}) {
-  if (applications.length === 0) {
-    return (
-      <p className='text-xs sm:text-sm text-slate-400 text-center py-6 sm:py-8'>
-        {emptyMessage}
-      </p>
-    );
-  }
-
-  return (
-    <div className='space-y-2 sm:space-y-3'>
-      {applications.map((app) => (
-        <ApplicationCard 
-          key={app.id} 
-          app={app} 
-          formatUnitLabel={formatUnitLabel}
-          statusColor={statusColor}
-        />
-      ))}
-    </div>
-  );
-}
-
-function ApplicationCard({ 
-  app, 
-  formatUnitLabel,
-  statusColor
-}: { 
-  app: Application;
-  formatUnitLabel: (app: Application) => string;
-  statusColor: 'amber' | 'emerald' | 'red';
-}) {
-  const badgeColors = {
-    amber: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
-    emerald: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
-    red: 'bg-red-500/20 text-red-300 border-red-400/30',
-  };
-
-  return (
-    <Link 
-      href={`/admin/applications/${app.id}`}
-      className={cn(
-        'block rounded-lg border p-3 sm:p-4 transition-all hover:scale-[1.01]',
-        'border-white/10 bg-slate-800/40 hover:border-violet-400/40 hover:bg-slate-800/60'
-      )}
-    >
-      {/* Mobile Layout */}
-      <div className='sm:hidden space-y-3'>
-        <div className='flex items-start justify-between gap-2'>
-          <div className='min-w-0 flex-1'>
-            <p className='font-medium text-white text-sm truncate'>
-              {app.fullName || app.applicant?.name || 'Applicant'}
-            </p>
-            <p className='text-[10px] text-slate-400 truncate'>
-              {app.email || app.applicant?.email || '—'}
-            </p>
-          </div>
-          <Badge className={cn('text-[9px] capitalize shrink-0', badgeColors[statusColor])}>
-            {app.status}
-          </Badge>
-        </div>
-        
-        <div className='grid grid-cols-2 gap-2 text-[10px]'>
-          <div className='flex items-center gap-1.5 text-slate-400'>
-            <Building2 className='w-3 h-3' />
-            <span className='truncate'>{formatUnitLabel(app)}</span>
-          </div>
-          <div className='flex items-center gap-1.5 text-slate-400'>
-            <DollarSign className='w-3 h-3' />
-            <span>{app.monthlyIncome ? formatCurrency(Number(app.monthlyIncome)) : '—'}</span>
-          </div>
-          <div className='flex items-center gap-1.5 text-slate-400 col-span-2'>
-            <Calendar className='w-3 h-3' />
-            <span>{new Date(app.createdAt).toLocaleDateString()}</span>
-          </div>
-        </div>
-
-        <Button 
-          size='sm' 
-          className='w-full bg-violet-600 hover:bg-violet-500 text-white text-xs h-8'
-        >
-          <ExternalLink className='w-3 h-3 mr-1.5' />
-          View Application
-        </Button>
-      </div>
-
-      {/* Desktop Layout */}
-      <div className='hidden sm:flex items-center gap-4'>
-        <div className='flex-1 min-w-0'>
-          <div className='flex items-center gap-3 mb-1'>
-            <p className='font-medium text-white truncate'>
-              {app.fullName || app.applicant?.name || 'Applicant'}
-            </p>
-            <Badge className={cn('text-[10px] capitalize', badgeColors[statusColor])}>
-              {app.status}
-            </Badge>
-          </div>
-          <p className='text-xs text-slate-400 truncate'>
-            {app.email || app.applicant?.email || '—'}
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+        <div>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Applications</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>
+            Review and respond to incoming rental applications
           </p>
         </div>
+      </div>
 
-        <div className='flex items-center gap-6 text-xs text-slate-400'>
-          <div className='flex items-center gap-1.5 min-w-[120px]'>
-            <Building2 className='w-3.5 h-3.5' />
-            <span className='truncate'>{formatUnitLabel(app)}</span>
+      {/* Stats */}
+      <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
+        <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+          <div className='flex items-center justify-between'>
+            <p className='text-[10px] text-gray-500 font-medium'>Total</p>
+            <div className='h-6 w-6 rounded-md bg-gray-100 flex items-center justify-center'>
+              <FileText className='h-3 w-3 text-gray-600' />
+            </div>
           </div>
-          <div className='flex items-center gap-1.5 min-w-[80px]'>
-            <DollarSign className='w-3.5 h-3.5' />
-            <span>{app.monthlyIncome ? formatCurrency(Number(app.monthlyIncome)) : '—'}</span>
+          <p className='text-lg font-bold text-gray-900 mt-0.5'>{applications.length}</p>
+        </div>
+        <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+          <div className='flex items-center justify-between'>
+            <p className='text-[10px] text-gray-500 font-medium'>Pending</p>
+            <div className='h-6 w-6 rounded-md bg-amber-100 flex items-center justify-center'>
+              <Clock className='h-3 w-3 text-amber-600' />
+            </div>
           </div>
-          <div className='flex items-center gap-1.5 min-w-[90px]'>
-            <Calendar className='w-3.5 h-3.5' />
-            <span>{new Date(app.createdAt).toLocaleDateString()}</span>
+          <p className='text-lg font-bold text-gray-900 mt-0.5'>{pendingApps.length}</p>
+        </div>
+        <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+          <div className='flex items-center justify-between'>
+            <p className='text-[10px] text-gray-500 font-medium'>Approved</p>
+            <div className='h-6 w-6 rounded-md bg-green-100 flex items-center justify-center'>
+              <CheckCircle2 className='h-3 w-3 text-green-600' />
+            </div>
           </div>
+          <p className='text-lg font-bold text-gray-900 mt-0.5'>{approvedApps.length}</p>
+        </div>
+        <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+          <div className='flex items-center justify-between'>
+            <p className='text-[10px] text-gray-500 font-medium'>Rejected</p>
+            <div className='h-6 w-6 rounded-md bg-red-100 flex items-center justify-center'>
+              <XCircle className='h-3 w-3 text-red-600' />
+            </div>
+          </div>
+          <p className='text-lg font-bold text-gray-900 mt-0.5'>{rejectedApps.length}</p>
+        </div>
+      </div>
+
+      {/* Filter Tabs + Search */}
+      <div className='flex flex-col sm:flex-row gap-3'>
+        <div className='relative flex-1'>
+          <svg className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+          </svg>
+          <input
+            type='text'
+            placeholder='Search by name or property...'
+            className='w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 transition-all'
+            disabled
+          />
+        </div>
+        <div className='flex items-center gap-1'>
+          {(['all', 'pending', 'approved', 'rejected'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all capitalize ${
+                activeTab === tab
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {tab === 'all' ? 'All' : tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Applications Table */}
+      <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+        {/* Desktop Table */}
+        <div className='hidden md:block overflow-x-auto'>
+          <table className='w-full'>
+            <thead>
+              <tr className='bg-gray-50/80'>
+                <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Applicant</th>
+                <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Property</th>
+                <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Income</th>
+                <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Applied</th>
+                <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'>Status</th>
+                <th className='text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5'></th>
+              </tr>
+            </thead>
+            <tbody className='divide-y divide-gray-50'>
+              {filteredApps.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className='px-4 py-12 text-center'>
+                    <FileText className='mx-auto h-10 w-10 text-gray-300 mb-3' />
+                    <p className='text-sm text-gray-500'>No applications found</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredApps.map((app) => (
+                  <tr key={app.id} className='hover:bg-gray-50/50 transition-colors'>
+                    <td className='px-4 py-3'>
+                      <div className='flex items-center gap-2.5'>
+                        <div className='h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0'>
+                          {(app.fullName || app.applicant?.name || '?')[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className='text-xs font-semibold text-gray-800'>{app.fullName || app.applicant?.name || 'Applicant'}</p>
+                          <p className='text-[10px] text-gray-500'>{app.email || app.applicant?.email || '—'}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <div className='flex items-center gap-1.5'>
+                        <MapPin className='h-3 w-3 text-gray-400' />
+                        <span className='text-xs text-gray-700'>{formatUnitLabel(app)}</span>
+                      </div>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <span className='text-xs font-semibold text-gray-800'>
+                        {app.monthlyIncome ? formatCurrency(Number(app.monthlyIncome)) : '—'}
+                      </span>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <span className='text-xs text-gray-500'>
+                        {new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                        app.status === 'pending' ? 'bg-amber-50 text-amber-600' :
+                        app.status === 'approved' ? 'bg-green-50 text-green-600' :
+                        'bg-red-50 text-red-600'
+                      }`}>
+                        {app.status}
+                      </span>
+                    </td>
+                    <td className='px-4 py-3 text-right'>
+                      <Link
+                        href={`/admin/applications/${app.id}`}
+                        className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-0.5 justify-end'
+                      >
+                        Review <ChevronRight className='h-3 w-3' />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
-        <Button 
-          size='sm' 
-          className='bg-violet-600 hover:bg-violet-500 text-white text-xs shrink-0'
-        >
-          <ExternalLink className='w-3.5 h-3.5 mr-1.5' />
-          View
-        </Button>
+        {/* Mobile Cards */}
+        <div className='md:hidden divide-y divide-gray-100'>
+          {filteredApps.length === 0 ? (
+            <div className='p-8 text-center'>
+              <FileText className='mx-auto h-10 w-10 text-gray-300 mb-3' />
+              <p className='text-sm text-gray-500'>No applications found</p>
+            </div>
+          ) : (
+            filteredApps.map((app) => (
+              <Link
+                key={app.id}
+                href={`/admin/applications/${app.id}`}
+                className='flex items-center gap-3 p-4 hover:bg-gray-50/50 transition-colors active:scale-[0.99]'
+              >
+                <div className='h-9 w-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0'>
+                  {(app.fullName || app.applicant?.name || '?')[0].toUpperCase()}
+                </div>
+                <div className='flex-1 min-w-0'>
+                  <p className='text-xs font-semibold text-gray-800 truncate'>
+                    {app.fullName || app.applicant?.name || 'Applicant'}
+                  </p>
+                  <p className='text-[10px] text-gray-500 truncate'>{formatUnitLabel(app)}</p>
+                  <p className='text-[10px] text-gray-400'>
+                    {new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {app.monthlyIncome ? ` · ${formatCurrency(Number(app.monthlyIncome))}/mo` : ''}
+                  </p>
+                </div>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                  app.status === 'pending' ? 'bg-amber-50 text-amber-600' :
+                  app.status === 'approved' ? 'bg-green-50 text-green-600' :
+                  'bg-red-50 text-red-600'
+                }`}>
+                  {app.status}
+                </span>
+              </Link>
+            ))
+          )}
+        </div>
       </div>
-    </Link>
+    </main>
   );
 }
