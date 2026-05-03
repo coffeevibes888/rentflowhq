@@ -172,7 +172,7 @@ export default Homepage;
 // ─── PM Tenant Lifecycle Flow ────────────────────────────────────────────────
 function PMLifecycleSection() {
   return (
-    <section className='w-full py-4 md:py-16 px-4'>
+    <section className='w-full py-10 md:py-20 px-4'>
       <div className='max-w-6xl mx-auto'>
         <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
           <div className='md:col-span-2 group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.01] bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 border border-black shadow-2xl'>
@@ -290,7 +290,7 @@ function PMLifecycleSection() {
 // ─── PM Lease Builder + White-Label Portal Cards ──────────────────────────────
 function PMLeasePortalSection() {
   return (
-    <section className='w-full py-6 md:py-12 px-3 md:px-4'>
+    <section className='w-full py-10 md:py-20 px-3 md:px-4'>
       <div className='max-w-6xl mx-auto'>
         <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
 

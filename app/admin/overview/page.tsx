@@ -34,6 +34,7 @@ const getCachedDashboardStats = unstable_cache(
       recentApplications,
       recentTickets,
       leasesExpiringSoon,
+      expiringLeaseDetails,
     ] = await Promise.all([
       prisma.property.count({ where: { landlordId } }),
       prisma.rentalApplication.count({
@@ -146,6 +147,26 @@ const getCachedDashboardStats = unstable_cache(
           unit: { property: { landlordId } },
         },
       }),
+      // Detailed expiring leases for dashboard
+      prisma.lease.findMany({
+        where: {
+          status: 'active',
+          endDate: {
+            gte: new Date(),
+            lte: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          },
+          unit: { property: { landlordId } },
+        },
+        orderBy: { endDate: 'asc' },
+        take: 5,
+        select: {
+          id: true,
+          endDate: true,
+          rentAmount: true,
+          tenant: { select: { name: true } },
+          unit: { select: { name: true, property: { select: { name: true } } } },
+        },
+      }),
     ]);
 
     return {
@@ -165,6 +186,7 @@ const getCachedDashboardStats = unstable_cache(
       recentApplications,
       recentTickets,
       leasesExpiringSoon,
+      expiringLeaseDetails,
     };
   },
   ['admin-dashboard-stats-v2'],
@@ -247,6 +269,7 @@ const AdminOverviewPage = async (props: {
     recentApplications,
     recentTickets,
     leasesExpiringSoon,
+    expiringLeaseDetails,
   } = cachedStats;
 
   // Fresh user-specific data
@@ -302,19 +325,27 @@ const AdminOverviewPage = async (props: {
   // Serialize dates for client component
   const serializedLeases = (recentLeases as any[]).map((l: any) => ({
     ...l,
-    startDate: l.startDate?.toISOString(),
-    createdAt: l.createdAt?.toISOString(),
+    startDate: l.startDate instanceof Date ? l.startDate.toISOString() : String(l.startDate || ''),
+    createdAt: l.createdAt instanceof Date ? l.createdAt.toISOString() : String(l.createdAt || ''),
     rentAmount: Number(l.rentAmount || 0),
   }));
 
   const serializedApplications = (recentApplications as any[]).map((a: any) => ({
     ...a,
-    createdAt: a.createdAt?.toISOString(),
+    createdAt: a.createdAt instanceof Date ? a.createdAt.toISOString() : String(a.createdAt || ''),
   }));
 
   const serializedTickets = (recentTickets as any[]).map((t: any) => ({
     ...t,
-    createdAt: t.createdAt?.toISOString(),
+    createdAt: t.createdAt instanceof Date ? t.createdAt.toISOString() : String(t.createdAt || ''),
+  }));
+
+  const serializedExpiringLeases = (expiringLeaseDetails as any[]).map((l: any) => ({
+    id: l.id,
+    endDate: l.endDate instanceof Date ? l.endDate.toISOString() : String(l.endDate || ''),
+    rentAmount: Number(l.rentAmount || 0),
+    tenant: l.tenant,
+    unit: l.unit,
   }));
 
   // Build monthly rent collection data for chart (last 6 months)
@@ -368,6 +399,7 @@ const AdminOverviewPage = async (props: {
       recentLeases={serializedLeases}
       recentApplications={serializedApplications}
       recentTickets={serializedTickets}
+      expiringLeases={serializedExpiringLeases}
       monthlyRentData={monthlyRentData}
       listingUrl={listingUrl}
       contractorUrl={contractorUrl}

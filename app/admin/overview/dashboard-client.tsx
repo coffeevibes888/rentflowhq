@@ -66,6 +66,7 @@ interface DashboardClientProps {
   recentLeases: RecentLease[];
   recentApplications: RecentApplication[];
   recentTickets: RecentTicket[];
+  expiringLeases: { id: string; endDate: string; rentAmount: number; tenant: { name: string | null } | null; unit: { name: string; property: { name: string } | null } | null }[];
   monthlyRentData: { month: string; collected: number; scheduled: number }[];
   listingUrl: string;
   contractorUrl: string;
@@ -78,6 +79,7 @@ export default function DashboardClient({
   recentLeases,
   recentApplications,
   recentTickets,
+  expiringLeases,
   monthlyRentData,
   listingUrl,
   contractorUrl,
@@ -238,157 +240,6 @@ export default function DashboardClient({
         </div>
       )}
 
-      {/* Main Content Grid */}
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
-        {/* Recent Activity - 2 cols */}
-        <div className='lg:col-span-2 space-y-4'>
-          {/* Recent Leases */}
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
-            <div className='flex items-center justify-between p-4 border-b border-gray-100'>
-              <div>
-                <h3 className='text-sm font-bold text-gray-800'>Recent Leases</h3>
-                <p className='text-[11px] text-gray-500'>Latest lease activity</p>
-              </div>
-              <Link href='/admin/leases' className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1'>
-                View All <ChevronRight className='h-3 w-3' />
-              </Link>
-            </div>
-            {recentLeases.length === 0 ? (
-              <div className='p-8 text-center text-gray-400 text-sm'>No leases yet</div>
-            ) : (
-              <div className='divide-y divide-gray-50'>
-                {recentLeases.map((lease) => (
-                  <Link
-                    key={lease.id}
-                    href={`/admin/leases/${lease.id}`}
-                    className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors'
-                  >
-                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-                      lease.status === 'active' ? 'bg-green-100 text-green-600' :
-                      lease.status === 'pending' ? 'bg-amber-100 text-amber-600' :
-                      'bg-gray-100 text-gray-500'
-                    }`}>
-                      <ClipboardList className='h-4 w-4' />
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <p className='text-xs font-semibold text-gray-800 truncate'>
-                        {lease.tenant?.name || 'Unnamed Tenant'}
-                      </p>
-                      <p className='text-[10px] text-gray-500'>
-                        {lease.unit?.property?.name} · {lease.unit?.name}
-                      </p>
-                    </div>
-                    <div className='text-right hidden sm:block'>
-                      <p className='text-xs font-bold text-gray-800'>{formatCurrency(lease.rentAmount)}/mo</p>
-                      <p className='text-[10px] text-gray-400'>
-                        {new Date(lease.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </p>
-                    </div>
-                    <StatusBadge status={lease.status} />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Recent Maintenance */}
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
-            <div className='flex items-center justify-between p-4 border-b border-gray-100'>
-              <div>
-                <h3 className='text-sm font-bold text-gray-800'>Maintenance Tickets</h3>
-                <p className='text-[11px] text-gray-500'>Recent work requests</p>
-              </div>
-              <Link href='/admin/maintenance' className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1'>
-                View All <ChevronRight className='h-3 w-3' />
-              </Link>
-            </div>
-            {recentTickets.length === 0 ? (
-              <div className='p-8 text-center text-gray-400 text-sm'>No tickets yet</div>
-            ) : (
-              <div className='divide-y divide-gray-50'>
-                {recentTickets.map((ticket) => (
-                  <Link
-                    key={ticket.id}
-                    href={`/admin/maintenance/${ticket.id}`}
-                    className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors'
-                  >
-                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-                      ticket.priority === 'urgent' ? 'bg-red-100 text-red-600' :
-                      ticket.priority === 'high' ? 'bg-orange-100 text-orange-600' :
-                      'bg-blue-100 text-blue-600'
-                    }`}>
-                      <Wrench className='h-4 w-4' />
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <p className='text-xs font-semibold text-gray-800 truncate'>{ticket.title}</p>
-                      <p className='text-[10px] text-gray-500'>
-                        {ticket.tenant?.name || 'Unknown'} · {new Date(ticket.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </p>
-                    </div>
-                    {ticket.priority === 'urgent' && (
-                      <span className='text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600'>Urgent</span>
-                    )}
-                    <StatusBadge status={ticket.status} />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className='space-y-4'>
-          {/* Quick Actions */}
-          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-            <h3 className='text-sm font-bold text-gray-800 mb-3'>Quick Actions</h3>
-            <div className='grid grid-cols-2 gap-2'>
-              {[
-                { label: 'Properties', href: '/admin/products', icon: Building2, color: 'from-cyan-400 to-blue-400' },
-                { label: 'Tenants', href: '/admin/tenants', icon: Users, color: 'from-violet-400 to-purple-400' },
-                { label: 'Leases', href: '/admin/leases', icon: ClipboardList, color: 'from-emerald-400 to-teal-400' },
-                { label: 'Maintenance', href: '/admin/maintenance', icon: Wrench, color: 'from-orange-400 to-red-400' },
-                { label: 'Messages', href: isAdmin ? '/admin/messages' : '/admin/tenant-messages', icon: MessageCircle, color: 'from-blue-400 to-indigo-400' },
-                { label: 'Documents', href: '/admin/documents', icon: FileText, color: 'from-pink-400 to-rose-400' },
-              ].map((action) => (
-                <Link
-                  key={action.label}
-                  href={action.href}
-                  className='flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all group'
-                >
-                  <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${action.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform`}>
-                    <action.icon className='h-4 w-4' />
-                  </div>
-                  <span className='text-[11px] font-medium text-gray-700'>{action.label}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Financial Summary */}
-          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-            <div className='flex items-center justify-between mb-3'>
-              <h3 className='text-sm font-bold text-gray-800'>Financials</h3>
-              <Link href='/admin/revenue' className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1'>
-                Details <ChevronRight className='h-3 w-3' />
-              </Link>
-            </div>
-            <div className='space-y-3'>
-              <FinancialRow label='Scheduled Rent' value={formatCurrency(stats.scheduledRentMonthly)} color='text-gray-800' />
-              <FinancialRow label='Collected This Month' value={formatCurrency(stats.rentCollectedThisMonth)} color='text-emerald-600' />
-              <FinancialRow label='Collected YTD' value={formatCurrency(stats.rentCollectedYtd)} color='text-blue-600' />
-              <div className='border-t border-gray-100 pt-2'>
-                <FinancialRow label='Available to Cash Out' value={formatCurrency(stats.availableBalance)} color='text-gray-900' bold />
-              </div>
-              <Link
-                href='/admin/payouts'
-                className='flex items-center justify-center gap-1 text-[11px] text-cyan-600 hover:text-cyan-700 font-medium py-2 rounded-lg border border-dashed border-gray-200 hover:border-cyan-300 transition-colors'
-              >
-                <Wallet className='h-3 w-3' /> Cash Out
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Charts Row */}
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
@@ -470,11 +321,100 @@ export default function DashboardClient({
           </div>
         </div>
       </div>
+
+      {/* Bottom Row: Financials + Expiring Leases */}
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+        {/* Financial Summary */}
+        <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+          <div className='flex items-center justify-between mb-3'>
+            <h3 className='text-sm font-bold text-gray-800'>Financial Summary</h3>
+            <Link href='/admin/revenue' className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1'>
+              Details <ChevronRight className='h-3 w-3' />
+            </Link>
+          </div>
+          <div className='grid grid-cols-2 gap-3'>
+            <div className='p-3 rounded-lg bg-gray-50 border border-gray-100'>
+              <p className='text-[10px] text-gray-500 font-medium'>Scheduled Rent</p>
+              <p className='text-base font-bold text-gray-900 mt-0.5'>{formatCurrency(stats.scheduledRentMonthly)}</p>
+            </div>
+            <div className='p-3 rounded-lg bg-emerald-50 border border-emerald-100'>
+              <p className='text-[10px] text-emerald-600 font-medium'>Collected This Month</p>
+              <p className='text-base font-bold text-emerald-700 mt-0.5'>{formatCurrency(stats.rentCollectedThisMonth)}</p>
+            </div>
+            <div className='p-3 rounded-lg bg-blue-50 border border-blue-100'>
+              <p className='text-[10px] text-blue-600 font-medium'>Collected YTD</p>
+              <p className='text-base font-bold text-blue-700 mt-0.5'>{formatCurrency(stats.rentCollectedYtd)}</p>
+            </div>
+            <div className='p-3 rounded-lg bg-cyan-50 border border-cyan-100'>
+              <p className='text-[10px] text-cyan-600 font-medium'>Available to Cash Out</p>
+              <p className='text-base font-bold text-cyan-700 mt-0.5'>{formatCurrency(stats.availableBalance)}</p>
+            </div>
+          </div>
+          <Link
+            href='/admin/payouts'
+            className='mt-3 flex items-center justify-center gap-1.5 text-xs text-white font-medium py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:shadow-md transition-all'
+          >
+            <Wallet className='h-3.5 w-3.5' /> Cash Out
+          </Link>
+        </div>
+
+        {/* Expiring Leases */}
+        <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+          <div className='flex items-center justify-between p-4 border-b border-gray-100'>
+            <div>
+              <h3 className='text-sm font-bold text-gray-800'>Upcoming Lease Expirations</h3>
+              <p className='text-[11px] text-gray-500'>Leases ending in the next 90 days</p>
+            </div>
+            <Link href='/admin/leases' className='text-[11px] text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1'>
+              View All <ChevronRight className='h-3 w-3' />
+            </Link>
+          </div>
+          {expiringLeases.length === 0 ? (
+            <div className='p-8 text-center'>
+              <CheckCircle2 className='mx-auto h-8 w-8 text-green-300 mb-2' />
+              <p className='text-sm text-gray-500'>No leases expiring soon</p>
+              <p className='text-[11px] text-gray-400 mt-0.5'>All active leases are in good standing</p>
+            </div>
+          ) : (
+            <div className='divide-y divide-gray-50'>
+              {expiringLeases.map((lease) => {
+                const daysLeft = Math.ceil((new Date(lease.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                const isUrgent = daysLeft <= 30;
+                return (
+                  <Link
+                    key={lease.id}
+                    href={'/admin/leases/' + lease.id}
+                    className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors'
+                  >
+                    <div className={'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ' + (isUrgent ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600')}>
+                      <Calendar className='h-4 w-4' />
+                    </div>
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-xs font-semibold text-gray-800 truncate'>
+                        {lease.tenant?.name || 'Tenant'}
+                      </p>
+                      <p className='text-[10px] text-gray-500'>
+                        {lease.unit?.property?.name} · {lease.unit?.name}
+                      </p>
+                    </div>
+                    <div className='text-right'>
+                      <p className='text-xs font-bold text-gray-800'>{formatCurrency(lease.rentAmount)}/mo</p>
+                      <p className={'text-[10px] font-semibold ' + (isUrgent ? 'text-red-600' : 'text-amber-600')}>
+                        {daysLeft} days left
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-// Chart formatters (extracted to avoid template literal issues in JSX)
+// Chart formatters
 function formatYAxis(v: number): string {
   return v >= 1000 ? '$' + (v / 1000).toFixed(0) + 'k' : '$' + v;
 }
@@ -532,13 +472,4 @@ function StatusBadge({ status }: { status: string }) {
   };
   const c = config[status] || { bg: 'bg-gray-100', text: 'text-gray-500', label: status.replace(/_/g, ' ') };
   return <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${c.bg} ${c.text} capitalize`}>{c.label}</span>;
-}
-
-function FinancialRow({ label, value, color, bold }: { label: string; value: string; color: string; bold?: boolean }) {
-  return (
-    <div className='flex items-center justify-between'>
-      <span className='text-[11px] text-gray-500'>{label}</span>
-      <span className={`text-xs ${bold ? 'font-bold' : 'font-semibold'} ${color}`}>{value}</span>
-    </div>
-  );
 }
