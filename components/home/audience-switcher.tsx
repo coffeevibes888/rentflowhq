@@ -479,33 +479,85 @@ export default function AudienceSwitcher({
           <motion.section
             key="contractor-hero"
             {...fadeSlide}
-            className="w-full pt-8 pb-12 md:pt-16 md:pb-24 px-4 relative overflow-hidden"
+            className="w-full pt-14 pb-12 md:pt-24 md:pb-20 px-4 relative overflow-hidden"
           >
+            {/* Background glow */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-20 right-0 w-[90%] h-[90%] bg-gradient-to-bl from-rose-50/60 via-orange-50/30 to-transparent rounded-bl-[120px]" />
+              <div className="absolute top-10 right-10 w-[500px] h-[500px] bg-rose-100/25 rounded-full blur-[100px]" />
+              <div className="absolute top-40 right-40 w-80 h-80 bg-orange-100/20 rounded-full blur-[80px]" />
+            </div>
+
             <div className="max-w-7xl mx-auto relative z-10">
-              <div className="grid gap-6 md:gap-8 lg:grid-cols-2 items-center">
-                <div className="space-y-4 md:space-y-6 text-center lg:text-left">
-                  <div className="space-y-2 md:space-y-3">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-                      <span className="block bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent drop-shadow-2xl text-center">Run Your</span>
-                      <span className="block bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent drop-shadow-2xl text-center">Entire Business</span>
-                      <span className="block bg-gradient-to-r from-rose-400 to-amber-400 bg-clip-text text-transparent drop-shadow-2xl text-center">From One Place.</span>
-                    </h1>
-                    <p className="text-center text-sm sm:text-base md:text-lg font-medium max-w-2xl leading-relaxed mx-auto lg:mx-0 mt-4 text-slate-900">
-                      Jobs, invoices, leads, team scheduling, inventory, payroll, and your own branded marketplace profile — all in one platform built for contractors.
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center justify-center gap-3 pt-2">
+              {/* Text — centered on mobile, left on desktop */}
+              <div className="relative z-20 mx-auto md:mx-0 max-w-lg lg:max-w-sm xl:max-w-md mb-8 md:mb-0 md:absolute md:left-0 md:top-8 lg:top-12">
+                <div className="space-y-4 text-center md:text-left">
+                  <h1 className="text-5xl sm:text-6xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight leading-[1.08]">
+                    <span className="block bg-gradient-to-r from-rose-600 to-rose-500 bg-clip-text text-transparent">Run Your</span>
+                    <span className="block bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent">Entire Business.</span>
+                    <span className="block bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent whitespace-nowrap">One Platform.</span>
+                  </h1>
+                  <p className="text-base md:text-sm lg:text-base font-medium max-w-sm leading-relaxed mx-auto md:mx-0 text-gray-600">
+                    Jobs, invoices, leads, team scheduling, inventory, payroll, and your own branded marketplace profile — all in one platform built for contractors.
+                  </p>
+                  <div className="flex flex-col items-center gap-2 pt-1">
                     <Link
                       href="/sign-up?role=contractor"
-                      className="group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-orange-400 text-white px-6 py-3 md:px-8 md:py-3.5 text-sm md:text-base font-bold shadow-lg shadow-rose-500/30 hover:scale-105 transition-all duration-200"
+                      className="group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-orange-400 text-white px-7 py-3.5 text-base md:text-sm font-bold shadow-lg shadow-rose-500/25 hover:shadow-xl hover:shadow-rose-500/30 hover:scale-105 transition-all duration-200"
                     >
                       Start Free Today
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
-                    <p className="text-xs md:text-sm text-slate-400 font-medium"> • 14-day free trial • </p>
+                    <p className="text-xs text-gray-400 font-medium text-center">14-day free trial</p>
                   </div>
                 </div>
-                <ContractorDashboardMock />
+              </div>
+
+              {/* Dashboard screenshot — BIG, prominent, emerging from the right */}
+              <div className="relative md:ml-[28%] lg:ml-[30%]">
+                {/* Warm glow radiating from behind the image */}
+                <div className="absolute -inset-8 md:-inset-12 z-0 pointer-events-none">
+                  <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-rose-200/25 rounded-full blur-[80px]" />
+                  <div className="absolute top-1/3 right-1/3 w-[300px] h-[300px] bg-orange-200/20 rounded-full blur-[60px]" />
+                  <div className="absolute bottom-1/4 right-1/5 w-[350px] h-[350px] bg-amber-200/30 rounded-full blur-[70px]" />
+                </div>
+
+                {/* Left cloud fade — makes the image emerge from the text area */}
+                <div className="hidden md:block absolute -left-24 top-0 bottom-0 w-48 z-10 bg-gradient-to-r from-white via-white/90 to-transparent pointer-events-none" />
+                {/* Top cloud fade — emerging from the nav */}
+                <div className="absolute -top-6 left-0 right-0 h-16 z-10 bg-gradient-to-b from-white via-white/70 to-transparent pointer-events-none" />
+                {/* Bottom fade */}
+                <div className="absolute -bottom-2 left-0 right-0 h-24 z-10 bg-gradient-to-t from-white via-white/70 to-transparent pointer-events-none" />
+
+                {/* Browser frame + screenshot */}
+                <div className="relative z-[5] rounded-xl md:rounded-2xl border border-gray-300/80 border-r-rose-300/60 shadow-[0_25px_80px_-12px_rgba(244,63,94,0.35),0_10px_30px_-5px_rgba(0,0,0,0.12)] overflow-hidden bg-white ring-1 ring-rose-200/30">
+                  {/* Browser chrome */}
+                  <div className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border-b border-gray-200/80">
+                    <div className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-[#FFBD2E]" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+                    <div className="flex-1 mx-3">
+                      <div className="h-5 rounded-md bg-white border border-gray-200 flex items-center px-2.5">
+                        <svg className="h-3 w-3 text-gray-400 mr-1.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="text-[10px] text-gray-500">propertyflowhq.com/contractor/dashboard</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* The actual contractor dashboard screenshot */}
+                  <img
+                    src="/images/dashboard-preview2.png"
+                    alt="Property Flow HQ Contractor Dashboard — manage jobs, invoices, leads, team, and inventory from one place"
+                    className="w-full h-auto block"
+                    loading="eager"
+                  />
+                </div>
+
+                {/* Rose cloud shadow underneath */}
+                <div className="absolute -bottom-10 left-8 right-8 h-20 bg-gradient-to-t from-transparent via-rose-300/20 to-rose-200/10 blur-2xl z-0 pointer-events-none" />
+                <div className="absolute -bottom-6 left-16 right-16 h-12 bg-rose-400/15 blur-xl rounded-full z-0 pointer-events-none" />
               </div>
             </div>
           </motion.section>
