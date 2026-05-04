@@ -14,12 +14,14 @@ let initialized = false;
  * Call this once when your server starts
  */
 export async function initializeEventSystem() {
+  const isDev = process.env.NODE_ENV !== 'production';
+
   if (initialized) {
-    console.log('Event system already initialized');
+    if (isDev) console.log('Event system already initialized');
     return;
   }
 
-  console.log('Initializing event-driven system...');
+  if (isDev) console.log('Initializing event-driven system...');
 
   try {
     // 1. Initialize event handlers
@@ -32,10 +34,12 @@ export async function initializeEventSystem() {
     jobQueue.startProcessing(30000); // Process every 30 seconds
 
     initialized = true;
-    console.log('✅ Event-driven system initialized successfully');
-    console.log('   - Event handlers registered');
-    console.log('   - Job queue processor started');
-    console.log('   - Backlog processed');
+    if (isDev) {
+      console.log('✅ Event-driven system initialized successfully');
+      console.log('   - Event handlers registered');
+      console.log('   - Job queue processor started');
+      console.log('   - Backlog processed');
+    }
   } catch (error) {
     console.error('❌ Failed to initialize event system:', error);
     throw error;
@@ -48,10 +52,11 @@ export async function initializeEventSystem() {
 export function shutdownEventSystem() {
   if (!initialized) return;
 
-  console.log('Shutting down event system...');
+  const isDev = process.env.NODE_ENV !== 'production';
+  if (isDev) console.log('Shutting down event system...');
   jobQueue.stopProcessing();
   initialized = false;
-  console.log('Event system shut down');
+  if (isDev) console.log('Event system shut down');
 }
 
 // Export all components

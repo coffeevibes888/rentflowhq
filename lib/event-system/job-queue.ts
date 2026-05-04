@@ -80,7 +80,9 @@ class JobQueue {
     if (this.processing) return;
 
     this.processing = true;
-    console.log('Job queue processor started');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Job queue processor started');
+    }
 
     // Process immediately
     this.processJobs();
@@ -100,7 +102,9 @@ class JobQueue {
       this.processingInterval = null;
     }
     this.processing = false;
-    console.log('Job queue processor stopped');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Job queue processor stopped');
+    }
   }
 
   /**
@@ -125,7 +129,9 @@ class JobQueue {
 
       if (dueJobs.length === 0) return;
 
-      console.log(`Processing ${dueJobs.length} due jobs`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`Processing ${dueJobs.length} due jobs`);
+      }
 
       for (const job of dueJobs) {
         await this.processJob(job);

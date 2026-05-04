@@ -230,7 +230,6 @@ let wsServer: TeamChatWebSocketServer | null = null;
 export function initializeWebSocketServer(server: Server): TeamChatWebSocketServer {
   if (!wsServer) {
     wsServer = new TeamChatWebSocketServer(server);
-    console.log('WebSocket server initialized');
   }
   return wsServer;
 }

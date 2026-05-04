@@ -60,7 +60,9 @@ app.prepare().then(async () => {
     })
     .listen(port, () => {
       console.log(`> Ready on http://${hostname}:${port}`);
-      console.log('> WebSocket server initialized');
-      console.log('> Event-driven system active');
+      if (dev) {
+        console.log('> WebSocket server initialized');
+        console.log('> Event-driven system active');
+      }
     });
 });

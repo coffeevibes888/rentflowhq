@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 
 export default function Hero() {
   return (
-    <div className="relative w-full h-[600px] overflow-visible flex items-center justify-center">
+    <div className="relative w-full h-[600px] overflow-visible flex items-center justify-center p-2">
       <div className="w-full max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-start gap-10 h-full pt-12 pb-12 ml-4">
         <div className="flex-1 flex flex-col items-center md:items-start gap-6 mt-0">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: 'easeOut' }} className="text-center md:text-left space-y-3" >

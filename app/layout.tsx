@@ -123,7 +123,7 @@ export default function RootLayout({
           />
         </noscript>
       </head>
-      <body className='bg-white text-black font-semibold flex flex-col min-h-screen overflow-x-hidden p-3'>
+      <body className='bg-white text-black font-semibold flex flex-col min-h-screen overflow-x-hidden'>
         <SessionProviderWrapper>
           <ThemeProvider attribute='class' defaultTheme='light' enableSystem={false} disableTransitionOnChange>
             <PageViewTracker />

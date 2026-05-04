@@ -12,7 +12,9 @@ import { NotificationService } from '@/lib/services/notification-service';
  * Initialize all event handlers
  */
 export function initializeEventHandlers() {
-  console.log('Initializing event handlers...');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Initializing event handlers...');
+  }
 
   // Lease events
   eventBus.subscribe('lease.tenant_signed', handleTenantSignedLease);
