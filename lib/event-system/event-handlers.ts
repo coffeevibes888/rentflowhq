@@ -363,19 +363,11 @@ async function handleWebhookFailed(event: EventPayload) {
 async function handlePropertyShowingScheduled(event: EventPayload) {
   const { appointmentId, propertyId, date, startTime, visitorName, visitorEmail } = event.data;
 
-  // Send confirmation email immediately
-  await jobQueue.schedule({
-    type: 'send_notification',
-    payload: {
-      type: 'email',
-      to: visitorEmail,
-      subject: 'Property Showing Confirmed',
-      template: 'showing_confirmation',
-      data: { visitorName, date, startTime, propertyId },
-    },
-    scheduledFor: new Date(),
-    priority: 9,
-  });
+  // TODO: Send visitor confirmation email once a `showing_confirmation`
+  // template is added to email-service.ts. Previously this scheduled a
+  // `send_notification` job with an email-shaped payload, which crashed the
+  // job queue because NotificationService.createNotification requires
+  // userId/title/message.
 
   // Schedule reminder 24 hours before
   const showingDateTime = new Date(`${date}T${startTime}`);
@@ -433,9 +425,11 @@ async function handleOpenHouseScheduled(event: EventPayload) {
     await jobQueue.schedule({
       type: 'send_notification',
       payload: {
-        type: 'open_house_starting',
-        agentId,
-        openHouseId,
+        userId: agentId,
+        type: 'reminder',
+        title: 'Open House Starting Soon',
+        message: 'Your open house starts in 1 hour. Make sure everything is ready!',
+        actionUrl: `/agent/open-houses/${openHouseId}`,
       },
       scheduledFor: startingSoonTime,
       priority: 8,

@@ -273,6 +273,15 @@ class JobQueue {
   }
 
   private async handleSendNotification(payload: any) {
+    // Guard against malformed payloads so a bad caller doesn't crash the
+    // queue with a Prisma validation error and retry forever.
+    if (!payload?.userId || !payload?.title || !payload?.message) {
+      console.warn(
+        'Skipping malformed send_notification payload (requires userId, title, message):',
+        payload
+      );
+      return;
+    }
     const { NotificationService } = await import('@/lib/services/notification-service');
     await NotificationService.createNotification(payload);
   }
