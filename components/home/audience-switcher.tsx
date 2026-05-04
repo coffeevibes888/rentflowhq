@@ -25,7 +25,7 @@ import {
 type Audience = 'pm' | 'contractor';
 
 const fadeSlide = {
-  initial: { opacity: 0, y: 16 },
+  initial: { opacity: 1, y: 0 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
   exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: 'easeIn' as const } },
 };
@@ -430,18 +430,18 @@ export default function AudienceSwitcher({
               {/* Dashboard screenshot — BIG, prominent, emerging from the right */}
               <div className="relative md:ml-[28%] lg:ml-[30%]">
                 {/* Golden/amber glow radiating from behind the image */}
-                <div className="absolute -inset-8 md:-inset-12 z-0">
+                <div className="absolute -inset-8 md:-inset-12 z-0 pointer-events-none">
                   <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-amber-200/25 rounded-full blur-[80px]" />
                   <div className="absolute top-1/3 right-1/3 w-[300px] h-[300px] bg-yellow-200/20 rounded-full blur-[60px]" />
                   <div className="absolute bottom-1/4 right-1/5 w-[350px] h-[350px] bg-cyan-200/30 rounded-full blur-[70px]" />
                 </div>
 
                 {/* Left cloud fade — makes the image emerge from the text area */}
-                <div className="hidden md:block absolute -left-24 top-0 bottom-0 w-48 z-10 bg-gradient-to-r from-white via-white/90 to-transparent" />
+                <div className="hidden md:block absolute -left-24 top-0 bottom-0 w-48 z-10 bg-gradient-to-r from-white via-white/90 to-transparent pointer-events-none" />
                 {/* Top cloud fade — emerging from the nav */}
-                <div className="absolute -top-6 left-0 right-0 h-16 z-10 bg-gradient-to-b from-white via-white/70 to-transparent" />
+                <div className="absolute -top-6 left-0 right-0 h-16 z-10 bg-gradient-to-b from-white via-white/70 to-transparent pointer-events-none" />
                 {/* Bottom fade */}
-                <div className="absolute -bottom-2 left-0 right-0 h-24 z-10 bg-gradient-to-t from-white via-white/70 to-transparent" />
+                <div className="absolute -bottom-2 left-0 right-0 h-24 z-10 bg-gradient-to-t from-white via-white/70 to-transparent pointer-events-none" />
 
                 {/* Browser frame + screenshot */}
                 <div className="relative z-[5] rounded-xl md:rounded-2xl border border-gray-300/80 border-r-cyan-300/60 shadow-[0_25px_80px_-12px_rgba(6,182,212,0.35),0_10px_30px_-5px_rgba(0,0,0,0.12)] overflow-hidden bg-white ring-1 ring-cyan-200/30">
@@ -470,8 +470,8 @@ export default function AudienceSwitcher({
                 </div>
 
                 {/* Blue cloud shadow underneath */}
-                <div className="absolute -bottom-10 left-8 right-8 h-20 bg-gradient-to-t from-transparent via-cyan-300/20 to-cyan-200/10 blur-2xl z-0" />
-                <div className="absolute -bottom-6 left-16 right-16 h-12 bg-cyan-400/15 blur-xl rounded-full z-0" />
+                <div className="absolute -bottom-10 left-8 right-8 h-20 bg-gradient-to-t from-transparent via-cyan-300/20 to-cyan-200/10 blur-2xl z-0 pointer-events-none" />
+                <div className="absolute -bottom-6 left-16 right-16 h-12 bg-cyan-400/15 blur-xl rounded-full z-0 pointer-events-none" />
               </div>
             </div>
           </motion.section>

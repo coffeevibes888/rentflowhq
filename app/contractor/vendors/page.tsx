@@ -37,25 +37,25 @@ export default async function VendorsPage() {
 
   if (!hasAccess) {
     return (
-      <main className="w-full px-4 py-10 md:px-0">
-        <div className="max-w-3xl mx-auto">
-          <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 p-8 text-center">
-            <Lock className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-semibold text-white mb-2">Vendor Management</h1>
-            <p className="text-slate-300 mb-6">
-              Vendor management is available on the Pro plan. Upgrade to track suppliers,
-              manage purchase orders, and keep your supply chain organized.
-            </p>
-            <Link
-              href="/contractor/settings/subscription"
-              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
-            >
-              <Zap className="h-5 w-5" />
-              Upgrade to Pro
-            </Link>
-          </div>
+      <div className='w-full space-y-5'>
+        <div>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Vendor Management</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>Manage suppliers and track purchases</p>
         </div>
-      </main>
+        <div className='rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm'>
+          <div className='w-14 h-14 mx-auto mb-4 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center'>
+            <Lock className='h-7 w-7 text-indigo-400' />
+          </div>
+          <h2 className='text-lg font-bold text-gray-800 mb-2'>Vendor Management</h2>
+          <p className='text-sm text-gray-500 mb-6 max-w-md mx-auto'>
+            Vendor management is available on the Pro plan. Upgrade to track suppliers,
+            manage purchase orders, and keep your supply chain organized.
+          </p>
+          <Link href='/contractor/settings/subscription' className='inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold transition-all shadow-sm'>
+            <Zap className='h-4 w-4' /> Upgrade to Pro
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -73,102 +73,55 @@ export default async function VendorsPage() {
   const totalOrders = vendors.reduce((sum, v) => sum + v.totalOrders, 0);
 
   return (
-    <div className="space-y-6">
+    <div className='w-full space-y-5'>
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
         <div>
-          <h1 className="text-2xl font-bold text-blue-600">Vendor Management</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Manage suppliers and track purchases
-          </p>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Vendor Management</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>Manage suppliers and track purchases</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="border-2 border-gray-200">
-            <Download className="h-4 w-4 mr-2" />
-            Export
+        <div className='flex gap-2'>
+          <Button variant='outline' className='border-gray-200 bg-white hover:bg-gray-50 text-gray-700 shadow-sm text-xs'>
+            <Download className='h-3.5 w-3.5 mr-1.5' /> Export
           </Button>
-          <Link href="/contractor/vendors/new">
-            <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border-2 border-black shadow-lg">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Vendor
+          <Link href='/contractor/vendors/new'>
+            <Button className='bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm font-semibold'>
+              <Plus className='h-4 w-4 mr-2' /> Add Vendor
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100">
-              <Store className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{totalVendors}</p>
-              <p className="text-sm text-gray-600">Total Vendors</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-emerald-100">
-              <ShoppingCart className="h-5 w-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{activeVendors}</p>
-              <p className="text-sm text-gray-600">Active</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber-100">
-              <Star className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">
-                {avgRating.toFixed(1)}
-              </p>
-              <p className="text-sm text-gray-600">Avg Rating</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-violet-100">
-              <ShoppingCart className="h-5 w-5 text-violet-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">
-                {totalOrders}
-              </p>
-              <p className="text-sm text-gray-600">Total Orders</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Vendors List */}
-      <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
-        <div className="p-5 border-b border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h3 className="text-lg font-semibold text-gray-900">All Vendors</h3>
-            <div className="flex gap-2">
-              <div className="relative flex-1 md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search vendors..."
-                  className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500"
-                />
+      {/* KPI Cards */}
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
+        {[
+          { label: 'Total Vendors', value: String(totalVendors), icon: Store, gradient: 'from-blue-400 to-indigo-400' },
+          { label: 'Active', value: String(activeVendors), icon: ShoppingCart, gradient: 'from-emerald-400 to-cyan-400' },
+          { label: 'Avg Rating', value: `${avgRating.toFixed(1)} ★`, icon: Star, gradient: 'from-amber-400 to-orange-400' },
+          { label: 'Total Orders', value: String(totalOrders), icon: ShoppingCart, gradient: 'from-violet-400 to-purple-400' },
+        ].map(({ label, value, icon: Icon, gradient }) => (
+          <div key={label} className='relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm overflow-hidden'>
+            <div className={`absolute top-0 right-0 h-16 w-16 bg-gradient-to-bl ${gradient} opacity-10 rounded-bl-full`} />
+            <div className='flex items-start justify-between'>
+              <div>
+                <p className='text-[10px] text-gray-500 font-medium'>{label}</p>
+                <p className='text-xl font-bold text-gray-900 mt-0.5'>{value}</p>
+              </div>
+              <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center text-white`}>
+                <Icon className='h-4 w-4' />
               </div>
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Vendors List */}
+      <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+        <div className='flex items-center justify-between p-4 border-b border-gray-100'>
+          <h3 className='text-sm font-bold text-gray-800'>All Vendors</h3>
+          <span className='text-xs text-gray-400'>{totalVendors} total</span>
         </div>
-        <div className="p-5">
+        <div className='p-4'>
           <VendorList vendors={vendors} />
         </div>
       </div>

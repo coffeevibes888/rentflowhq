@@ -45,12 +45,16 @@ export default async function ContractsPage() {
   });
 
   return (
-    <main className="w-full pb-8">
+    <div className='w-full space-y-5'>
+      <div>
+        <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Contracts</h1>
+        <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>Manage service agreements and contracts</p>
+      </div>
       <ContractsDashboard
         initialContracts={JSON.parse(JSON.stringify(contracts))}
         jobs={JSON.parse(JSON.stringify(jobs))}
         appUrl={process.env.NEXT_PUBLIC_APP_URL || ''}
       />
-    </main>
+    </div>
   );
 }

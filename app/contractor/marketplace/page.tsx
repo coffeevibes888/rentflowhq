@@ -81,62 +81,41 @@ export default async function ContractorMarketplacePage({
   const myActiveBids = myBids.length;
 
   return (
-    <div className="space-y-6">
+    <div className='w-full space-y-5'>
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-blue-600">Job Marketplace</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Browse open jobs and submit competitive bids
-        </p>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+        <div>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Job Marketplace</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>Browse open jobs and submit competitive bids</p>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-blue-100">
-              <Briefcase className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Open Jobs</p>
-              <p className="text-3xl font-bold text-blue-600">{totalJobs}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-violet-100">
-              <TrendingUp className="h-5 w-5 text-violet-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Avg. Competition</p>
-              <p className="text-3xl font-bold text-violet-600">
-                {avgBidsPerJob.toFixed(1)} bids
-              </p>
+      {/* KPI Cards */}
+      <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+        {[
+          { label: 'Open Jobs', value: String(totalJobs), icon: Briefcase, gradient: 'from-blue-400 to-indigo-400' },
+          { label: 'Avg. Competition', value: `${avgBidsPerJob.toFixed(1)} bids`, icon: TrendingUp, gradient: 'from-violet-400 to-purple-400' },
+          { label: 'My Active Bids', value: String(myActiveBids), icon: Clock, gradient: 'from-amber-400 to-orange-400' },
+        ].map(({ label, value, icon: Icon, gradient }) => (
+          <div key={label} className='relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm overflow-hidden'>
+            <div className={`absolute top-0 right-0 h-16 w-16 bg-gradient-to-bl ${gradient} opacity-10 rounded-bl-full`} />
+            <div className='flex items-start justify-between'>
+              <div>
+                <p className='text-xs text-gray-500 font-medium'>{label}</p>
+                <p className='text-2xl font-bold text-gray-900 mt-0.5'>{value}</p>
+              </div>
+              <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center text-white`}>
+                <Icon className='h-4 w-4' />
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-amber-100">
-              <Clock className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-sm text-amber-700 font-medium">My Active Bids</p>
-              <p className="text-3xl font-bold text-amber-600">{myActiveBids}</p>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Success Message */}
       {searchParams && 'success' in searchParams && (
-        <div className="rounded-lg bg-emerald-50 border-2 border-emerald-200 p-4">
-          <p className="text-sm text-emerald-700 font-medium">
-            ✓ Bid submitted successfully! The customer will review your bid and may contact you.
-          </p>
+        <div className='flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium'>
+          ✓ Bid submitted successfully! The customer will review your bid and may contact you.
         </div>
       )}
 

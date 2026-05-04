@@ -2,14 +2,14 @@ import { Metadata } from 'next';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
-import { Download, TrendingUp, TrendingDown, DollarSign, Lock, Zap } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, DollarSign, Lock, Zap, BarChart2, Target, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 import { canAccessFeature } from '@/lib/services/contractor-feature-gate';
 
 export const metadata: Metadata = {
-  title: 'Financial Reports',
+  title: 'Financial Reports | Contractor Dashboard',
 };
 
 export default async function ReportsPage() {
@@ -21,84 +21,46 @@ export default async function ReportsPage() {
 
   const contractorProfile = await prisma.contractorProfile.findUnique({
     where: { userId: session.user.id },
-    select: { 
-      id: true, 
-      businessName: true,
-      subscriptionTier: true,
-    },
+    select: { id: true, businessName: true, subscriptionTier: true },
   });
 
   if (!contractorProfile) {
     redirect('/onboarding/contractor');
   }
 
-  // Check if contractor has access to advanced analytics
   const advancedAnalyticsAccess = await canAccessFeature(contractorProfile.id, 'advancedAnalytics');
   const hasAdvancedAnalytics = advancedAnalyticsAccess.allowed;
-  
-  // Basic reports are available to all tiers
-  const tier = contractorProfile.subscriptionTier || 'starter';
 
-  // Date ranges
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 1);
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  // Get monthly data for the year
-  const months = [];
-  for (let i = 0; i < 12; i++) {
+  const months = Array.from({ length: 12 }, (_, i) => {
     const monthStart = new Date(now.getFullYear(), i, 1);
     const monthEnd = new Date(now.getFullYear(), i + 1, 0);
-    months.push({ start: monthStart, end: monthEnd, name: monthStart.toLocaleString('default', { month: 'short' }) });
-  }
+    return { start: monthStart, end: monthEnd, name: monthStart.toLocaleString('default', { month: 'short' }) };
+  });
 
-  // Fetch financial data
   const [yearRevenue, yearExpenses, monthRevenue, monthExpenses, categoryExpenses] = await Promise.all([
-    // Year revenue
     prisma.contractorJob.aggregate({
-      where: {
-        contractorId: contractorProfile.id,
-        status: { in: ['completed', 'invoiced', 'paid'] },
-        actualEndDate: { gte: startOfYear },
-      },
+      where: { contractorId: contractorProfile.id, status: { in: ['completed', 'invoiced', 'paid'] }, actualEndDate: { gte: startOfYear } },
       _sum: { actualCost: true },
     }),
-    
-    // Year expenses
     prisma.contractorExpense.aggregate({
-      where: {
-        contractorId: contractorProfile.id,
-        expenseDate: { gte: startOfYear },
-      },
+      where: { contractorId: contractorProfile.id, expenseDate: { gte: startOfYear } },
       _sum: { amount: true },
     }),
-    
-    // Month revenue
     prisma.contractorJob.aggregate({
-      where: {
-        contractorId: contractorProfile.id,
-        status: { in: ['completed', 'invoiced', 'paid'] },
-        actualEndDate: { gte: startOfMonth },
-      },
+      where: { contractorId: contractorProfile.id, status: { in: ['completed', 'invoiced', 'paid'] }, actualEndDate: { gte: startOfMonth } },
       _sum: { actualCost: true },
     }),
-    
-    // Month expenses
     prisma.contractorExpense.aggregate({
-      where: {
-        contractorId: contractorProfile.id,
-        expenseDate: { gte: startOfMonth },
-      },
+      where: { contractorId: contractorProfile.id, expenseDate: { gte: startOfMonth } },
       _sum: { amount: true },
     }),
-    
-    // Expenses by category
     prisma.contractorExpense.groupBy({
       by: ['category'],
-      where: {
-        contractorId: contractorProfile.id,
-        expenseDate: { gte: startOfYear },
-      },
+      where: { contractorId: contractorProfile.id, expenseDate: { gte: startOfYear } },
       _sum: { amount: true },
       orderBy: { _sum: { amount: 'desc' } },
     }),
@@ -108,237 +70,192 @@ export default async function ReportsPage() {
   const totalYearExpenses = Number(yearExpenses._sum.amount || 0);
   const totalMonthRevenue = Number(monthRevenue._sum.actualCost || 0);
   const totalMonthExpenses = Number(monthExpenses._sum.amount || 0);
-  
   const yearProfit = totalYearRevenue - totalYearExpenses;
-  const monthProfit = totalMonthRevenue - totalMonthExpenses;
   const profitMargin = totalYearRevenue > 0 ? (yearProfit / totalYearRevenue) * 100 : 0;
 
   return (
-    <div className="space-y-6">
+    <div className='w-full space-y-5'>
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
         <div>
-          <h1 className="text-2xl font-bold text-blue-600">Financial Reports</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Financial Reports</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>
             Profit & loss statements and financial analysis
           </p>
         </div>
-        <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border-2 border-black shadow-lg">
-          <Download className="h-4 w-4 mr-2" />
+        <Button className='bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm font-semibold self-start'>
+          <Download className='h-4 w-4 mr-2' />
           Export Report
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-lg bg-emerald-100">
-              <TrendingUp className="h-6 w-6 text-emerald-600" />
+      {/* KPI Cards */}
+      <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+        <div className='relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm overflow-hidden'>
+          <div className='absolute top-0 right-0 h-20 w-20 bg-gradient-to-bl from-emerald-400 to-cyan-400 opacity-10 rounded-bl-full' />
+          <div className='flex items-start justify-between'>
+            <div>
+              <p className='text-xs text-gray-500 font-medium'>Revenue (YTD)</p>
+              <p className='text-2xl font-bold text-gray-900 mt-0.5'>{formatCurrency(totalYearRevenue)}</p>
+              <p className='text-[10px] text-gray-400 mt-0.5'>This month: {formatCurrency(totalMonthRevenue)}</p>
+            </div>
+            <div className='h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white'>
+              <TrendingUp className='h-4 w-4' />
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">Total Revenue (YTD)</p>
-          <p className="text-3xl font-bold text-emerald-600 mb-2">
-            {formatCurrency(totalYearRevenue)}
-          </p>
-          <p className="text-xs text-gray-500">
-            This month: {formatCurrency(totalMonthRevenue)}
-          </p>
         </div>
-
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-lg bg-red-100">
-              <TrendingDown className="h-6 w-6 text-red-600" />
+        <div className='relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm overflow-hidden'>
+          <div className='absolute top-0 right-0 h-20 w-20 bg-gradient-to-bl from-red-400 to-rose-400 opacity-10 rounded-bl-full' />
+          <div className='flex items-start justify-between'>
+            <div>
+              <p className='text-xs text-gray-500 font-medium'>Expenses (YTD)</p>
+              <p className='text-2xl font-bold text-gray-900 mt-0.5'>{formatCurrency(totalYearExpenses)}</p>
+              <p className='text-[10px] text-gray-400 mt-0.5'>This month: {formatCurrency(totalMonthExpenses)}</p>
+            </div>
+            <div className='h-9 w-9 rounded-lg bg-gradient-to-br from-red-400 to-rose-400 flex items-center justify-center text-white'>
+              <TrendingDown className='h-4 w-4' />
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">Total Expenses (YTD)</p>
-          <p className="text-3xl font-bold text-red-600 mb-2">
-            {formatCurrency(totalYearExpenses)}
-          </p>
-          <p className="text-xs text-gray-500">
-            This month: {formatCurrency(totalMonthExpenses)}
-          </p>
         </div>
-
-        <div className="rounded-xl border-2 border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-lg bg-blue-100">
-              <DollarSign className="h-6 w-6 text-blue-600" />
+        <div className='relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm overflow-hidden'>
+          <div className='absolute top-0 right-0 h-20 w-20 bg-gradient-to-bl from-blue-400 to-indigo-400 opacity-10 rounded-bl-full' />
+          <div className='flex items-start justify-between'>
+            <div>
+              <p className='text-xs text-gray-500 font-medium'>Net Profit (YTD)</p>
+              <p className={`text-2xl font-bold mt-0.5 ${yearProfit >= 0 ? 'text-gray-900' : 'text-red-600'}`}>{formatCurrency(yearProfit)}</p>
+              <p className='text-[10px] text-gray-400 mt-0.5'>Margin: {profitMargin.toFixed(1)}%</p>
+            </div>
+            <div className='h-9 w-9 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white'>
+              <DollarSign className='h-4 w-4' />
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">Net Profit (YTD)</p>
-          <p className={`text-3xl font-bold mb-2 ${yearProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-            {formatCurrency(yearProfit)}
-          </p>
-          <p className="text-xs text-gray-500">
-            Margin: {profitMargin.toFixed(1)}%
-          </p>
         </div>
       </div>
 
-      {/* Profit & Loss Statement */}
-      <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Profit & Loss Statement - {now.getFullYear()}
-          </h3>
+      {/* P&L Statement */}
+      <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+        <div className='flex items-center justify-between p-4 border-b border-gray-100'>
+          <h3 className='text-sm font-bold text-gray-800'>Profit & Loss — {now.getFullYear()}</h3>
         </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            {/* Revenue Section */}
-            <div>
-              <div className="flex justify-between items-center py-3 border-b-2 border-gray-200">
-                <span className="font-semibold text-gray-900">Revenue</span>
-                <span className="font-semibold text-emerald-600">
-                  {formatCurrency(totalYearRevenue)}
-                </span>
-              </div>
+        <div className='p-4 space-y-3'>
+          <div className='flex justify-between items-center py-2 border-b border-gray-100'>
+            <span className='text-sm font-semibold text-gray-700'>Revenue</span>
+            <span className='text-sm font-bold text-emerald-600'>{formatCurrency(totalYearRevenue)}</span>
+          </div>
+          <div>
+            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
+              <span className='text-sm font-semibold text-gray-700'>Expenses</span>
+              <span className='text-sm font-bold text-red-500'>{formatCurrency(totalYearExpenses)}</span>
             </div>
-
-            {/* Expenses Section */}
-            <div>
-              <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                <span className="font-semibold text-gray-900">Expenses</span>
-                <span className="font-semibold text-red-600">
-                  {formatCurrency(totalYearExpenses)}
-                </span>
-              </div>
-              <div className="ml-4 space-y-2 mt-2">
+            {categoryExpenses.length > 0 && (
+              <div className='ml-4 mt-2 space-y-1.5'>
                 {categoryExpenses.map((cat) => (
-                  <div key={cat.category} className="flex justify-between items-center py-2 text-sm">
-                    <span className="text-gray-600">{cat.category}</span>
-                    <span className="text-gray-900 font-medium">
-                      {formatCurrency(Number(cat._sum.amount || 0))}
-                    </span>
+                  <div key={cat.category} className='flex justify-between items-center py-1 text-xs text-gray-500'>
+                    <span className='capitalize'>{cat.category.replace('_', ' ')}</span>
+                    <span className='font-medium text-gray-700'>{formatCurrency(Number(cat._sum.amount || 0))}</span>
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Net Profit */}
-            <div className="pt-4 border-t-2 border-gray-200">
-              <div className="flex justify-between items-center py-3">
-                <span className="text-lg font-bold text-gray-900">Net Profit</span>
-                <span className={`text-lg font-bold ${yearProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                  {formatCurrency(yearProfit)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <span>Profit Margin</span>
-                <span className="font-medium">{profitMargin.toFixed(2)}%</span>
-              </div>
-            </div>
+            )}
+          </div>
+          <div className='flex justify-between items-center py-3 border-t-2 border-gray-200'>
+            <span className='text-sm font-bold text-gray-900'>Net Profit</span>
+            <span className={`text-base font-bold ${yearProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {formatCurrency(yearProfit)}
+            </span>
+          </div>
+          <div className='flex justify-between items-center text-xs text-gray-500'>
+            <span>Profit Margin</span>
+            <span className='font-semibold text-gray-700'>{profitMargin.toFixed(2)}%</span>
           </div>
         </div>
       </div>
 
       {/* Monthly Breakdown */}
-      <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Monthly Breakdown</h3>
+      <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+        <div className='p-4 border-b border-gray-100'>
+          <h3 className='text-sm font-bold text-gray-800'>Monthly Breakdown</h3>
         </div>
-        <div className="p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">
-                    Month
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900">
-                    Revenue
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900">
-                    Expenses
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900">
-                    Profit
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900">
-                    Margin
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {months.map((month, index) => {
-                  // For now, show placeholder data - in production, fetch actual monthly data
-                  const monthRev = index <= now.getMonth() ? totalYearRevenue / (now.getMonth() + 1) : 0;
-                  const monthExp = index <= now.getMonth() ? totalYearExpenses / (now.getMonth() + 1) : 0;
-                  const monthProf = monthRev - monthExp;
-                  const monthMargin = monthRev > 0 ? (monthProf / monthRev) * 100 : 0;
-
-                  return (
-                    <tr key={month.name} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-sm text-gray-900">{month.name}</td>
-                      <td className="py-3 px-4 text-sm text-right text-emerald-600 font-medium">
-                        {index <= now.getMonth() ? formatCurrency(monthRev) : '-'}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-right text-red-600 font-medium">
-                        {index <= now.getMonth() ? formatCurrency(monthExp) : '-'}
-                      </td>
-                      <td className={`py-3 px-4 text-sm text-right font-medium ${monthProf >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                        {index <= now.getMonth() ? formatCurrency(monthProf) : '-'}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-right text-gray-900">
-                        {index <= now.getMonth() ? `${monthMargin.toFixed(1)}%` : '-'}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        <div className='overflow-x-auto'>
+          <table className='w-full text-xs'>
+            <thead>
+              <tr className='border-b border-gray-100 bg-gray-50/50'>
+                <th className='text-left py-3 px-4 font-semibold text-gray-600'>Month</th>
+                <th className='text-right py-3 px-4 font-semibold text-gray-600'>Revenue</th>
+                <th className='text-right py-3 px-4 font-semibold text-gray-600'>Expenses</th>
+                <th className='text-right py-3 px-4 font-semibold text-gray-600'>Profit</th>
+                <th className='text-right py-3 px-4 font-semibold text-gray-600'>Margin</th>
+              </tr>
+            </thead>
+            <tbody>
+              {months.map((month, index) => {
+                const monthRev = index <= now.getMonth() ? totalYearRevenue / (now.getMonth() + 1) : 0;
+                const monthExp = index <= now.getMonth() ? totalYearExpenses / (now.getMonth() + 1) : 0;
+                const monthProf = monthRev - monthExp;
+                const monthMargin = monthRev > 0 ? (monthProf / monthRev) * 100 : 0;
+                const isFuture = index > now.getMonth();
+                return (
+                  <tr key={month.name} className='border-b border-gray-50 hover:bg-gray-50/50 transition-colors'>
+                    <td className='py-2.5 px-4 font-medium text-gray-700'>{month.name}</td>
+                    <td className={`py-2.5 px-4 text-right font-medium ${isFuture ? 'text-gray-300' : 'text-emerald-600'}`}>
+                      {isFuture ? '—' : formatCurrency(monthRev)}
+                    </td>
+                    <td className={`py-2.5 px-4 text-right font-medium ${isFuture ? 'text-gray-300' : 'text-red-500'}`}>
+                      {isFuture ? '—' : formatCurrency(monthExp)}
+                    </td>
+                    <td className={`py-2.5 px-4 text-right font-medium ${isFuture ? 'text-gray-300' : monthProf >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                      {isFuture ? '—' : formatCurrency(monthProf)}
+                    </td>
+                    <td className={`py-2.5 px-4 text-right ${isFuture ? 'text-gray-300' : 'text-gray-600'}`}>
+                      {isFuture ? '—' : `${monthMargin.toFixed(1)}%`}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Advanced Analytics Section - Enterprise Only */}
-      {!hasAdvancedAnalytics && (
-        <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-blue-500/10 p-8 text-center">
-          <Lock className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-semibold text-white mb-2">Advanced Analytics</h3>
-          <p className="text-slate-300 mb-6 max-w-2xl mx-auto">
-            Unlock powerful insights with custom dashboards, forecasting, trend analysis, 
-            and advanced reporting features. Available on the Enterprise plan.
+      {/* Advanced Analytics Upsell / Feature */}
+      {!hasAdvancedAnalytics ? (
+        <div className='rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm'>
+          <div className='w-14 h-14 mx-auto mb-4 rounded-full bg-violet-50 border border-violet-100 flex items-center justify-center'>
+            <Lock className='h-7 w-7 text-violet-400' />
+          </div>
+          <h3 className='text-base font-bold text-gray-800 mb-2'>Advanced Analytics</h3>
+          <p className='text-sm text-gray-500 mb-5 max-w-md mx-auto'>
+            Unlock custom dashboards, revenue forecasting, trend analysis, and advanced reporting on the Enterprise plan.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center mb-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
-              📊 Custom Dashboards
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
-              📈 Revenue Forecasting
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
-              🎯 Performance Tracking
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
-              📉 Trend Analysis
-            </div>
+          <div className='flex flex-wrap gap-3 justify-center mb-5'>
+            {[
+              { icon: BarChart2, label: 'Custom Dashboards' },
+              { icon: TrendingUp, label: 'Revenue Forecasting' },
+              { icon: Target, label: 'Performance Tracking' },
+              { icon: Activity, label: 'Trend Analysis' },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className='flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-700'>
+                <Icon className='h-3.5 w-3.5 text-violet-500' />
+                {label}
+              </div>
+            ))}
           </div>
           <Link
-            href="/contractor/settings/subscription"
-            className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+            href='/contractor/settings/subscription'
+            className='inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white px-6 py-2.5 rounded-lg font-semibold transition-all shadow-sm'
           >
-            <Zap className="h-5 w-5" />
+            <Zap className='h-4 w-4' />
             Upgrade to Enterprise
           </Link>
         </div>
-      )}
-
-      {hasAdvancedAnalytics && (
-        <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-900">Advanced Analytics</h3>
-              <span className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">
-                ENTERPRISE
-              </span>
-            </div>
+      ) : (
+        <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+          <div className='flex items-center gap-2 p-4 border-b border-gray-100'>
+            <h3 className='text-sm font-bold text-gray-800'>Advanced Analytics</h3>
+            <span className='text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600'>ENTERPRISE</span>
           </div>
-          <div className="p-6">
-            <p className="text-gray-600 text-center py-8">
-              Advanced analytics features coming soon...
-            </p>
+          <div className='p-8 text-center text-sm text-gray-500'>
+            Advanced analytics features coming soon...
           </div>
         </div>
       )}

@@ -37,10 +37,28 @@ app.prepare().then(async () => {
     }
   });
 
-  // Initialize WebSocket server
+  // Initialize WebSocket server (noServer mode — does NOT intercept upgrades)
+  let chatWsServer = null;
   try {
-    const { initializeWebSocketServer } = require('./lib/websocket-server.ts');
-    initializeWebSocketServer(server);
+    const { initializeWebSocketServer, handleChatUpgrade } = require('./lib/websocket-server.ts');
+    chatWsServer = initializeWebSocketServer();
+
+    // Get Next.js internal upgrade handler for HMR WebSocket (/_next/webpack-hmr)
+    const nextUpgradeHandler = typeof app.getUpgradeHandler === 'function'
+      ? app.getUpgradeHandler()
+      : null;
+
+    // Route WebSocket upgrade requests by path
+    server.on('upgrade', async (req, socket, head) => {
+      const pathname = (req.url || '').split('?')[0];
+      if (pathname === '/api/websocket/team-chat') {
+        handleChatUpgrade(req, socket, head);
+      } else if (nextUpgradeHandler) {
+        await nextUpgradeHandler(req, socket, head);
+      } else {
+        socket.destroy();
+      }
+    });
   } catch (error) {
     console.error('Failed to initialize WebSocket server:', error);
   }

@@ -32,7 +32,7 @@ const Header = async () => {
     <header className="w-full text-black font-semibold">
       <div className="wrapper flex items-center justify-between md:hidden h-16 relative overflow-visible">
         {isAuthenticated && (
-          <div className="flex items-center">
+          <div className="flex items-center relative z-10">
             {userRole === 'contractor' ? (
               <ContractorMobileDrawer />
             ) : userRole === 'agent' ? (
@@ -47,8 +47,9 @@ const Header = async () => {
           </div>
         )}
 
-        <Link href='/' className="absolute left-1/2 transform -translate-x-1/2 top-0 h-full flex items-center justify-center mt-2">
-          <div className="relative w-24 h-24">
+        {/* Logo — pointer-events contained to header height only */}
+        <Link href='/' className="absolute left-1/2 transform -translate-x-1/2 top-0 h-full flex items-center justify-center mt-2 z-0">
+          <div className="relative w-24 h-16 overflow-hidden">
             <Image
               src={landlord?.logoUrl || '/images/logo.svg'}
               fill
@@ -59,7 +60,7 @@ const Header = async () => {
           </div>
         </Link>
 
-        <div className="flex items-center">
+        <div className="flex items-center relative z-10">
           <Menu />
         </div>
       </div>
@@ -152,8 +153,8 @@ const Header = async () => {
           </div>
         </div>
 
-        {/* Menu - fixed width to balance logo */}
-        <div className="w-32 flex-shrink-0 flex justify-end text-black font-bold">
+        {/* Menu - right side */}
+        <div className="flex-shrink-0 flex justify-end text-black font-bold">
           <Menu />
         </div>
       </div>

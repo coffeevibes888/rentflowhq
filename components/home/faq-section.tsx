@@ -42,7 +42,7 @@ const faqs = [
   },
   {
     question: 'How do I get started?',
-    answer: 'Sign up for free in under 2 minutes. Add your properties and units, invite your tenants, and start collecting rent online. No credit card required for the free tier.',
+    answer: 'Sign up for free in under 2 minutes. Add your properties and units, invite your tenants, and start collecting rent online ',
   },
 ];
 

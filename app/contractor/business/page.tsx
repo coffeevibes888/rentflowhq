@@ -16,11 +16,7 @@ export default async function MyBusinessPage({
 
   const contractorProfile = await prisma.contractorProfile.findUnique({
     where: { userId: session.user.id },
-    select: { 
-      id: true, 
-      businessName: true,
-      stripeConnectAccountId: true,
-    },
+    select: { id: true, businessName: true, stripeConnectAccountId: true },
   });
 
   if (!contractorProfile) {
@@ -30,82 +26,48 @@ export default async function MyBusinessPage({
   const params = await searchParams;
   const activeTab = params.tab || 'portfolio';
 
-  // Fetch data for each tab
   const [portfolioItems, disputes] = await Promise.all([
-    // Portfolio items
     prisma.contractorPortfolioItem.findMany({
       where: { contractorId: contractorProfile.id },
       orderBy: { createdAt: 'desc' },
       take: 20,
     }),
-    
-    // Disputes
     prisma.dispute.findMany({
       where: {
         OR: [
           { filedById: session.user.id },
-          { 
-            contractorId: contractorProfile.id,
-          },
+          { contractorId: contractorProfile.id },
         ],
       },
       include: {
-        filedBy: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-        landlord: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        filedBy: { select: { name: true, email: true } },
+        landlord: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
     }),
   ]);
 
-  // Get landlords from work orders
   const workOrders = await prisma.workOrder.findMany({
     where: { contractorId: contractorProfile.id },
-    select: {
-      landlord: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
+    select: { landlord: { select: { id: true, name: true } } },
     distinct: ['landlordId'],
   });
 
-  // Count jobs per landlord
   const landlords = await Promise.all(
     workOrders.map(async (wo) => {
       const count = await prisma.workOrder.count({
-        where: {
-          contractorId: contractorProfile.id,
-          landlordId: wo.landlord.id,
-        },
+        where: { contractorId: contractorProfile.id, landlordId: wo.landlord.id },
       });
-      return {
-        ...wo.landlord,
-        email: '', // Landlord model doesn't have email
-        _count: { workOrders: count },
-      };
+      return { ...wo.landlord, email: '', _count: { workOrders: count } };
     })
   );
 
-  // Get payouts - simplified without a dedicated model
-  const payouts: any[] = [];
-
   return (
-    <div className="space-y-6">
+    <div className='w-full space-y-5'>
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-blue-600">My Business</h1>
-        <p className="text-sm text-gray-600 mt-1">
+        <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>My Business</h1>
+        <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>
           Manage your portfolio, relationships, and business operations
         </p>
       </div>
@@ -115,7 +77,7 @@ export default async function MyBusinessPage({
         portfolioItems={portfolioItems}
         landlords={landlords}
         disputes={disputes}
-        payouts={payouts}
+        payouts={[]}
         contractorId={contractorProfile.id}
         hasStripeAccount={!!contractorProfile.stripeConnectAccountId}
       />

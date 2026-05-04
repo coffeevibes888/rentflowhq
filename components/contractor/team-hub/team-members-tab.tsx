@@ -99,7 +99,8 @@ function getRoleStyle(roleName: string) {
 }
 
 /** Get display name for a member — prefer assignedRole.name, fall back to legacy role field */
-function getMemberRoleName(member: TeamMember): string {
+function getMemberRoleName(member: TeamMember | null | undefined): string {
+  if (!member) return 'Team Member';
   return member.assignedRole?.name || member.role || 'Team Member';
 }
 

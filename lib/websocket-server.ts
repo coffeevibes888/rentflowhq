@@ -1,7 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { parse } from 'url';
 import { IncomingMessage } from 'http';
-import { Server } from 'http';
 
 interface AuthenticatedWebSocket extends WebSocket {
   userId?: string;
@@ -22,11 +21,8 @@ class TeamChatWebSocketServer {
   private wss: WebSocketServer;
   private clients: Map<string, Set<AuthenticatedWebSocket>> = new Map();
 
-  constructor(server: Server) {
-    this.wss = new WebSocketServer({ 
-      server,
-      path: '/api/websocket/team-chat'
-    });
+  constructor() {
+    this.wss = new WebSocketServer({ noServer: true });
 
     this.wss.on('connection', this.handleConnection.bind(this));
     console.log('WebSocket server initialized on path: /api/websocket/team-chat');
@@ -214,6 +210,10 @@ class TeamChatWebSocketServer {
     });
   }
 
+  public getWss(): WebSocketServer {
+    return this.wss;
+  }
+
   // Method to broadcast reaction from REST API
   public broadcastReaction(channelId: string, messageId: string, reaction: string, userId: string) {
     this.broadcastToChannel(channelId, {
@@ -227,11 +227,22 @@ class TeamChatWebSocketServer {
 
 let wsServer: TeamChatWebSocketServer | null = null;
 
-export function initializeWebSocketServer(server: Server): TeamChatWebSocketServer {
+export function initializeWebSocketServer(): TeamChatWebSocketServer {
   if (!wsServer) {
-    wsServer = new TeamChatWebSocketServer(server);
+    wsServer = new TeamChatWebSocketServer();
   }
   return wsServer;
+}
+
+export function handleChatUpgrade(req: IncomingMessage, socket: any, head: Buffer): void {
+  const server = wsServer?.getWss();
+  if (server) {
+    server.handleUpgrade(req, socket, head, (ws: any) => {
+      server.emit('connection', ws, req);
+    });
+  } else {
+    socket.destroy();
+  }
 }
 
 export function getWebSocketServer(): TeamChatWebSocketServer | null {

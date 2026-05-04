@@ -3,22 +3,20 @@ import { requireContractor } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FileText, Plus, ShoppingCart, Truck, DollarSign, Package } from 'lucide-react';
+import { FileText, Plus, ShoppingCart, Truck, DollarSign, Package, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Purchase Orders | Contractor Portal',
 };
 
-const statusColors: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-800',
-  sent: 'bg-blue-100 text-blue-800',
-  acknowledged: 'bg-yellow-100 text-yellow-800',
-  partially_received: 'bg-orange-100 text-orange-800',
-  received: 'bg-green-100 text-green-800',
-  canceled: 'bg-red-100 text-red-800',
+const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
+  draft: { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Draft' },
+  sent: { bg: 'bg-blue-50', text: 'text-blue-600', label: 'Sent' },
+  acknowledged: { bg: 'bg-amber-50', text: 'text-amber-600', label: 'Acknowledged' },
+  partially_received: { bg: 'bg-orange-50', text: 'text-orange-600', label: 'Partial' },
+  received: { bg: 'bg-emerald-50', text: 'text-emerald-600', label: 'Received' },
+  canceled: { bg: 'bg-red-50', text: 'text-red-600', label: 'Canceled' },
 };
 
 export default async function PurchaseOrdersPage() {
@@ -32,14 +30,13 @@ export default async function PurchaseOrdersPage() {
 
   if (!contractorProfile) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Purchase Orders</h1>
-        <p className="text-muted-foreground">Contractor profile not found.</p>
+      <div className='w-full space-y-5'>
+        <h1 className='text-xl font-bold text-black'>Purchase Orders</h1>
+        <p className='text-sm text-gray-500'>Contractor profile not found.</p>
       </div>
     );
   }
 
-  // Fetch purchase orders
   const purchaseOrders = await prisma.$queryRaw`
     SELECT po.*, v.name as vendorName 
     FROM "ContractorPurchaseOrder" po
@@ -56,116 +53,88 @@ export default async function PurchaseOrdersPage() {
   const totalValue = pos.reduce((acc: number, p: any) => acc + Number(p.total || 0), 0);
 
   return (
-    <div className="relative rounded-2xl border border-rose-200 shadow-xl overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-rose-100 via-orange-50 to-rose-100" />
-      <div className="relative p-6 space-y-6">
+    <div className='w-full space-y-5'>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Purchase Orders</h1>
-          <p className="text-slate-600">Track material orders and deliveries</p>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Purchase Orders</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>Track material orders and deliveries</p>
         </div>
-        <Link href="/contractor/purchase-orders/new">
-          <Button className="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow-md">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Purchase Order
+        <Link href='/contractor/purchase-orders/new'>
+          <Button className='bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm font-semibold self-start'>
+            <Plus className='h-4 w-4 mr-2' /> Create Purchase Order
           </Button>
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-gradient-to-br from-slate-50 to-gray-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-slate-600" />
-              <span className="text-sm font-medium">Draft POs</span>
+      {/* KPI Cards */}
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
+        {[
+          { label: 'Draft POs', value: String(draftCount), icon: FileText, gradient: 'from-gray-400 to-slate-400' },
+          { label: 'Pending Delivery', value: String(pendingCount), icon: Truck, gradient: 'from-amber-400 to-orange-400' },
+          { label: 'Received', value: String(receivedCount), icon: Package, gradient: 'from-emerald-400 to-cyan-400' },
+          { label: 'Total Value', value: formatCurrency(totalValue), icon: DollarSign, gradient: 'from-blue-400 to-indigo-400' },
+        ].map(({ label, value, icon: Icon, gradient }) => (
+          <div key={label} className='relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm overflow-hidden'>
+            <div className={`absolute top-0 right-0 h-16 w-16 bg-gradient-to-bl ${gradient} opacity-10 rounded-bl-full`} />
+            <div className='flex items-start justify-between'>
+              <div>
+                <p className='text-[10px] text-gray-500 font-medium'>{label}</p>
+                <p className='text-xl font-bold text-gray-900 mt-0.5'>{value}</p>
+              </div>
+              <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center text-white`}>
+                <Icon className='h-4 w-4' />
+              </div>
             </div>
-            <div className="mt-2 text-2xl font-bold">{draftCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-yellow-50 to-amber-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Truck className="h-5 w-5 text-yellow-600" />
-              <span className="text-sm font-medium">Pending Delivery</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">{pendingCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium">Received</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">{receivedCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-rose-50 to-orange-50 border-white shadow-md">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-rose-600" />
-              <span className="text-sm font-medium">Total Value</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">{formatCurrency(totalValue)}</div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
       {/* PO List */}
-      <Card className="border-rose-100 shadow-md">
-        <CardHeader>
-          <CardTitle>All Purchase Orders</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {pos.length === 0 ? (
-            <div className="text-center py-8">
-              <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-medium mb-2">No purchase orders yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Create purchase orders to track material orders from vendors
-              </p>
-              <Link href="/contractor/purchase-orders/new">
-                <Button className="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow-md">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create First PO
-                </Button>
-              </Link>
+      <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+        <div className='flex items-center justify-between p-4 border-b border-gray-100'>
+          <h3 className='text-sm font-bold text-gray-800'>All Purchase Orders</h3>
+          <span className='text-xs text-gray-400'>{pos.length} total</span>
+        </div>
+
+        {pos.length === 0 ? (
+          <div className='p-10 text-center'>
+            <div className='w-14 h-14 mx-auto mb-4 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center'>
+              <ShoppingCart className='h-7 w-7 text-gray-300' />
             </div>
-          ) : (
-            <div className="divide-y divide-rose-100">
-              {pos.map((po: any) => (
-                <div key={po.id} className="py-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{po.poNumber}</h3>
-                      <Badge className={statusColors[po.status] || 'bg-gray-100'}>
-                        {po.status?.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {po.vendorName || 'No vendor assigned'}
-                    </p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>Order: {new Date(po.orderDate).toLocaleDateString()}</span>
-                      {po.requiredDate && (
-                        <span>Required: {new Date(po.requiredDate).toLocaleDateString()}</span>
-                      )}
-                    </div>
+            <h3 className='text-base font-bold text-gray-800 mb-1'>No purchase orders yet</h3>
+            <p className='text-sm text-gray-500 mb-4'>Create purchase orders to track material orders from vendors.</p>
+            <Link href='/contractor/purchase-orders/new'>
+              <Button className='bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold'>
+                <Plus className='h-4 w-4 mr-2' /> Create First PO
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className='divide-y divide-gray-50'>
+            {pos.map((po: any) => {
+              const sc = statusConfig[po.status] || { bg: 'bg-gray-100', text: 'text-gray-500', label: po.status };
+              return (
+                <Link key={po.id} href={`/contractor/purchase-orders/${po.id}`} className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors'>
+                  <div className='h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0'>
+                    <FileText className='h-4 w-4 text-blue-500' />
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold">{formatCurrency(po.total)}</div>
-                    <Link href={`/contractor/purchase-orders/${po.id}`}>
-                      <Button variant="outline" size="sm" className="mt-2">View</Button>
-                    </Link>
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center gap-2'>
+                      <p className='text-xs font-semibold text-gray-800'>{po.poNumber}</p>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} shrink-0`}>{sc.label}</span>
+                    </div>
+                    <p className='text-[10px] text-gray-500'>{po.vendorName || 'No vendor'} · {new Date(po.orderDate).toLocaleDateString()}</p>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  <div className='text-right shrink-0'>
+                    <p className='text-xs font-bold text-gray-800'>{formatCurrency(po.total)}</p>
+                  </div>
+                  <ChevronRight className='h-4 w-4 text-gray-300 shrink-0' />
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
 import { LeadsKanban } from '@/components/contractor/leads-kanban';
 import { canAccessFeature } from '@/lib/services/contractor-feature-gate';
-import { Lock, Zap } from 'lucide-react';
+import { Lock, Zap, TrendingUp, Target, BarChart2, Bell } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -18,66 +18,60 @@ export default async function ContractorLeadsPage() {
     redirect('/sign-in');
   }
 
-  // Get contractor profile
   const contractorProfile = await prisma.contractorProfile.findUnique({
     where: { userId: session.user.id },
-    select: {
-      id: true,
-      businessName: true,
-      subscriptionTier: true,
-    },
+    select: { id: true, businessName: true, subscriptionTier: true },
   });
 
   if (!contractorProfile) {
     redirect('/onboarding/contractor');
   }
 
-  // Check lead management feature access
   const featureAccess = await canAccessFeature(contractorProfile.id, 'leadManagement');
-  
+
   if (!featureAccess.allowed) {
     return (
-      <main className="w-full px-4 py-10 md:px-0">
-        <div className="max-w-3xl mx-auto">
-          <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 p-8 text-center">
-            <Lock className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-semibold text-white mb-2">Lead Management</h1>
-            <p className="text-slate-300 mb-6">
-              Lead management is available on the Pro plan. Upgrade to track leads, 
-              manage your pipeline, and convert more opportunities into jobs.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center mb-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
-                📊 Lead Pipeline
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
-                🎯 Lead Scoring
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
-                📈 Conversion Tracking
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-white">
-                ✉️ Follow-up Reminders
-              </div>
-            </div>
-            <Link
-              href="/contractor/settings/subscription"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-full font-semibold transition-colors"
-            >
-              <Zap className="h-5 w-5" />
-              Upgrade to Pro
-            </Link>
-          </div>
+      <div className='w-full space-y-5'>
+        <div>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Leads Pipeline</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>Manage leads from marketplace to conversion</p>
         </div>
-      </main>
+        <div className='rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm'>
+          <div className='w-14 h-14 mx-auto mb-4 rounded-full bg-violet-50 border border-violet-100 flex items-center justify-center'>
+            <Lock className='h-7 w-7 text-violet-400' />
+          </div>
+          <h2 className='text-lg font-bold text-gray-800 mb-2'>Lead Management</h2>
+          <p className='text-sm text-gray-500 mb-6 max-w-md mx-auto'>
+            Lead management is available on the Pro plan. Upgrade to track leads,
+            manage your pipeline, and convert more opportunities into jobs.
+          </p>
+          <div className='flex flex-wrap gap-3 justify-center mb-6'>
+            {[
+              { icon: BarChart2, label: 'Lead Pipeline' },
+              { icon: Target, label: 'Lead Scoring' },
+              { icon: TrendingUp, label: 'Conversion Tracking' },
+              { icon: Bell, label: 'Follow-up Reminders' },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className='flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-700'>
+                <Icon className='h-4 w-4 text-violet-500' />
+                {label}
+              </div>
+            ))}
+          </div>
+          <Link
+            href='/contractor/settings/subscription'
+            className='inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white px-6 py-2.5 rounded-lg font-semibold transition-all shadow-sm'
+          >
+            <Zap className='h-4 w-4' />
+            Upgrade to Pro
+          </Link>
+        </div>
+      </div>
     );
   }
 
-  // Fetch all lead matches for this contractor
   const leadMatches = await prisma.contractorLeadMatch.findMany({
-    where: {
-      contractorId: contractorProfile.id,
-    },
+    where: { contractorId: contractorProfile.id },
     include: {
       lead: {
         select: {
@@ -113,22 +107,11 @@ export default async function ContractorLeadsPage() {
     orderBy: { createdAt: 'desc' },
   });
 
-  // Get employees for assignment
   const employees = await prisma.contractorEmployee.findMany({
-    where: {
-      contractorId: contractorProfile.id,
-      status: 'active',
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      role: true,
-    },
+    where: { contractorId: contractorProfile.id, status: 'active' },
+    select: { id: true, firstName: true, lastName: true, email: true, role: true },
   });
 
-  // Serialize dates
   const serializedLeadMatches = leadMatches.map((match) => ({
     ...match,
     createdAt: match.createdAt.toISOString(),
@@ -144,7 +127,6 @@ export default async function ContractorLeadsPage() {
     },
   }));
 
-  // Calculate stats
   const stats = {
     total: leadMatches.length,
     new: leadMatches.filter((m) => m.lead.stage === 'new').length,
@@ -157,56 +139,37 @@ export default async function ContractorLeadsPage() {
   };
 
   return (
-    <div className='w-full space-y-4 sm:space-y-6'>
+    <div className='w-full space-y-5'>
       {/* Header */}
-      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
         <div>
-          <h1 className='text-xl sm:text-2xl md:text-3xl font-semibold text-black mb-1'>
-            Leads Pipeline
-          </h1>
-          <p className='text-xs sm:text-sm text-black'>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Leads Pipeline</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>
             Manage leads from marketplace to conversion
           </p>
         </div>
       </div>
 
-      {/* Stats Bar */}
-      <div className='relative rounded-xl border-2 border-black shadow-xl overflow-hidden'>
-        <div className='absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600' />
-        <div className='relative p-3 sm:p-4'>
-          <div className='grid grid-cols-4 sm:grid-cols-8 gap-2 sm:gap-4'>
-            <div className='text-center'>
-              <p className='text-lg sm:text-2xl font-bold text-gray-900'>{stats.total}</p>
-              <p className='text-[10px] sm:text-xs text-gray-900/80'>Total</p>
-            </div>
-            <div className='text-center'>
-              <p className='text-lg sm:text-2xl font-bold text-gray-900'>{stats.new}</p>
-              <p className='text-[10px] sm:text-xs text-gray-900/80'>New</p>
-            </div>
-            <div className='text-center'>
-              <p className='text-lg sm:text-2xl font-bold text-gray-900'>{stats.contacted}</p>
-              <p className='text-[10px] sm:text-xs text-gray-900/80'>Contacted</p>
-            </div>
-            <div className='text-center'>
-              <p className='text-lg sm:text-2xl font-bold text-gray-900'>{stats.qualified}</p>
-              <p className='text-[10px] sm:text-xs text-gray-900/80'>Qualified</p>
-            </div>
-            <div className='text-center'>
-              <p className='text-lg sm:text-2xl font-bold text-gray-900'>{stats.quoted}</p>
-              <p className='text-[10px] sm:text-xs text-gray-900/80'>Quoted</p>
-            </div>
-            <div className='text-center'>
-              <p className='text-lg sm:text-2xl font-bold text-gray-900'>{stats.won}</p>
-              <p className='text-[10px] sm:text-xs text-gray-900/80'>Won</p>
-            </div>
-            <div className='text-center'>
-              <p className='text-lg sm:text-2xl font-bold text-gray-900'>{stats.lost}</p>
-              <p className='text-[10px] sm:text-xs text-gray-900/80'>Lost</p>
-            </div>
-            <div className='text-center'>
-              <p className='text-lg sm:text-2xl font-bold text-amber-600'>{stats.hot}</p>
-              <p className='text-[10px] sm:text-xs text-gray-900/80'>🔥 Hot</p>
-            </div>
+      {/* Summary Bar */}
+      <div className='relative rounded-xl border border-gray-200 bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 overflow-hidden'>
+        <div className='absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/30 to-transparent rounded-bl-full' />
+        <div className='relative p-4'>
+          <div className='grid grid-cols-4 sm:grid-cols-8 gap-4'>
+            {[
+              { label: 'Total', value: stats.total, color: 'text-gray-800' },
+              { label: 'New', value: stats.new, color: 'text-blue-600' },
+              { label: 'Contacted', value: stats.contacted, color: 'text-indigo-600' },
+              { label: 'Qualified', value: stats.qualified, color: 'text-violet-600' },
+              { label: 'Quoted', value: stats.quoted, color: 'text-amber-600' },
+              { label: 'Won', value: stats.won, color: 'text-emerald-600' },
+              { label: 'Lost', value: stats.lost, color: 'text-red-500' },
+              { label: '🔥 Hot', value: stats.hot, color: 'text-orange-600' },
+            ].map(({ label, value, color }) => (
+              <div key={label} className='space-y-0.5'>
+                <div className='text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-wide'>{label}</div>
+                <div className={`text-sm sm:text-base font-bold ${color}`}>{value}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

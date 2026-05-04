@@ -3,9 +3,7 @@ import { requireContractor } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Shield, Plus, CheckCircle, AlertTriangle, ClipboardCheck, Users } from 'lucide-react';
+import { Shield, Plus, CheckCircle, AlertTriangle, ClipboardCheck, Users, ChevronRight } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Safety & Compliance | Contractor Portal',
@@ -22,14 +20,13 @@ export default async function SafetyPage() {
 
   if (!contractorProfile) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Safety & Compliance</h1>
-        <p className="text-muted-foreground">Contractor profile not found.</p>
+      <div className='w-full space-y-5'>
+        <h1 className='text-xl font-bold text-black'>Safety & Compliance</h1>
+        <p className='text-sm text-gray-500'>Contractor profile not found.</p>
       </div>
     );
   }
 
-  // Fetch safety checklists and completions
   const checklists = await prisma.$queryRaw`
     SELECT * FROM "ContractorSafetyChecklist"
     WHERE "contractorId" = ${contractorProfile.id} AND "isActive" = true
@@ -50,173 +47,108 @@ export default async function SafetyPage() {
   const jobSpecificCount = checklistList.filter((c: any) => c.category === 'job_specific').length;
   const completedToday = completionList.filter((c: any) => {
     const completed = new Date(c.completedAt);
-    const today = new Date();
-    return completed.toDateString() === today.toDateString();
+    return completed.toDateString() === new Date().toDateString();
   }).length;
   const issuesFound = completionList.reduce((acc: number, c: any) => acc + (c.issuesFound || 0), 0);
 
   return (
-    <div className="relative rounded-2xl border border-rose-200 shadow-xl overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-rose-100 via-orange-50 to-rose-100" />
-      <div className="relative p-6 space-y-6">
+    <div className='w-full space-y-5'>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Safety & Compliance</h1>
-          <p className="text-slate-600">OSHA checklists, incident reports, and safety training</p>
+          <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-black'>Safety & Compliance</h1>
+          <p className='text-xs sm:text-sm text-gray-500 mt-0.5'>OSHA checklists, incident reports, and safety training</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/contractor/safety/checklists">
-            <Button variant="outline" className="border-rose-200 hover:bg-rose-50">
-              <ClipboardCheck className="h-4 w-4 mr-2" />
-              Manage Checklists
+        <div className='flex gap-2'>
+          <Link href='/contractor/safety/checklists'>
+            <Button variant='outline' className='border-gray-200 bg-white hover:bg-gray-50 text-gray-700 shadow-sm text-xs'>
+              <ClipboardCheck className='h-3.5 w-3.5 mr-1.5' /> Manage Checklists
             </Button>
           </Link>
-          <Link href="/contractor/safety/new-checklist">
-            <Button className="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow-md">
-              <Plus className="h-4 w-4 mr-2" />
-              New Checklist
+          <Link href='/contractor/safety/new-checklist'>
+            <Button className='bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm font-semibold text-xs'>
+              <Plus className='h-3.5 w-3.5 mr-1.5' /> New Checklist
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-gradient-to-br from-rose-50 to-orange-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-rose-600" />
-              <span className="text-sm font-medium">OSHA Checklists</span>
+      {/* KPI Cards */}
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
+        {[
+          { label: 'OSHA Checklists', value: String(oshaCount), icon: Shield, gradient: 'from-blue-400 to-indigo-400' },
+          { label: 'Job Specific', value: String(jobSpecificCount), icon: ClipboardCheck, gradient: 'from-violet-400 to-purple-400' },
+          { label: 'Completed Today', value: String(completedToday), icon: CheckCircle, gradient: 'from-emerald-400 to-cyan-400' },
+          { label: 'Issues Found', value: String(issuesFound), icon: AlertTriangle, gradient: 'from-red-400 to-rose-400', alert: issuesFound > 0 },
+        ].map(({ label, value, icon: Icon, gradient, alert }) => (
+          <div key={label} className='relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm overflow-hidden'>
+            <div className={`absolute top-0 right-0 h-16 w-16 bg-gradient-to-bl ${gradient} opacity-10 rounded-bl-full`} />
+            {alert && <div className='absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 animate-pulse' />}
+            <div className='flex items-start justify-between'>
+              <div>
+                <p className='text-[10px] text-gray-500 font-medium'>{label}</p>
+                <p className='text-xl font-bold text-gray-900 mt-0.5'>{value}</p>
+              </div>
+              <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center text-white`}>
+                <Icon className='h-4 w-4' />
+              </div>
             </div>
-            <div className="mt-2 text-2xl font-bold">{oshaCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-rose-50 to-orange-50 border-white shadow-md">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5 text-rose-600" />
-              <span className="text-sm font-medium">Job Specific</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">{jobSpecificCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-white shadow-md">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium">Completed Today</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">{completedToday}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-white shadow-md">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <span className="text-sm font-medium">Issues Found</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">{issuesFound}</div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Link href="/contractor/safety/osha-daily">
-          <Card className="hover:bg-accent transition-colors cursor-pointer h-full">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-blue-100 text-blue-600">
-                  <ClipboardCheck className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">OSHA Daily Checklist</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Complete daily safety inspection before starting work
-                  </p>
-                </div>
+      <div className='grid sm:grid-cols-3 gap-3'>
+        {[
+          { href: '/contractor/safety/osha-daily', icon: ClipboardCheck, label: 'OSHA Daily Checklist', desc: 'Complete daily safety inspection before starting work', color: 'text-blue-500', bg: 'bg-blue-50' },
+          { href: '/contractor/safety/incidents', icon: AlertTriangle, label: 'Incident Reports', desc: 'Log safety incidents, injuries, and property damage', color: 'text-red-500', bg: 'bg-red-50' },
+          { href: '/contractor/safety/training', icon: Users, label: 'Training Records', desc: 'Track employee certifications and safety training', color: 'text-violet-500', bg: 'bg-violet-50' },
+        ].map(({ href, icon: Icon, label, desc, color, bg }) => (
+          <Link key={href} href={href}>
+            <div className='flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:shadow-md hover:border-amber-200 transition-all cursor-pointer'>
+              <div className={`h-10 w-10 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
+                <Icon className={`h-5 w-5 ${color}`} />
               </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/contractor/safety/incidents">
-          <Card className="hover:bg-accent transition-colors cursor-pointer h-full">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-red-100 text-red-600">
-                  <AlertTriangle className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Incident Reports</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Log safety incidents, injuries, and property damage
-                  </p>
-                </div>
+              <div className='flex-1 min-w-0'>
+                <p className='text-sm font-semibold text-gray-800'>{label}</p>
+                <p className='text-xs text-gray-500 mt-0.5'>{desc}</p>
               </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/contractor/safety/training">
-          <Card className="hover:bg-accent transition-colors cursor-pointer h-full">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-violet-100 text-violet-600">
-                  <Users className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Training Records</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Track employee certifications and safety training
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+              <ChevronRight className='h-4 w-4 text-gray-300 shrink-0 mt-0.5' />
+            </div>
+          </Link>
+        ))}
       </div>
 
       {/* Recent Completions */}
-      <Card className="border-rose-100 shadow-md">
-        <CardHeader>
-          <CardTitle className="text-slate-900">Recent Safety Checklist Completions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {completionList.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <ClipboardCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No safety checklists completed yet</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-rose-100">
-              {completionList.map((c: any) => (
-                <div key={c.id} className="py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {c.allItemsChecked ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <AlertTriangle className="h-5 w-5 text-amber-500" />
-                    )}
-                    <div>
-                      <p className="font-medium">
-                        {c.allItemsChecked ? 'All items passed' : `${c.issuesFound} issues found`}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Completed {new Date(c.completedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={c.allItemsChecked ? 'default' : 'destructive'}>
-                    {c.allItemsChecked ? 'Passed' : 'Issues'}
-                  </Badge>
+      <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
+        <div className='p-4 border-b border-gray-100'>
+          <h3 className='text-sm font-bold text-gray-800'>Recent Safety Checklist Completions</h3>
+        </div>
+        {completionList.length === 0 ? (
+          <div className='p-8 text-center'>
+            <ClipboardCheck className='h-10 w-10 mx-auto text-gray-300 mb-3' />
+            <p className='text-sm text-gray-500'>No safety checklists completed yet</p>
+          </div>
+        ) : (
+          <div className='divide-y divide-gray-50'>
+            {completionList.map((c: any) => (
+              <div key={c.id} className='flex items-center gap-3 px-4 py-3'>
+                <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${c.allItemsChecked ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                  {c.allItemsChecked
+                    ? <CheckCircle className='h-4 w-4 text-emerald-500' />
+                    : <AlertTriangle className='h-4 w-4 text-amber-500' />}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <div className='flex-1 min-w-0'>
+                  <p className='text-xs font-semibold text-gray-800'>{c.allItemsChecked ? 'All items passed' : `${c.issuesFound} issues found`}</p>
+                  <p className='text-[10px] text-gray-500'>Completed {new Date(c.completedAt).toLocaleString()}</p>
+                </div>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${c.allItemsChecked ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                  {c.allItemsChecked ? 'Passed' : 'Issues'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -36,7 +36,7 @@ const Menu = async () => {
   
   return (
     <div className='flex justify-end gap-3 text-black'>
-      <nav className='hidden md:flex w-full max-w-xs gap-1 items-center'>
+      <nav className='hidden md:flex gap-1 items-center'>
         <NotificationBell isAdmin={isAdmin} />
         
         {session && (
