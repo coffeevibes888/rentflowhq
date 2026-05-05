@@ -1,9 +1,10 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Star, Quote, ArrowRight, Users, Clock, Shield } from 'lucide-react';
+import { Star, Quote, ArrowRight, Users, Clock, Shield, Briefcase, DollarSign } from 'lucide-react';
 
-const reviews = [
+const pmReviews = [
   {
     id: '1',
     name: 'Sarah Martinez',
@@ -30,57 +31,100 @@ const reviews = [
   },
 ];
 
-const stats = [
-  { icon: Users,  label: 'Landlords & PMs',   value: '500+' },
-  { icon: Clock,  label: 'Hours saved / month', value: '8+' },
-  { icon: Shield, label: 'Secure & Encrypted',  value: '256-bit' },
+const contractorReviews = [
+  {
+    id: '1',
+    name: 'David Ramirez',
+    role: 'General Contractor, 6 crew',
+    rating: 5,
+    text: 'I was juggling texts, paper invoices, and three different apps. Now everything is in one place — jobs, invoices, scheduling. My crew knows exactly where to be and I get paid faster.',
+    location: 'Austin, TX',
+  },
+  {
+    id: '2',
+    name: 'Marcus Johnson',
+    role: 'HVAC Contractor',
+    rating: 5,
+    text: 'The marketplace listing alone brought me 4 new property manager clients in the first month. Plus the invoicing is dead simple — send it, they pay online, money hits my account in 2 days.',
+    location: 'Denver, CO',
+  },
+  {
+    id: '3',
+    name: 'Lisa Nguyen',
+    role: 'Plumbing Company Owner, 12 employees',
+    rating: 5,
+    text: 'Time tracking and payroll used to eat up my entire Sunday. Now my guys clock in on their phones, I approve timesheets in 5 minutes, and payroll is done. Game changer for my business.',
+    location: 'Portland, OR',
+  },
+];
+
+// const pmStats = [
+//   { icon: Users,  label: 'Landlords & PMs',   value: '500+' },
+//   { icon: Clock,  label: 'Hours saved / month', value: '8+' },
+//   { icon: Shield, label: 'Secure & Encrypted',  value: '256-bit' },
+// ];
+
+const contractorStats = [
+  { icon: Briefcase, label: 'Contractors using it', value: '300+' },
+  { icon: DollarSign, label: 'Invoices sent / month', value: '2,000+' },
+  { icon: Clock, label: 'Hours saved / week', value: '5+' },
 ];
 
 const CustomerReviews = () => {
+  const searchParams = useSearchParams();
+  const isContractor = searchParams.get('for') === 'contractor';
+
+  const reviews = isContractor ? contractorReviews : pmReviews;
+  const stats = isContractor ? contractorStats : "" ;
+  const accentColor = isContractor ? 'rose' : 'cyan';
+
   return (
     <section className='w-full py-16 md:py-24 px-4 bg-slate-50'>
       <div className='max-w-6xl mx-auto space-y-12'>
 
         {/* Header */}
         <div className='text-center space-y-4'>
-          <div className='inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 px-4 py-1.5'>
+          <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 ${
+            isContractor
+              ? 'bg-rose-500/10 border border-rose-500/20'
+              : 'bg-cyan-500/10 border border-cyan-500/20'
+          }`}>
             <div className='flex items-center gap-0.5'>
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className='h-3.5 w-3.5 fill-amber-400 text-amber-400' />
               ))}
             </div>
-            <span className='text-xs font-bold text-cyan-600'>4.9 · Trusted by 500+ landlords</span>
           </div>
           <h2 className='text-3xl md:text-4xl font-black text-slate-900'>
-            Real Landlords.{' '}
-            <span className='bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent'>Real Results.</span>
+            {isContractor ? 'Real Contractors.' : 'Real Landlords.'}{' '}
+            <span className={`bg-clip-text text-transparent ${
+              isContractor
+                ? 'bg-gradient-to-r from-rose-400 to-orange-400'
+                : 'bg-gradient-to-r from-cyan-400 to-blue-800'
+            }`}>Real Results.</span>
           </h2>
           <p className='text-slate-500 max-w-xl mx-auto text-sm md:text-base'>
-            Property managers across the country switched from expensive software and spreadsheets. Here&apos;s what they say.
+            {isContractor
+              ? 'Contractors across the country ditched the spreadsheets and duct-taped apps. Here\u2019s what they say.'
+              : 'Property managers across the country switched from expensive software and spreadsheets. Here\u2019s what they say.'}
           </p>
         </div>
 
-        {/* Stats bar */}
-        <div className='grid grid-cols-3 gap-4 max-w-2xl mx-auto'>
-          {stats.map((stat) => (
-            <div key={stat.label} className='text-center space-y-1'>
-              <stat.icon className='h-5 w-5 text-cyan-400 mx-auto' />
-              <div className='text-2xl font-black text-slate-900'>{stat.value}</div>
-              <div className='text-xs text-slate-500 font-medium'>{stat.label}</div>
-            </div>
-          ))}
-        </div>
 
         {/* Review cards */}
         <div className='grid gap-6 md:grid-cols-3'>
           {reviews.map((review, index) => (
             <article
               key={review.id}
-              className='group relative rounded-2xl border border-slate-200 bg-white p-6 space-y-4 hover:border-cyan-300 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]'
+              className={`group relative rounded-2xl border bg-white p-6 space-y-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] ${
+                isContractor
+                  ? 'border-slate-200 hover:border-rose-300'
+                  : 'border-slate-200 hover:border-cyan-300'
+              }`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className='absolute top-4 right-4 opacity-20 group-hover:opacity-50 transition-opacity'>
-                <Quote className='h-8 w-8 text-cyan-400' />
+                <Quote className={`h-8 w-8 ${isContractor ? 'text-rose-400' : 'text-cyan-400'}`} />
               </div>
 
               <div className='flex items-center gap-1'>
@@ -100,8 +144,12 @@ const CustomerReviews = () => {
 
               <div className='pt-4 border-t border-slate-200'>
                 <div className='flex items-center gap-3'>
-                  <div className='h-10 w-10 rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-500/30 border border-cyan-500/30 flex items-center justify-center'>
-                    <span className='text-cyan-300 font-bold text-sm'>
+                  <div className={`h-10 w-10 rounded-full border flex items-center justify-center ${
+                    isContractor
+                      ? 'bg-gradient-to-br from-rose-500/30 to-orange-500/30 border-rose-500/30'
+                      : 'bg-gradient-to-br from-cyan-500/30 to-blue-500/30 border-cyan-500/30'
+                  }`}>
+                    <span className={`font-bold text-sm ${isContractor ? 'text-rose-300' : 'text-cyan-300'}`}>
                       {review.name.split(' ').map((n: string) => n[0]).join('')}
                     </span>
                   </div>
@@ -119,13 +167,17 @@ const CustomerReviews = () => {
         {/* CTA */}
         <div className='text-center'>
           <Link
-            href='/sign-up'
-            className='inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3.5 text-sm font-bold shadow-xl shadow-cyan-500/20 hover:scale-105 transition-transform duration-200'
+            href={isContractor ? '/sign-up?role=contractor' : '/sign-up'}
+            className={`inline-flex items-center gap-2 rounded-full text-white px-8 py-3.5 text-sm font-bold shadow-xl hover:scale-105 transition-transform duration-200 ${
+              isContractor
+                ? 'bg-gradient-to-r from-rose-500 to-orange-500 shadow-rose-500/20'
+                : 'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-cyan-500/20'
+            }`}
           >
-            Join these landlords
+            {isContractor ? 'Join these contractors' : 'Join these landlords'}
             <ArrowRight className='h-4 w-4' />
           </Link>
-          <p className='mt-2 text-xs text-slate-400'>14-day free trial &mdash; credit card required</p>
+          <p className='mt-2 text-xs text-slate-400'>14-day free trial </p>
         </div>
       </div>
     </section>

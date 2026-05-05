@@ -1,4 +1,3 @@
-import TrustBadges from '@/components/home/trust-badges';
 import PricingSection from '@/components/home/pricing-section';
 import AudienceSwitcher from '@/components/home/audience-switcher';
 import AudienceTabBar from '@/components/home/audience-tab-bar';
@@ -176,7 +175,6 @@ const Homepage = async () => {
         <NewsletterSignup />
       </main>
       <HomeContactCard />
-      <TrustBadges />
       <ExitIntentPopup />
       <Suspense fallback={null}>
         <StickyTrialBar />
@@ -346,7 +344,7 @@ function PMLifecycleSection() {
 // ─── PM Lease Builder + White-Label Portal Cards ──────────────────────────────
 function PMLeasePortalSection() {
   return (
-    <section className='w-full py-10 md:py-20 px-3 md:px-4'>
+    <section className='w-full py-10 md:py-20 px-4 md:px-4'>
       <div className='max-w-6xl mx-auto'>
         <div className='grid gap-4 md:gap-6 md:grid-cols-2'>
 

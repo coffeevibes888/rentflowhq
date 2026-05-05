@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp, HelpCircle, ArrowRight } from 'lucide-react';
 
-const faqs = [
+const pmFaqs = [
   {
     question: 'How much does Property Flow HQ cost?',
     answer: 'Plans start at $19.99/month and include a 14-day free trial so you can test everything before being charged. We have three tiers — Starter ($19.99/mo, up to 24 units), Pro ($39.99/mo, up to 150 units), and Enterprise ($79.99/mo, unlimited units). Rent collection is included with no additional per-payment fees.',
@@ -47,25 +48,79 @@ const faqs = [
   },
 ];
 
+const contractorFaqs = [
+  {
+    question: 'How much does Property Flow HQ cost for contractors?',
+    answer: 'Plans start at $19.99/month with a 14-day free trial. All plans include unlimited invoicing, job management, and your own branded contractor profile. No per-job fees, ever.',
+  },
+  {
+    question: 'How does invoicing and getting paid work?',
+    answer: 'Create and send professional invoices in seconds. Clients can pay online via credit card, debit card, or bank transfer (ACH) through our secure Stripe-powered system. Funds go directly to your bank account.',
+  },
+  {
+    question: 'What is the contractor marketplace?',
+    answer: 'The marketplace is where property managers discover and hire contractors. Your profile includes your services, service area, portfolio, and client reviews — helping you get found and hired without cold calling.',
+  },
+  {
+    question: 'Do I get my own branded profile page?',
+    answer: 'Yes! Every contractor gets a custom subdomain (yourname.propertyflowhq.com) with your logo, portfolio gallery, service area map, reviews, and contact info. It\'s your own professional online presence.',
+  },
+  {
+    question: 'How does team scheduling and time tracking work?',
+    answer: 'Assign crew members to jobs, set schedules, and track hours with GPS-verified clock-in/out. Approve timesheets and run payroll — all from one dashboard. No more paper timesheets or guesswork.',
+  },
+  {
+    question: 'Can I manage inventory and equipment?',
+    answer: 'Yes. Track materials, tools, and equipment across job sites. Set low-stock alerts so you never show up to a job without the right supplies. Log equipment maintenance and assignments.',
+  },
+  {
+    question: 'How do estimates and contracts work?',
+    answer: 'Build professional estimates with line items, photos, and terms. When approved, convert them to jobs with one click. Send contracts for e-signature — no printing or scanning needed.',
+  },
+  {
+    question: 'Is my data secure?',
+    answer: 'Absolutely. We use bank-level 256-bit encryption for all sensitive data. Payments are processed through Stripe, a PCI-DSS Level 1 certified payment processor. We never store credit card numbers on our servers.',
+  },
+  {
+    question: 'Can I track revenue and job profitability?',
+    answer: 'Yes. The finance dashboard gives you real-time profit & loss, job costing breakdowns, and revenue trends. Know exactly which jobs are profitable and where your money is going.',
+  },
+  {
+    question: 'How do I get started?',
+    answer: 'Start your 14-day free trial in under 2 minutes — no setup fees, no contracts. Add your first job, send an invoice, and set up your contractor profile. A credit card is required to begin your trial.',
+  },
+];
+
 export default function FAQSection() {
+  const searchParams = useSearchParams();
+  const isContractor = searchParams.get('for') === 'contractor';
+  const faqs = isContractor ? contractorFaqs : pmFaqs;
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className='w-full py-10 md:py-20 px-3 md:px-4 bg-white'>
+    <section className='w-full py-10 md:py-20 px-4 md:px-4 bg-white'>
       <div className='max-w-4xl mx-auto space-y-8 md:space-y-12'>
 
         {/* Header */}
         <div className='text-center space-y-3'>
-          <div className='inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 px-4 py-1.5'>
-            <HelpCircle className='h-3.5 w-3.5 text-cyan-400' />
-            <span className='text-xs font-bold text-cyan-600'>Got Questions?</span>
+          <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 ${
+            isContractor
+              ? 'bg-rose-500/10 border border-rose-500/20'
+              : 'bg-cyan-500/10 border border-cyan-500/20'
+          }`}>
+            <HelpCircle className={`h-3.5 w-3.5 ${isContractor ? 'text-rose-400' : 'text-cyan-400'}`} />
+            <span className={`text-xs font-bold ${isContractor ? 'text-rose-600' : 'text-cyan-600'}`}>Got Questions?</span>
           </div>
           <h2 className='text-2xl md:text-4xl font-black text-slate-900'>
             Frequently Asked{' '}
-            <span className='bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent'>Questions</span>
+            <span className={`bg-clip-text text-transparent ${
+              isContractor
+                ? 'bg-gradient-to-r from-rose-400 to-orange-400'
+                : 'bg-gradient-to-r from-cyan-400 to-blue-400'
+            }`}>Questions</span>
           </h2>
           <p className='text-sm md:text-base text-slate-400 max-w-2xl mx-auto'>
-            Everything you need to know about Property Flow HQ
+            Everything you need to know about Property Flow HQ{isContractor ? ' for Contractors' : ''}
           </p>
         </div>
 
@@ -76,7 +131,9 @@ export default function FAQSection() {
               key={index}
               className={`rounded-xl border overflow-hidden transition-all duration-300 ${
                 openIndex === index
-                  ? 'border-cyan-300 bg-cyan-50/50'
+                  ? isContractor
+                    ? 'border-rose-300 bg-rose-50/50'
+                    : 'border-cyan-300 bg-cyan-50/50'
                   : 'border-slate-200 bg-slate-50 hover:border-slate-300'
               }`}
             >
@@ -88,7 +145,7 @@ export default function FAQSection() {
                   {faq.question}
                 </span>
                 {openIndex === index ? (
-                  <ChevronUp className='h-5 w-5 text-cyan-400 flex-shrink-0' />
+                  <ChevronUp className={`h-5 w-5 flex-shrink-0 ${isContractor ? 'text-rose-400' : 'text-cyan-400'}`} />
                 ) : (
                   <ChevronDown className='h-5 w-5 text-slate-500 flex-shrink-0' />
                 )}
@@ -109,15 +166,19 @@ export default function FAQSection() {
           <p className='text-slate-500 text-sm'>Still have questions?</p>
           <div className='flex flex-col sm:flex-row items-center justify-center gap-3'>
             <Link
-              href='/sign-up'
-              className='inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-7 py-3 text-sm font-bold shadow-xl shadow-cyan-500/20 hover:scale-105 transition-transform duration-200'
+              href={isContractor ? '/sign-up?role=contractor' : '/sign-up'}
+              className={`inline-flex items-center gap-2 rounded-full text-white px-7 py-3 text-sm font-bold shadow-xl hover:scale-105 transition-transform duration-200 ${
+                isContractor
+                  ? 'bg-gradient-to-r from-rose-500 to-orange-500 shadow-rose-500/20'
+                  : 'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-cyan-500/20'
+              }`}
             >
               Start Your Free Trial
               <ArrowRight className='h-4 w-4' />
             </Link>
             <Link
               href='/contact'
-              className='text-sm text-slate-400 hover:text-white transition-colors font-medium'
+              className='text-sm text-slate-400 hover:text-slate-600 transition-colors font-medium'
             >
               Contact Support &rarr;
             </Link>

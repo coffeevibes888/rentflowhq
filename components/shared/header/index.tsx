@@ -30,7 +30,7 @@ const Header = async () => {
 
   return ( 
     <header className="w-full text-black font-semibold">
-      <div className="wrapper flex items-center justify-between md:hidden h-16 relative overflow-visible">
+      <div className="wrapper flex items-center justify-between md:hidden h-20 relative overflow-visible">
         {isAuthenticated && (
           <div className="flex items-center relative z-10">
             {userRole === 'contractor' ? (
@@ -48,12 +48,12 @@ const Header = async () => {
         )}
 
         {/* Logo — pointer-events contained to header height only */}
-        <Link href='/' className="absolute left-1/2 transform -translate-x-1/2 top-0 h-full flex items-center justify-center mt-2 z-0">
-          <div className="relative w-24 h-16 overflow-hidden">
+        <Link href='/' className="absolute left-1/2 transform -translate-x-1/2 top-0 h-full flex items-center justify-center z-[5]">
+          <div className="relative w-300 h-[260px] mt-3">
             <Image
               src={landlord?.logoUrl || '/images/logo.svg'}
               fill
-              className="object-contain scale-[2.8] origin-center"
+              className="object-contain"
               alt={`${displayName} Logo`}
               priority={true}
             />

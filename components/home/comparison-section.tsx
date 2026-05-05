@@ -77,8 +77,8 @@ export default function ComparisonSection({ variant = 'pm' }: { variant?: 'pm' |
   const signUpHref  = isPM ? '/sign-up' : '/sign-up?role=contractor';
 
   return (
-    <section className='w-full py-12 md:py-20 px-3 md:px-4 bg-slate-50'>
-      <div className='max-w-6xl mx-auto space-y-8'>
+    <section className='w-full py-12 md:py-20 px-4 md:px-4 bg-slate-50'>
+      <div className='max-w-6xl mx-auto space-y-8 overflow-hidden'>
 
         {/* Header */}
         <div className='text-center space-y-3'>

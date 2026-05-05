@@ -42,7 +42,7 @@ function PMFeatures() {
   ];
 
   return (
-    <section className="w-full py-10 md:py-20 px-3 md:px-4">
+    <section className="w-full py-10 md:py-20 px-4 md:px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-2 animate-in fade-in duration-700">
           <h2 className="text-2xl md:text-4xl font-bold text-black">FINALLY A SOLUTION THAT YOU CAN TRUST</h2>
@@ -91,7 +91,7 @@ function ContractorFeatures() {
   ];
 
   return (
-    <section className="w-full md:py-10 px-3 md:px-4">
+    <section className="w-full md:py-10 px-4 md:px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-2 animate-in fade-in duration-700">
           <h2 className="text-2xl md:text-4xl font-bold text-black">RUN YOUR ENTIRE BUSINESS FROM ONE PLACE</h2>
@@ -103,15 +103,15 @@ function ContractorFeatures() {
           {points.map((p) => {
             const Icon = p.icon;
             return (
-              <div key={p.title} className="group rounded-xl md:rounded-2xl border border-rose-500/20 bg-gradient-to-r from-slate-900 to-rose-950 p-6 space-y-4 transition-all duration-300 shadow-2xl hover:border-rose-500/40">
+              <div key={p.title} className="group rounded-xl md:rounded-2xl border border-rose-500/20 bg-linear-to-r from-orange-500 via-amber-700 to-amber-200 p-6 space-y-4 transition-all duration-300 shadow-2xl hover:border-rose-500/40">
                 <div className="flex items-start gap-3">
                   <div className="rounded-lg bg-rose-500/20 p-2 border border-rose-500/30">
                     <Icon className={`h-5 w-5 ${p.iconColor}`} />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-base font-bold text-white mb-2">{p.title}</h3>
-                    <p className="text-xs text-slate-400 mb-3">{p.desc}</p>
-                    <div className="flex items-center gap-2 text-rose-300 text-xs font-semibold">
+                    <p className="text-sm text-black mb-3 font-bold">{p.desc}</p>
+                    <div className="flex items-center gap-2 text-white text-xs ">
                       <ArrowRight className="h-3 w-3" />
                       <span>Solution: {p.solution}</span>
                     </div>
@@ -131,7 +131,7 @@ function ContractorFeatures() {
 // ─────────────────────────────────────────────
 function ContractorShowcase() {
   return (
-    <section className="w-full py-6 md:py-12 px-3 md:px-4">
+    <section className="w-full py-6 md:py-12 px-4 md:px-4">
       <div className="max-w-6xl mx-auto">
         <div className="grid gap-4 md:gap-6 md:grid-cols-2">
 
@@ -215,7 +215,7 @@ function ContractorShowcase() {
 // ─────────────────────────────────────────────
 function PMUrgencyStrip() {
   return (
-    <section className='w-full py-6 md:py-10 px-3 md:px-4'>
+    <section className='w-full py-6 md:py-10 px-4 md:px-4'>
       <div className='max-w-6xl mx-auto'>
         <div className='rounded-2xl md:rounded-3xl bg-gradient-to-r from-cyan-600 via-blue-600 to-blue-700 p-8 md:p-12 text-center space-y-5 shadow-2xl relative overflow-hidden'>
           <div className='absolute inset-0 opacity-10 pointer-events-none' style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
@@ -335,7 +335,7 @@ export default function AudienceSwitcher({
                 <div className="absolute -bottom-2 left-0 right-0 h-24 z-10 bg-gradient-to-t from-white via-white/70 to-transparent pointer-events-none" />
 
                 {/* Browser frame + screenshot */}
-                <div className="relative z-[5] rounded-xl md:rounded-2xl border border-gray-300/80 border-r-cyan-300/60 shadow-[0_25px_80px_-12px_rgba(6,182,212,0.35),0_10px_30px_-5px_rgba(0,0,0,0.12)] overflow-hidden bg-white ring-1 ring-cyan-200/30">
+                <div className="relative z-[5] rounded-xl md:rounded-2xl border border-gray-300/80 md:border-r-cyan-300/60 shadow-lg md:shadow-[0_25px_80px_-12px_rgba(6,182,212,0.35),0_10px_30px_-5px_rgba(0,0,0,0.12)] overflow-hidden bg-white md:ring-1 md:ring-cyan-200/30">
                   {/* Browser chrome */}
                   <div className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border-b border-gray-200/80">
                     <div className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
@@ -423,7 +423,7 @@ export default function AudienceSwitcher({
                 <div className="absolute -bottom-2 left-0 right-0 h-24 z-10 bg-gradient-to-t from-white via-white/70 to-transparent pointer-events-none" />
 
                 {/* Browser frame + screenshot */}
-                <div className="relative z-[5] rounded-xl md:rounded-2xl border border-gray-300/80 border-r-rose-300/60 shadow-[0_25px_80px_-12px_rgba(244,63,94,0.35),0_10px_30px_-5px_rgba(0,0,0,0.12)] overflow-hidden bg-white ring-1 ring-rose-200/30">
+                <div className="relative z-[5] rounded-xl md:rounded-2xl border border-gray-300/80 md:border-r-rose-300/60 shadow-lg md:shadow-[0_25px_80px_-12px_rgba(244,63,94,0.35),0_10px_30px_-5px_rgba(0,0,0,0.12)] overflow-hidden bg-white md:ring-1 md:ring-rose-200/30">
                   {/* Browser chrome */}
                   <div className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border-b border-gray-200/80">
                     <div className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
