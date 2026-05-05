@@ -37,6 +37,7 @@ const tiers = [
     cta: 'Start Free with 14 day free trial',
     iconBg: 'bg-blue-500/20',
     iconColor: 'text-blue-300',
+    iconColorLight: 'text-blue-500',
   },
   {
     id: 'pro',
@@ -61,6 +62,7 @@ const tiers = [
     cta: 'Start for free with a 14 day free trial',
     iconBg: 'bg-violet-500/20',
     iconColor: 'text-violet-300',
+    iconColorLight: 'text-violet-500',
   },
   {
     id: 'enterprise',
@@ -88,6 +90,7 @@ const tiers = [
     cta: 'Start Free with 14 day free trial',
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-300',
+    iconColorLight: 'text-amber-500',
   },
 ];
 
@@ -116,6 +119,7 @@ const contractorTiers = [
     cta: 'Start Free with 14 day free trial',
     iconBg: 'bg-rose-500/20',
     iconColor: 'text-rose-300',
+    iconColorLight: 'text-rose-500',
   },
   {
     id: 'pro',
@@ -142,6 +146,7 @@ const contractorTiers = [
     cta: 'Start for free with a 14 day free trial',
     iconBg: 'bg-orange-500/20',
     iconColor: 'text-orange-300',
+    iconColorLight: 'text-orange-500',
   },
   {
     id: 'enterprise',
@@ -169,6 +174,7 @@ const contractorTiers = [
     cta: 'Start Free with 14 day free trial',
     iconBg: 'bg-amber-500/20',
     iconColor: 'text-amber-300',
+    iconColorLight: 'text-amber-500',
   },
 ];
 
@@ -201,7 +207,7 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
     <section id="pricing" className="w-full py-20 md:py-28 px-4 relative overflow-hidden scroll-mt-20">
       {/* Background effects */}
       <div className="absolute inset-0" />
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] ${isContractor ? 'bg-rose-500/10' : 'bg-violet-500/10'} rounded-full blur-3xl`} />
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] ${isContractor ? 'bg-orange-200/30' : 'bg-violet-500/10'} rounded-full blur-3xl`} />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -227,10 +233,10 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
             return (
               <div
                 key={tier.id}
-                className={`relative group rounded-2xl border border-black shadow-2xl p-8 flex flex-col transition-all duration-300 animate-in fade-in slide-in-from-bottom hover:scale-105 ${
+                className={`relative group rounded-2xl border shadow-xl p-8 flex flex-col transition-all duration-300 animate-in fade-in slide-in-from-bottom hover:scale-105 ${
                   isContractor
-                    ? 'bg-gradient-to-br from-slate-900 via-rose-950 to-slate-900'
-                    : 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600'
+                    ? 'bg-gradient-to-br from-orange-50 via-white to-rose-50 border-orange-200/60'
+                    : 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 border-black shadow-2xl'
                 } ${isPopular ? 'scale-105 lg:scale-110 z-10' : ''}`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -246,12 +252,12 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
 
                 {/* Tier header */}
                 <div className={`flex items-center gap-3 mb-4 ${isPopular ? 'pt-2' : ''}`}>
-                  <div className={`rounded-xl ${tier.iconBg} p-3 border border-white/20`}>
-                    <Icon className="h-6 w-6 text-white" />
+                  <div className={`rounded-xl ${tier.iconBg} p-3 border ${isContractor ? 'border-orange-200' : 'border-white/20'}`}>
+                    <Icon className={`h-6 w-6 ${isContractor ? tier.iconColorLight : 'text-white'}`} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">{tier.name}</h3>
-                    <p className="text-xs text-white font-semibold">{tier.unitLimit}</p>
+                    <h3 className={`text-xl font-bold ${isContractor ? 'text-black' : 'text-white'}`}>{tier.name}</h3>
+                    <p className={`text-xs font-semibold ${isContractor ? 'text-black/60' : 'text-white'}`}>{tier.unitLimit}</p>
                   </div>
                 </div>
 
@@ -259,15 +265,15 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
                 <div className="mb-4">
                   {tier.price !== null ? (
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-white">${tier.price}</span>
-                      <span className="text-white font-semibold">/month</span>
+                      <span className={`text-4xl font-bold ${isContractor ? 'text-black' : 'text-white'}`}>${tier.price}</span>
+                      <span className={`font-semibold ${isContractor ? 'text-black/60' : 'text-white'}`}>/month</span>
                     </div>
                   ) : (
-                    <div className="text-2xl font-bold text-white">Custom Pricing</div>
+                    <div className={`text-2xl font-bold ${isContractor ? 'text-black' : 'text-white'}`}>Custom Pricing</div>
                   )}
                 </div>
 
-                <p className="text-sm text-white font-semibold mb-6">{tier.description}</p>
+                <p className={`text-sm font-semibold mb-6 ${isContractor ? 'text-black/70' : 'text-white'}`}>{tier.description}</p>
 
                 {/* CTA Button */}
                 <button
@@ -307,21 +313,23 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
 
                 {/* Features list */}
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-white uppercase tracking-wider mb-4">
-                    What's included
+                  <p className={`text-xs font-bold uppercase tracking-wider mb-4 ${isContractor ? 'text-black' : 'text-white'}`}>
+                    What&apos;s included
                   </p>
                   <ul className="space-y-3">
                     {tier.features.map((feature, i) => (
                       <li 
                         key={i} 
                         className={`flex items-start gap-3 text-sm ${
-                          feature.included ? 'text-white font-semibold' : 'text-white/60'
+                          feature.included 
+                            ? isContractor ? 'text-black font-semibold' : 'text-white font-semibold'
+                            : isContractor ? 'text-black/40' : 'text-white/60'
                         }`}
                       >
                         <div className={`mt-0.5 rounded-full p-0.5 ${
                           feature.included 
-                            ? 'bg-white/20 text-white' 
-                            : 'bg-white/10 text-white/40'
+                            ? isContractor ? 'bg-orange-100 text-orange-600' : 'bg-white/20 text-white'
+                            : isContractor ? 'bg-black/5 text-black/30' : 'bg-white/10 text-white/40'
                         }`}>
                           <Check className="h-3.5 w-3.5" />
                         </div>

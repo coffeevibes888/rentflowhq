@@ -8,21 +8,15 @@ export default function ExitIntentPopup() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if popup was already shown in this session
-    const shown = sessionStorage.getItem('exitIntentShown');
-    if (shown) {
-      return;
-    }
+    const shown = localStorage.getItem('exitIntentShown');
+    if (shown) return;
 
-    // Show popup after 35 seconds
     const timer = setTimeout(() => {
       setIsVisible(true);
-      sessionStorage.setItem('exitIntentShown', 'true');
-    }, 35000);
+      localStorage.setItem('exitIntentShown', 'true');
+    }, 20000);
 
-    return () => {
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   if (!isVisible) return null;
@@ -85,6 +79,7 @@ export default function ExitIntentPopup() {
               <ArrowRight className='ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform' />
             </Link>
             
+            <p className='text-xs text-slate-400'>Credit card required. Cancel anytime.</p>
             <button
               onClick={() => setIsVisible(false)}
               className='w-full text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors'

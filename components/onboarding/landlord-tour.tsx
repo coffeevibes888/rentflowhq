@@ -59,7 +59,7 @@ const LANDLORD_TOUR_STEPS: (TourStep & { proOnly?: boolean })[] = [
   {
     id: 'contractors-nav',
     title: 'Contractor Marketplace',
-    description: 'Find and hire contractors, create work orders, track jobs, and pay contractors directly. Free to use - only $1 per payment!',
+    description: 'Find and hire contractors, create work orders, track jobs, and pay contractors directly through the platform.',
     targetSelector: 'a[href="/admin/contractors"]',
     route: '/admin/contractors',
     position: 'right',

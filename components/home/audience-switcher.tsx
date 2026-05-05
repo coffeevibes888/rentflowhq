@@ -362,18 +362,51 @@ function ContractorShowcase() {
 // ─────────────────────────────────────────────
 // MAIN SWITCHER COMPONENT
 // ─────────────────────────────────────────────
+function PMUrgencyStrip() {
+  return (
+    <section className='w-full py-6 md:py-10 px-3 md:px-4'>
+      <div className='max-w-6xl mx-auto'>
+        <div className='rounded-2xl md:rounded-3xl bg-gradient-to-r from-cyan-600 via-blue-600 to-blue-700 p-8 md:p-12 text-center space-y-5 shadow-2xl relative overflow-hidden'>
+          <div className='absolute inset-0 opacity-10 pointer-events-none' style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+          <p className='text-cyan-200 text-xs font-bold uppercase tracking-widest'>Still thinking about it?</p>
+          <h2 className='text-2xl md:text-4xl font-black text-white leading-tight'>
+            Try It Free for 14 Days. Cancel Anytime.
+          </h2>
+          <p className='text-white/75 text-sm md:text-base max-w-lg mx-auto leading-relaxed'>
+            Hundreds of landlords replaced their spreadsheets and $50-280/mo software with one platform that does it all for $19.99.
+          </p>
+          <div className='flex flex-col sm:flex-row items-center justify-center gap-3 pt-2'>
+            <Link
+              href='/sign-up'
+              className='inline-flex items-center gap-2 rounded-full bg-white text-blue-700 px-8 py-3.5 text-sm font-black shadow-xl hover:bg-yellow-50 hover:scale-105 transition-all duration-200'
+            >
+              Start My Free Trial
+              <ArrowRight className='h-4 w-4' />
+            </Link>
+            <p className='text-white/60 text-xs'>Credit card required &mdash; cancel anytime.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function AudienceSwitcher({
   pmPricingSection,
   contractorPricingSection,
   pmLifecycleSection,
   pmLeasePortalSection,
   contractorLifecycleSection,
+  pmComparisonSection,
+  contractorComparisonSection,
 }: {
   pmPricingSection: React.ReactNode;
   contractorPricingSection: React.ReactNode;
   pmLifecycleSection: React.ReactNode;
   pmLeasePortalSection: React.ReactNode;
   contractorLifecycleSection?: React.ReactNode;
+  pmComparisonSection?: React.ReactNode;
+  contractorComparisonSection?: React.ReactNode;
 }) {
   const searchParams = useSearchParams();
   const [audience, setAudience] = useState<Audience>('pm');
@@ -406,6 +439,13 @@ export default function AudienceSwitcher({
               {/* Text — centered on mobile, left on desktop */}
               <div className="relative z-20 mx-auto md:mx-0 max-w-lg lg:max-w-sm xl:max-w-md mb-8 md:mb-0 md:absolute md:left-0 md:top-8 lg:top-12">
                 <div className="space-y-4 text-center md:text-left">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-xs font-bold text-emerald-700">Trusted by landlords &amp; PMs nationwide</span>
+                  </div>
                   <h1 className="text-5xl sm:text-6xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight leading-[1.08]">
                     <span className="block bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Your Properties.</span>
                     <span className="block bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">Your Rules.</span>
@@ -422,7 +462,7 @@ export default function AudienceSwitcher({
                       Start Free Today
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
-                    <p className="text-xs text-gray-400 font-medium text-center">14-day free trial</p>
+                    <p className="text-xs text-gray-400 font-medium text-center">14-day free trial &mdash; credit card required</p>
                   </div>
                 </div>
               </div>
@@ -508,7 +548,7 @@ export default function AudienceSwitcher({
                       Start Free Today
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
-                    <p className="text-xs text-gray-400 font-medium text-center">14-day free trial</p>
+                    <p className="text-xs text-gray-400 font-medium text-center">14-day free trial &mdash; credit card required</p>
                   </div>
                 </div>
               </div>
@@ -569,13 +609,16 @@ export default function AudienceSwitcher({
         {isPM ? (
           <motion.div key="pm-content" {...fadeSlide} className="space-y-16 md:space-y-24">
             {pmLifecycleSection}
+            {pmComparisonSection}
             {pmPricingSection}
+            <PMUrgencyStrip />
             <PMFeatures />
             {pmLeasePortalSection}
           </motion.div>
         ) : (
           <motion.div key="contractor-content" {...fadeSlide}>
             {contractorLifecycleSection}
+            {contractorComparisonSection}
             {contractorPricingSection}
             <ContractorFeatures />
             <ContractorShowcase />
