@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   DollarSign,
@@ -12,14 +13,11 @@ import {
   MessageSquare,
   Users,
   Briefcase,
-  Star,
   TrendingUp,
   CheckCircle,
   Zap,
   MapPin,
   Package,
-  Calendar,
-  CreditCard,
 } from 'lucide-react';
 
 type Audience = 'pm' | 'contractor';
@@ -29,153 +27,6 @@ const fadeSlide = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
   exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: 'easeIn' as const } },
 };
-
-// ─────────────────────────────────────────────
-// PM DASHBOARD MOCK (existing hero graphic)
-// ─────────────────────────────────────────────
-function PMDashboardMock() {
-  return (
-    <div className="relative rounded-2xl md:rounded-3xl border border-black shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200">
-      <div className="absolute inset-0 bg-linear-to-r from-cyan-400 via-sky-400 to-blue-300" />
-      <div className="relative p-4 md:p-6 flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base md:text-xl font-bold text-white">Your Dashboard</h3>
-        </div>
-        <div className="grid grid-cols-3 gap-2 md:gap-3 mb-3">
-          {[
-            { label: 'Share Listings', sub: 'QR code, text, or email', value: 'Send Link' },
-            { label: 'Invite Contractor', sub: 'QR code, text, or email', value: 'Send Link' },
-            { label: 'Total Units', sub: '14 vacant', value: '149' },
-          ].map((c) => (
-            <div key={c.label} className="rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 p-3 space-y-1 shadow-2xl border border-slate-100">
-              <div className="text-[9px] md:text-[11px] text-black font-semibold">{c.label}</div>
-              <div className="text-sm md:text-base font-bold text-slate-900">{c.value}</div>
-              <div className="text-[8px] md:text-[10px] text-blue-800">{c.sub}</div>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-3 gap-2 md:gap-3 mb-3">
-          {[
-            { label: 'Rent This Month', value: '$36,000', sub: '75% collected' },
-            { label: 'Maintenance', value: '3', sub: '1 urgent' },
-            { label: 'Applications', value: '5', sub: 'Review now' },
-          ].map((c) => (
-            <div key={c.label} className="rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 space-y-1 shadow-2xl border border-slate-100">
-              <div className="text-[9px] md:text-[11px] text-black font-semibold">{c.label}</div>
-              <div className="text-xl md:text-2xl font-bold text-slate-900">{c.value}</div>
-              <div className="text-[8px] md:text-[10px] text-blue-800">{c.sub}</div>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3">
-          {[
-            { label: 'Available Balance', value: '$24,000', sub: 'Ready to cash out' },
-            { label: 'Messages', value: '7', sub: 'Open inbox threads' },
-          ].map((c) => (
-            <div key={c.label} className="rounded-xl bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500 p-3 space-y-1 shadow-2xl border border-slate-100">
-              <div className="text-[9px] md:text-[11px] text-black font-semibold">{c.label}</div>
-              <div className="text-xl md:text-2xl font-bold text-slate-900">{c.value}</div>
-              <div className="text-[8px] md:text-[10px] text-blue-800">{c.sub}</div>
-            </div>
-          ))}
-        </div>
-        <div className="rounded-xl border border-slate-200 p-3 bg-gradient-to-r from-sky-500 via-cyan-200 to-sky-500">
-          <div className="grid grid-cols-4 gap-2 text-center">
-            {[
-              { label: 'Occupied', value: '135' },
-              { label: 'Tenants', value: '135' },
-              { label: 'Rent YTD', value: '$432K' },
-              { label: 'Properties', value: '12' },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="text-[9px] md:text-[10px] text-black font-semibold uppercase tracking-wide">{s.label}</div>
-                <div className="text-base md:text-lg font-bold text-slate-900">{s.value}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// CONTRACTOR DASHBOARD MOCK
-// ─────────────────────────────────────────────
-function ContractorDashboardMock() {
-  return (
-    <div className="relative rounded-2xl md:rounded-3xl border border-rose-500/40 shadow-2xl overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-right duration-700 delay-200">
-      <div className="absolute inset-0 bg-gradient-to-br from-rose-950 via-slate-900 to-slate-950" />
-      <div className="relative p-4 md:p-6 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base md:text-xl font-bold text-white">Contractor Dashboard</h3>
-          <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-1 rounded-full border border-rose-500/30 font-semibold">PRO</span>
-        </div>
-
-        {/* Top stats */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: 'Active Jobs', value: '14', sub: '3 due today', color: 'from-rose-500/20 to-rose-600/10', border: 'border-rose-500/30', text: 'text-rose-300' },
-            { label: 'Open Leads', value: '8', sub: '2 hot leads', color: 'from-amber-500/20 to-amber-600/10', border: 'border-amber-500/30', text: 'text-amber-300' },
-            { label: 'Team Members', value: '5', sub: '4 clocked in', color: 'from-violet-500/20 to-violet-600/10', border: 'border-violet-500/30', text: 'text-violet-300' },
-          ].map((c) => (
-            <div key={c.label} className={`rounded-xl bg-gradient-to-br ${c.color} border ${c.border} p-3 space-y-1`}>
-              <div className="text-[9px] md:text-[11px] text-slate-400 font-semibold">{c.label}</div>
-              <div className={`text-xl md:text-2xl font-bold ${c.text}`}>{c.value}</div>
-              <div className="text-[8px] md:text-[10px] text-slate-500">{c.sub}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Revenue row */}
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: 'Revenue This Month', value: '$18,450', sub: '+12% vs last month', color: 'from-emerald-500/20 to-emerald-600/10', border: 'border-emerald-500/30', text: 'text-emerald-300' },
-            { label: 'Unpaid Invoices', value: '$3,200', sub: '4 outstanding', color: 'from-orange-500/20 to-orange-600/10', border: 'border-orange-500/30', text: 'text-orange-300' },
-          ].map((c) => (
-            <div key={c.label} className={`rounded-xl bg-gradient-to-br ${c.color} border ${c.border} p-3 space-y-1`}>
-              <div className="text-[9px] md:text-[11px] text-slate-400 font-semibold">{c.label}</div>
-              <div className={`text-lg md:text-xl font-bold ${c.text}`}>{c.value}</div>
-              <div className="text-[8px] md:text-[10px] text-slate-500">{c.sub}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Recent jobs */}
-        <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-2">
-          <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Recent Jobs</div>
-          {[
-            { name: 'HVAC Repair — 412 Oak St', status: 'In Progress', color: 'text-amber-400' },
-            { name: 'Plumbing — 88 Elm Ave', status: 'Completed', color: 'text-emerald-400' },
-            { name: 'Electrical — 210 Pine Rd', status: 'Scheduled', color: 'text-blue-400' },
-          ].map((j) => (
-            <div key={j.name} className="flex items-center justify-between">
-              <span className="text-[10px] md:text-xs text-white truncate max-w-[65%]">{j.name}</span>
-              <span className={`text-[9px] font-bold ${j.color}`}>{j.status}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom bar */}
-        <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-          <div className="grid grid-cols-4 gap-2 text-center">
-            {[
-              { label: 'Invoices', value: '31' },
-              { label: 'Customers', value: '48' },
-              { label: 'Avg Rating', value: '4.9★' },
-              { label: 'Jobs YTD', value: '127' },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="text-[9px] text-slate-400 font-semibold uppercase tracking-wide">{s.label}</div>
-                <div className="text-sm md:text-base font-bold text-white">{s.value}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─────────────────────────────────────────────
 // PM FEATURES (pain points grid)
@@ -501,11 +352,13 @@ export default function AudienceSwitcher({
                   </div>
 
                   {/* The actual dashboard screenshot */}
-                  <img
+                  <Image
                     src="/images/dashboard-preview.png"
                     alt="Property Flow HQ Dashboard — manage properties, tenants, rent collection, and maintenance from one place"
+                    width={1200}
+                    height={750}
                     className="w-full h-auto block"
-                    loading="eager"
+                    priority
                   />
                 </div>
 
@@ -587,11 +440,13 @@ export default function AudienceSwitcher({
                   </div>
 
                   {/* The actual contractor dashboard screenshot */}
-                  <img
+                  <Image
                     src="/images/dashboard-preview2.png"
                     alt="Property Flow HQ Contractor Dashboard — manage jobs, invoices, leads, team, and inventory from one place"
+                    width={1200}
+                    height={750}
                     className="w-full h-auto block"
-                    loading="eager"
+                    priority
                   />
                 </div>
 

@@ -1,14 +1,8 @@
-import HomeContactCard from '@/components/home/home-contact-card';
 import TrustBadges from '@/components/home/trust-badges';
 import PricingSection from '@/components/home/pricing-section';
 import AudienceSwitcher from '@/components/home/audience-switcher';
 import AudienceTabBar from '@/components/home/audience-tab-bar';
-import CustomerReviews from '@/components/home/customer-reviews';
-import FAQSection from '@/components/home/faq-section';
-import ExitIntentPopup from '@/components/home/exit-intent-popup';
-import StickyTrialBar from '@/components/home/sticky-trial-bar';
 import ComparisonSection from '@/components/home/comparison-section';
-import NewsletterSignup from '@/components/home/newsletter-signup';
 import { headers } from 'next/headers';
 import { prisma } from '@/db/prisma';
 import Link from 'next/link';
@@ -16,6 +10,15 @@ import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
 import { unstable_cache } from 'next/cache';
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
+
+// Below-the-fold components — lazy loaded to reduce initial JS bundle and TBT
+const HomeContactCard = dynamic(() => import('@/components/home/home-contact-card'));
+const CustomerReviews = dynamic(() => import('@/components/home/customer-reviews'));
+const FAQSection = dynamic(() => import('@/components/home/faq-section'));
+const ExitIntentPopup = dynamic(() => import('@/components/home/exit-intent-popup'));
+const StickyTrialBar = dynamic(() => import('@/components/home/sticky-trial-bar'));
+const NewsletterSignup = dynamic(() => import('@/components/home/newsletter-signup'));
 
 const getCachedLandlord = unstable_cache(
   async (subdomain: string) => {

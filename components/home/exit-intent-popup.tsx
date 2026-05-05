@@ -35,6 +35,7 @@ export default function ExitIntentPopup() {
         <button
           onClick={() => setIsVisible(false)}
           className='absolute top-5 right-5 text-slate-400 hover:text-slate-900 transition-colors'
+          aria-label='Close popup'
         >
           <X className='h-6 w-6' />
         </button>

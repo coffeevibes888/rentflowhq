@@ -91,7 +91,7 @@ const Header = async () => {
 
           {/* Resources Dropdown */}
           <div className="relative group">
-            <button className="px-2.5 py-1.5 text-black hover:underline flex items-center gap-1">
+            <button className="px-2.5 py-1.5 text-black hover:underline flex items-center gap-1" aria-label="Resources menu" aria-haspopup="true">
               Resources
               <ChevronDown className="h-4 w-4" />
             </button>

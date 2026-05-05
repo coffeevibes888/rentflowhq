@@ -52,7 +52,7 @@ const Menu = async () => {
       </nav>
       <nav className='md:hidden'>
         <Sheet>
-          <SheetTrigger className='align-middle text-black'>
+          <SheetTrigger className='align-middle text-black' aria-label='Open menu'>
             <EllipsisVertical />
           </SheetTrigger>
           <SheetContent className='flex flex-col items-start bg-white text-black w-[280px]'>

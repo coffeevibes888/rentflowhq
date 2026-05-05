@@ -1,6 +1,6 @@
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Property Flow HQ';
 export const APP_DESCRIPTION = process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
-  'Helping You Manage Your Dreams One Property at a Time';
+  'Affordable property management software for small landlords. Automated rent collection, free lease builder, tenant portal, maintenance tracking, and contractor management — starting at $19.99/month with no per-unit fees.';
 const rawServerUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 export const SERVER_URL = rawServerUrl
   ? rawServerUrl.startsWith('http')
