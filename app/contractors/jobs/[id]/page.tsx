@@ -139,6 +139,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   return (
     <JobDetailClient
       lowestBidAmount={lowestBidAmount}
+      lifecycle={{
+        status: job.lifecycleStatus as any,
+        escrowAmount: job.escrowAmount ? Number(job.escrowAmount) : null,
+        pmApprovalDeadline: job.pmApprovalDeadline?.toISOString() || null,
+        scheduledDate: job.scheduledDate?.toISOString() || null,
+        acceptedBidId: job.acceptedBidId,
+      }}
       job={{
         id: job.id,
         title: job.title,

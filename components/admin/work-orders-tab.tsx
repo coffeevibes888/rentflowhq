@@ -502,9 +502,9 @@ export default function WorkOrdersTab() {
                           <CreditCard className="h-4 w-4 mr-2" />Pay Contractor
                         </DropdownMenuItem>
                       )}
-                      {wo.status === 'open' && wo._count && wo._count.bids > 0 && (
-                        <DropdownMenuItem onClick={() => { window.location.href = `/admin/contractors?viewBids=${wo.id}`; }} className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-500/10 cursor-pointer">
-                          <Users className="h-4 w-4 mr-2" />View Bids ({wo._count.bids})
+                      {wo._count && wo._count.bids > 0 && (
+                        <DropdownMenuItem onClick={() => { window.location.href = `/admin/work-orders/${wo.id}/bids`; }} className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-500/10 cursor-pointer">
+                          <Users className="h-4 w-4 mr-2" />Review Bids ({wo._count.bids})
                         </DropdownMenuItem>
                       )}
                       {(wo.status === 'in_progress' || wo.status === 'completed' || wo.status === 'paid') && (
@@ -585,9 +585,9 @@ export default function WorkOrdersTab() {
                       <CreditCard className="h-4 w-4 mr-2" />Pay Contractor
                     </Button>
                   )}
-                  {wo.status === 'open' && wo._count && wo._count.bids > 0 && (
-                    <Button size="sm" onClick={() => { window.location.href = `/admin/contractors?viewBids=${wo.id}`; }} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white">
-                      <Users className="h-4 w-4 mr-2" />View {wo._count.bids} Bid{wo._count.bids !== 1 ? 's' : ''}
+                  {wo._count && wo._count.bids > 0 && (
+                    <Button size="sm" onClick={() => { window.location.href = `/admin/work-orders/${wo.id}/bids`; }} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white">
+                      <Users className="h-4 w-4 mr-2" />Review {wo._count.bids} Bid{wo._count.bids !== 1 ? 's' : ''}
                     </Button>
                   )}
                   {wo.status === 'draft' && (

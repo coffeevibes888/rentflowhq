@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import BidMessageThread from '@/components/contractor/bid-message-thread';
+import JobTracker from '@/components/contractor/job-tracker';
 
 interface JobMedia {
   id: string;
@@ -79,6 +80,16 @@ interface SimilarJob {
   createdAt: string;
 }
 
+interface Lifecycle {
+  status:
+    | 'pending' | 'funded' | 'scheduled' | 'in_progress'
+    | 'awaiting_approval' | 'released' | 'disputed' | 'refunded' | 'cancelled';
+  escrowAmount: number | null;
+  pmApprovalDeadline: string | null;
+  scheduledDate: string | null;
+  acceptedBidId: string | null;
+}
+
 interface JobDetailClientProps {
   job: Job;
   myBid: MyBid | null;
@@ -88,6 +99,7 @@ interface JobDetailClientProps {
   isContractor: boolean;
   similarJobs: SimilarJob[];
   lowestBidAmount: number | null;
+  lifecycle: Lifecycle;
 }
 
 const priorityConfig: Record<string, { color: string; label: string }> = {
@@ -97,7 +109,9 @@ const priorityConfig: Record<string, { color: string; label: string }> = {
   urgent: { color: 'bg-red-100 text-red-700', label: 'Urgent' },
 };
 
-export default function JobDetailClient({ job, myBid, myContractorId, currentUserId, isLoggedIn, isContractor, similarJobs, lowestBidAmount }: JobDetailClientProps) {
+export default function JobDetailClient({ job, myBid, myContractorId, currentUserId, isLoggedIn, isContractor, similarJobs, lowestBidAmount, lifecycle }: JobDetailClientProps) {
+  const isMyJob = !!myBid && myBid.id === lifecycle.acceptedBidId;
+  const showTracker = isMyJob && lifecycle.status !== 'pending';
   const router = useRouter();
   const { toast } = useToast();
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
@@ -307,6 +321,18 @@ export default function JobDetailClient({ job, myBid, myContractorId, currentUse
                 </div>
               </CardContent>
             </Card>
+
+            {/* Live job tracker (Uber-style) — only when this contractor's bid was accepted */}
+            {showTracker && currentUserId && (
+              <JobTracker
+                workOrderId={job.id}
+                lifecycleStatus={lifecycle.status}
+                viewerRole="contractor"
+                escrowAmount={lifecycle.escrowAmount}
+                pmApprovalDeadline={lifecycle.pmApprovalDeadline}
+                scheduledDate={lifecycle.scheduledDate}
+              />
+            )}
 
             {/* My Bid Status */}
             {myBid && (
