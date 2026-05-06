@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
-import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-tiers';
+import { SUBSCRIPTION_TIERS, SubscriptionTier, BillingInterval } from '@/lib/config/subscription-tiers';
 import { SERVER_URL } from '@/lib/constants';
 
 export async function POST(req: NextRequest) {
@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const targetTier = body.tier as SubscriptionTier;
+    const billingInterval: BillingInterval = body.billingInterval === 'yearly' ? 'yearly' : 'monthly';
 
     if (!targetTier || !SUBSCRIPTION_TIERS[targetTier]) {
       return NextResponse.json({ success: false, message: 'Invalid subscription tier' }, { status: 400 });
@@ -22,12 +23,12 @@ export async function POST(req: NextRequest) {
 
     const tierConfig = SUBSCRIPTION_TIERS[targetTier];
 
-    const tierToPriceEnvVar: Record<SubscriptionTier, string> = {
-      starter: 'STRIPE_PRICE_CONTRACTOR_STARTER',
-      pro: 'STRIPE_PRICE_CONTRACTOR_PRO',
-      enterprise: 'STRIPE_PRICE_CONTRACTOR_ENTERPRISE',
+    const tierToPriceEnvVar: Record<SubscriptionTier, Record<BillingInterval, string>> = {
+      starter: { monthly: 'STRIPE_PRICE_CONTRACTOR_STARTER', yearly: 'STRIPE_PRICE_CONTRACTOR_STARTER_YEARLY' },
+      pro: { monthly: 'STRIPE_PRICE_CONTRACTOR_PRO', yearly: 'STRIPE_PRICE_CONTRACTOR_PRO_YEARLY' },
+      enterprise: { monthly: 'STRIPE_PRICE_CONTRACTOR_ENTERPRISE', yearly: 'STRIPE_PRICE_CONTRACTOR_ENTERPRISE_YEARLY' },
     };
-    const expectedPriceEnvVar = tierToPriceEnvVar[targetTier];
+    const expectedPriceEnvVar = tierToPriceEnvVar[targetTier][billingInterval];
 
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     // Look up contractor-specific price IDs, falling back to the shared PM price IDs
     const contractorPriceId =
-      process.env[expectedPriceEnvVar] || tierConfig.priceId;
+      process.env[expectedPriceEnvVar] || (billingInterval === 'yearly' ? tierConfig.yearlyPriceId : tierConfig.priceId);
 
     if (!contractorPriceId) {
       if (targetTier === 'enterprise') {
@@ -136,6 +137,17 @@ export async function POST(req: NextRequest) {
       successRedirectUrl = `${baseUrl}/admin/overview?subscription=success&tier=${targetTier}`;
     }
 
+    // Meta CAPI attribution data — forwarded into subscription metadata and
+    // read by the Stripe webhook to fire a deduplicated server-side Purchase event.
+    const metaFbc = req.cookies.get('_fbc')?.value || '';
+    const metaFbp = req.cookies.get('_fbp')?.value || '';
+    const metaIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') ||
+      '';
+    const metaUa = req.headers.get('user-agent') || '';
+    const metaEventId = `purchase_${profile.id}_${Date.now()}`;
+
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
@@ -146,6 +158,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         contractorProfileId: profile.id,
         tier: targetTier,
+        billingInterval,
         role: 'contractor',
       },
       subscription_data: {
@@ -153,7 +166,16 @@ export async function POST(req: NextRequest) {
         metadata: {
           contractorProfileId: profile.id,
           tier: targetTier,
+          billingInterval,
           role: 'contractor',
+          // Meta CAPI attribution
+          metaFbc,
+          metaFbp,
+          metaIp,
+          metaUa,
+          metaEventId,
+          metaUserEmail: session.user.email || '',
+          metaUserId: session.user.id,
         },
       },
     });

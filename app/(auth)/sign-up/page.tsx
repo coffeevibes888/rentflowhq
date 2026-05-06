@@ -17,11 +17,31 @@ export const metadata: Metadata = {
   title: 'Sign Up',
 };
 
-const SignUpPage = async () => {
+const SignUpPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string; plan?: string; role?: string; skipOnboarding?: string }>;
+}) => {
   const session = await auth();
+  const params = await searchParams;
 
   // If already logged in, redirect appropriately
   if (session?.user) {
+    // If the ad/pricing flow sent a plan + role, route straight to the subscription page
+    if (params.plan || params.skipOnboarding === 'true') {
+      const plan = params.plan || 'starter';
+      const route =
+        params.role === 'contractor'
+          ? `/onboarding/contractor/subscription?plan=${plan}`
+          : `/onboarding/landlord/subscription?plan=${plan}${params.skipOnboarding === 'true' ? '&skipOnboarding=true' : ''}`;
+      return redirect(route);
+    }
+
+    // If an explicit callbackUrl was provided, honor it (only relative URLs)
+    if (params.callbackUrl && params.callbackUrl.startsWith('/')) {
+      return redirect(params.callbackUrl);
+    }
+
     // If onboarding not completed, go to onboarding
     if (!session.user.onboardingCompleted) {
       return redirect('/onboarding');

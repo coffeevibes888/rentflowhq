@@ -14,6 +14,8 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react';
+import { YEARLY_DISCOUNT_PERCENT, getYearlyMonthlyEquivalent, getYearlyPrice } from '@/lib/config/subscription-tiers';
+import { trackMetaEvent } from '@/lib/analytics/meta-pixel';
 
 interface SubscriptionSelectionClientProps {
   userName: string;
@@ -24,6 +26,7 @@ const tiers = [
     id: 'starter',
     name: 'Starter',
     price: 19.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(19.99),
     description: 'Perfect for small landlords.',
     unitLimit: 'Up to 24 units',
     icon: Building2,
@@ -48,6 +51,7 @@ const tiers = [
     id: 'pro',
     name: 'Pro',
     price: 39.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(39.99),
     description: 'For growing portfolios.',
     unitLimit: 'Up to 150 units',
     icon: Zap,
@@ -71,6 +75,7 @@ const tiers = [
     id: 'enterprise',
     name: 'Enterprise',
     price: 79.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(79.99),
     description: 'Full-scale operations.',
     unitLimit: 'Unlimited units',
     icon: Crown,
@@ -98,9 +103,18 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
   const searchParams = useSearchParams();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   
-  // Get suggested plan from URL (from homepage pricing section)
+  // Get suggested plan and interval from URL (from homepage pricing section)
   const suggestedPlan = searchParams.get('plan');
+  const suggestedInterval = searchParams.get('interval');
+  
+  // Set billing interval from URL param on mount
+  useEffect(() => {
+    if (suggestedInterval === 'yearly') {
+      setBillingInterval('yearly');
+    }
+  }, [suggestedInterval]);
   
   // Check if user canceled checkout
   useEffect(() => {
@@ -109,9 +123,43 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
     }
   }, [searchParams]);
 
+  // Fire Meta Pixel Lead + CompleteRegistration once when this page loads.
+  // At this point the user has an account and is one step from paying — that's
+  // a high-quality lead event for the ad algorithm to optimize toward.
+  useEffect(() => {
+    trackMetaEvent('CompleteRegistration', {
+      content_name: 'landlord_signup',
+      status: 'account_created',
+    });
+    trackMetaEvent('Lead', {
+      content_category: 'landlord',
+      content_name: 'pm_trial_started',
+      value: 19.99,
+      currency: 'USD',
+    });
+  }, []);
+
+  const isYearly = billingInterval === 'yearly';
+
   const handleSelectPlan = async (tierId: string) => {
     setLoadingTier(tierId);
     setError(null);
+
+    // Report checkout intent to Meta. The actual Purchase event is fired
+    // server-side from the Stripe webhook for reliability.
+    const tierMeta = tiers.find((t) => t.id === tierId);
+    const planValue = tierMeta
+      ? isYearly
+        ? getYearlyPrice(tierMeta.price)
+        : tierMeta.price
+      : 19.99;
+    trackMetaEvent('InitiateCheckout', {
+      content_ids: [tierId],
+      content_name: `landlord_${tierId}_${billingInterval}`,
+      content_category: 'landlord_subscription',
+      value: planValue,
+      currency: 'USD',
+    });
 
     try {
       const response = await fetch('/api/landlord/subscription/create-checkout', {
@@ -119,6 +167,7 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           tier: tierId,
+          billingInterval,
         }),
       });
 
@@ -158,6 +207,30 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
               ? 'Take a moment to review all plans. You can upgrade or downgrade anytime.'
               : 'All plans include a 14-day free trial. Credit card required — cancel anytime.'}
           </p>
+
+          {/* Billing Interval Toggle */}
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <span className={`text-sm font-semibold ${!isYearly ? 'text-white' : 'text-slate-500'}`}>Monthly</span>
+            <button
+              onClick={() => setBillingInterval(isYearly ? 'monthly' : 'yearly')}
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
+                isYearly ? 'bg-gradient-to-r from-violet-500 to-purple-500' : 'bg-white/20'
+              }`}
+              aria-label="Toggle billing interval"
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 ${
+                  isYearly ? 'translate-x-8' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-semibold ${isYearly ? 'text-white' : 'text-slate-500'}`}>Yearly</span>
+            {isYearly && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 px-3 py-1 text-xs font-bold text-white shadow-lg shadow-emerald-500/30">
+                Save {YEARLY_DISCOUNT_PERCENT}%
+              </span>
+            )}
+          </div>
         </motion.div>
 
         {/* Error message */}
@@ -229,10 +302,29 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
 
                 {/* Price */}
                 <div className="mb-3">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold text-white">${tier.price}</span>
-                    <span className="text-slate-400 text-sm">/month</span>
-                  </div>
+                  {isYearly ? (
+                    <>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-bold text-white">
+                          ${getYearlyPrice(tier.price).toFixed(2)}
+                        </span>
+                        <span className="text-slate-400 text-sm">/year</span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="text-sm line-through text-slate-500">
+                          ${(tier.price * 12).toFixed(2)}/yr
+                        </span>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                          Save ${((tier.price * 12) - getYearlyPrice(tier.price)).toFixed(2)}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold text-white">${tier.price}</span>
+                      <span className="text-slate-400 text-sm">/month</span>
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-sm text-slate-400 mb-4">{tier.description}</p>

@@ -16,6 +16,7 @@ export const stripeConfig = {
     : process.env.STRIPE_TEST_SECRET_KEY || process.env.STRIPE_SECRET_KEY,
   
   prices: {
+    // Monthly prices
     starter: isProduction
       ? process.env.STRIPE_LIVE_PRICE_STARTER || process.env.STRIPE_PRICE_STARTER
       : process.env.STRIPE_TEST_PRICE_STARTER || process.env.STRIPE_PRICE_STARTER,
@@ -28,6 +29,20 @@ export const stripeConfig = {
       ? process.env.STRIPE_LIVE_PRICE_ENTERPRISE || process.env.STRIPE_PRICE_ENTERPRISE
       : process.env.STRIPE_TEST_PRICE_ENTERPRISE || process.env.STRIPE_PRICE_ENTERPRISE,
 
+    // Yearly prices (20% discount)
+    starterYearly: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_STARTER_YEARLY || process.env.STRIPE_PRICE_STARTER_YEARLY
+      : process.env.STRIPE_TEST_PRICE_STARTER_YEARLY || process.env.STRIPE_PRICE_STARTER_YEARLY,
+
+    proYearly: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_PRO_YEARLY || process.env.STRIPE_PRICE_PRO_YEARLY
+      : process.env.STRIPE_TEST_PRICE_PRO_YEARLY || process.env.STRIPE_PRICE_PRO_YEARLY,
+
+    enterpriseYearly: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_ENTERPRISE_YEARLY || process.env.STRIPE_PRICE_ENTERPRISE_YEARLY
+      : process.env.STRIPE_TEST_PRICE_ENTERPRISE_YEARLY || process.env.STRIPE_PRICE_ENTERPRISE_YEARLY,
+
+    // Contractor monthly prices
     contractorStarter: isProduction
       ? process.env.STRIPE_LIVE_PRICE_CONTRACTOR_STARTER || process.env.STRIPE_PRICE_CONTRACTOR_STARTER
       : process.env.STRIPE_TEST_PRICE_CONTRACTOR_STARTER || process.env.STRIPE_PRICE_CONTRACTOR_STARTER,
@@ -39,6 +54,19 @@ export const stripeConfig = {
     contractorEnterprise: isProduction
       ? process.env.STRIPE_LIVE_PRICE_CONTRACTOR_ENTERPRISE || process.env.STRIPE_PRICE_CONTRACTOR_ENTERPRISE
       : process.env.STRIPE_TEST_PRICE_CONTRACTOR_ENTERPRISE || process.env.STRIPE_PRICE_CONTRACTOR_ENTERPRISE,
+
+    // Contractor yearly prices (20% discount)
+    contractorStarterYearly: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_CONTRACTOR_STARTER_YEARLY || process.env.STRIPE_PRICE_CONTRACTOR_STARTER_YEARLY
+      : process.env.STRIPE_TEST_PRICE_CONTRACTOR_STARTER_YEARLY || process.env.STRIPE_PRICE_CONTRACTOR_STARTER_YEARLY,
+
+    contractorProYearly: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_CONTRACTOR_PRO_YEARLY || process.env.STRIPE_PRICE_CONTRACTOR_PRO_YEARLY
+      : process.env.STRIPE_TEST_PRICE_CONTRACTOR_PRO_YEARLY || process.env.STRIPE_PRICE_CONTRACTOR_PRO_YEARLY,
+
+    contractorEnterpriseYearly: isProduction
+      ? process.env.STRIPE_LIVE_PRICE_CONTRACTOR_ENTERPRISE_YEARLY || process.env.STRIPE_PRICE_CONTRACTOR_ENTERPRISE_YEARLY
+      : process.env.STRIPE_TEST_PRICE_CONTRACTOR_ENTERPRISE_YEARLY || process.env.STRIPE_PRICE_CONTRACTOR_ENTERPRISE_YEARLY,
   },
   
   isTestMode: !isProduction,

@@ -1558,6 +1558,7 @@ model LandlordSubscription {
   id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   landlordId           String    @unique @db.Uuid
   tier                 String    @default("free") // free, growth, professional, enterprise
+  billingInterval      String    @default("monthly") // monthly, yearly
   stripeSubscriptionId String?   @unique
   stripeCustomerId     String?
   stripePriceId        String?

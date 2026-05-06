@@ -2,17 +2,32 @@
  * Contractor Subscription Tiers Configuration
  * 
  * PRICING MODEL:
- * - Starter: $19.99/month (solo contractor)
- * - Pro: $39.99/month (small team, up to 6 members)
- * - Enterprise: $79.99/month (unlimited team, full business operations)
+ * - Starter: $19.99/month or $191.90/year (20% discount)
+ * - Pro: $39.99/month or $383.90/year (20% discount)
+ * - Enterprise: $79.99/month or $767.90/year (20% discount)
  * 
  * All tiers include 14-day free trial
  */
+
+/** Yearly discount percentage */
+const YEARLY_DISCOUNT_PERCENT = 20;
+
+/** Calculate yearly price with 20% discount */
+function calcYearlyPrice(monthlyPrice: number): number {
+  const yearlyFull = monthlyPrice * 12;
+  return Math.round(yearlyFull * (1 - YEARLY_DISCOUNT_PERCENT / 100) * 100) / 100;
+}
+
+/** Calculate equivalent monthly price when billed yearly */
+function calcYearlyMonthlyEquivalent(monthlyPrice: number): number {
+  return Math.round((calcYearlyPrice(monthlyPrice) / 12) * 100) / 100;
+}
 
 export const CONTRACTOR_TIERS = {
   starter: {
     name: 'Starter',
     price: 19.99,
+    yearlyPrice: calcYearlyPrice(19.99),
     trialDays: 14,
     limits: {
       activeJobs: 15,
@@ -83,6 +98,7 @@ export const CONTRACTOR_TIERS = {
   pro: {
     name: 'Pro',
     price: 39.99,
+    yearlyPrice: calcYearlyPrice(39.99),
     trialDays: 14,
     limits: {
       activeJobs: 50,
@@ -169,6 +185,7 @@ export const CONTRACTOR_TIERS = {
   enterprise: {
     name: 'Enterprise',
     price: 79.99,
+    yearlyPrice: calcYearlyPrice(79.99),
     trialDays: 14,
     limits: {
       activeJobs: -1, // unlimited
@@ -505,6 +522,20 @@ export function formatPrice(price: number): string {
  */
 export function getMonthlyPrice(tier: ContractorTier): number {
   return CONTRACTOR_TIERS[tier].price;
+}
+
+/**
+ * Get yearly price for a tier (20% discount applied)
+ */
+export function getYearlyPriceForTier(tier: ContractorTier): number {
+  return CONTRACTOR_TIERS[tier].yearlyPrice;
+}
+
+/**
+ * Get the equivalent monthly price when billed yearly
+ */
+export function getContractorYearlyMonthlyEquivalent(tier: ContractorTier): number {
+  return calcYearlyMonthlyEquivalent(CONTRACTOR_TIERS[tier].price);
 }
 
 /**

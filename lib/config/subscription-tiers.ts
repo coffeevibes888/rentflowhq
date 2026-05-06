@@ -2,9 +2,9 @@
  * Subscription Tiers Configuration
  * 
  * PRICING MODEL:
- * - Starter: $19.99/month (up to 24 units)
- * - Pro: $39.99/month (up to 150 units)
- * - Enterprise: $79.99/month (unlimited)
+ * - Starter: $19.99/month or $191.90/year (20% discount)
+ * - Pro: $39.99/month or $383.90/year (20% discount)
+ * - Enterprise: $79.99/month or $767.90/year (20% discount)
  * 
  * All tiers include 14-day free trial
  * No transaction fees - subscription only revenue model
@@ -12,11 +12,30 @@
 
 import { stripeConfig } from '../stripe-config';
 
+export type BillingInterval = 'monthly' | 'yearly';
+
+/** Yearly discount percentage */
+export const YEARLY_DISCOUNT_PERCENT = 20;
+
+/** Calculate yearly price with 20% discount (price per year) */
+export function getYearlyPrice(monthlyPrice: number): number {
+  const yearlyFull = monthlyPrice * 12;
+  const discounted = yearlyFull * (1 - YEARLY_DISCOUNT_PERCENT / 100);
+  return Math.round(discounted * 100) / 100; // round to 2 decimals
+}
+
+/** Calculate equivalent monthly price when billed yearly */
+export function getYearlyMonthlyEquivalent(monthlyPrice: number): number {
+  return Math.round((getYearlyPrice(monthlyPrice) / 12) * 100) / 100;
+}
+
 export const SUBSCRIPTION_TIERS = {
   starter: {
     name: 'Starter',
     price: 19.99,
+    yearlyPrice: getYearlyPrice(19.99), // $191.90/year
     priceId: stripeConfig.prices.starter,
+    yearlyPriceId: stripeConfig.prices.starterYearly,
     unitLimit: 24,
     trialDays: 14,
     features: {
@@ -49,7 +68,9 @@ export const SUBSCRIPTION_TIERS = {
   pro: {
     name: 'Pro',
     price: 39.99,
+    yearlyPrice: getYearlyPrice(39.99), // $383.90/year
     priceId: stripeConfig.prices.pro,
+    yearlyPriceId: stripeConfig.prices.proYearly,
     unitLimit: 150,
     trialDays: 14,
     features: {
@@ -82,7 +103,9 @@ export const SUBSCRIPTION_TIERS = {
   enterprise: {
     name: 'Enterprise',
     price: 79.99,
+    yearlyPrice: getYearlyPrice(79.99), // $767.90/year
     priceId: stripeConfig.prices.enterprise,
+    yearlyPriceId: stripeConfig.prices.enterpriseYearly,
     unitLimit: Infinity,
     trialDays: 14,
     features: {
@@ -212,4 +235,53 @@ export function getTrialDays(tier: SubscriptionTier): number {
  */
 export function hasNoCashoutFees(tier: SubscriptionTier): boolean {
   return true; // All tiers have no platform fees now
+}
+
+/**
+ * Get the Stripe price ID for a tier based on billing interval
+ */
+export function getPriceIdForInterval(
+  tier: SubscriptionTier,
+  interval: BillingInterval
+): string | undefined {
+  const tierConfig = SUBSCRIPTION_TIERS[tier];
+  return interval === 'yearly' ? tierConfig.yearlyPriceId : tierConfig.priceId;
+}
+
+/**
+ * Get the display price for a tier based on billing interval
+ * Returns the monthly-equivalent price (for yearly, this is the discounted per-month amount)
+ */
+export function getDisplayPrice(
+  tier: SubscriptionTier,
+  interval: BillingInterval
+): number {
+  const tierConfig = SUBSCRIPTION_TIERS[tier];
+  if (interval === 'yearly') {
+    return getYearlyMonthlyEquivalent(tierConfig.price);
+  }
+  return tierConfig.price;
+}
+
+/**
+ * Get the total billed amount for a tier based on billing interval
+ */
+export function getTotalBilledAmount(
+  tier: SubscriptionTier,
+  interval: BillingInterval
+): number {
+  const tierConfig = SUBSCRIPTION_TIERS[tier];
+  if (interval === 'yearly') {
+    return tierConfig.yearlyPrice;
+  }
+  return tierConfig.price;
+}
+
+/**
+ * Get the yearly savings amount for a tier
+ */
+export function getYearlySavings(tier: SubscriptionTier): number {
+  const tierConfig = SUBSCRIPTION_TIERS[tier];
+  const fullYearlyPrice = tierConfig.price * 12;
+  return Math.round((fullYearlyPrice - tierConfig.yearlyPrice) * 100) / 100;
 }

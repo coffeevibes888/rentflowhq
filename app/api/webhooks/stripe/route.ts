@@ -8,6 +8,7 @@ import { formatCurrency } from '@/lib/utils';
 import { formatEstimatedArrival } from '@/lib/config/stripe-constants';
 import { sendLandlordPaymentReceivedEmail } from '@/lib/actions/email.actions';
 import { logFinancialEvent } from '@/lib/security/audit-logger';
+import { sendMetaServerEvent } from '@/lib/analytics/meta-capi';
 
 /**
  * Stripe Webhook Handler
@@ -351,6 +352,7 @@ export async function POST(req: NextRequest) {
     const subscription = event.data.object as Stripe.Subscription;
     const landlordId = subscription.metadata?.landlordId;
     const tier = (subscription.metadata?.tier || 'starter') as SubscriptionTier;
+    const billingInterval = (subscription.metadata?.billingInterval || 'monthly') as 'monthly' | 'yearly';
     const affiliateCode = subscription.metadata?.affiliateCode;
 
     if (landlordId) {
@@ -361,6 +363,7 @@ export async function POST(req: NextRequest) {
         create: {
           landlordId,
           tier,
+          billingInterval,
           stripeSubscriptionId: subscription.id,
           stripeCustomerId: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id,
           stripePriceId: subscription.items.data[0]?.price?.id,
@@ -375,6 +378,7 @@ export async function POST(req: NextRequest) {
         },
         update: {
           tier,
+          billingInterval,
           stripeSubscriptionId: subscription.id,
           stripePriceId: subscription.items.data[0]?.price?.id,
           status: subscription.status,
@@ -501,6 +505,46 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Fire Meta Conversions API events on subscription creation:
+    //   - StartTrial while the user is in the 14-day free trial
+    //   - Subscribe for fully-active subscriptions (skipped the trial somehow)
+    // Purchase is fired on invoice.payment_succeeded below for the real $$ moment.
+    if (event.type === 'customer.subscription.created') {
+      try {
+        const tierConfig = SUBSCRIPTION_TIERS[tier];
+        const price =
+          billingInterval === 'yearly'
+            ? (tierConfig as { yearlyPrice?: number }).yearlyPrice ?? tierConfig.price * 12
+            : tierConfig.price;
+
+        const isTrial = subscription.status === 'trialing';
+        const metaEventName = isTrial ? 'StartTrial' : 'Subscribe';
+        const role = subscription.metadata?.role === 'contractor' ? 'contractor' : 'landlord';
+
+        await sendMetaServerEvent({
+          eventName: metaEventName,
+          eventId: subscription.metadata?.metaEventId || `trial_${subscription.id}`,
+          value: price,
+          currency: 'USD',
+          contentName: `${role}_${tier}_${billingInterval}`,
+          contentCategory: `${role}_subscription`,
+          contentIds: [tier],
+          predictedLtv: price * 12,
+          actionSource: 'website',
+          user: {
+            email: subscription.metadata?.metaUserEmail || null,
+            externalId: subscription.metadata?.metaUserId || landlordId || contractorProfileId || null,
+            clientIp: subscription.metadata?.metaIp || null,
+            clientUserAgent: subscription.metadata?.metaUa || null,
+            fbc: subscription.metadata?.metaFbc || null,
+            fbp: subscription.metadata?.metaFbp || null,
+          },
+        });
+      } catch (err) {
+        console.error('[Meta CAPI] StartTrial/Subscribe failed:', err);
+      }
+    }
+
     return NextResponse.json({
       message: `Webhook processed: ${event.type}`,
     });
@@ -568,6 +612,48 @@ export async function POST(req: NextRequest) {
           },
         },
       });
+    }
+
+    // Fire Meta Conversions API Purchase event — the moment the card is actually charged.
+    // We pull the attribution data off the subscription metadata (seeded during checkout creation)
+    // so we can attribute this payment to the original ad click.
+    if (invoice.amount_paid > 0 && invoice.subscription) {
+      try {
+        const subscriptionId =
+          typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription.id;
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        if (stripeSecretKey) {
+          const stripeForLookup = new Stripe(stripeSecretKey);
+          const sub = await stripeForLookup.subscriptions.retrieve(subscriptionId);
+          const meta = sub.metadata || {};
+          const role = meta.role === 'contractor' ? 'contractor' : 'landlord';
+          const tier = meta.tier || 'starter';
+          const billingInterval = meta.billingInterval || 'monthly';
+
+          await sendMetaServerEvent({
+            eventName: 'Purchase',
+            // Use a per-invoice event id so renewals aren't deduplicated with the original.
+            // The original StartTrial dedup key (metaEventId) is only used for the trial event.
+            eventId: `purchase_${invoice.id}`,
+            value: invoice.amount_paid / 100,
+            currency: (invoice.currency || 'usd').toUpperCase(),
+            contentName: `${role}_${tier}_${billingInterval}`,
+            contentCategory: `${role}_subscription`,
+            contentIds: [tier],
+            actionSource: 'website',
+            user: {
+              email: meta.metaUserEmail || invoice.customer_email || null,
+              externalId: meta.metaUserId || meta.landlordId || meta.contractorProfileId || null,
+              clientIp: meta.metaIp || null,
+              clientUserAgent: meta.metaUa || null,
+              fbc: meta.metaFbc || null,
+              fbp: meta.metaFbp || null,
+            },
+          });
+        }
+      } catch (err) {
+        console.error('[Meta CAPI] Purchase event failed:', err);
+      }
     }
 
     return NextResponse.json({

@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
-import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/lib/config/subscription-tiers';
+import { SUBSCRIPTION_TIERS, SubscriptionTier, BillingInterval, getPriceIdForInterval } from '@/lib/config/subscription-tiers';
 import { SERVER_URL } from '@/lib/constants';
 
 export async function POST(req: NextRequest) {
@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const targetTier = body.tier as SubscriptionTier;
+    const billingInterval: BillingInterval = body.billingInterval === 'yearly' ? 'yearly' : 'monthly';
     const referralCode = body.referralCode as string | undefined;
 
     if (!targetTier || !SUBSCRIPTION_TIERS[targetTier]) {
@@ -23,13 +24,14 @@ export async function POST(req: NextRequest) {
     }
 
     const tierConfig = SUBSCRIPTION_TIERS[targetTier];
+    const priceId = getPriceIdForInterval(targetTier, billingInterval);
 
-    const tierToPriceEnvVar: Record<SubscriptionTier, string> = {
-      starter: 'STRIPE_PRICE_STARTER',
-      pro: 'STRIPE_PRICE_PRO',
-      enterprise: 'STRIPE_PRICE_ENTERPRISE',
+    const tierToPriceEnvVar: Record<SubscriptionTier, Record<BillingInterval, string>> = {
+      starter: { monthly: 'STRIPE_PRICE_STARTER', yearly: 'STRIPE_PRICE_STARTER_YEARLY' },
+      pro: { monthly: 'STRIPE_PRICE_PRO', yearly: 'STRIPE_PRICE_PRO_YEARLY' },
+      enterprise: { monthly: 'STRIPE_PRICE_ENTERPRISE', yearly: 'STRIPE_PRICE_ENTERPRISE_YEARLY' },
     };
-    const expectedPriceEnvVar = tierToPriceEnvVar[targetTier];
+    const expectedPriceEnvVar = tierToPriceEnvVar[targetTier][billingInterval];
 
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!tierConfig.priceId) {
+    if (!priceId) {
       if (targetTier === 'enterprise') {
         return NextResponse.json({ 
           success: false, 
@@ -73,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     const stripe = new Stripe(stripeSecretKey);
     try {
-      await stripe.prices.retrieve(tierConfig.priceId);
+      await stripe.prices.retrieve(priceId);
     } catch (error) {
       const stripeMessage =
         error && typeof error === 'object' && 'message' in error ? String((error as any).message) : 'Unknown Stripe error';
@@ -88,8 +90,9 @@ export async function POST(req: NextRequest) {
           message:
             `This plan is not purchasable right now. Stripe could not find the configured price for this tier. Check ${expectedPriceEnvVar} / environment mode (test vs live).`,
           details: stripeMessage,
-          configuredPriceId: tierConfig.priceId,
+          configuredPriceId: priceId,
           tier: targetTier,
+          billingInterval,
           expectedPriceEnvVar,
           stripeMode,
         },
@@ -120,13 +123,24 @@ export async function POST(req: NextRequest) {
       baseUrl = new URL(SERVER_URL).origin;
     } catch {}
 
+    // Capture Meta attribution cookies + request metadata so the Stripe webhook
+    // can fire a deduplicated server-side Purchase event to the Meta Conversions API.
+    const metaFbc = req.cookies.get('_fbc')?.value || '';
+    const metaFbp = req.cookies.get('_fbp')?.value || '';
+    const metaIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') ||
+      '';
+    const metaUa = req.headers.get('user-agent') || '';
+    const metaEventId = `purchase_${landlord.id}_${Date.now()}`;
+
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_collection: 'always',
       line_items: [
         {
-          price: tierConfig.priceId,
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -135,6 +149,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         landlordId: landlord.id,
         tier: targetTier,
+        billingInterval,
         ...(referralCode && { affiliateCode: referralCode }),
       },
       subscription_data: {
@@ -142,7 +157,16 @@ export async function POST(req: NextRequest) {
         metadata: {
           landlordId: landlord.id,
           tier: targetTier,
+          billingInterval,
           ...(referralCode && { affiliateCode: referralCode }),
+          // Meta CAPI attribution — read back in the Stripe webhook
+          metaFbc,
+          metaFbp,
+          metaIp,
+          metaUa,
+          metaEventId,
+          metaUserEmail: session.user.email || '',
+          metaUserId: session.user.id,
         },
       },
     });

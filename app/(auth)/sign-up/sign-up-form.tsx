@@ -49,6 +49,16 @@ const SignUpForm = () => {
   const plan = searchParams.get('plan') || '';
   const role = searchParams.get('role') || '';
   const skipOnboarding = searchParams.get('skipOnboarding') === 'true';
+
+  // If the user is coming from a pricing/ad flow with role + plan, we can build
+  // a subscription URL directly and skip the generic onboarding role picker.
+  // skipOnboarding=true is forwarded so the subscription page finalizes role setup.
+  const pricingCallback =
+    plan || skipOnboarding
+      ? (role === 'contractor'
+          ? `/onboarding/contractor/subscription?plan=${plan || 'starter'}${skipOnboarding ? '&skipOnboarding=true' : ''}`
+          : `/onboarding/landlord/subscription?plan=${plan || 'starter'}${skipOnboarding ? '&skipOnboarding=true' : ''}`)
+      : null;
   
   // Referral tracking
   const referralCode = searchParams.get('ref') || '';
@@ -95,22 +105,14 @@ const SignUpForm = () => {
       <OAuthButtons callbackUrl={
         fromProperty 
           ? applicationCallback
-          : plan 
-            ? role === 'contractor'
-              ? `/onboarding/contractor/subscription?plan=${plan}`
-              : `/onboarding/landlord/subscription?plan=${plan}`
-            : callbackUrl
+          : pricingCallback || callbackUrl
       } />
       
       <form action={action}>
         <input type='hidden' name='callbackUrl' value={
           fromProperty 
             ? applicationCallback
-            : plan 
-              ? role === 'contractor'
-                ? `/onboarding/contractor/subscription?plan=${plan}`
-                : `/onboarding/landlord/subscription?plan=${plan}`
-              : callbackUrl
+            : pricingCallback || callbackUrl
         } />
         {/* Pass property application params to the server action */}
         {fromProperty && (
@@ -120,8 +122,8 @@ const SignUpForm = () => {
             <input type='hidden' name='role' value='tenant' />
           </>
         )}
-        {/* Pass role if coming from pricing page */}
-        {plan && (
+        {/* Pass role if coming from pricing page or ad landing page */}
+        {(plan || skipOnboarding) && (
           <input type='hidden' name='role' value={role || 'landlord'} />
         )}
         {/* Pass referral code to the server action */}

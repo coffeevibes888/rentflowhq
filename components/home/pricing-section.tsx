@@ -11,12 +11,14 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
+import { YEARLY_DISCOUNT_PERCENT, getYearlyMonthlyEquivalent, getYearlyPrice } from '@/lib/config/subscription-tiers';
 
 const tiers = [
   {
     id: 'starter',
     name: 'Starter',
     price: 19.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(19.99),
     description: 'Perfect for small landlords.',
     unitLimit: 'Up to 24 units',
     icon: Building2,
@@ -43,6 +45,7 @@ const tiers = [
     id: 'pro',
     name: 'Pro',
     price: 39.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(39.99),
     description: 'For growing landlords. The only tool that scales with you.',
     unitLimit: 'Up to 150 units',
     icon: Zap,
@@ -68,6 +71,7 @@ const tiers = [
     id: 'enterprise',
     name: 'Enterprise',
     price: 79.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(79.99),
     description: 'Full-scale property management operations.',
     unitLimit: 'Unlimited units',
     icon: Crown,
@@ -99,6 +103,7 @@ const contractorTiers = [
     id: 'starter',
     name: 'Starter',
     price: 19.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(19.99),
     description: 'Perfect for solo contractors & one-man operations just getting organized.',
     unitLimit: 'Solo operator',
     icon: Building2,
@@ -125,6 +130,7 @@ const contractorTiers = [
     id: 'pro',
     name: 'Pro',
     price: 39.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(39.99),
     description: 'Built for growing crews of 2–20. Run your entire operation from one place.',
     unitLimit: 'Up to 20 team members',
     icon: Zap,
@@ -152,6 +158,7 @@ const contractorTiers = [
     id: 'enterprise',
     name: 'Enterprise',
     price: 79.99,
+    yearlyMonthlyPrice: getYearlyMonthlyEquivalent(79.99),
     description: 'For large contractors & multi-trade companies scaling to 100+ employees.',
     unitLimit: 'Unlimited team members',
     icon: Crown,
@@ -182,22 +189,24 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
   const router = useRouter();
   const { data: session, status } = useSession();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
 
   const isContractor = variant === 'contractor';
+  const isYearly = billingInterval === 'yearly';
 
   const handleTierClick = async (tierId: string) => {
     setLoadingTier(tierId);
 
     if (status === 'authenticated' && session?.user) {
       if (isContractor) {
-        router.push(`/sign-up?role=contractor&plan=${tierId}`);
+        router.push(`/sign-up?role=contractor&plan=${tierId}&interval=${billingInterval}`);
       } else if (session.user.role === 'admin' || session.user.role === 'landlord') {
-        router.push(`/onboarding/landlord/subscription?plan=${tierId}`);
+        router.push(`/onboarding/landlord/subscription?plan=${tierId}&interval=${billingInterval}`);
       } else {
-        router.push(`/sign-up?role=landlord&plan=${tierId}`);
+        router.push(`/sign-up?role=landlord&plan=${tierId}&interval=${billingInterval}`);
       }
     } else {
-      router.push(isContractor ? `/sign-up?role=contractor&plan=${tierId}` : `/sign-up?role=landlord&plan=${tierId}`);
+      router.push(isContractor ? `/sign-up?role=contractor&plan=${tierId}&interval=${billingInterval}` : `/sign-up?role=landlord&plan=${tierId}&interval=${billingInterval}`);
     }
 
     setLoadingTier(null);
@@ -222,6 +231,30 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
           <p className="text-lg text-black font-semibold max-w-2xl mx-auto">
             {isContractor ? 'Everything you need to run your business — jobs, invoices, team, and more.' : "Finally an Automation Tool that saves you time and money. Let's face it your time is valuable."}
           </p>
+
+          {/* Billing Interval Toggle */}
+          <div className="flex items-center justify-center gap-3 pt-4">
+            <span className={`text-sm font-semibold ${!isYearly ? 'text-black' : 'text-black/50'}`}>Monthly</span>
+            <button
+              onClick={() => setBillingInterval(isYearly ? 'monthly' : 'yearly')}
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${
+                isYearly ? 'bg-gradient-to-r from-violet-500 to-purple-500' : 'bg-black/20'
+              }`}
+              aria-label="Toggle billing interval"
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 ${
+                  isYearly ? 'translate-x-8' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-semibold ${isYearly ? 'text-black' : 'text-black/50'}`}>Yearly</span>
+            {isYearly && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 px-3 py-1 text-xs font-bold text-white shadow-lg shadow-emerald-500/30">
+                Save {YEARLY_DISCOUNT_PERCENT}%
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Pricing Cards */}
@@ -264,10 +297,29 @@ export default function PricingSection({ variant = 'pm' }: { variant?: 'pm' | 'c
                 {/* Price */}
                 <div className="mb-4">
                   {tier.price !== null ? (
-                    <div className="flex items-baseline gap-1">
-                      <span className={`text-4xl font-bold ${isContractor ? 'text-black' : 'text-white'}`}>${tier.price}</span>
-                      <span className={`font-semibold ${isContractor ? 'text-black/60' : 'text-white'}`}>/month</span>
-                    </div>
+                    isYearly ? (
+                      <>
+                        <div className="flex items-baseline gap-1">
+                          <span className={`text-4xl font-bold ${isContractor ? 'text-black' : 'text-white'}`}>
+                            ${getYearlyPrice(tier.price).toFixed(2)}
+                          </span>
+                          <span className={`font-semibold ${isContractor ? 'text-black/60' : 'text-white'}`}>/year</span>
+                        </div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <span className={`text-sm line-through ${isContractor ? 'text-black/40' : 'text-white/40'}`}>
+                            ${(tier.price * 12).toFixed(2)}/yr
+                          </span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isContractor ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-300'}`}>
+                            Save ${((tier.price * 12) - getYearlyPrice(tier.price)).toFixed(2)}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-4xl font-bold ${isContractor ? 'text-black' : 'text-white'}`}>${tier.price}</span>
+                        <span className={`font-semibold ${isContractor ? 'text-black/60' : 'text-white'}`}>/month</span>
+                      </div>
+                    )
                   ) : (
                     <div className={`text-2xl font-bold ${isContractor ? 'text-black' : 'text-white'}`}>Custom Pricing</div>
                   )}

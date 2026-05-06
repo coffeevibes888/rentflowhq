@@ -14,6 +14,7 @@ import {
   Loader2,
   AlertCircle,
 } from 'lucide-react';
+import { trackMetaEvent } from '@/lib/analytics/meta-pixel';
 
 interface ContractorSubscriptionClientProps {
   userName: string;
@@ -117,9 +118,33 @@ export default function ContractorSubscriptionClient({
     }
   }, [searchParams]);
 
+  // Fire Meta Pixel Lead + CompleteRegistration once on mount.
+  // The actual Purchase event is fired server-side from the Stripe webhook.
+  useEffect(() => {
+    trackMetaEvent('CompleteRegistration', {
+      content_name: 'contractor_signup',
+      status: 'account_created',
+    });
+    trackMetaEvent('Lead', {
+      content_category: 'contractor',
+      content_name: 'contractor_trial_started',
+      value: 19.99,
+      currency: 'USD',
+    });
+  }, []);
+
   const handleSelectPlan = async (tierId: string) => {
     setLoadingTier(tierId);
     setError(null);
+
+    const tierMeta = tiers.find((t) => t.id === tierId);
+    trackMetaEvent('InitiateCheckout', {
+      content_ids: [tierId],
+      content_name: `contractor_${tierId}`,
+      content_category: 'contractor_subscription',
+      value: tierMeta?.price ?? 19.99,
+      currency: 'USD',
+    });
 
     try {
       const response = await fetch('/api/contractor/subscription/create-checkout', {
