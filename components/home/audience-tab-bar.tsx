@@ -25,7 +25,7 @@ export default function AudienceTabBar() {
   const isPM = audience === 'pm';
 
   return (
-    <div className="w-full flex justify-center items-center gap-3 py-3 px-4 overflow-x-hidden">
+    <div className="relative z-20 w-full flex justify-center items-center gap-3 py-3 px-4 overflow-x-hidden">
 
       {/* Left hint — visible when contractor is active, desktop only */}
       <div className={`hidden sm:flex items-center gap-2 transition-all duration-300 animate-float ${!isPM ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
@@ -34,7 +34,7 @@ export default function AudienceTabBar() {
       </div>
 
       {/* Toggle pill */}
-      <div className="inline-flex items-center gap-1.5 p-1 animate-float">
+      <div className="relative z-20 inline-flex items-center gap-1.5 p-1 animate-float">
         {/* PM button */}
         <button
           onClick={() => switchTo('pm')}

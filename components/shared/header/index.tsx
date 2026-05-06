@@ -49,7 +49,7 @@ const Header = async () => {
 
         {/* Logo — pointer-events contained to header height only */}
         <Link href='/' className="absolute left-1/2 transform -translate-x-1/2 top-0 h-full flex items-center justify-center z-[5]">
-          <div className="relative w-300 h-[260px] mt-3">
+          <div className="relative w-40 h-16">
             <Image
               src={landlord?.logoUrl || '/images/logo.svg'}
               fill
