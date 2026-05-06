@@ -124,8 +124,29 @@ export async function recordTransition(args: RecordTransitionArgs) {
     return wo;
   };
 
-  if (tx) return run(tx);
-  return prisma.$transaction(run);
+  if (tx) {
+    const result = await run(tx);
+    // Notifications run after the calling tx commits — fire-and-forget
+    void notifyAfterTransition(workOrderId, to, actorUserId ?? null);
+    return result;
+  }
+  const result = await prisma.$transaction(run);
+  void notifyAfterTransition(workOrderId, to, actorUserId ?? null);
+  return result;
+}
+
+// Lazy-loaded so the lifecycle service has zero cost when notifications fail
+async function notifyAfterTransition(
+  workOrderId: string,
+  to: LifecycleStatus,
+  actorUserId: string | null
+) {
+  try {
+    const { notifyWorkOrderTransition } = await import('./work-order-notifications');
+    await notifyWorkOrderTransition({ workOrderId, toStatus: to, actorUserId });
+  } catch (e) {
+    console.error('[lifecycle] notification dispatch failed:', e);
+  }
 }
 
 /**

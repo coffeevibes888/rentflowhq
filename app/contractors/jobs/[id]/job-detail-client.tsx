@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import BidMessageThread from '@/components/contractor/bid-message-thread';
 import JobTracker from '@/components/contractor/job-tracker';
+import MilestonesPanel from '@/components/contractor/milestones-panel';
 
 interface JobMedia {
   id: string;
@@ -324,14 +325,22 @@ export default function JobDetailClient({ job, myBid, myContractorId, currentUse
 
             {/* Live job tracker (Uber-style) — only when this contractor's bid was accepted */}
             {showTracker && currentUserId && (
-              <JobTracker
-                workOrderId={job.id}
-                lifecycleStatus={lifecycle.status}
-                viewerRole="contractor"
-                escrowAmount={lifecycle.escrowAmount}
-                pmApprovalDeadline={lifecycle.pmApprovalDeadline}
-                scheduledDate={lifecycle.scheduledDate}
-              />
+              <>
+                <JobTracker
+                  workOrderId={job.id}
+                  lifecycleStatus={lifecycle.status}
+                  viewerRole="contractor"
+                  escrowAmount={lifecycle.escrowAmount}
+                  pmApprovalDeadline={lifecycle.pmApprovalDeadline}
+                  scheduledDate={lifecycle.scheduledDate}
+                />
+                <MilestonesPanel
+                  workOrderId={job.id}
+                  viewerRole="contractor"
+                  totalEscrow={lifecycle.escrowAmount || 0}
+                  lifecycleStatus={lifecycle.status}
+                />
+              </>
             )}
 
             {/* My Bid Status */}

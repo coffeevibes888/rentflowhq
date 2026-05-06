@@ -28,6 +28,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import BidMessageThread from '@/components/contractor/bid-message-thread';
 import JobTracker from '@/components/contractor/job-tracker';
+import MilestonesPanel from '@/components/contractor/milestones-panel';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -204,14 +205,22 @@ export default function BidsReviewClient({ currentUserId, job, lifecycle, bids }
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
         {/* JobTracker if funded */}
         {isFunded && (
-          <JobTracker
-            workOrderId={job.id}
-            lifecycleStatus={lifecycle.status}
-            viewerRole="landlord"
-            escrowAmount={lifecycle.escrowAmount}
-            pmApprovalDeadline={lifecycle.pmApprovalDeadline}
-            scheduledDate={lifecycle.scheduledDate}
-          />
+          <>
+            <JobTracker
+              workOrderId={job.id}
+              lifecycleStatus={lifecycle.status}
+              viewerRole="landlord"
+              escrowAmount={lifecycle.escrowAmount}
+              pmApprovalDeadline={lifecycle.pmApprovalDeadline}
+              scheduledDate={lifecycle.scheduledDate}
+            />
+            <MilestonesPanel
+              workOrderId={job.id}
+              viewerRole="landlord"
+              totalEscrow={lifecycle.escrowAmount || 0}
+              lifecycleStatus={lifecycle.status}
+            />
+          </>
         )}
 
         {/* Negotiation thread for accepted bid */}
