@@ -18,7 +18,28 @@ export async function POST(
 
     const { id: workOrderId } = await params;
     const body = await req.json();
-    const { amount, estimatedHours, proposedStartDate, message } = body;
+    const {
+      amount,
+      laborCost,
+      materialsCost,
+      estimatedHours,
+      proposedStartDate,
+      estimatedCompletionDate,
+      inclusions,
+      exclusions,
+      warrantyDays,
+      willPullPermits,
+      paymentTerms,
+      validUntil,
+      message,
+    } = body;
+
+    const toNum = (v: unknown) =>
+      v === '' || v === null || v === undefined ? null : Number(v);
+    const toDate = (v: unknown) =>
+      v === '' || v === null || v === undefined ? null : new Date(v as string);
+    const toStrArr = (v: unknown): string[] =>
+      Array.isArray(v) ? v.map(String).map((s) => s.trim()).filter(Boolean) : [];
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -27,19 +48,8 @@ export async function POST(
       );
     }
 
-    // Find contractor profile for this user
-    const contractor = await prisma.contractor.findFirst({
-      where: { userId: session.user.id },
-    });
-
-    if (!contractor) {
-      return NextResponse.json(
-        { success: false, error: 'You must have a contractor profile to submit bids' },
-        { status: 403 }
-      );
-    }
-
-    // Verify work order exists and is open for bids
+    // Verify work order exists and is open for bids — we need landlordId
+    // before resolving the contractor record (Contractor is per-landlord).
     const workOrder = await prisma.workOrder.findUnique({
       where: { id: workOrderId },
     });
@@ -58,7 +68,6 @@ export async function POST(
       );
     }
 
-    // Check if bid deadline has passed
     if (workOrder.bidDeadline && new Date(workOrder.bidDeadline) < new Date()) {
       return NextResponse.json(
         { success: false, error: 'Bidding deadline has passed' },
@@ -66,12 +75,84 @@ export async function POST(
       );
     }
 
+    // Resolve the Contractor directory record for this user + this landlord.
+    // If the user signed up via the marketplace they only have a
+    // ContractorProfile; auto-create a Contractor entry in the landlord's
+    // directory using the profile data so the bid FK is satisfied.
+    let contractorId: string | null = null;
+
+    const existingContractor = await prisma.contractor.findFirst({
+      where: {
+        userId: session.user.id,
+        landlordId: workOrder.landlordId,
+      },
+      select: { id: true },
+    });
+
+    if (existingContractor) {
+      contractorId = existingContractor.id;
+    } else {
+      const contractorProfile = await prisma.contractorProfile.findUnique({
+        where: { userId: session.user.id },
+        select: {
+          businessName: true,
+          displayName: true,
+          email: true,
+          phone: true,
+          specialties: true,
+        },
+      });
+
+      if (!contractorProfile) {
+        return NextResponse.json(
+          { success: false, error: 'You must have a contractor profile to submit bids' },
+          { status: 403 }
+        );
+      }
+
+      // Avoid hitting the @@unique([landlordId, email]) constraint if the
+      // landlord already has a directory entry with this email but no userId.
+      const existingByEmail = await prisma.contractor.findUnique({
+        where: {
+          landlordId_email: {
+            landlordId: workOrder.landlordId,
+            email: contractorProfile.email,
+          },
+        },
+        select: { id: true, userId: true },
+      });
+
+      if (existingByEmail) {
+        if (!existingByEmail.userId) {
+          await prisma.contractor.update({
+            where: { id: existingByEmail.id },
+            data: { userId: session.user.id },
+          });
+        }
+        contractorId = existingByEmail.id;
+      } else {
+        const created = await prisma.contractor.create({
+          data: {
+            landlordId: workOrder.landlordId,
+            userId: session.user.id,
+            name: contractorProfile.displayName || contractorProfile.businessName,
+            email: contractorProfile.email,
+            phone: contractorProfile.phone,
+            specialties: contractorProfile.specialties,
+            businessName: contractorProfile.businessName,
+          },
+          select: { id: true },
+        });
+        contractorId = created.id;
+      }
+    }
+
     // Check if contractor already submitted a bid
     const existingBid = await prisma.workOrderBid.findUnique({
       where: {
         workOrderId_contractorId: {
           workOrderId,
-          contractorId: contractor.id,
+          contractorId,
         },
       },
     });
@@ -82,8 +163,17 @@ export async function POST(
         where: { id: existingBid.id },
         data: {
           amount: parseFloat(amount),
-          estimatedHours: estimatedHours ? parseFloat(estimatedHours) : null,
-          proposedStartDate: proposedStartDate ? new Date(proposedStartDate) : null,
+          laborCost: toNum(laborCost),
+          materialsCost: toNum(materialsCost),
+          estimatedHours: toNum(estimatedHours),
+          proposedStartDate: toDate(proposedStartDate),
+          estimatedCompletionDate: toDate(estimatedCompletionDate),
+          inclusions: toStrArr(inclusions),
+          exclusions: toStrArr(exclusions),
+          warrantyDays: toNum(warrantyDays) === null ? null : Math.round(Number(warrantyDays)),
+          willPullPermits: typeof willPullPermits === 'boolean' ? willPullPermits : null,
+          paymentTerms: paymentTerms || null,
+          validUntil: toDate(validUntil),
           message: message || null,
         },
       });
@@ -99,10 +189,19 @@ export async function POST(
     const bid = await prisma.workOrderBid.create({
       data: {
         workOrderId,
-        contractorId: contractor.id,
+        contractorId,
         amount: parseFloat(amount),
-        estimatedHours: estimatedHours ? parseFloat(estimatedHours) : null,
-        proposedStartDate: proposedStartDate ? new Date(proposedStartDate) : null,
+        laborCost: toNum(laborCost),
+        materialsCost: toNum(materialsCost),
+        estimatedHours: toNum(estimatedHours),
+        proposedStartDate: toDate(proposedStartDate),
+        estimatedCompletionDate: toDate(estimatedCompletionDate),
+        inclusions: toStrArr(inclusions),
+        exclusions: toStrArr(exclusions),
+        warrantyDays: toNum(warrantyDays) === null ? null : Math.round(Number(warrantyDays)),
+        willPullPermits: typeof willPullPermits === 'boolean' ? willPullPermits : null,
+        paymentTerms: paymentTerms || null,
+        validUntil: toDate(validUntil),
         message: message || null,
         status: 'pending',
       },
@@ -153,17 +252,27 @@ export async function GET(
     const { id: workOrderId } = await params;
 
     // Check if user is a contractor
-    const contractor = await prisma.contractor.findFirst({
+    const contractorProfile = await prisma.contractorProfile.findFirst({
       where: { userId: session.user.id },
+      select: { id: true },
     });
 
-    if (contractor) {
+    const legacyContractor = !contractorProfile
+      ? await prisma.contractor.findFirst({
+          where: { userId: session.user.id },
+          select: { id: true },
+        })
+      : null;
+
+    const bidContractorId = contractorProfile?.id || legacyContractor?.id;
+
+    if (bidContractorId) {
       // Return contractor's own bid
       const bid = await prisma.workOrderBid.findUnique({
         where: {
           workOrderId_contractorId: {
             workOrderId,
-            contractorId: contractor.id,
+            contractorId: bidContractorId,
           },
         },
       });

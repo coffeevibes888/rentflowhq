@@ -55,11 +55,11 @@ export async function POST(
     }
 
     // Get the job
-    const job = await prisma.homeownerWorkOrder.findUnique({
+    const job = await prisma.workOrder.findUnique({
       where: { id: jobId },
       include: {
-        homeowner: {
-          select: { userId: true },
+        landlord: {
+          select: { ownerUserId: true },
         },
       },
     });
@@ -84,6 +84,13 @@ export async function POST(
       );
     }
 
+    if (!job.landlord.ownerUserId) {
+      return NextResponse.json(
+        { error: 'Unable to process bid — job owner not found' },
+        { status: 400 }
+      );
+    }
+
     // Check if contractor already bid
     const existingBid = await prisma.contractorBid.findFirst({
       where: {
@@ -104,7 +111,7 @@ export async function POST(
       data: {
         jobId,
         contractorId,
-        customerId: job.homeowner.userId,
+        customerId: job.landlord.ownerUserId,
         bidAmount,
         deliveryDays,
         bidMessage: bidMessage.trim(),

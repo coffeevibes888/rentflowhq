@@ -120,7 +120,7 @@ export default function WorkOrdersTab() {
   const [formData, setFormData] = useState({
     assignmentType: 'direct', contractorId: '', propertyId: '', unitId: '',
     title: '', description: '', priority: 'medium', agreedPrice: '',
-    budgetMin: '', budgetMax: '', scheduledDate: '', notes: '',
+    budgetMin: '', budgetMax: '', scheduledDate: '', notes: '', postingType: 'bid' as 'bid' | 'estimate',
   });
 
   const fetchWorkOrders = async () => {
@@ -160,6 +160,7 @@ export default function WorkOrdersTab() {
       if (isMarketplace) {
         payload.budgetMin = formData.budgetMin ? parseFloat(formData.budgetMin) : undefined;
         payload.budgetMax = formData.budgetMax ? parseFloat(formData.budgetMax) : undefined;
+        payload.postingType = formData.postingType;
         payload.status = 'open';
       } else {
         payload.contractorId = formData.contractorId;
@@ -178,7 +179,7 @@ export default function WorkOrdersTab() {
   };
 
   const resetForm = () => {
-    setFormData({ assignmentType: 'direct', contractorId: '', propertyId: '', unitId: '', title: '', description: '', priority: 'medium', agreedPrice: '', budgetMin: '', budgetMax: '', scheduledDate: '', notes: '' });
+    setFormData({ assignmentType: 'direct', contractorId: '', propertyId: '', unitId: '', title: '', description: '', priority: 'medium', agreedPrice: '', budgetMin: '', budgetMax: '', scheduledDate: '', notes: '', postingType: 'bid' });
     setMediaFiles([]);
   };
 
@@ -287,6 +288,23 @@ export default function WorkOrdersTab() {
                   </div>
                 </RadioGroup>
               </div>
+
+              {/* Posting Type (marketplace only) */}
+              {isMarketplace && (
+                <div className="space-y-2">
+                  <Label className="text-slate-300">What are you looking for?</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button type="button" onClick={() => setFormData({ ...formData, postingType: 'bid' })} className={`p-3 rounded-lg border-2 text-left transition-all ${formData.postingType === 'bid' ? 'border-cyan-500 bg-cyan-500/10' : 'border-slate-700 hover:border-slate-600 bg-slate-800/50'}`}>
+                      <p className="font-medium text-sm text-slate-200">Bids</p>
+                      <p className="text-xs text-slate-400">Contractors submit a price & timeline</p>
+                    </button>
+                    <button type="button" onClick={() => setFormData({ ...formData, postingType: 'estimate' })} className={`p-3 rounded-lg border-2 text-left transition-all ${formData.postingType === 'estimate' ? 'border-violet-500 bg-violet-500/10' : 'border-slate-700 hover:border-slate-600 bg-slate-800/50'}`}>
+                      <p className="font-medium text-sm text-slate-200">Estimates</p>
+                      <p className="text-xs text-slate-400">Contractors send detailed quotes with line items</p>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Contractor Selection */}
               {!isMarketplace && (
@@ -426,7 +444,7 @@ export default function WorkOrdersTab() {
                 <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} className="border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</Button>
                 <Button type="submit" disabled={submitting || uploadingMedia || !formData.propertyId || !formData.title || (!isMarketplace && !formData.contractorId)} className={isMarketplace ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-violet-600 hover:bg-violet-700'}>
                   {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {isMarketplace ? <><Globe className="h-4 w-4 mr-2" />Post for Bids</> : <><Send className="h-4 w-4 mr-2" />{editingWorkOrder ? 'Save Changes' : 'Assign'}</>}
+                  {isMarketplace ? <><Globe className="h-4 w-4 mr-2" />{formData.postingType === 'estimate' ? 'Post for Estimates' : 'Post for Bids'}</> : <><Send className="h-4 w-4 mr-2" />{editingWorkOrder ? 'Save Changes' : 'Assign'}</>}
                 </Button>
               </div>
             </form>

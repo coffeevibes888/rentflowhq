@@ -40,11 +40,6 @@ export default async function SubmitBidPage({
           logoUrl: true,
         },
       },
-      bids: {
-        where: {
-          contractorId: contractor.id,
-        },
-      },
     },
   });
 
@@ -52,8 +47,15 @@ export default async function SubmitBidPage({
     redirect('/contractor/marketplace');
   }
 
-  // Check if already bid
-  if (job.bids.length > 0) {
+  // Check if already bid (using ContractorBid model)
+  const existingBid = await prisma.contractorBid.findFirst({
+    where: {
+      jobId: params.id,
+      contractorId: contractor.id,
+    },
+  });
+
+  if (existingBid) {
     redirect(`/contractor/marketplace?error=already_bid`);
   }
 

@@ -39,7 +39,7 @@ export default function StickyTrialBar() {
   return (
     <div className='fixed bottom-0 left-0 right-0 z-40 animate-in slide-in-from-bottom duration-500'>
       <div
-        className={`flex items-center justify-between gap-3 px-4 py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.18)] ${
+        className={`flex items-center justify-between gap-3 px-4 py-3 w-full overflow-hidden shadow-[0_-4px_24px_rgba(0,0,0,0.18)] ${
           isContractor
             ? 'bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500'
             : 'bg-gradient-to-r from-cyan-600 via-blue-500 to-blue-600'

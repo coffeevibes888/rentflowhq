@@ -7,7 +7,8 @@ import {
   MapPin, Calendar, Clock, DollarSign, Building2, Users, Shield,
   ChevronLeft, Send, Edit2, CheckCircle, AlertCircle, Briefcase,
   Star, MessageSquare, Loader2, Timer, Award, X, ChevronRight, Play,
-  Image as ImageIcon,
+  Image as ImageIcon, Wrench, Package, FileCheck, Plus, Trash2, Sparkles,
+  CalendarClock, FileText, ShieldCheck, AlertTriangle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import BidMessageThread from '@/components/contractor/bid-message-thread';
 
 interface JobMedia {
   id: string;
@@ -50,8 +52,17 @@ interface Job {
 interface MyBid {
   id: string;
   amount: string;
+  laborCost: string | null;
+  materialsCost: string | null;
   estimatedHours: string | null;
   proposedStartDate: string | null;
+  estimatedCompletionDate: string | null;
+  inclusions: string[];
+  exclusions: string[];
+  warrantyDays: number | null;
+  willPullPermits: boolean | null;
+  paymentTerms: string | null;
+  validUntil: string | null;
   message: string | null;
   status: string;
   createdAt: string;
@@ -72,6 +83,7 @@ interface JobDetailClientProps {
   job: Job;
   myBid: MyBid | null;
   myContractorId: string | null;
+  currentUserId: string | null;
   isLoggedIn: boolean;
   isContractor: boolean;
   similarJobs: SimilarJob[];
@@ -85,7 +97,7 @@ const priorityConfig: Record<string, { color: string; label: string }> = {
   urgent: { color: 'bg-red-100 text-red-700', label: 'Urgent' },
 };
 
-export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn, isContractor, similarJobs, lowestBidAmount }: JobDetailClientProps) {
+export default function JobDetailClient({ job, myBid, myContractorId, currentUserId, isLoggedIn, isContractor, similarJobs, lowestBidAmount }: JobDetailClientProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
@@ -94,10 +106,50 @@ export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn
   const [submitting, setSubmitting] = useState(false);
   const [bidForm, setBidForm] = useState({
     amount: myBid?.amount || '',
+    laborCost: myBid?.laborCost || '',
+    materialsCost: myBid?.materialsCost || '',
     estimatedHours: myBid?.estimatedHours || '',
     proposedStartDate: myBid?.proposedStartDate?.split('T')[0] || '',
+    estimatedCompletionDate: myBid?.estimatedCompletionDate?.split('T')[0] || '',
+    inclusions: myBid?.inclusions?.length ? myBid.inclusions : [''],
+    exclusions: myBid?.exclusions?.length ? myBid.exclusions : [''],
+    warrantyDays: myBid?.warrantyDays?.toString() || '',
+    willPullPermits: myBid?.willPullPermits ?? null as boolean | null,
+    paymentTerms: myBid?.paymentTerms || '',
+    validUntil: myBid?.validUntil?.split('T')[0] || '',
     message: myBid?.message || '',
   });
+
+  const updateInclusion = (idx: number, val: string) => {
+    setBidForm((f) => ({ ...f, inclusions: f.inclusions.map((v, i) => (i === idx ? val : v)) }));
+  };
+  const addInclusion = () =>
+    setBidForm((f) => ({ ...f, inclusions: [...f.inclusions, ''] }));
+  const removeInclusion = (idx: number) =>
+    setBidForm((f) => ({
+      ...f,
+      inclusions: f.inclusions.length === 1 ? [''] : f.inclusions.filter((_, i) => i !== idx),
+    }));
+
+  const updateExclusion = (idx: number, val: string) => {
+    setBidForm((f) => ({ ...f, exclusions: f.exclusions.map((v, i) => (i === idx ? val : v)) }));
+  };
+  const addExclusion = () =>
+    setBidForm((f) => ({ ...f, exclusions: [...f.exclusions, ''] }));
+  const removeExclusion = (idx: number) =>
+    setBidForm((f) => ({
+      ...f,
+      exclusions: f.exclusions.length === 1 ? [''] : f.exclusions.filter((_, i) => i !== idx),
+    }));
+
+  const breakdownSum =
+    (parseFloat(bidForm.laborCost || '0') || 0) +
+    (parseFloat(bidForm.materialsCost || '0') || 0);
+  const totalAmount = parseFloat(bidForm.amount || '0') || 0;
+  const breakdownMatches =
+    !bidForm.laborCost && !bidForm.materialsCost
+      ? null
+      : Math.abs(breakdownSum - totalAmount) < 0.01;
 
   const formatBudget = (min: string | null, max: string | null) => {
     if (!min && !max) return 'Budget Flexible';
@@ -118,8 +170,17 @@ export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: parseFloat(bidForm.amount),
-          estimatedHours: bidForm.estimatedHours ? parseFloat(bidForm.estimatedHours) : null,
+          laborCost: bidForm.laborCost || null,
+          materialsCost: bidForm.materialsCost || null,
+          estimatedHours: bidForm.estimatedHours || null,
           proposedStartDate: bidForm.proposedStartDate || null,
+          estimatedCompletionDate: bidForm.estimatedCompletionDate || null,
+          inclusions: bidForm.inclusions.filter((v) => v.trim()),
+          exclusions: bidForm.exclusions.filter((v) => v.trim()),
+          warrantyDays: bidForm.warrantyDays || null,
+          willPullPermits: bidForm.willPullPermits,
+          paymentTerms: bidForm.paymentTerms || null,
+          validUntil: bidForm.validUntil || null,
           message: bidForm.message || null,
         }),
       });
@@ -249,18 +310,119 @@ export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn
 
             {/* My Bid Status */}
             {myBid && (
-              <Card className="border-cyan-200 bg-cyan-50/50">
-                <CardHeader><CardTitle className="flex items-center gap-2 text-cyan-700"><CheckCircle className="h-5 w-5" />Your Proposal</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="grid sm:grid-cols-3 gap-4 mb-4">
-                    <div><p className="text-sm text-slate-500">Your Bid</p><p className="text-2xl font-bold text-cyan-700">${parseFloat(myBid.amount).toLocaleString()}</p></div>
-                    {myBid.estimatedHours && <div><p className="text-sm text-slate-500">Estimated Hours</p><p className="text-lg font-semibold text-slate-900">{myBid.estimatedHours} hrs</p></div>}
-                    <div><p className="text-sm text-slate-500">Status</p><Badge className={myBid.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' : myBid.status === 'declined' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}>{myBid.status.charAt(0).toUpperCase() + myBid.status.slice(1)}</Badge></div>
+              <Card className="border-cyan-200 bg-gradient-to-br from-cyan-50/50 to-blue-50/30 overflow-hidden">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-cyan-700">
+                    <span className="flex items-center gap-2"><CheckCircle className="h-5 w-5" />Your Quote</span>
+                    <Badge className={myBid.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' : myBid.status === 'declined' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}>
+                      {myBid.status.charAt(0).toUpperCase() + myBid.status.slice(1)}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {/* Headline price */}
+                  <div className="flex flex-wrap items-end gap-x-6 gap-y-2 pb-4 border-b border-cyan-100">
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Total Quote</p>
+                      <p className="text-3xl font-bold text-cyan-700">${parseFloat(myBid.amount).toLocaleString()}</p>
+                    </div>
+                    {(myBid.laborCost || myBid.materialsCost) && (
+                      <div className="text-xs text-slate-600 space-y-0.5">
+                        {myBid.laborCost && <div className="flex items-center gap-1.5"><Wrench className="h-3 w-3" />Labor: <span className="font-semibold">${parseFloat(myBid.laborCost).toLocaleString()}</span></div>}
+                        {myBid.materialsCost && <div className="flex items-center gap-1.5"><Package className="h-3 w-3" />Materials: <span className="font-semibold">${parseFloat(myBid.materialsCost).toLocaleString()}</span></div>}
+                      </div>
+                    )}
                   </div>
-                  {myBid.message && <div className="p-3 bg-white rounded-lg border border-cyan-200"><p className="text-sm text-slate-500 mb-1">Your Cover Letter</p><p className="text-slate-700">{myBid.message}</p></div>}
-                  {myBid.status === 'pending' && <Button variant="outline" className="mt-4 border-cyan-300 text-cyan-700 hover:bg-cyan-100" onClick={() => setBidDialogOpen(true)}><Edit2 className="h-4 w-4 mr-2" />Edit Proposal</Button>}
+
+                  {/* Timeline grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    {myBid.estimatedHours && (
+                      <div><p className="text-xs text-slate-500">Hours</p><p className="font-semibold text-slate-900">{myBid.estimatedHours}</p></div>
+                    )}
+                    {myBid.proposedStartDate && (
+                      <div><p className="text-xs text-slate-500">Start</p><p className="font-semibold text-slate-900">{new Date(myBid.proposedStartDate).toLocaleDateString()}</p></div>
+                    )}
+                    {myBid.estimatedCompletionDate && (
+                      <div><p className="text-xs text-slate-500">Complete by</p><p className="font-semibold text-slate-900">{new Date(myBid.estimatedCompletionDate).toLocaleDateString()}</p></div>
+                    )}
+                    {myBid.warrantyDays != null && (
+                      <div><p className="text-xs text-slate-500">Warranty</p><p className="font-semibold text-slate-900">{myBid.warrantyDays} days</p></div>
+                    )}
+                  </div>
+
+                  {/* Scope */}
+                  {(myBid.inclusions.length > 0 || myBid.exclusions.length > 0) && (
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {myBid.inclusions.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-emerald-700 mb-1.5 flex items-center gap-1.5"><CheckCircle className="h-3 w-3" />Included</p>
+                          <ul className="space-y-1">
+                            {myBid.inclusions.map((it, i) => (
+                              <li key={i} className="text-sm text-slate-700 flex items-start gap-1.5">
+                                <span className="text-emerald-500 mt-0.5">&bull;</span>{it}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {myBid.exclusions.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-red-600 mb-1.5 flex items-center gap-1.5"><X className="h-3 w-3" />Not included</p>
+                          <ul className="space-y-1">
+                            {myBid.exclusions.map((it, i) => (
+                              <li key={i} className="text-sm text-slate-700 flex items-start gap-1.5">
+                                <span className="text-red-400 mt-0.5">&bull;</span>{it}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Terms row */}
+                  {(myBid.paymentTerms || myBid.validUntil || myBid.willPullPermits != null) && (
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      {myBid.paymentTerms && (
+                        <Badge variant="outline" className="bg-white"><DollarSign className="h-3 w-3 mr-1" />{myBid.paymentTerms}</Badge>
+                      )}
+                      {myBid.validUntil && (
+                        <Badge variant="outline" className="bg-white"><Timer className="h-3 w-3 mr-1" />Valid until {new Date(myBid.validUntil).toLocaleDateString()}</Badge>
+                      )}
+                      {myBid.willPullPermits === true && (
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200"><FileCheck className="h-3 w-3 mr-1" />Pulls permits</Badge>
+                      )}
+                      {myBid.willPullPermits === false && (
+                        <Badge variant="outline" className="bg-slate-50">No permits</Badge>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Cover letter */}
+                  {myBid.message && (
+                    <div className="p-3 bg-white rounded-lg border border-cyan-200">
+                      <p className="text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1.5"><FileText className="h-3 w-3" />Cover Letter</p>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap">{myBid.message}</p>
+                    </div>
+                  )}
+
+                  {myBid.status === 'pending' && (
+                    <Button variant="outline" className="border-cyan-300 text-cyan-700 hover:bg-cyan-100" onClick={() => setBidDialogOpen(true)}>
+                      <Edit2 className="h-4 w-4 mr-2" />Edit Quote
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
+            )}
+
+            {/* Negotiation thread (chat + counter-offers) */}
+            {myBid && currentUserId && (
+              <BidMessageThread
+                workOrderId={job.id}
+                bidId={myBid.id}
+                currentUserId={currentUserId}
+                otherPartyLabel={job.landlord.name}
+              />
             )}
 
             {/* Similar Jobs */}
@@ -306,14 +468,17 @@ export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn
                 ) : myBid ? (
                   <div className="text-center">
                     <CheckCircle className="h-12 w-12 mx-auto text-emerald-500 mb-4" />
-                    <h3 className="font-semibold text-slate-900 mb-2">Proposal Submitted</h3>
-                    <p className="text-sm text-slate-500 mb-4">Your bid of ${parseFloat(myBid.amount).toLocaleString()} is {myBid.status}</p>
-                    {myBid.status === 'pending' && <Button variant="outline" className="w-full" onClick={() => setBidDialogOpen(true)}><Edit2 className="h-4 w-4 mr-2" />Edit Proposal</Button>}
+                    <h3 className="font-semibold text-slate-900 mb-2">Quote Sent</h3>
+                    <p className="text-sm text-slate-500 mb-4">Your quote of ${parseFloat(myBid.amount).toLocaleString()} is {myBid.status}</p>
+                    {myBid.status === 'pending' && <Button variant="outline" className="w-full" onClick={() => setBidDialogOpen(true)}><Edit2 className="h-4 w-4 mr-2" />Edit Quote</Button>}
                   </div>
                 ) : (
                   <>
-                    <h3 className="font-semibold text-slate-900 mb-4 text-center">Submit Your Proposal</h3>
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90" size="lg" onClick={() => setBidDialogOpen(true)}><Send className="h-4 w-4 mr-2" />Submit Proposal</Button>
+                    <h3 className="font-semibold text-slate-900 mb-1 text-center">Win This Job</h3>
+                    <p className="text-xs text-slate-500 text-center mb-4">Send a detailed custom quote</p>
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 shadow-lg shadow-cyan-500/30" size="lg" onClick={() => setBidDialogOpen(true)}>
+                      <Sparkles className="h-4 w-4 mr-2" />Send Custom Quote
+                    </Button>
                     <p className="text-xs text-slate-500 text-center mt-3">$1 platform fee on accepted jobs</p>
                   </>
                 )}
@@ -340,30 +505,256 @@ export default function JobDetailClient({ job, myBid, myContractorId, isLoggedIn
         </div>
       </div>
 
-      {/* Bid Dialog */}
+      {/* Bid / Quote Dialog — Fiverr/Upwork-style multi-section builder */}
       <Dialog open={bidDialogOpen} onOpenChange={setBidDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{myBid ? 'Edit Your Proposal' : 'Submit a Proposal'}</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div className="p-4 bg-slate-50 rounded-lg"><h4 className="font-medium text-slate-900 mb-1">{job.title}</h4><p className="text-sm text-slate-500">Budget: {formatBudget(job.budgetMin, job.budgetMax)}</p></div>
-            <div className="space-y-2">
-              <Label htmlFor="bidAmount">Your Bid Amount *</Label>
-              <div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" /><Input id="bidAmount" type="number" step="0.01" min="0" placeholder="0.00" className="pl-9" value={bidForm.amount} onChange={(e) => setBidForm({ ...bidForm, amount: e.target.value })} /></div>
-              <p className="text-xs text-slate-500">Total amount you'll receive (minus $1 platform fee)</p>
+        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0 gap-0">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-500 px-6 py-5 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-white text-xl flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-yellow-300" />
+                {myBid ? 'Edit Your Quote' : 'Send a Custom Quote'}
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-white/90 text-sm mt-1">
+              Detailed quotes win 3x more jobs. Be transparent — clients love it.
+            </p>
+          </div>
+
+          <div className="px-6 py-5 space-y-6">
+            {/* Job summary */}
+            <div className="rounded-xl bg-gradient-to-br from-slate-50 to-blue-50/40 border border-slate-200 p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-blue-100"><Briefcase className="h-4 w-4 text-blue-600" /></div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-slate-900 truncate">{job.title}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {job.property.city}, {job.property.state} &middot; Budget {formatBudget(job.budgetMin, job.budgetMax)}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label htmlFor="estimatedHours">Estimated Hours</Label><Input id="estimatedHours" type="number" step="0.5" min="0" placeholder="e.g., 4" value={bidForm.estimatedHours} onChange={(e) => setBidForm({ ...bidForm, estimatedHours: e.target.value })} /></div>
-              <div className="space-y-2"><Label htmlFor="proposedStartDate">Can Start By</Label><Input id="proposedStartDate" type="date" value={bidForm.proposedStartDate} onChange={(e) => setBidForm({ ...bidForm, proposedStartDate: e.target.value })} /></div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="message">Cover Letter *</Label>
-              <Textarea id="message" placeholder="Introduce yourself and explain why you're the best fit..." rows={6} value={bidForm.message} onChange={(e) => setBidForm({ ...bidForm, message: e.target.value })} />
-              <p className="text-xs text-slate-500">A good cover letter increases your chances of being hired</p>
-            </div>
+
+            {/* SECTION 1: Pricing */}
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-emerald-100 flex items-center justify-center"><DollarSign className="h-4 w-4 text-emerald-600" /></div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Pricing</h3>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bidAmount" className="text-sm">Total Quote Amount *</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    id="bidAmount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    className="pl-9 text-lg font-semibold h-12"
+                    value={bidForm.amount}
+                    onChange={(e) => setBidForm({ ...bidForm, amount: e.target.value })}
+                  />
+                </div>
+                <p className="text-xs text-slate-500">You receive this amount minus a $1 platform fee.</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="space-y-1.5">
+                  <Label htmlFor="laborCost" className="text-xs flex items-center gap-1.5"><Wrench className="h-3 w-3" />Labor Cost</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                    <Input
+                      id="laborCost"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      className="pl-8 text-sm"
+                      value={bidForm.laborCost}
+                      onChange={(e) => setBidForm({ ...bidForm, laborCost: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="materialsCost" className="text-xs flex items-center gap-1.5"><Package className="h-3 w-3" />Materials Cost</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                    <Input
+                      id="materialsCost"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      className="pl-8 text-sm"
+                      value={bidForm.materialsCost}
+                      onChange={(e) => setBidForm({ ...bidForm, materialsCost: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+              {breakdownMatches === false && (
+                <div className="text-xs text-amber-600 flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  Labor + Materials = ${breakdownSum.toLocaleString()}, but total is ${totalAmount.toLocaleString()}
+                </div>
+              )}
+              {breakdownMatches === true && (
+                <p className="text-xs text-emerald-600 flex items-center gap-1.5">
+                  <CheckCircle className="h-3.5 w-3.5" />Breakdown matches total &mdash; clients love this
+                </p>
+              )}
+            </section>
+
             <Separator />
-            <div className="flex justify-end gap-2">
+
+            {/* SECTION 2: Timeline */}
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-blue-100 flex items-center justify-center"><CalendarClock className="h-4 w-4 text-blue-600" /></div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Timeline</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="proposedStartDate" className="text-xs">Can Start By</Label>
+                  <Input id="proposedStartDate" type="date" value={bidForm.proposedStartDate} onChange={(e) => setBidForm({ ...bidForm, proposedStartDate: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="estimatedCompletionDate" className="text-xs">Completion Date</Label>
+                  <Input id="estimatedCompletionDate" type="date" value={bidForm.estimatedCompletionDate} onChange={(e) => setBidForm({ ...bidForm, estimatedCompletionDate: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="estimatedHours" className="text-xs">Estimated Hours</Label>
+                <Input id="estimatedHours" type="number" step="0.5" min="0" placeholder="e.g., 4" value={bidForm.estimatedHours} onChange={(e) => setBidForm({ ...bidForm, estimatedHours: e.target.value })} />
+              </div>
+            </section>
+
+            <Separator />
+
+            {/* SECTION 3: Scope */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-violet-100 flex items-center justify-center"><FileCheck className="h-4 w-4 text-violet-600" /></div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Scope of Work</h3>
+              </div>
+
+              {/* Inclusions */}
+              <div className="space-y-2">
+                <Label className="text-xs flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-emerald-600" />What&apos;s Included</Label>
+                {bidForm.inclusions.map((val, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      placeholder={idx === 0 ? 'e.g., Replace 3 outlets with GFCI' : 'Add another item'}
+                      value={val}
+                      onChange={(e) => updateInclusion(idx, e.target.value)}
+                      className="text-sm"
+                    />
+                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-slate-400 hover:text-red-500 shrink-0" onClick={() => removeInclusion(idx)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="button" variant="ghost" size="sm" onClick={addInclusion} className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 h-8">
+                  <Plus className="h-3.5 w-3.5 mr-1" />Add inclusion
+                </Button>
+              </div>
+
+              {/* Exclusions */}
+              <div className="space-y-2">
+                <Label className="text-xs flex items-center gap-1.5"><X className="h-3 w-3 text-red-500" />What&apos;s NOT Included</Label>
+                {bidForm.exclusions.map((val, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      placeholder={idx === 0 ? 'e.g., Drywall patching/painting after work' : 'Add another exclusion'}
+                      value={val}
+                      onChange={(e) => updateExclusion(idx, e.target.value)}
+                      className="text-sm"
+                    />
+                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-slate-400 hover:text-red-500 shrink-0" onClick={() => removeExclusion(idx)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="button" variant="ghost" size="sm" onClick={addExclusion} className="text-slate-600 hover:text-slate-700 hover:bg-slate-100 h-8">
+                  <Plus className="h-3.5 w-3.5 mr-1" />Add exclusion
+                </Button>
+              </div>
+            </section>
+
+            <Separator />
+
+            {/* SECTION 4: Terms & Trust */}
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-amber-100 flex items-center justify-center"><ShieldCheck className="h-4 w-4 text-amber-600" /></div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Terms &amp; Warranty</h3>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="warrantyDays" className="text-xs">Warranty (days)</Label>
+                  <Input id="warrantyDays" type="number" min="0" placeholder="e.g., 90" value={bidForm.warrantyDays} onChange={(e) => setBidForm({ ...bidForm, warrantyDays: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="validUntil" className="text-xs">Quote Valid Until</Label>
+                  <Input id="validUntil" type="date" value={bidForm.validUntil} onChange={(e) => setBidForm({ ...bidForm, validUntil: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="paymentTerms" className="text-xs">Payment Terms</Label>
+                <Input id="paymentTerms" placeholder="e.g., 50% deposit, 50% on completion" value={bidForm.paymentTerms} onChange={(e) => setBidForm({ ...bidForm, paymentTerms: e.target.value })} />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Will you pull permits?</Label>
+                <div className="flex gap-2">
+                  <Button type="button" variant={bidForm.willPullPermits === true ? 'default' : 'outline'} size="sm" onClick={() => setBidForm({ ...bidForm, willPullPermits: true })} className={bidForm.willPullPermits === true ? 'bg-emerald-600 hover:bg-emerald-700' : ''}>
+                    Yes
+                  </Button>
+                  <Button type="button" variant={bidForm.willPullPermits === false ? 'default' : 'outline'} size="sm" onClick={() => setBidForm({ ...bidForm, willPullPermits: false })} className={bidForm.willPullPermits === false ? 'bg-slate-700 hover:bg-slate-800' : ''}>
+                    No
+                  </Button>
+                  <Button type="button" variant={bidForm.willPullPermits === null ? 'default' : 'outline'} size="sm" onClick={() => setBidForm({ ...bidForm, willPullPermits: null })} className={bidForm.willPullPermits === null ? 'bg-slate-400 hover:bg-slate-500' : ''}>
+                    N/A
+                  </Button>
+                </div>
+              </div>
+            </section>
+
+            <Separator />
+
+            {/* SECTION 5: Cover Letter */}
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-cyan-100 flex items-center justify-center"><FileText className="h-4 w-4 text-cyan-600" /></div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Cover Letter</h3>
+              </div>
+              <Textarea
+                id="message"
+                placeholder="Introduce yourself, mention relevant experience, and explain why you're the best fit for this job..."
+                rows={5}
+                value={bidForm.message}
+                onChange={(e) => setBidForm({ ...bidForm, message: e.target.value })}
+              />
+              <p className="text-xs text-slate-500">A personalized message increases your chances of being hired by ~40%.</p>
+            </section>
+          </div>
+
+          {/* Sticky footer */}
+          <div className="border-t border-slate-200 bg-slate-50/80 backdrop-blur-sm px-6 py-4 flex items-center justify-between">
+            <div className="text-xs text-slate-500">
+              {bidForm.amount ? <span className="text-slate-900 font-semibold">${totalAmount.toLocaleString()} total</span> : 'Set a total amount to send'}
+            </div>
+            <div className="flex gap-2">
               <Button variant="outline" onClick={() => setBidDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleSubmitBid} disabled={submitting || !bidForm.amount} className="bg-gradient-to-r from-blue-600 to-cyan-500">{submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}{myBid ? 'Update Proposal' : 'Submit Proposal'}</Button>
+              <Button onClick={handleSubmitBid} disabled={submitting || !bidForm.amount} className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 shadow-lg shadow-cyan-500/30">
+                {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Send className="h-4 w-4 mr-2" />
+                {myBid ? 'Update Quote' : 'Send Quote'}
+              </Button>
             </div>
           </div>
         </DialogContent>

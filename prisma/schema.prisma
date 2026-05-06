@@ -96,6 +96,7 @@ model User {
   contractorProfile Contractor[]
   workOrderMedia    WorkOrderMedia[]
   workOrderHistory  WorkOrderHistory[]
+  bidMessagesSent   WorkOrderBidMessage[] @relation("WorkOrderBidMessageSender")
 
   // Team Operations (Enterprise)
   teamMemberships         TeamMember[]
@@ -2260,25 +2261,75 @@ model ContractorInvite {
   @@index([landlordId])
 }
 
-// WorkOrderBid - Contractor bids on open job postings (Upwork-style)
+// WorkOrderBid - Contractor bids on open job postings (Upwork/Fiverr-style)
 model WorkOrderBid {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   workOrderId       String    @db.Uuid
   contractorId      String    @db.Uuid
-  amount            Decimal   @db.Decimal(12, 2)
-  estimatedHours    Decimal?  @db.Decimal(6, 2)
-  proposedStartDate DateTime? @db.Timestamp(6)
-  message           String?
-  status            String    @default("pending") // pending, accepted, declined, withdrawn
-  createdAt         DateTime  @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime  @updatedAt
+  amount            Decimal   @db.Decimal(12, 2) // total amount
 
-  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
-  contractor Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  // Cost breakdown (optional — shows transparency)
+  laborCost         Decimal?  @db.Decimal(12, 2)
+  materialsCost    Decimal?  @db.Decimal(12, 2)
+
+  // Timeline
+  estimatedHours          Decimal?  @db.Decimal(6, 2)
+  proposedStartDate       DateTime? @db.Timestamp(6)
+  estimatedCompletionDate DateTime? @db.Timestamp(6)
+
+  // Scope clarity
+  inclusions String[] @default([]) // line items of what's included
+  exclusions String[] @default([]) // what's NOT included
+
+  // Trust / terms
+  warrantyDays    Int? // length of labor warranty in days
+  willPullPermits Boolean? // does the contractor handle permits
+  paymentTerms    String? // e.g., "50% deposit, 50% on completion"
+  validUntil      DateTime? @db.Timestamp(6) // quote expiration date
+
+  // Cover letter
+  message String?
+
+  status    String   @default("pending") // pending, accepted, declined, withdrawn, counter_offered
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  workOrder  WorkOrder           @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  contractor Contractor          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  messages   WorkOrderBidMessage[]
 
   @@unique([workOrderId, contractorId])
   @@index([workOrderId])
   @@index([contractorId])
+}
+
+// WorkOrderBidMessage - Inline chat + counter-offers between PM and contractor on a bid
+// type='message'        -> regular chat (uses `body` only)
+// type='counter_offer'  -> structured price negotiation (uses counterAmount + counterStatus)
+// type='system'         -> auto-generated audit messages (e.g., "Bid accepted")
+model WorkOrderBidMessage {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bidId    String @db.Uuid
+  senderId String @db.Uuid // User.id of sender (PM or contractor)
+
+  type String @default("message") // 'message' | 'counter_offer' | 'system'
+  body String? // chat content; optional note for counter offers
+
+  // Counter-offer fields (null for plain messages)
+  counterAmount Decimal? @db.Decimal(12, 2)
+  counterStatus String? // 'pending' | 'accepted' | 'rejected' | 'superseded' | 'expired'
+  respondedAt   DateTime? @db.Timestamp(6)
+  respondedBy   String?  @db.Uuid // User.id who accepted/rejected
+
+  readAt    DateTime? @db.Timestamp(6)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+
+  bid    WorkOrderBid @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  sender User         @relation("WorkOrderBidMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([bidId])
+  @@index([senderId])
+  @@index([createdAt])
 }
 
 // WorkOrder - Assignment of work to a contractor
@@ -2304,13 +2355,26 @@ model WorkOrder {
   escrowAmount          Decimal?  @db.Decimal(12, 2)
   escrowFundedAt        DateTime? @db.Timestamp(6)
   escrowReleasedAt      DateTime? @db.Timestamp(6)
+  escrowRefundedAt      DateTime? @db.Timestamp(6)
   stripePaymentIntentId String?
+  stripeTransferId      String? // contractor payout transfer
+  acceptedBidId         String?  @db.Uuid // which bid was accepted
+
+  // Job lifecycle (Uber-style state machine)
+  // pending -> funded -> scheduled -> in_progress -> awaiting_approval -> released
+  // any-state -> disputed -> released | refunded
+  lifecycleStatus      String    @default("pending")
+  lifecycleStartedAt   DateTime? @db.Timestamp(6) // contractor pressed "start work"
+  lifecycleCompletedAt DateTime? @db.Timestamp(6) // contractor pressed "mark complete"
+  lifecycleApprovedAt  DateTime? @db.Timestamp(6) // PM approved or auto-approved
+  pmApprovalDeadline   DateTime? @db.Timestamp(6) // funds auto-release after this
 
   // Open bid fields
   isOpenBid   Boolean   @default(false)
   bidDeadline DateTime? @db.Timestamp(6)
   budgetMin   Decimal?  @db.Decimal(12, 2)
   budgetMax   Decimal?  @db.Decimal(12, 2)
+  postingType String    @default("bid") // bid, estimate — whether PM wants bids or detailed estimates
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -2326,12 +2390,89 @@ model WorkOrder {
   bids              WorkOrderBid[]
   estimates         ContractorEstimate[]
   contractorBids    ContractorBid[]
+  statusEvents      WorkOrderStatusEvent[]
+  disputes          WorkOrderDispute[]
+  milestones        WorkOrderMilestone[]
 
   @@index([landlordId])
   @@index([contractorId])
   @@index([status])
   @@index([propertyId])
   @@index([isOpenBid])
+  @@index([lifecycleStatus])
+  @@index([pmApprovalDeadline])
+}
+
+// WorkOrderStatusEvent - Audit trail of every lifecycle transition
+// Powers the Uber-style timeline ribbon
+model WorkOrderStatusEvent {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId  String   @db.Uuid
+  fromStatus   String?
+  toStatus     String
+  actorUserId  String?  @db.Uuid // who triggered this (null = system/cron)
+  actorRole    String? // 'landlord', 'contractor', 'system'
+  note         String?
+  metadata     Json? // arbitrary payload (e.g., paymentIntentId, transferId, photo refs)
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId])
+  @@index([toStatus])
+  @@index([createdAt])
+}
+
+// WorkOrderDispute - When PM or contractor flags an issue, funds freeze
+model WorkOrderDispute {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId   String   @db.Uuid
+  filedByUserId String   @db.Uuid
+  filedByRole   String // 'landlord' or 'contractor'
+  reason        String // category: 'quality', 'incomplete', 'no_show', 'overcharge', 'other'
+  description   String
+  evidenceUrls  String[] @default([]) // photos/docs supporting the claim
+
+  status        String    @default("open") // open, in_review, resolved_release, resolved_refund, resolved_split, withdrawn
+  resolution    String? // human-readable resolution note
+  resolvedAt    DateTime? @db.Timestamp(6)
+  resolvedByUserId String? @db.Uuid
+  refundAmount  Decimal? @db.Decimal(12, 2) // amount refunded to PM (rest goes to contractor)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId])
+  @@index([status])
+  @@index([filedByUserId])
+}
+
+// WorkOrderMilestone - Optional milestone-based release for big jobs
+// e.g. 20% materials advance, 30% midpoint, 50% on completion
+model WorkOrderMilestone {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId   String   @db.Uuid
+  order         Int // 1, 2, 3...
+  title         String
+  description   String?
+  amount        Decimal  @db.Decimal(12, 2)
+  releaseRule   String // 'on_start' | 'on_receipts' | 'on_midpoint' | 'on_completion' | 'manual'
+  status        String   @default("pending") // pending, ready, released, refunded
+  receiptUrls   String[] @default([]) // for materials advances
+
+  releasedAt        DateTime? @db.Timestamp(6)
+  stripeTransferId  String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId])
+  @@index([status])
+  @@index([order])
 }
 
 // WorkOrderMedia - Photos/videos attached to work orders

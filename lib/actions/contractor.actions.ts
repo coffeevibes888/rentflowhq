@@ -303,6 +303,7 @@ export async function createWorkOrder(data: {
   budgetMin?: number;
   budgetMax?: number;
   bidDeadline?: string;
+  postingType?: 'bid' | 'estimate';
   status?: string;
   media?: { url: string; type: string }[];
 }) {
@@ -340,6 +341,7 @@ export async function createWorkOrder(data: {
         budgetMin: data.budgetMin ? data.budgetMin : null,
         budgetMax: data.budgetMax ? data.budgetMax : null,
         bidDeadline: data.bidDeadline ? new Date(data.bidDeadline) : null,
+        postingType: data.postingType || 'bid',
       },
     });
 

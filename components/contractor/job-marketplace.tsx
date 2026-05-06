@@ -24,6 +24,7 @@ type Job = {
   budgetMin: any;
   budgetMax: any;
   priority: string;
+  postingType: string;
   bidDeadline: Date | null;
   createdAt: Date;
   landlord: {
@@ -59,6 +60,7 @@ export function JobMarketplace({
   filters?: { category?: string; budget?: string; location?: string };
 }) {
   const [categoryFilter, setCategoryFilter] = useState(filters?.category || 'all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'bid' | 'estimate'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'budget' | 'bids'>('recent');
 
   // Get job IDs where contractor has already bid
@@ -66,7 +68,7 @@ export function JobMarketplace({
 
   // Filter jobs
   const filteredJobs = jobs.filter((job) => {
-    // Category filter removed since WorkOrder doesn't have category field
+    if (typeFilter !== 'all' && job.postingType !== typeFilter) return false;
     return true;
   });
 
@@ -85,7 +87,7 @@ export function JobMarketplace({
   });
 
   // Get unique categories - removed since WorkOrder doesn't have category
-  const categories = ['all'];
+  const _categories = ['all'];
 
   const priorityColors: Record<string, string> = {
     urgent: 'bg-red-100 text-red-700',
@@ -99,19 +101,19 @@ export function JobMarketplace({
       {/* Filters */}
       <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm p-5">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          {/* Category Filter */}
+          {/* Type Filter */}
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-            {categories.map((category) => (
+            {(['all', 'bid', 'estimate'] as const).map((type) => (
               <button
-                key={category}
-                onClick={() => setCategoryFilter(category)}
+                key={type}
+                onClick={() => setTypeFilter(type)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                  categoryFilter === category
+                  typeFilter === type
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {category === 'all' ? 'All Jobs' : category}
+                {type === 'all' ? 'All Jobs' : type === 'bid' ? 'Bids' : 'Estimates'}
               </button>
             ))}
           </div>
@@ -190,12 +192,17 @@ export function JobMarketplace({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
                       <h4 className="text-lg font-semibold text-gray-900">{job.title}</h4>
+                      {job.postingType === 'estimate' && (
+                        <Badge className="bg-violet-100 text-violet-700">
+                          Estimate Request
+                        </Badge>
+                      )}
                       <Badge className={priorityColors[job.priority]}>
                         {job.priority}
                       </Badge>
                       {hasBid && (
                         <Badge className="bg-emerald-100 text-emerald-700">
-                          ✓ Bid Submitted
+                          ✓ {job.postingType === 'estimate' ? 'Estimate Sent' : 'Bid Submitted'}
                         </Badge>
                       )}
                       {isExpiringSoon && !hasBid && (
@@ -275,7 +282,7 @@ export function JobMarketplace({
                       disabled
                       className="bg-emerald-500 text-white cursor-not-allowed"
                     >
-                      Bid Submitted
+                      {job.postingType === 'estimate' ? 'Estimate Sent' : 'Bid Submitted'}
                     </Button>
                   ) : (
                     <Link href={`/contractor/marketplace/${job.id}/bid`}>
@@ -283,7 +290,7 @@ export function JobMarketplace({
                         size="sm"
                         className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
                       >
-                        Submit Bid
+                        {job.postingType === 'estimate' ? 'Send Estimate' : 'Submit Bid'}
                       </Button>
                     </Link>
                   )}

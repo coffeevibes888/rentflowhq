@@ -178,13 +178,23 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       myBid={myBid ? {
         id: myBid.id,
         amount: myBid.amount.toString(),
+        laborCost: myBid.laborCost?.toString() || null,
+        materialsCost: myBid.materialsCost?.toString() || null,
         estimatedHours: myBid.estimatedHours?.toString() || null,
         proposedStartDate: myBid.proposedStartDate?.toISOString() || null,
+        estimatedCompletionDate: myBid.estimatedCompletionDate?.toISOString() || null,
+        inclusions: myBid.inclusions || [],
+        exclusions: myBid.exclusions || [],
+        warrantyDays: myBid.warrantyDays ?? null,
+        willPullPermits: myBid.willPullPermits ?? null,
+        paymentTerms: myBid.paymentTerms || null,
+        validUntil: myBid.validUntil?.toISOString() || null,
         message: myBid.message,
         status: myBid.status,
         createdAt: myBid.createdAt.toISOString(),
       } : null}
       myContractorId={myContractorId}
+      currentUserId={session?.user?.id || null}
       isLoggedIn={!!session?.user}
       isContractor={session?.user?.role === 'contractor'}
       similarJobs={similarJobs.map(j => ({
