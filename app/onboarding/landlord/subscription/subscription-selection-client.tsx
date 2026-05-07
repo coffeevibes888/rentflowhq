@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { YEARLY_DISCOUNT_PERCENT, getYearlyMonthlyEquivalent, getYearlyPrice } from '@/lib/config/subscription-tiers';
 import { trackMetaEvent } from '@/lib/analytics/meta-pixel';
+import { trackRedditEvent } from '@/lib/analytics/reddit-pixel';
 
 interface SubscriptionSelectionClientProps {
   userName: string;
@@ -137,6 +138,15 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
       value: 19.99,
       currency: 'USD',
     });
+    // Reddit equivalents
+    trackRedditEvent('SignUp', {
+      currency: 'USD',
+      value: 19.99,
+    });
+    trackRedditEvent('Lead', {
+      currency: 'USD',
+      value: 19.99,
+    });
   }, []);
 
   const isYearly = billingInterval === 'yearly';
@@ -159,6 +169,12 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
       content_category: 'landlord_subscription',
       value: planValue,
       currency: 'USD',
+    });
+    trackRedditEvent('AddToCart', {
+      currency: 'USD',
+      value: planValue,
+      itemCount: 1,
+      products: [{ id: tierId, name: `landlord_${tierId}_${billingInterval}`, category: 'landlord_subscription' }],
     });
 
     try {

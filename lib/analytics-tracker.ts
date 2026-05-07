@@ -178,12 +178,17 @@ class AnalyticsTracker {
 
   private handleClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    const elementClass =
-      typeof target.className === 'string'
-        ? target.className
-        : target.className
-        ? String(target.className)
-        : undefined;
+    // SVG elements expose `className` as a `SVGAnimatedString`, not a string.
+    // Coerce defensively so we never throw on a page with SVG icons.
+    let elementClass: string | undefined;
+    const rawClass = (target as any)?.className;
+    if (typeof rawClass === 'string') {
+      elementClass = rawClass || undefined;
+    } else if (rawClass && typeof rawClass === 'object' && 'baseVal' in rawClass) {
+      elementClass = (rawClass as any).baseVal || undefined;
+    } else if (rawClass) {
+      elementClass = String(rawClass);
+    }
     
     const clickData: ClickEventData = {
       sessionId: this.sessionId,
@@ -204,19 +209,36 @@ class AnalyticsTracker {
     }
   }
 
-  private async flushClickBuffer() {
+  private async flushClickBuffer(useBeacon: boolean = false) {
     if (this.clickBuffer.length === 0) return;
 
     const clicks = [...this.clickBuffer];
     this.clickBuffer = [];
 
+    const url = `${this.config.apiEndpoint}/clicks`;
+    const payload = JSON.stringify({ clicks });
+
+    // Use sendBeacon on page-exit paths so we don't drop the trailing batch.
+    if (useBeacon && typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
+      try {
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon(url, blob);
+        return;
+      } catch {
+        // Fall through to fetch with keepalive below.
+      }
+    }
+
     try {
-      await fetch(`${this.config.apiEndpoint}/clicks`, {
+      await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clicks }),
+        body: payload,
+        keepalive: true,
       });
     } catch (error) {
+      // Put the clicks back on the buffer so the next flush has a chance.
+      this.clickBuffer = clicks.concat(this.clickBuffer);
       console.error('Click tracking error:', error);
     }
   }
@@ -251,8 +273,9 @@ class AnalyticsTracker {
       navigator.sendBeacon(`${this.config.apiEndpoint}/pageview/exit`, blob);
     }
 
-    // Flush any remaining clicks
-    await this.flushClickBuffer();
+    // Flush any remaining clicks reliably — fetch() fires during unload are
+    // unreliable, sendBeacon is the supported path.
+    await this.flushClickBuffer(true);
   }
 
   private handleVisibilityChange() {
@@ -306,6 +329,21 @@ class AnalyticsTracker {
     } catch (error) {
       console.error('Form tracking error:', error);
     }
+  }
+
+  /**
+   * Re-trigger a page view on client-side navigation.
+   * Resets per-page state (start time, max scroll depth) so subsequent exit
+   * metrics are correct.
+   */
+  public async trackRouteChange(_nextPath?: string) {
+    // Flush anything outstanding from the previous page before resetting.
+    await this.flushClickBuffer();
+    this.isExiting = false;
+    this.pageStartTime = Date.now();
+    this.maxScrollDepth = 0;
+    this.pageViewId = null;
+    await this.trackPageView();
   }
 
   // Public method to track conversions

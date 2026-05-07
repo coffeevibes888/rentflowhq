@@ -127,6 +127,9 @@ export async function POST(req: NextRequest) {
     // can fire a deduplicated server-side Purchase event to the Meta Conversions API.
     const metaFbc = req.cookies.get('_fbc')?.value || '';
     const metaFbp = req.cookies.get('_fbp')?.value || '';
+    // Reddit click id — set by Reddit after an ad click (for ads-api attribution)
+    const redditCid = req.cookies.get('rdt_cid')?.value || '';
+    const redditUuid = req.cookies.get('rdt_uuid')?.value || '';
     const metaIp =
       req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       req.headers.get('x-real-ip') ||
@@ -167,6 +170,9 @@ export async function POST(req: NextRequest) {
           metaEventId,
           metaUserEmail: session.user.email || '',
           metaUserId: session.user.id,
+          // Reddit CAPI attribution
+          redditCid,
+          redditUuid,
         },
       },
     });

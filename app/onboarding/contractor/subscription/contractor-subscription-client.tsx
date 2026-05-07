@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { trackMetaEvent } from '@/lib/analytics/meta-pixel';
+import { trackRedditEvent } from '@/lib/analytics/reddit-pixel';
 
 interface ContractorSubscriptionClientProps {
   userName: string;
@@ -131,6 +132,15 @@ export default function ContractorSubscriptionClient({
       value: 19.99,
       currency: 'USD',
     });
+    // Reddit equivalents
+    trackRedditEvent('SignUp', {
+      currency: 'USD',
+      value: 19.99,
+    });
+    trackRedditEvent('Lead', {
+      currency: 'USD',
+      value: 19.99,
+    });
   }, []);
 
   const handleSelectPlan = async (tierId: string) => {
@@ -144,6 +154,12 @@ export default function ContractorSubscriptionClient({
       content_category: 'contractor_subscription',
       value: tierMeta?.price ?? 19.99,
       currency: 'USD',
+    });
+    trackRedditEvent('AddToCart', {
+      currency: 'USD',
+      value: tierMeta?.price ?? 19.99,
+      itemCount: 1,
+      products: [{ id: tierId, name: `contractor_${tierId}`, category: 'contractor_subscription' }],
     });
 
     try {

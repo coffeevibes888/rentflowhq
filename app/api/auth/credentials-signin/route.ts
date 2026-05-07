@@ -5,6 +5,7 @@ import { getSubdomainRedirectUrl } from '@/lib/utils/subdomain-redirect';
 import { notifySuspiciousActivity } from '@/lib/services/admin-notifications';
 import { checkRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/security/rate-limiter';
 import { logAuthEvent } from '@/lib/security/audit-logger';
+import { recordLoginAttempt } from '@/lib/security/login-attempts';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,9 @@ export async function POST(req: NextRequest) {
                req.headers.get('x-real-ip') || 
                'unknown';
     const userAgent = req.headers.get('user-agent') || undefined;
+    const country = req.headers.get('x-vercel-ip-country') || null;
+    const region = req.headers.get('x-vercel-ip-country-region') || null;
+    const city = req.headers.get('x-vercel-ip-city') || null;
 
     // Check rate limit for this IP
     const rateLimitKey = `auth:${ip}`;
@@ -47,6 +51,17 @@ export async function POST(req: NextRequest) {
         failureReason: 'Rate limit exceeded',
       }).catch(console.error);
 
+      recordLoginAttempt({
+        email,
+        success: false,
+        reason: 'rate_limited',
+        ipAddress: ip,
+        country,
+        region,
+        city,
+        userAgent,
+      }).catch(console.error);
+
       return NextResponse.json({ 
         success: false, 
         message: 'Too many login attempts. Please try again later.' 
@@ -68,6 +83,17 @@ export async function POST(req: NextRequest) {
         userAgent,
         success: false,
         failureReason: 'Invalid credentials',
+      }).catch(console.error);
+
+      recordLoginAttempt({
+        email,
+        success: false,
+        reason: 'bad_password',
+        ipAddress: ip,
+        country,
+        region,
+        city,
+        userAgent,
       }).catch(console.error);
 
       // Notify if multiple failures
@@ -102,6 +128,18 @@ export async function POST(req: NextRequest) {
       ipAddress: ip,
       userAgent,
       success: true,
+    }).catch(console.error);
+
+    recordLoginAttempt({
+      email,
+      userId: user.id,
+      success: true,
+      reason: 'ok',
+      ipAddress: ip,
+      country,
+      region,
+      city,
+      userAgent,
     }).catch(console.error);
 
     // Special handling for affiliate dashboard callback

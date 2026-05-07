@@ -21,6 +21,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db/prisma';
 import { releaseFundsForWorkOrder } from '@/app/api/work-orders/[id]/lifecycle/route';
+import { withCronLog } from '@/lib/ops/cron-log';
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization') ?? '';
@@ -29,49 +30,50 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  const now = new Date();
+  return withCronLog('work-order-auto-release', async () => {
+    const now = new Date();
 
-  // Candidates: awaiting_approval, deadline passed, no open dispute
-  const candidates = await prisma.workOrder.findMany({
-    where: {
-      lifecycleStatus: 'awaiting_approval',
-      pmApprovalDeadline: { lte: now },
-      disputes: {
-        none: { status: { in: ['open', 'in_review'] } },
+    const candidates = await prisma.workOrder.findMany({
+      where: {
+        lifecycleStatus: 'awaiting_approval',
+        pmApprovalDeadline: { lte: now },
+        disputes: {
+          none: { status: { in: ['open', 'in_review'] } },
+        },
       },
-    },
-    select: { id: true },
-    take: 200, // safety cap per run
-  });
+      select: { id: true },
+      take: 200,
+    });
 
-  const results: Array<{
-    workOrderId: string;
-    ok: boolean;
-    error?: string;
-    transferred?: boolean;
-  }> = [];
+    const results: Array<{
+      workOrderId: string;
+      ok: boolean;
+      error?: string;
+      transferred?: boolean;
+    }> = [];
 
-  for (const wo of candidates) {
-    try {
-      const r = await releaseFundsForWorkOrder({
-        workOrderId: wo.id,
-        actorUserId: null,
-        actorRole: 'system',
-        note: 'Auto-released after PM approval window expired',
-      });
-      results.push({ workOrderId: wo.id, ok: true, transferred: r.transferred });
-    } catch (e) {
-      results.push({
-        workOrderId: wo.id,
-        ok: false,
-        error: e instanceof Error ? e.message : 'Unknown',
-      });
+    for (const wo of candidates) {
+      try {
+        const r = await releaseFundsForWorkOrder({
+          workOrderId: wo.id,
+          actorUserId: null,
+          actorRole: 'system',
+          note: 'Auto-released after PM approval window expired',
+        });
+        results.push({ workOrderId: wo.id, ok: true, transferred: r.transferred });
+      } catch (e) {
+        results.push({
+          workOrderId: wo.id,
+          ok: false,
+          error: e instanceof Error ? e.message : 'Unknown',
+        });
+      }
     }
-  }
 
-  return NextResponse.json({
-    success: true,
-    processed: results.length,
-    results,
+    return NextResponse.json({
+      success: true,
+      processed: results.length,
+      results,
+    });
   });
 }

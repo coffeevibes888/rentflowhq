@@ -591,11 +591,17 @@ model AnalyticsEvent {
   region        String?
   city          String?
   userAgent     String?
+  ipAddress     String?
+  screenWidth   Int?
+  screenHeight  Int?
+  language      String?
+  timezone      String?
   createdAt     DateTime @default(now()) @db.Timestamp(6)
 
   @@index([sessionCartId])
   @@index([userId])
   @@index([path])
+  @@index([country])
   @@index([createdAt])
 }
 
@@ -3397,6 +3403,111 @@ model RateLimitRecord {
   @@unique([identifier, endpoint, windowStart])
   @@index([identifier])
   @@index([windowEnd])
+}
+
+// Login attempts (both successful and failed) for brute-force detection and
+// impossible-travel heuristics. Separate from AuditLog so high-volume auth
+// traffic doesn't swamp the audit trail.
+model LoginAttempt {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String?
+  userId     String?  @db.Uuid
+  success    Boolean  @default(false)
+  reason     String? // bad_password, rate_limited, user_not_found, ok, etc
+  ipAddress  String?
+  country    String?
+  region     String?
+  city       String?
+  userAgent  String?
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([email])
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([success])
+  @@index([createdAt])
+}
+
+// Persistent visitor fingerprint (separate from session cookie) so we can tell
+// new vs returning visitors across sessions.
+model VisitorProfile {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  visitorId       String   @unique // cookie-based UUID
+  firstSeenAt     DateTime @default(now()) @db.Timestamp(6)
+  lastSeenAt      DateTime @default(now()) @db.Timestamp(6)
+  totalVisits     Int      @default(1)
+  totalPageViews  Int      @default(0)
+  firstUtmSource  String?
+  firstUtmMedium  String?
+  firstUtmCampaign String?
+  firstReferrer   String?
+  firstLandingPath String?
+  lastUtmSource   String?
+  userId          String?  @db.Uuid
+
+  @@index([visitorId])
+  @@index([userId])
+  @@index([firstSeenAt])
+  @@index([lastSeenAt])
+}
+
+// Cron heartbeat — every scheduled job writes one row per run so the
+// dashboard can flag jobs that silently stopped.
+model CronRunLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobName    String
+  status     String // success, failure, running, skipped
+  startedAt  DateTime @default(now()) @db.Timestamp(6)
+  finishedAt DateTime?
+  durationMs Int?
+  message    String?
+  error      String?
+
+  @@index([jobName])
+  @@index([status])
+  @@index([startedAt])
+}
+
+// Inbound webhook / external event delivery tracking (Stripe events, Zoho,
+// PayPal, etc. received by us). Separate from `WebhookDelivery` which tracks
+// outbound webhooks we send to customer endpoints.
+model InboundWebhookEvent {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider    String // stripe, zoho, paypal, etc.
+  eventType   String
+  eventId     String?
+  status      String // received, processed, failed, signature_invalid
+  httpStatus  Int?
+  error       String?
+  durationMs  Int?
+  signatureOk Boolean?
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([provider])
+  @@index([eventType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Log every time an admin/super-admin views another user's sensitive data
+// (lease docs, SSN, bank info, etc.). Required for SOC2 and most data
+// privacy reviews.
+model SensitivePIIAccess {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId  String   @db.Uuid // the admin doing the viewing
+  subjectUserId String? @db.Uuid // whose data was viewed
+  subjectLandlordId String? @db.Uuid
+  resourceType String // lease_document, ssn, bank_account, application, etc.
+  resourceId   String?
+  reason       String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([actorUserId])
+  @@index([subjectUserId])
+  @@index([resourceType])
+  @@index([createdAt])
 }
 
 // ============= REFERRAL PROGRAM =============

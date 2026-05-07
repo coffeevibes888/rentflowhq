@@ -12,9 +12,28 @@ export async function trackPageView(params: {
   region?: string | null;
   city?: string | null;
   userAgent?: string | null;
+  ip?: string | null;
+  screenWidth?: number | null;
+  screenHeight?: number | null;
+  language?: string | null;
+  timezone?: string | null;
 }) {
   try {
-    const { sessionCartId, userId, path, referrer, country, region, city, userAgent } = params;
+    const {
+      sessionCartId,
+      userId,
+      path,
+      referrer,
+      country,
+      region,
+      city,
+      userAgent,
+      ip,
+      screenWidth,
+      screenHeight,
+      language,
+      timezone,
+    } = params;
 
     if (!sessionCartId || !path) return;
 
@@ -28,6 +47,11 @@ export async function trackPageView(params: {
         region: region ?? undefined,
         city: city ?? undefined,
         userAgent: userAgent ?? undefined,
+        ipAddress: ip ?? undefined,
+        screenWidth: screenWidth ?? undefined,
+        screenHeight: screenHeight ?? undefined,
+        language: language ?? undefined,
+        timezone: timezone ?? undefined,
       },
     });
   } catch (error) {
