@@ -109,6 +109,7 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
   // Get suggested plan and interval from URL (from homepage pricing section)
   const suggestedPlan = searchParams.get('plan');
   const suggestedInterval = searchParams.get('interval');
+  const appliedPromo = searchParams.get('promo');
   
   // Set billing interval from URL param on mount
   useEffect(() => {
@@ -184,6 +185,7 @@ export default function SubscriptionSelectionClient({ userName }: SubscriptionSe
         body: JSON.stringify({ 
           tier: tierId,
           billingInterval,
+          ...(appliedPromo ? { promoCode: appliedPromo } : {}),
         }),
       });
 

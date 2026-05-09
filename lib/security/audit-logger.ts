@@ -8,6 +8,7 @@ import { prisma } from '@/db/prisma';
 export type AuditAction =
   | 'AUTH_LOGIN'
   | 'AUTH_LOGOUT'
+  | 'AUTH_SIGNUP'
   | 'AUTH_FAILED_LOGIN'
   | 'AUTH_2FA_ENABLED'
   | 'AUTH_2FA_DISABLED'
@@ -111,7 +112,7 @@ export async function logFinancialEvent(
  * Log an authentication event
  */
 export async function logAuthEvent(
-  action: 'AUTH_LOGIN' | 'AUTH_LOGOUT' | 'AUTH_FAILED_LOGIN' | 'AUTH_2FA_ENABLED' | 'AUTH_2FA_DISABLED' | 'AUTH_2FA_VERIFIED' | 'AUTH_PASSWORD_RESET' | 'AUTH_PASSWORD_CHANGED',
+  action: 'AUTH_LOGIN' | 'AUTH_LOGOUT' | 'AUTH_SIGNUP' | 'AUTH_FAILED_LOGIN' | 'AUTH_2FA_ENABLED' | 'AUTH_2FA_DISABLED' | 'AUTH_2FA_VERIFIED' | 'AUTH_PASSWORD_RESET' | 'AUTH_PASSWORD_CHANGED',
   details: {
     userId?: string;
     email?: string;
@@ -119,6 +120,7 @@ export async function logAuthEvent(
     userAgent?: string;
     success?: boolean;
     failureReason?: string;
+    role?: string;
   }
 ): Promise<void> {
   await logAuditEvent({
@@ -129,6 +131,7 @@ export async function logAuthEvent(
       email: details.email,
       success: details.success,
       failureReason: details.failureReason,
+      role: details.role,
     },
     ipAddress: details.ipAddress,
     userAgent: details.userAgent,

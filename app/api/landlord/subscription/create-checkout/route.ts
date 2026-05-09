@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
     const targetTier = body.tier as SubscriptionTier;
     const billingInterval: BillingInterval = body.billingInterval === 'yearly' ? 'yearly' : 'monthly';
     const referralCode = body.referralCode as string | undefined;
+    const promoCode = typeof body.promoCode === 'string' ? body.promoCode.trim() : undefined;
 
     if (!targetTier || !SUBSCRIPTION_TIERS[targetTier]) {
       return NextResponse.json({ success: false, message: 'Invalid subscription tier' }, { status: 400 });
@@ -137,10 +138,35 @@ export async function POST(req: NextRequest) {
     const metaUa = req.headers.get('user-agent') || '';
     const metaEventId = `purchase_${landlord.id}_${Date.now()}`;
 
+    // Resolve an optional promotion code into a discount the checkout can
+    // apply automatically. Only apply it if it exists, is active, and is
+    // either unrestricted or restricted to this specific customer.
+    let discountsParam: Stripe.Checkout.SessionCreateParams.Discount[] | undefined;
+    if (promoCode) {
+      try {
+        const promos = await stripe.promotionCodes.list({
+          code: promoCode,
+          active: true,
+          limit: 1,
+        });
+        const found = promos.data[0];
+        if (
+          found &&
+          (!found.customer || found.customer === customerId)
+        ) {
+          discountsParam = [{ promotion_code: found.id }];
+        }
+      } catch (err) {
+        console.error('Promo code lookup failed', err);
+      }
+    }
+
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_collection: 'always',
+      // If we have a promo code, pre-apply it; otherwise let the user enter one.
+      ...(discountsParam ? { discounts: discountsParam } : { allow_promotion_codes: true }),
       line_items: [
         {
           price: priceId,
@@ -154,6 +180,7 @@ export async function POST(req: NextRequest) {
         tier: targetTier,
         billingInterval,
         ...(referralCode && { affiliateCode: referralCode }),
+        ...(promoCode && { appliedPromoCode: promoCode }),
       },
       subscription_data: {
         trial_period_days: tierConfig.trialDays, // 14-day free trial

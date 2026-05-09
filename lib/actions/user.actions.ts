@@ -754,13 +754,31 @@ export async function setUserRoleAndLandlordIntake(data: {
     // Check if user has a protected role that cannot be changed via onboarding
     const currentUser = await prisma.user.findUnique({
       where: { id: userId },
-      select: { role: true },
+      select: { role: true, emailVerified: true, email: true },
     });
 
     if (currentUser && PROTECTED_ROLES.includes(currentUser.role)) {
       return { 
         success: false, 
         message: `Cannot change role for ${currentUser.role} accounts through onboarding. Please contact support if you need to change your account type.` 
+      };
+    }
+
+    // BUGFIX: The landlord trial used to auto-start here without any email
+    // verification — which let anyone navigate to /onboarding/landlord and
+    // reach the admin dashboard with no card and no verified email.
+    // Landlord onboarding now requires a verified email before we create the
+    // trial. Other roles (tenant, homeowner) don't grant dashboard access, so
+    // they can proceed without verification.
+    if (data.role === 'landlord' && currentUser && !currentUser.emailVerified) {
+      // Re-send verification on demand so the user has a clear next step.
+      try {
+        await sendVerificationEmailToken(currentUser.email);
+      } catch {}
+      return {
+        success: false,
+        message:
+          'Please verify your email before starting a landlord trial. We just sent you a verification link.',
       };
     }
 

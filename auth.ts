@@ -186,4 +186,51 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
   },
+  events: {
+    // Capture every sign-in to the audit log + login-attempt table — covers
+    // credentials (including the auto sign-in performed right after signup)
+    // as well as OAuth providers like Google, which otherwise never hit our
+    // /api/auth/credentials-signin route.
+    async signIn({ user, account, isNewUser }) {
+      try {
+        const { logAuthEvent } = await import('./lib/security/audit-logger');
+        await logAuthEvent('AUTH_LOGIN', {
+          userId: user?.id,
+          email: user?.email ?? undefined,
+          success: true,
+          role: (user as any)?.role,
+        });
+      } catch (error) {
+        console.error('auth events.signIn: audit log failed', error);
+      }
+
+      try {
+        const { recordLoginAttempt } = await import('./lib/security/login-attempts');
+        await recordLoginAttempt({
+          email: user?.email ?? null,
+          userId: user?.id ?? null,
+          success: true,
+          reason: 'ok',
+        });
+      } catch (error) {
+        console.error('auth events.signIn: loginAttempt write failed', error);
+      }
+
+      // First-time OAuth signups otherwise slip past notifyNewSignup, which
+      // is why the super-admin didn't get an email when the bypass happened.
+      if (isNewUser) {
+        try {
+          const { notifyNewSignup } = await import('./lib/services/admin-notifications');
+          await notifyNewSignup({
+            name: user?.name ?? 'Unknown',
+            email: user?.email ?? 'unknown@local',
+            role: (user as any)?.role ?? 'user',
+            signupMethod: account?.provider === 'google' ? 'Google' : 'OAuth',
+          });
+        } catch (error) {
+          console.error('auth events.signIn: notifyNewSignup failed', error);
+        }
+      }
+    },
+  },
 });
