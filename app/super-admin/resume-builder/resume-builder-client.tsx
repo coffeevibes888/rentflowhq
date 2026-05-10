@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Download, Plus, Trash2, GripVertical, Eye } from 'lucide-react';
+import { Download, Plus, Trash2, GripVertical, Eye, Upload } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface ResumeData {
@@ -143,11 +143,19 @@ export default function ResumeBuilderClient() {
   };
 
   const updateExperience = (id: string, field: string, value: any) => {
-    setResume({
-      ...resume,
-      experience: resume.experience.map((exp) =>
+    setResume((prev) => {
+      const updatedExperience = prev.experience.map((exp) =>
         exp.id === id ? { ...exp, [field]: value } : exp
-      ),
+      );
+      // Sort: current jobs first, then by start date (most recent first)
+      return {
+        ...prev,
+        experience: updatedExperience.sort((a, b) => {
+          if (a.current && !b.current) return -1;
+          if (!a.current && b.current) return 1;
+          return 0;
+        }),
+      };
     });
   };
 
@@ -267,18 +275,48 @@ export default function ResumeBuilderClient() {
                           <span className="text-white/40 text-xs">No photo</span>
                         </div>
                       )}
-                      <Input
-                        type="url"
-                        placeholder="Enter photo URL"
-                        value={resume.personalInfo.photo || ''}
-                        onChange={(e) =>
-                          setResume({
-                            ...resume,
-                            personalInfo: { ...resume.personalInfo, photo: e.target.value },
-                          })
-                        }
-                        className="bg-white/5 border-white/10 text-white"
-                      />
+                      <div className="flex gap-2 flex-1">
+                        <Input
+                          type="url"
+                          placeholder="Enter photo URL"
+                          value={resume.personalInfo.photo || ''}
+                          onChange={(e) =>
+                            setResume({
+                              ...resume,
+                              personalInfo: { ...resume.personalInfo, photo: e.target.value },
+                            })
+                          }
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setResume({
+                                    ...resume,
+                                    personalInfo: { ...resume.personalInfo, photo: reader.result as string },
+                                  });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="border-white/20 text-white hover:bg-white/10"
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -473,10 +511,23 @@ export default function ResumeBuilderClient() {
                               type="checkbox"
                               checked={exp.current}
                               onChange={(e) => {
-                                updateExperience(exp.id, 'current', e.target.checked);
-                                if (e.target.checked) {
-                                  updateExperience(exp.id, 'endDate', 'Present');
-                                }
+                                const isCurrent = e.target.checked;
+                                setResume((prev) => {
+                                  const updated = prev.experience.map((ex) =>
+                                    ex.id === exp.id
+                                      ? { ...ex, current: isCurrent, endDate: isCurrent ? 'Present' : ex.endDate }
+                                      : ex
+                                  );
+                                  // Sort: current jobs first
+                                  return {
+                                    ...prev,
+                                    experience: updated.sort((a, b) => {
+                                      if (a.current && !b.current) return -1;
+                                      if (!a.current && b.current) return 1;
+                                      return 0;
+                                    }),
+                                  };
+                                });
                               }}
                               className="rounded"
                             />
