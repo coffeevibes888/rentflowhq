@@ -679,14 +679,14 @@ function ResumePreview({ resume, template, sidebarColor = 'slate' }: { resume: R
     return (
       <div className="flex min-h-[1000px]">
         {/* Sidebar - Colored Panel */}
-        <div className={`w-1/3 bg-gradient-to-b ${colors.gradient} p-8 text-white`}>
+        <div className={`w-[30%] bg-gradient-to-b ${colors.gradient} p-6 text-white`}>
           {/* Photo */}
           {resume.personalInfo.photo && (
             <div className="mb-6">
               <img
                 src={resume.personalInfo.photo}
                 alt={resume.personalInfo.name}
-                className="w-40 h-40 rounded-full mx-auto object-cover border-4 border-white/20 shadow-xl"
+                className="w-32 h-32 rounded-full mx-auto object-cover object-top border-4 border-white/20 shadow-xl"
               />
             </div>
           )}
@@ -760,7 +760,7 @@ function ResumePreview({ resume, template, sidebarColor = 'slate' }: { resume: R
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-10 bg-white">
+        <div className="flex-1 p-8 bg-white">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-5xl font-bold text-slate-900 mb-2">{resume.personalInfo.name}</h1>
