@@ -40,6 +40,12 @@ export const adminNavGroups: AdminNavGroup[] = [
         href: '/admin/documents',
         icon: ScanText,
       },
+      {
+        title: 'Bulk Import',
+        description: 'Import from Excel, CSV, or other platforms',
+        href: '/admin/import',
+        icon: FileSpreadsheet,
+      },
     ],
   },
   {

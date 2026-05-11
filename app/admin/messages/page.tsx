@@ -54,15 +54,6 @@ function relTime(date: Date) {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// Status values used as virtual folders
-// open = inbox, archived = archived, spam = spam, trash = trash (deleted)
-const FOLDER_STATUS: Record<string, string> = {
-  inbox: 'open',
-  archived: 'archived',
-  spam: 'spam',
-  trash: 'trash',
-};
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function AdminMessagesPage({
@@ -83,7 +74,7 @@ export default async function AdminMessagesPage({
   const landlordId = landlordResult.landlord?.id;
 
   // All threads visible to this PM
-  const allThreads = (await prisma.thread.findMany({
+  const allThreadsRaw = (await prisma.thread.findMany({
     where: {
       OR: [
         { type: 'dm', participants: { some: { userId: session.user.id } } },
@@ -93,6 +84,19 @@ export default async function AdminMessagesPage({
     orderBy: { updatedAt: 'desc' },
     include: { messages: { orderBy: { createdAt: 'desc' }, take: 1 } },
   })) as ThreadRow[];
+
+  // The Prisma extension for message.content decryption only runs on top-level
+  // message queries. When messages are loaded via a nested include on Thread,
+  // the content is returned still encrypted. Decrypt here so the preview in
+  // the thread list shows human-readable text.
+  const allThreads: ThreadRow[] = await Promise.all(
+    allThreadsRaw.map(async (t) => ({
+      ...t,
+      messages: await Promise.all(
+        t.messages.map(async (m) => ({ ...m, content: await decryptField(m.content) }))
+      ),
+    }))
+  );
 
   // Folder counts
   const inboxThreads    = allThreads.filter(t => t.status === 'open');
@@ -152,8 +156,14 @@ export default async function AdminMessagesPage({
     { key: 'trash',    label: 'Trash',    count: trashThreads.length },
   ];
 
+  // Mobile state: what view to show
+  // On mobile, we show ONE panel at a time:
+  //   - `main` (compose or thread view) when composing or a thread is selected
+  //   - `browse` (folders + thread list) otherwise
+  const showMainOnMobile = composing || !!selectedThread;
+
   return (
-    <div className="w-full space-y-5">
+    <div className="w-full space-y-4 sm:space-y-5">
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-black">Messages</h1>
@@ -161,11 +171,16 @@ export default async function AdminMessagesPage({
       </div>
 
       {/* Main card */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden" style={{ minHeight: '78vh' }}>
-        <div className="flex h-full" style={{ minHeight: '78vh' }}>
+      <div
+        className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+        style={{ minHeight: 'calc(100vh - 220px)' }}
+      >
+        <div className="flex flex-col md:flex-row h-full" style={{ minHeight: 'calc(100vh - 220px)' }}>
 
-          {/* ── Left sidebar ── */}
-          <div className="w-48 flex-shrink-0 border-r border-gray-100 flex flex-col py-3 gap-0.5 px-2 bg-gray-50/50">
+          {/* ── Left sidebar (folders & tenants) ── */}
+          <div
+            className={`${showMainOnMobile ? 'hidden md:flex' : 'flex'} md:w-48 md:flex-shrink-0 md:border-r border-gray-100 flex-col py-3 gap-0.5 px-2 bg-gray-50/50 border-b md:border-b-0`}
+          >
             {/* Compose */}
             <Link
               href="/admin/messages?compose=1"
@@ -179,27 +194,55 @@ export default async function AdminMessagesPage({
 
             {/* Folders */}
             <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-1">Folders</p>
-            {folders.map(({ key, label, count }) => (
-              <Link
-                key={key}
-                href={`/admin/messages?folder=${key}`}
-                className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                  folder === key
-                    ? 'bg-white text-gray-800 font-semibold shadow-sm border border-gray-200'
-                    : 'text-gray-600 hover:bg-white/80 hover:text-gray-800'
-                }`}
-              >
-                <span>{label}</span>
-                {count > 0 && (
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-full font-semibold text-gray-600">
-                    {count}
-                  </span>
-                )}
-              </Link>
-            ))}
 
-            {/* Tenants quick-compose */}
-            <div className="mt-4 pt-3 border-t border-gray-200 px-1">
+            {/* Desktop folder list */}
+            <div className="hidden md:flex flex-col gap-0.5">
+              {folders.map(({ key, label, count }) => (
+                <Link
+                  key={key}
+                  href={`/admin/messages?folder=${key}`}
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                    folder === key
+                      ? 'bg-white text-gray-800 font-semibold shadow-sm border border-gray-200'
+                      : 'text-gray-600 hover:bg-white/80 hover:text-gray-800'
+                  }`}
+                >
+                  <span>{label}</span>
+                  {count > 0 && (
+                    <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-full font-semibold text-gray-600">
+                      {count}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+
+            {/* Mobile folder pills (horizontal scroll) */}
+            <div className="flex md:hidden gap-2 overflow-x-auto pb-1 px-1">
+              {folders.map(({ key, label, count }) => (
+                <Link
+                  key={key}
+                  href={`/admin/messages?folder=${key}`}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap flex-shrink-0 transition-colors ${
+                    folder === key
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow'
+                      : 'bg-white border border-gray-200 text-gray-700'
+                  }`}
+                >
+                  <span>{label}</span>
+                  {count > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                      folder === key ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {count}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+
+            {/* Tenants quick-compose (desktop only) */}
+            <div className="hidden md:block mt-4 pt-3 border-t border-gray-200 px-1">
               <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mb-2 px-2">Tenants</p>
               <div className="space-y-0.5 max-h-52 overflow-y-auto">
                 {tenants.length === 0 && (
@@ -222,7 +265,9 @@ export default async function AdminMessagesPage({
           </div>
 
           {/* ── Thread list ── */}
-          <div className="w-72 flex-shrink-0 border-r border-gray-100 flex flex-col overflow-hidden">
+          <div
+            className={`${showMainOnMobile ? 'hidden md:flex' : 'flex'} w-full md:w-72 md:flex-shrink-0 md:border-r border-gray-100 flex-col overflow-hidden`}
+          >
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <p className="text-xs font-bold text-gray-800 capitalize">{folder}</p>
               <span className="text-[10px] text-gray-400">{folderThreads.length} thread{folderThreads.length !== 1 ? 's' : ''}</span>
@@ -242,7 +287,7 @@ export default async function AdminMessagesPage({
                 const last = t.messages[0];
                 const sender = last?.senderName || last?.senderEmail || t.fromEmail || 'Unknown';
                 const subject = t.subject || sender;
-                const preview = last?.content?.slice(0, 60) ?? '';
+                const preview = last?.content?.slice(0, 80) ?? '';
                 const isSelected = t.id === selectedId;
 
                 return (
@@ -250,15 +295,15 @@ export default async function AdminMessagesPage({
                     key={t.id}
                     href={`/admin/messages?folder=${folder}&thread=${t.id}`}
                     className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
-                      isSelected ? 'bg-cyan-50/50 border-l-2 border-cyan-500' : ''
+                      isSelected ? 'bg-cyan-50/50 md:border-l-2 md:border-cyan-500' : ''
                     }`}
                   >
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-[10px] font-bold text-white">
+                    <div className="flex-shrink-0 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-[11px] sm:text-[10px] font-bold text-white">
                       {initials(last?.senderName, last?.senderEmail || t.fromEmail)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <span className="text-xs font-semibold text-gray-800 truncate">{sender}</span>
+                        <span className="text-xs sm:text-xs font-semibold text-gray-800 truncate">{sender}</span>
                         <span className="text-[10px] text-gray-400 flex-shrink-0">{relTime(t.updatedAt)}</span>
                       </div>
                       <p className="text-[11px] text-gray-700 truncate font-medium">{subject}</p>
@@ -271,7 +316,9 @@ export default async function AdminMessagesPage({
           </div>
 
           {/* ── Main panel ── */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div
+            className={`${showMainOnMobile ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-hidden min-w-0`}
+          >
             {composing ? (
               <ComposePanel tenants={tenants} sp={sp} />
             ) : selectedThread ? (
@@ -311,20 +358,27 @@ function ComposePanel({
   sp: Record<string, string | undefined>;
 }) {
   const prefillToId = sp.toId || '';
-  const prefillTo = sp.to || '';
-  const prefillToName = sp.toName || '';
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 className="text-sm font-bold text-gray-800">New Message</h2>
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 gap-3">
+        <Link
+          href="/admin/messages"
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 text-gray-600 flex-shrink-0"
+          aria-label="Back"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <h2 className="text-sm font-bold text-gray-800 flex-1">New Message</h2>
         <Link href="/admin/messages" className="text-xs text-gray-500 hover:text-gray-700 transition-colors font-medium">
           Discard
         </Link>
       </div>
 
       <form
-        className="flex-1 flex flex-col p-6 gap-0"
+        className="flex-1 flex flex-col p-4 sm:p-6 gap-0"
         action={async (formData: FormData) => {
           'use server';
           const toId = formData.get('toId') as string;
@@ -387,7 +441,7 @@ function ComposePanel({
             name="toId"
             defaultValue={prefillToId}
             required
-            className="flex-1 bg-transparent text-sm text-gray-800 font-medium focus:outline-none"
+            className="flex-1 min-w-0 bg-transparent text-sm text-gray-800 font-medium focus:outline-none"
           >
             <option value="" disabled>Select a tenant...</option>
             {tenants.map((t) => (
@@ -404,17 +458,17 @@ function ComposePanel({
             type="text"
             placeholder="Message subject"
             required
-            className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 font-medium focus:outline-none"
+            className="flex-1 min-w-0 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 font-medium focus:outline-none"
           />
         </div>
 
         {/* Body */}
         <textarea
           name="content"
-          rows={14}
+          rows={10}
           required
           placeholder="Write your message..."
-          className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none resize-none py-4"
+          className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none resize-none py-4 min-h-[200px]"
         />
 
         <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
@@ -453,12 +507,21 @@ function ThreadPanel({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Thread header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 gap-2 sm:gap-3">
+        <Link
+          href={`/admin/messages?folder=${folder}`}
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 text-gray-600 flex-shrink-0"
+          aria-label="Back to inbox"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
         <div className="flex-1 min-w-0">
           <h2 className="text-sm font-bold text-gray-800 truncate">{subject}</h2>
           <p className="text-[11px] text-gray-500">{thread.messages.length} message{thread.messages.length !== 1 ? 's' : ''}</p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {thread.status === 'open' && (
             <form
               action={async () => {
@@ -468,7 +531,7 @@ function ThreadPanel({
                 redirect(`/admin/messages?folder=${folder}`);
               }}
             >
-              <button type="submit" className="text-xs text-gray-500 hover:text-gray-700 font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <button type="submit" className="text-xs text-gray-500 hover:text-gray-700 font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
                 Archive
               </button>
             </form>
@@ -482,8 +545,9 @@ function ThreadPanel({
                 redirect(`/admin/messages?folder=${folder}`);
               }}
             >
-              <button type="submit" className="text-xs text-gray-500 hover:text-gray-700 font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-                Move to Inbox
+              <button type="submit" className="text-xs text-gray-500 hover:text-gray-700 font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap">
+                <span className="hidden sm:inline">Move to Inbox</span>
+                <span className="sm:hidden">Inbox</span>
               </button>
             </form>
           )}
@@ -496,7 +560,7 @@ function ThreadPanel({
                 redirect(`/admin/messages?folder=${folder}`);
               }}
             >
-              <button type="submit" className="text-xs text-red-500 hover:text-red-600 font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
+              <button type="submit" className="text-xs text-red-500 hover:text-red-600 font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
                 Delete
               </button>
             </form>
@@ -505,20 +569,20 @@ function ThreadPanel({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 bg-gray-50/30">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4 bg-gray-50/30">
         {thread.messages.map((msg) => {
           const isMe = msg.senderEmail === session?.user?.email || msg.role === 'admin';
           return (
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[75%] ${isMe ? 'order-2' : 'order-1'}`}>
-                <div className="flex items-center gap-2 mb-1">
+              <div className={`max-w-[85%] sm:max-w-[75%] ${isMe ? 'order-2' : 'order-1'}`}>
+                <div className={`flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">
                     {initials(msg.senderName, msg.senderEmail)}
                   </div>
-                  <span className="text-[11px] font-semibold text-gray-700">{msg.senderName || msg.senderEmail || 'Unknown'}</span>
-                  <span className="text-[10px] text-gray-400">{relTime(msg.createdAt)}</span>
+                  <span className="text-[11px] font-semibold text-gray-700 truncate max-w-[140px] sm:max-w-none">{msg.senderName || msg.senderEmail || 'Unknown'}</span>
+                  <span className="text-[10px] text-gray-400 flex-shrink-0">{relTime(msg.createdAt)}</span>
                 </div>
-                <div className={`rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                <div className={`rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm leading-relaxed break-words ${
                   isMe
                     ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-sm'
                     : 'bg-white text-gray-800 border border-gray-100 shadow-sm'
@@ -532,9 +596,9 @@ function ThreadPanel({
       </div>
 
       {/* Reply form */}
-      <div className="border-t border-gray-100 px-6 py-4">
+      <div className="border-t border-gray-100 px-3 sm:px-6 py-3 sm:py-4">
         <form
-          className="flex gap-3"
+          className="flex gap-2 sm:gap-3"
           action={async (formData: FormData) => {
             'use server';
             const content = (formData.get('content') as string)?.trim();
@@ -585,16 +649,16 @@ function ThreadPanel({
             type="text"
             placeholder="Type a reply..."
             required
-            className="flex-1 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-cyan-500/20 border border-gray-200 transition-all"
+            className="flex-1 min-w-0 bg-gray-50 rounded-lg px-3 sm:px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-cyan-500/20 border border-gray-200 transition-all"
           />
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-semibold px-5 py-2.5 shadow-md hover:shadow-lg transition-all flex-shrink-0"
+            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-semibold px-3 sm:px-5 py-2.5 shadow-md hover:shadow-lg transition-all flex-shrink-0"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
-            Reply
+            <span className="hidden sm:inline">Reply</span>
           </button>
         </form>
       </div>

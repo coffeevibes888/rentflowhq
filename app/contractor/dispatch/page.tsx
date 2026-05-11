@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Clock, Truck, Users, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
+import { MapPin, Clock, Truck, Users, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 
 interface Job {
@@ -29,11 +29,7 @@ export default function DispatchBoardPage() {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  useEffect(() => {
-    fetchDispatchData();
-  }, [currentDate]);
-
-  const fetchDispatchData = async () => {
+  const fetchDispatchData = useCallback(async () => {
     try {
       const startOfWeek = new Date(currentDate);
       startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
@@ -46,13 +42,44 @@ export default function DispatchBoardPage() {
         fetch('/api/contractor/team'),
       ]);
 
-      if (jobsRes.ok && employeesRes.ok) {
-        setJobs((await jobsRes.json()).jobs || []);
-        setEmployees((await employeesRes.json()).employees || []);
+      if (jobsRes.ok) {
+        const data = await jobsRes.json().catch(() => ({}));
+        const rawJobs: any[] = data.jobs || [];
+        // Normalize server rows -> client Job type. The API returns an array with
+        // `assignedEmployeeIds` and nullable fields; coerce everything safely so the
+        // dashboard never crashes on missing values.
+        setJobs(
+          rawJobs.map((j) => ({
+            id: String(j.id),
+            title: j.title || 'Untitled Job',
+            customerName: j.customerName || 'Customer',
+            address: [j.address, j.city, j.state].filter(Boolean).join(', ') || 'No address',
+            status: j.status || 'scheduled',
+            assignedEmployees: Array.isArray(j.assignedEmployeeIds) ? j.assignedEmployeeIds : [],
+            startDate: j.startDate || j.estimatedStartDate || new Date().toISOString(),
+            estimatedHours: Number(j.estimatedHours) || 0,
+          }))
+        );
+      } else {
+        setJobs([]);
       }
-    } catch {}
-    finally { setLoading(false); }
-  };
+
+      if (employeesRes.ok) {
+        const data = await employeesRes.json().catch(() => ({}));
+        setEmployees(data.employees || []);
+      } else {
+        setEmployees([]);
+      }
+    } catch (err) {
+      console.error('Failed to load dispatch data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentDate]);
+
+  useEffect(() => {
+    fetchDispatchData();
+  }, [fetchDispatchData]);
 
   const navigateWeek = (direction: number) => {
     const newDate = new Date(currentDate);

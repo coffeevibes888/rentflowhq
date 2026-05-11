@@ -51,18 +51,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Property not found' }, { status: 404 });
     }
 
-    // Extract data from OCR text or existing extractedData
+    // Merge: overrides > existing extractedData > fresh extraction from OCR text
     const existingData = (doc.extractedData as any) || {};
     const ocrText = doc.ocrText || '';
 
     const extracted = {
-      amount: overrides?.amount || existingData.amount || extractAmount(ocrText),
-      vendor: overrides?.vendor || existingData.vendor || extractVendor(ocrText),
-      date: overrides?.date || existingData.date || extractDate(ocrText),
-      category: overrides?.category || existingData.category || detectCategory(ocrText),
+      amount: overrides?.amount ?? existingData.amount ?? extractAmount(ocrText),
+      vendor: overrides?.vendor ?? existingData.vendor ?? extractVendor(ocrText),
+      date: overrides?.date ?? existingData.date ?? extractDate(ocrText),
+      category: overrides?.category ?? existingData.category ?? detectCategory(ocrText),
+      description: overrides?.description ?? existingData.description ?? null,
     };
 
-    const amount = parseFloat(String(extracted.amount).replace(/[$,]/g, ''));
+    const amount = parseFloat(String(extracted.amount ?? '').replace(/[$,]/g, ''));
     if (!amount || isNaN(amount) || amount <= 0) {
       return NextResponse.json({
         success: false,
@@ -80,16 +81,24 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // Build a human-readable description
+    const expenseDescription =
+      extracted.description ||
+      (extracted.vendor
+        ? `${extracted.vendor} — scanned from receipt`
+        : `Scanned receipt — ${doc.originalFileName}`);
+
+    // Map any legacy category names to the canonical set
+    const canonicalCategory = mapCategory(String(extracted.category || 'other'));
+
     // Create the expense
     const expense = await prisma.expense.create({
       data: {
         landlordId: landlord.id,
         propertyId,
         amount,
-        category: extracted.category || 'other',
-        description: extracted.vendor
-          ? `${extracted.vendor} — scanned from receipt`
-          : `Scanned receipt — ${doc.originalFileName}`,
+        category: canonicalCategory,
+        description: expenseDescription,
         incurredAt,
         isRecurring: false,
       },
@@ -194,15 +203,42 @@ function extractDate(text: string): string | null {
 function detectCategory(text: string): string {
   const lower = text.toLowerCase();
   const categoryKeywords: Record<string, string[]> = {
-    maintenance: ['home depot', 'lowes', 'lowe\'s', 'hardware', 'plumbing', 'electrical', 'repair', 'fix', 'tool', 'paint', 'lumber'],
-    owner_paid_utilities: ['electric', 'utility', 'water', 'gas', 'sewer', 'trash', 'waste', 'power', 'energy', 'comcast', 'spectrum', 'at&t', 'verizon'],
-    one_time_repairs: ['hvac', 'furnace', 'air condition', 'roof', 'appliance', 'washer', 'dryer', 'dishwasher', 'refrigerator', 'water heater'],
-    platform_fees: ['stripe', 'payment processing', 'transaction fee', 'platform'],
-    recurring_expenses: ['insurance', 'hoa', 'association', 'lawn', 'landscap', 'pest control', 'cleaning', 'janitorial'],
+    maintenance: ['home depot', 'lowes', 'lowe\'s', 'hardware', 'plumbing', 'electrical', 'repair', 'fix', 'tool', 'paint', 'lumber', 'hvac', 'furnace', 'appliance', 'water heater'],
+    utilities: ['electric', 'utility', 'water', 'gas', 'sewer', 'trash', 'waste', 'power', 'energy', 'comcast', 'spectrum', 'at&t', 'verizon', 'internet', 'cable'],
+    insurance: ['insurance', 'policy', 'premium', 'coverage', 'state farm', 'allstate'],
+    taxes: ['property tax', 'county tax', 'tax bill', 'tax assessment'],
+    landscaping: ['lawn', 'landscap', 'mow', 'mulch', 'tree', 'shrub', 'garden', 'irrigation', 'snow removal'],
+    cleaning: ['clean', 'janitorial', 'maid', 'housekeep', 'carpet clean', 'pressure wash'],
+    legal: ['attorney', 'lawyer', 'legal', 'court', 'filing fee', 'notary', 'accountant', 'cpa'],
+    advertising: ['advertis', 'listing', 'zillow', 'craigslist', 'marketing', 'photography'],
+    management: ['management fee', 'hoa', 'association fee', 'platform fee', 'stripe', 'processing fee'],
+    supplies: ['office supply', 'staples', 'office depot', 'paper', 'printer', 'postage', 'shipping'],
   };
 
   for (const [category, keywords] of Object.entries(categoryKeywords)) {
     if (keywords.some(kw => lower.includes(kw))) return category;
   }
   return 'other';
+}
+
+// Map legacy / alternate category names to the canonical EXPENSE_CATEGORIES values
+function mapCategory(raw: string): string {
+  const map: Record<string, string> = {
+    maintenance: 'maintenance',
+    one_time_repairs: 'maintenance',
+    owner_paid_utilities: 'utilities',
+    utilities: 'utilities',
+    insurance: 'insurance',
+    taxes: 'taxes',
+    landscaping: 'landscaping',
+    cleaning: 'cleaning',
+    legal: 'legal',
+    advertising: 'advertising',
+    management: 'management',
+    platform_fees: 'management',
+    recurring_expenses: 'management',
+    supplies: 'supplies',
+    other: 'other',
+  };
+  return map[raw.toLowerCase()] ?? 'other';
 }

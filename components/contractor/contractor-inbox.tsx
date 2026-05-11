@@ -147,14 +147,14 @@ export function ContractorInbox({ userId }: { userId: string }) {
 
   return (
     <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-3 h-[650px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 h-[calc(100vh-220px)] lg:h-[650px]">
         {/* Thread List */}
         <div
           className={`lg:col-span-1 border-r border-gray-200 flex flex-col ${
             showChat ? 'hidden lg:flex' : 'flex'
           }`}
         >
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-3 sm:p-4 border-b border-gray-200">
             <h3 className="font-semibold text-gray-900">Conversations</h3>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
@@ -241,10 +241,11 @@ export function ContractorInbox({ userId }: { userId: string }) {
           {selectedThread ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+              <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center gap-3">
                 <button
                   onClick={() => setSelectedThreadId(null)}
-                  className="lg:hidden p-1 hover:bg-gray-100 rounded"
+                  className="lg:hidden p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                  aria-label="Back"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
@@ -252,25 +253,25 @@ export function ContractorInbox({ userId }: { userId: string }) {
                   <img
                     src={selectedThread.otherUser.image}
                     alt=""
-                    className="h-9 w-9 rounded-full object-cover"
+                    className="h-9 w-9 rounded-full object-cover flex-shrink-0"
                   />
                 ) : (
-                  <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center">
+                  <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                     <User className="h-4 w-4 text-blue-600" />
                   </div>
                 )}
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-gray-900 text-sm truncate">
                     {selectedThread.otherUser?.name || 'Unknown'}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 truncate">
                     {selectedThread.otherUser?.email}
                   </p>
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-gray-50">
                 {loadingMessages ? (
                   <div className="flex items-center justify-center h-full">
                     <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -290,7 +291,7 @@ export function ContractorInbox({ userId }: { userId: string }) {
                         className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                          className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-2 break-words ${
                             isMe
                               ? 'bg-blue-600 text-white'
                               : 'bg-white border border-gray-200 text-gray-900'
@@ -318,12 +319,13 @@ export function ContractorInbox({ userId }: { userId: string }) {
               </div>
 
               {/* Input */}
-              <div className="p-4 border-t border-gray-200 bg-white">
+              <div className="p-3 sm:p-4 border-t border-gray-200 bg-white">
                 <div className="flex gap-2">
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type a message..."
+                    className="flex-1 min-w-0"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -334,7 +336,7 @@ export function ContractorInbox({ userId }: { userId: string }) {
                   <Button
                     onClick={handleSend}
                     disabled={sending || !newMessage.trim()}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
                   >
                     {sending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

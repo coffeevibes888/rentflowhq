@@ -230,6 +230,8 @@ export default function DocumentsClientV2({
 
   // Receipt upload dialog state
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
+  // Pre-fill an existing scanned doc into the receipt dialog for expense creation
+  const [receiptDocToConvert, setReceiptDocToConvert] = useState<ScannedDocument | null>(null);
 
   // Memoize browser tabs to prevent recalculation on every render
   const browserTabs = useMemo(() => [
@@ -666,6 +668,10 @@ export default function DocumentsClientV2({
               onDelete={(id) => handleDelete(id, 'scanned')}
               formatFileSize={formatFileSize}
               properties={properties}
+              onCreateExpense={(doc) => {
+                setReceiptDocToConvert(doc);
+                setReceiptDialogOpen(true);
+              }}
             />
           </div>
         );
@@ -759,6 +765,10 @@ export default function DocumentsClientV2({
               onDelete={(id) => handleDelete(id, 'scanned')}
               formatFileSize={formatFileSize}
               properties={properties}
+              onCreateExpense={(doc) => {
+                setReceiptDocToConvert(doc);
+                setReceiptDialogOpen(true);
+              }}
             />
           </div>
         );
@@ -1193,8 +1203,12 @@ export default function DocumentsClientV2({
         {/* Receipt Upload Dialog */}
         <ReceiptUploadDialog
           open={receiptDialogOpen}
-          onOpenChange={setReceiptDialogOpen}
+          onOpenChange={(open) => {
+            setReceiptDialogOpen(open);
+            if (!open) setReceiptDocToConvert(null);
+          }}
           properties={properties}
+          existingDocumentId={receiptDocToConvert?.id}
           onSuccess={async () => {
             // Refresh scanned documents
             try {
@@ -1447,11 +1461,13 @@ function ScannedDocumentGrid({
   onDelete,
   formatFileSize,
   properties,
+  onCreateExpense,
 }: {
   documents: ScannedDocument[];
   onDelete: (id: string) => void;
   formatFileSize: (bytes?: number) => string;
   properties: Property[];
+  onCreateExpense?: (doc: ScannedDocument) => void;
 }) {
   if (documents.length === 0) {
     return (
@@ -1514,6 +1530,11 @@ function ScannedDocumentGrid({
     <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {documents.map((doc) => {
         const Icon = getCategoryIcon(doc.documentType);
+        const extracted = doc.extractedData as any;
+        const isReceipt = doc.documentType === 'receipt' || doc.documentType === 'invoice';
+        const alreadyConverted = !!doc.conversionStatus && doc.conversionStatus === 'completed';
+        const hasExtractedAmount = extracted?.amount != null;
+
         return (
           <Card
             key={doc.id}
@@ -1548,6 +1569,15 @@ function ScannedDocumentGrid({
                         Download
                       </a>
                     </DropdownMenuItem>
+                    {isReceipt && !alreadyConverted && onCreateExpense && (
+                      <DropdownMenuItem
+                        onClick={() => onCreateExpense(doc)}
+                        className="cursor-pointer text-emerald-600 focus:text-emerald-700 focus:bg-emerald-50"
+                      >
+                        <Receipt className="h-4 w-4 mr-2" />
+                        Create Expense
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       onClick={() => onDelete(doc.id)}
                       className="cursor-pointer text-red-300 focus:text-red-200 focus:bg-white/10"
@@ -1568,7 +1598,34 @@ function ScannedDocumentGrid({
                 {doc.documentType && (
                   <span className="text-[10px] md:text-xs text-gray-800/70 capitalize">{doc.documentType}</span>
                 )}
+                {alreadyConverted && (
+                  <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-400/30 text-[10px]">
+                    <FileCheck className="h-3 w-3 mr-1" />
+                    Expensed
+                  </Badge>
+                )}
               </div>
+
+              {/* Extracted data preview */}
+              {isReceipt && (extracted?.amount || extracted?.vendor || extracted?.date) && (
+                <div className="rounded-lg bg-emerald-500/10 border border-emerald-400/20 px-2.5 py-2 mb-2 space-y-1">
+                  {extracted?.vendor && (
+                    <p className="text-[10px] text-emerald-300 truncate font-medium">{extracted.vendor}</p>
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    {extracted?.amount && (
+                      <span className="text-[11px] font-bold text-emerald-200">
+                        ${parseFloat(String(extracted.amount)).toFixed(2)}
+                      </span>
+                    )}
+                    {extracted?.date && (
+                      <span className="text-[10px] text-emerald-300/70">
+                        {new Date(extracted.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Property badge */}
               {doc.property && (
@@ -1600,6 +1657,17 @@ function ScannedDocumentGrid({
                     />
                   </div>
                 </div>
+              )}
+
+              {/* Create Expense CTA for unconverted receipts */}
+              {isReceipt && !alreadyConverted && onCreateExpense && (
+                <button
+                  onClick={() => onCreateExpense(doc)}
+                  className="mt-2.5 w-full flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-emerald-300 text-[10px] font-semibold py-1.5 transition-colors"
+                >
+                  <Receipt className="h-3 w-3" />
+                  {hasExtractedAmount ? 'Apply to Expense' : 'Create Expense'}
+                </button>
               )}
 
               <p className="text-[10px] md:text-xs text-gray-800/60 mt-2">

@@ -700,7 +700,6 @@ async function handleDecision(applicationId: string, status: string, adminRespon
         }
       }
 
-      await tx.rentPayment.createMany({ data: rentPaymentsData });
       await tx.unit.update({ where: { id: unit.id }, data: { isAvailable: false, availableFrom: null } });
       await tx.rentalApplication.update({ where: { id: applicationId }, data: { status, notes: combinedNotes } });
 
