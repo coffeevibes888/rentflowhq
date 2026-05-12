@@ -1,4 +1,4 @@
-import { APP_NAME, SERVER_URL } from '@/lib/constants';
+import { APP_NAME } from '@/lib/constants';
 import Image from 'next/image';
 import Link from 'next/link';
 import MainNav from './main-nav';
@@ -11,7 +11,10 @@ import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
 import { OnboardingWrapper } from '@/components/onboarding/onboarding-wrapper';
 import { SubscriptionGate } from '@/components/subscription/subscription-gate';
 import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
+import { auth } from '@/auth';
+import { prisma } from '@/db/prisma';
+import { syncLandlordSubscriptionFromStripe } from '@/lib/actions/subscription-sync';
 
 export default async function AdminLayout({
   children,
@@ -21,31 +24,25 @@ export default async function AdminLayout({
   params?: unknown;
 }>) {
   // If arriving from a successful Stripe checkout, sync the subscription into
-  // the DB *before* SubscriptionGate runs. This prevents the gate from
-  // bouncing the user back to the subscription page due to a timing race
-  // where the subscription hasn't been written yet.
+  // the DB *before* SubscriptionGate runs. We call the shared server action
+  // directly (not a self-fetch) so this always runs with the landlord's own
+  // session and isn't blocked by SERVER_URL / cookie quirks in dev.
   const headersList = await headers();
   const referer = headersList.get('referer') || '';
   const isFromStripeCheckout = referer.includes('checkout.stripe.com');
 
   if (isFromStripeCheckout) {
     try {
-      const cookieStore = await cookies();
-      const cookieHeader = cookieStore
-        .getAll()
-        .map((c) => `${c.name}=${c.value}`)
-        .join('; ');
-
-      let origin = SERVER_URL;
-      try {
-        origin = new URL(SERVER_URL).origin;
-      } catch {}
-
-      await fetch(`${origin}/api/landlord/subscription/sync`, {
-        method: 'POST',
-        headers: cookieHeader ? { cookie: cookieHeader } : undefined,
-        cache: 'no-store',
-      });
+      const session = await auth();
+      if (session?.user?.id) {
+        const landlord = await prisma.landlord.findFirst({
+          where: { ownerUserId: session.user.id },
+          select: { id: true },
+        });
+        if (landlord) {
+          await syncLandlordSubscriptionFromStripe(landlord.id);
+        }
+      }
     } catch {
       // Non-fatal — the page-level sync will still run as a fallback
     }

@@ -32,6 +32,12 @@ export function SpotlightTour({ steps, isOpen, onComplete, onSkip, storageKey }:
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
   const [arrowDirection, setArrowDirection] = useState<'up' | 'down' | 'left' | 'right'>('up');
   const [isNavigating, setIsNavigating] = useState(false);
+  // Track whether the user has already landed on the current step's route.
+  // If they have, and they then navigate away to a different route, treat it
+  // as an intentional escape and dismiss the tour — instead of yanking them
+  // back to the tour route. This is what prevents newly signed-up landlords
+  // from getting trapped on the add-property page.
+  const arrivedAtStepRef = useRef<number | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   const step = steps[currentStep];
@@ -117,14 +123,27 @@ export function SpotlightTour({ steps, isOpen, onComplete, onSkip, storageKey }:
     if (!isOpen || !step) return;
 
     if (step.route && pathname !== step.route) {
+      // Once the user has already reached the current step's route, any
+      // subsequent navigation away from it is user-initiated (they clicked
+      // a nav link, etc.) — don't trap them, just dismiss the tour. They
+      // can restart it later from the onboarding page.
+      if (arrivedAtStepRef.current === currentStep) {
+        arrivedAtStepRef.current = null;
+        onSkip();
+        return;
+      }
+
       setIsNavigating(true);
       router.push(step.route);
     } else {
+      // User is on the step's route — record that so we can tell apart a
+      // later user-initiated navigation from the initial tour push.
+      arrivedAtStepRef.current = currentStep;
       setIsNavigating(false);
       const timer = setTimeout(findTarget, 400);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, step, pathname, router, findTarget]);
+  }, [isOpen, step, currentStep, pathname, router, findTarget, onSkip]);
 
   // Re-position on resize
   useEffect(() => {
@@ -139,6 +158,9 @@ export function SpotlightTour({ steps, isOpen, onComplete, onSkip, storageKey }:
       onComplete();
     } else {
       setTargetRect(null);
+      // Next step is a brand new destination — clear the "arrived" marker
+      // so the navigation effect is allowed to push the user there.
+      arrivedAtStepRef.current = null;
       setCurrentStep(prev => prev + 1);
     }
   };
@@ -146,6 +168,7 @@ export function SpotlightTour({ steps, isOpen, onComplete, onSkip, storageKey }:
   const handlePrev = () => {
     if (!isFirstStep) {
       setTargetRect(null);
+      arrivedAtStepRef.current = null;
       setCurrentStep(prev => prev - 1);
     }
   };

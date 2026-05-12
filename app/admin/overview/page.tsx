@@ -2,9 +2,8 @@ import { Metadata } from 'next';
 import { requireAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/db/prisma';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { syncLandlordSubscriptionFromStripe } from '@/lib/actions/subscription-sync';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { SERVER_URL } from '@/lib/constants';
 import { unstable_cache } from 'next/cache';
 import DashboardClient from './dashboard-client';
 
@@ -199,38 +198,27 @@ const AdminOverviewPage = async (props: {
   const session = await requireAdmin();
 
   const resolvedSearchParams = (await props.searchParams) || {};
-  if (resolvedSearchParams.subscription === 'success') {
+  const isSubscriptionSuccess = resolvedSearchParams.subscription === 'success';
+
+  // Need the landlord for downstream queries and (if we just came from Stripe)
+  // to run the subscription sync before the dashboard renders its tier-gated UI.
+  const landlordResult = await getOrCreateCurrentLandlord();
+
+  if (!landlordResult.success || !landlordResult.landlord) {
+    throw new Error(landlordResult.message || 'Unable to determine landlord');
+  }
+
+  if (isSubscriptionSuccess) {
     // The layout already ran a sync when it detected the Stripe referer.
-    // We still call sync here as a fallback (e.g. page refresh after checkout)
-    // and then redirect to the clean URL so the query param doesn't persist.
+    // Run it again here as a fallback (e.g. page refresh after checkout)
+    // using the shared server action so we don't depend on self-fetch.
     try {
-      const cookieStore = await cookies();
-      const cookieHeader = cookieStore
-        .getAll()
-        .map((c) => `${c.name}=${c.value}`)
-        .join('; ');
-
-      let origin = SERVER_URL;
-      try {
-        origin = new URL(SERVER_URL).origin;
-      } catch {}
-
-      await fetch(`${origin}/api/landlord/subscription/sync`, {
-        method: 'POST',
-        headers: cookieHeader ? { cookie: cookieHeader } : undefined,
-        cache: 'no-store',
-      });
+      await syncLandlordSubscriptionFromStripe(landlordResult.landlord.id);
     } catch {
       // ignore — subscription was already synced in the layout
     }
 
     redirect('/admin/overview');
-  }
-
-  const landlordResult = await getOrCreateCurrentLandlord();
-
-  if (!landlordResult.success || !landlordResult.landlord) {
-    throw new Error(landlordResult.message || 'Unable to determine landlord');
   }
 
   const landlordId = landlordResult.landlord.id;
