@@ -73,12 +73,27 @@ export default async function AdminMessagesPage({
   const landlordResult = await getOrCreateCurrentLandlord();
   const landlordId = landlordResult.landlord?.id;
 
+  // Platform staff (PropertyFlowHQ superAdmins) see global contact-form and
+  // support threads. Everyone else — including regular landlord/admin role
+  // accounts — only sees their own DMs. Otherwise the inbox leaks every
+  // contact submission on the platform to every new tenant-facing account.
+  const isPlatformAdmin = session.user.role === 'superAdmin';
+
   // All threads visible to this PM
   const allThreadsRaw = (await prisma.thread.findMany({
     where: {
       OR: [
         { type: 'dm', participants: { some: { userId: session.user.id } } },
-        { type: { in: ['contact', 'support'] } },
+        ...(isPlatformAdmin
+          ? [{ type: { in: ['contact', 'support'] } as const }]
+          : [
+              // Non-platform admins still see contact/support threads they
+              // are explicitly a participant of (e.g. they replied to one).
+              {
+                type: { in: ['contact', 'support'] as const },
+                participants: { some: { userId: session.user.id } },
+              },
+            ]),
       ],
     },
     orderBy: { updatedAt: 'desc' },
@@ -136,7 +151,23 @@ export default async function AdminMessagesPage({
       include: { messages: { orderBy: { createdAt: 'asc' } } },
     }) as (ThreadRow & { messages: MsgRow[] }) | null;
 
+    // Authorization: same scoping as the list. Non-platform-admins can only
+    // open a thread if it's a DM they participate in, or a contact/support
+    // thread they've explicitly been added to as a participant.
+    let allowed = false;
     if (raw) {
+      if (isPlatformAdmin && (raw.type === 'contact' || raw.type === 'support')) {
+        allowed = true;
+      } else {
+        const participation = await prisma.threadParticipant.findFirst({
+          where: { threadId: raw.id, userId: session.user.id },
+          select: { id: true },
+        });
+        allowed = !!participation;
+      }
+    }
+
+    if (raw && allowed) {
       raw.messages = await Promise.all(
         raw.messages.map(async (m) => ({ ...m, content: await decryptField(m.content) }))
       );

@@ -237,7 +237,7 @@ const AdminOverviewPage = async (props: {
 
   const userId = session?.user?.id as string | undefined;
   const role = session?.user?.role;
-  const isAdmin = role === 'admin' || role === 'superAdmin';
+  const isPlatformAdmin = role === 'superAdmin';
 
   const prismaAny = prisma as any;
 
@@ -265,7 +265,7 @@ const AdminOverviewPage = async (props: {
 
   // Fresh user-specific data
   const [openSupportThreads, threadParticipants] = await Promise.all([
-    isAdmin
+    isPlatformAdmin
       ? prismaAny.thread.count({
           where: { type: { in: ['contact', 'support'] }, status: 'open' },
         })
@@ -311,7 +311,7 @@ const AdminOverviewPage = async (props: {
       }).length
     : 0;
 
-  const messagesCount = isAdmin ? Number(openSupportThreads || 0) : unreadThreads;
+  const messagesCount = isPlatformAdmin ? Number(openSupportThreads || 0) : unreadThreads;
 
   // Serialize dates for client component
   const serializedLeases = (recentLeases as any[]).map((l: any) => ({
@@ -395,7 +395,7 @@ const AdminOverviewPage = async (props: {
       listingUrl={listingUrl}
       contractorUrl={contractorUrl}
       landlordName={landlordName}
-      isAdmin={isAdmin}
+      isAdmin={isPlatformAdmin}
     />
   );
 };
