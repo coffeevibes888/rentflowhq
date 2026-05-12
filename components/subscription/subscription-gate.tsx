@@ -86,16 +86,23 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
         landlord.trialStartDate !== null &&
         !trialEnded;
 
+      // Check if subscription is incomplete but customer ID exists (webhook processing)
+      const isIncompleteButProcessing =
+        landlord.subscriptionStatus === 'incomplete' &&
+        landlord.stripeCustomerId;
+
       // Allow access if:
       // 1. Active subscription OR
       // 2. Legitimate in-trial window OR
       // 3. Trial expired but in grace period (read-only) OR
-      // 4. Coming from Stripe checkout
+      // 4. Coming from Stripe checkout OR
+      // 5. Incomplete subscription with customer ID (webhook processing)
       const allowAccess = 
         hasActiveSubscription || 
         trialIsLegitimate || 
         landlord.trialStatus === 'trial_expired' ||
-        isFromStripeCheckout;
+        isFromStripeCheckout ||
+        isIncompleteButProcessing;
 
       // If suspended, redirect to subscription page
       if (landlord.trialStatus === 'suspended' && !hasActiveSubscription && !isFromStripeCheckout) {
