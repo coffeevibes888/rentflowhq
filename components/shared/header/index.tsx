@@ -49,7 +49,7 @@ const Header = async () => {
 
         {/* Logo — pointer-events contained to header height only */}
         <Link href='/' className="absolute left-1/2 transform -translate-x-1/2 top-0 h-full flex items-center justify-center z-[5]">
-          <div className="relative w-40 h-16">
+          <div className="relative w-48 h-10">
             <Image
               src={landlord?.logoUrl || '/images/logo.svg'}
               fill
@@ -66,10 +66,10 @@ const Header = async () => {
       </div>
 
       <div className="wrapper hidden md:flex items-center h-16 overflow-visible">
-        {/* Logo - fixed width, no overflow scaling */}
-        <div className="w-36 flex-shrink-0">
+        {/* Logo - fixed width sized to logo's true 6:1 aspect ratio so it doesn't bleed into nav */}
+        <div className="w-48 lg:w-56 flex-shrink-0">
           <Link href='/' className="flex items-center">
-            <div className="relative w-36 h-14">
+            <div className="relative w-full h-10">
               <Image
                 src={landlord?.logoUrl || '/images/logo.svg'}
                 fill

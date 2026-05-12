@@ -4,35 +4,52 @@ import { redirect } from 'next/navigation'
 
 export async function requireAdmin() {
   const session = await auth()
-  const role = session?.user?.role
+  const sessionRole = session?.user?.role
+  const userId = session?.user?.id
 
-  const isAllowed =
-    role === 'admin' ||
-    role === 'superAdmin' ||
-    role === 'landlord' ||
-    role === 'property_manager'
+  const ALLOWED = new Set(['admin', 'superAdmin', 'landlord', 'property_manager'])
 
-  if (!isAllowed) {
-    const userId = session?.user?.id
-    if (userId) {
-      try {
-        // TeamMember check — prisma client may not have this model on all schema versions
-        const membership = await prisma.teamMember.findFirst({
-          where: { userId, status: 'active' },
-          select: { id: true },
-        })
-        if (membership?.id) {
-          return session
-        }
-      } catch {
-        // TeamMember model not available in current schema — skip check
-      }
-    }
-
-    redirect('/unauthorized')
+  if (sessionRole && ALLOWED.has(sessionRole)) {
+    return session
   }
 
-  return session
+  // Session role can lag the DB by one request after onboarding (user picks
+  // "Property Manager" → DB flipped to 'landlord', but JWT still says 'user').
+  // Re-read role from DB before deciding whether to redirect so we don't
+  // strand legitimately converted landlords on /unauthorized.
+  if (userId) {
+    try {
+      const fresh = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      })
+      if (fresh?.role && ALLOWED.has(fresh.role)) {
+        return session
+      }
+    } catch {
+      // fall through
+    }
+
+    try {
+      const membership = await prisma.teamMember.findFirst({
+        where: { userId, status: 'active' },
+        select: { id: true },
+      })
+      if (membership?.id) {
+        return session
+      }
+    } catch {
+      // TeamMember model not available in current schema — skip check
+    }
+  }
+
+  // Recoverable case: default 'user' role means they haven't finished the
+  // role picker. Send them there instead of /unauthorized.
+  if (!sessionRole || sessionRole === 'user') {
+    redirect('/onboarding')
+  }
+
+  redirect('/unauthorized')
 }
 
 export async function requireSuperAdmin() {

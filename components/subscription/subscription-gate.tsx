@@ -26,12 +26,38 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
 
   // Check if user has the correct role
   // Allow contractor employees (role='contractor_employee') to access contractor routes
+  // For landlord routes, treat `property_manager` as equivalent since they share
+  // the same dashboard and the role picker's "Property Manager" button sets
+  // role='landlord' today but this future-proofs the gate.
   const allowedRoles = role === 'contractor'
     ? [role, 'contractor_employee', 'admin', 'superAdmin']
-    : [role, 'admin', 'superAdmin'];
+    : role === 'landlord'
+      ? [role, 'property_manager', 'admin', 'superAdmin']
+      : [role, 'admin', 'superAdmin'];
 
-  if (!allowedRoles.includes(session.user.role)) {
-    redirect('/unauthorized');
+  let effectiveRole: string | undefined = session.user.role;
+
+  if (!allowedRoles.includes(effectiveRole)) {
+    // Fallback: the JWT/session role can lag behind the database right after
+    // onboarding (e.g., user picked "Property Manager", DB is updated to
+    // 'landlord', but this request's session still shows 'user'). Re-read
+    // directly from the DB before giving up so we don't strand a legitimately
+    // converted user on /unauthorized.
+    const freshUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    effectiveRole = freshUser?.role;
+
+    if (!effectiveRole || !allowedRoles.includes(effectiveRole)) {
+      // Users whose role is still the signup default ('user') haven't finished
+      // the role picker — send them there instead of /unauthorized so they
+      // can recover without contacting support.
+      if (effectiveRole === 'user' || !effectiveRole) {
+        redirect('/onboarding');
+      }
+      redirect('/unauthorized');
+    }
   }
 
   // Check if coming from successful Stripe checkout - allow access while webhook processes
