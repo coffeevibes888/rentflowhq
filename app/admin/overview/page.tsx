@@ -200,6 +200,9 @@ const AdminOverviewPage = async (props: {
 
   const resolvedSearchParams = (await props.searchParams) || {};
   if (resolvedSearchParams.subscription === 'success') {
+    // The layout already ran a sync when it detected the Stripe referer.
+    // We still call sync here as a fallback (e.g. page refresh after checkout)
+    // and then redirect to the clean URL so the query param doesn't persist.
     try {
       const cookieStore = await cookies();
       const cookieHeader = cookieStore
@@ -218,7 +221,7 @@ const AdminOverviewPage = async (props: {
         cache: 'no-store',
       });
     } catch {
-      // ignore
+      // ignore — subscription was already synced in the layout
     }
 
     redirect('/admin/overview');

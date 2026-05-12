@@ -1,4 +1,4 @@
-import { APP_NAME } from '@/lib/constants';
+import { APP_NAME, SERVER_URL } from '@/lib/constants';
 import Image from 'next/image';
 import Link from 'next/link';
 import MainNav from './main-nav';
@@ -11,12 +11,46 @@ import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
 import { OnboardingWrapper } from '@/components/onboarding/onboarding-wrapper';
 import { SubscriptionGate } from '@/components/subscription/subscription-gate';
 import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
+import { cookies, headers } from 'next/headers';
 
 export default async function AdminLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params?: unknown;
 }>) {
+  // If arriving from a successful Stripe checkout, sync the subscription into
+  // the DB *before* SubscriptionGate runs. This prevents the gate from
+  // bouncing the user back to the subscription page due to a timing race
+  // where the subscription hasn't been written yet.
+  const headersList = await headers();
+  const referer = headersList.get('referer') || '';
+  const isFromStripeCheckout = referer.includes('checkout.stripe.com');
+
+  if (isFromStripeCheckout) {
+    try {
+      const cookieStore = await cookies();
+      const cookieHeader = cookieStore
+        .getAll()
+        .map((c) => `${c.name}=${c.value}`)
+        .join('; ');
+
+      let origin = SERVER_URL;
+      try {
+        origin = new URL(SERVER_URL).origin;
+      } catch {}
+
+      await fetch(`${origin}/api/landlord/subscription/sync`, {
+        method: 'POST',
+        headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+        cache: 'no-store',
+      });
+    } catch {
+      // Non-fatal — the page-level sync will still run as a fallback
+    }
+  }
+
   // Ensure user has active subscription before accessing admin dashboard
   await SubscriptionGate({ role: 'landlord', redirectTo: '/onboarding/landlord/subscription' });
 

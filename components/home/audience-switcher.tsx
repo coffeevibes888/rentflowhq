@@ -234,7 +234,7 @@ function PMUrgencyStrip() {
               Start My Free Trial
               <ArrowRight className='h-4 w-4' />
             </Link>
-            <p className='text-white/60 text-xs'>Credit card required &mdash; cancel anytime.</p>
+
           </div>
         </div>
       </div>
@@ -401,7 +401,7 @@ export default function AudienceSwitcher({
                       Start Free Today
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
-                    <p className="text-xs text-gray-400 font-medium text-center">14-day free trial &mdash; credit card required</p>
+                    <p className="text-xs text-gray-400 font-medium text-center">14-day free trial</p>
                   </div>
                 </div>
               </div>

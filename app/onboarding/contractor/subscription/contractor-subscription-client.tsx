@@ -149,7 +149,7 @@ export default function ContractorSubscriptionClient({
 
     const tierMeta = tiers.find((t) => t.id === tierId);
     trackMetaEvent('InitiateCheckout', {
-      content_ids: [tierId],
+      content_ids: tierId,
       content_name: `contractor_${tierId}`,
       content_category: 'contractor_subscription',
       value: tierMeta?.price ?? 19.99,
