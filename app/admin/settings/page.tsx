@@ -30,14 +30,18 @@ const AdminSettingsPage = async ({ searchParams }: AdminSettingsPageProps) => {
     (subscriptionResult.currentTier === 'pro' || subscriptionResult.currentTier === 'enterprise');
   const isEnterprise = subscriptionResult.success && subscriptionResult.currentTier === 'enterprise';
 
-  // Get user's 2FA status
+  // Get user's 2FA + email verification status for the profile tab
   let twoFactorEnabled = false;
+  let emailVerified = false;
+  let userEmail = session?.user?.email ?? '';
   if (session?.user?.id) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { twoFactorEnabled: true },
+      select: { twoFactorEnabled: true, emailVerified: true, email: true },
     });
     twoFactorEnabled = user?.twoFactorEnabled ?? false;
+    emailVerified = Boolean(user?.emailVerified);
+    userEmail = user?.email ?? userEmail;
   }
 
   if (!landlord) {
@@ -72,6 +76,8 @@ const AdminSettingsPage = async ({ searchParams }: AdminSettingsPageProps) => {
         isPro={isPro}
         isEnterprise={isEnterprise}
         twoFactorEnabled={twoFactorEnabled}
+        emailVerified={emailVerified}
+        userEmail={userEmail}
         initialTab={initialTab}
       />
     </main>

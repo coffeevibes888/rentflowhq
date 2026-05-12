@@ -228,7 +228,7 @@ function PMUrgencyStrip() {
           </p>
           <div className='flex flex-col sm:flex-row items-center justify-center gap-3 pt-2'>
             <Link
-              href='/sign-up'
+              href='/sign-up?role=landlord&plan=starter&skipOnboarding=true'
               className='inline-flex items-center gap-2 rounded-full bg-white text-blue-700 px-8 py-3.5 text-sm font-black shadow-xl hover:bg-yellow-50 hover:scale-105 transition-all duration-200'
             >
               Start My Free Trial
@@ -307,7 +307,7 @@ export default function AudienceSwitcher({
                   </p>
                   <div className="flex flex-col items-center gap-2 pt-1">
                     <Link
-                      href="/sign-up"
+                      href="/sign-up?role=landlord&plan=starter&skipOnboarding=true"
                       className="group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-7 py-3.5 text-base md:text-sm font-bold shadow-lg shadow-cyan-500/25 hover:shadow-xl hover:shadow-cyan-500/30 hover:scale-105 transition-all duration-200"
                     >
                       Start Free Today
@@ -395,7 +395,7 @@ export default function AudienceSwitcher({
                   </p>
                   <div className="flex flex-col items-center gap-2 pt-1">
                     <Link
-                      href="/sign-up?role=contractor"
+                      href="/sign-up?role=contractor&plan=starter&skipOnboarding=true"
                       className="group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-orange-400 text-white px-7 py-3.5 text-base md:text-sm font-bold shadow-lg shadow-rose-500/25 hover:shadow-xl hover:shadow-rose-500/30 hover:scale-105 transition-all duration-200"
                     >
                       Start Free Today

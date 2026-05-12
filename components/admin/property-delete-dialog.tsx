@@ -118,7 +118,7 @@ export function PropertyDeleteDialog({ propertyId, action }: PropertyDeleteDialo
       {/* Initial Confirmation Dialog */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogTrigger asChild>
-          <Button size="sm" variant="destructive" className="ml-2">
+          <Button size="sm" variant="destructive">
             Delete
           </Button>
         </AlertDialogTrigger>

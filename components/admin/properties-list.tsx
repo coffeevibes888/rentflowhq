@@ -79,7 +79,7 @@ export function PropertiesMobileList({ properties }: PropertiesListProps) {
                 </div>
               </div>
             </div>
-            <div className='flex gap-2 mt-3 pt-3 border-t border-gray-100' onClick={(e) => e.stopPropagation()}>
+            <div className='flex items-center gap-2 mt-3 pt-3 border-t border-gray-100' onClick={(e) => e.stopPropagation()}>
               <ScheduleHoursButton propertyId={property.id} />
               <Button
                 variant='outline'
@@ -106,7 +106,8 @@ export function PropertiesDesktopTable({ properties }: PropertiesListProps) {
 
   return (
     <div className='hidden md:block rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'>
-      <table className='w-full'>
+      <div className='overflow-x-auto'>
+      <table className='w-full min-w-[640px]'>
         <thead>
           <tr className='bg-gray-50/80'>
             <th className='text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5 w-20'>Photo</th>
@@ -182,6 +183,7 @@ export function PropertiesDesktopTable({ properties }: PropertiesListProps) {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

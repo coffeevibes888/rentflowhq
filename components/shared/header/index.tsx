@@ -66,14 +66,14 @@ const Header = async () => {
       </div>
 
       <div className="wrapper hidden md:flex items-center h-16 overflow-visible">
-        {/* Logo - fixed width */}
-        <div className="w-32 flex-shrink-0">
+        {/* Logo - fixed width, no overflow scaling */}
+        <div className="w-36 flex-shrink-0">
           <Link href='/' className="flex items-center">
-            <div className="relative w-24 h-24">
+            <div className="relative w-36 h-14">
               <Image
                 src={landlord?.logoUrl || '/images/logo.svg'}
                 fill
-                className="object-contain scale-[2.8] origin-left mt-4"
+                className="object-contain object-left"
                 alt={`${displayName} Logo`}
                 priority={true}
               />

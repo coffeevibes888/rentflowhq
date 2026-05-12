@@ -60,14 +60,6 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
       },
     });
 
-    // Re-check user's email verification at gate time. A trial without a
-    // verified email is no longer considered valid — this is the pairing
-    // defense to the onboarding fix in setUserRoleAndLandlordIntake.
-    const userRow = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { emailVerified: true },
-    });
-
     if (landlord) {
       const now = new Date();
       const trialEnded = landlord.trialEndDate && landlord.trialEndDate < now;
@@ -79,21 +71,20 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
         landlord.subscriptionStatus === 'active' ||
         landlord.subscription?.status === 'active';
 
-      // A trial is only considered valid when ALL of these are true:
+      // A trial is considered valid when:
       //   1. trialStatus === 'trialing'
       //   2. trialEndDate is set and in the future
       //   3. trialStartDate is set (proves the user actively started a trial)
-      //   4. the user's email is verified OR they have a Stripe customer ID
-      //      (the Stripe customer means they reached the checkout flow, which
-      //      requires a real email anyway).
-      const emailVerified = Boolean(userRow?.emailVerified);
-      const hasPaymentProof = Boolean(landlord.stripeCustomerId) || hasActiveSubscription;
+      // Email verification is no longer a hard gate here — it's nudged from
+      // settings post-signup so we don't strand new users mid-funnel. The
+      // real abuse protection is that trial creation requires going through
+      // the role picker (signed-in, conscious selection) and access to
+      // anything that sends mail / moves money is gated separately.
       const trialIsLegitimate =
         landlord.trialStatus === 'trialing' &&
         landlord.trialEndDate !== null &&
         landlord.trialStartDate !== null &&
-        !trialEnded &&
-        (emailVerified || hasPaymentProof);
+        !trialEnded;
 
       // Allow access if:
       // 1. Active subscription OR
@@ -120,11 +111,6 @@ export async function SubscriptionGate({ role, redirectTo }: SubscriptionGatePro
       }
 
       if (!allowAccess) {
-        // Surface a specific reason so the landing page can guide them to
-        // the right next step (verify email vs. pick a plan).
-        if (!emailVerified && !hasPaymentProof) {
-          redirect('/verify-email?reason=trial_requires_verified_email');
-        }
         redirect(redirectTo || '/onboarding/landlord/subscription?reason=trial_ended');
       }
     } else {

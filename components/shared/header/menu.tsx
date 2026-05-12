@@ -12,7 +12,10 @@ const Menu = async () => {
   const userRole = session?.user?.role;
   
   let dashboardLabel = 'Dashboard';
-  let dashboardLink = '/';
+  // Users who haven't picked a role yet (signed up but didn't finish onboarding)
+  // should be sent to /onboarding to recover, not to the homepage where the
+  // Dashboard link looks broken because nothing visibly happens.
+  let dashboardLink = session ? '/onboarding' : '/';
   
   if (userRole === 'tenant') {
     dashboardLabel = 'Tenant Dashboard';

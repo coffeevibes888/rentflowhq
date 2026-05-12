@@ -9,6 +9,7 @@ import { Camera, Loader2, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { UploadButton } from '@/lib/uploadthing';
+import { EmailVerifyCard } from './email-verify-card';
 
 interface ProfileSettingsProps {
   landlord: {
@@ -21,9 +22,11 @@ interface ProfileSettingsProps {
     logoUrl?: string | null;
     aboutPhoto?: string | null;
   };
+  emailVerified?: boolean;
+  userEmail?: string;
 }
 
-export function ProfileSettings({ landlord }: ProfileSettingsProps) {
+export function ProfileSettings({ landlord, emailVerified = false, userEmail = '' }: ProfileSettingsProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(landlord.aboutPhoto || '');
@@ -58,6 +61,10 @@ export function ProfileSettings({ landlord }: ProfileSettingsProps) {
 
   return (
     <div className="space-y-4">
+      {userEmail && (
+        <EmailVerifyCard emailVerified={emailVerified} email={userEmail} />
+      )}
+
       <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 border border-black p-2.5 sm:p-3 md:p-4 space-y-1 hover:border-slate-700 transition-colors shadow-2xl active:scale-[0.98]">
         <h3 className="text-sm font-semibold text-white mb-3">Profile Photo</h3>
         <div className="flex items-center gap-4">

@@ -73,7 +73,7 @@ export default function ExitIntentPopup() {
 
           <div className='space-y-4 pt-2'>
             <Link
-              href='/sign-up'
+              href='/sign-up?role=landlord&plan=starter&skipOnboarding=true'
               className='group w-full inline-flex items-center justify-center rounded-full bg-violet-600 text-white px-8 py-4 text-lg font-bold shadow-xl hover:bg-violet-500 transition-all duration-300 hover:scale-105 hover:shadow-violet-500/25'
             >
               Start Your Free Trial

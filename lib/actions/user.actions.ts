@@ -764,22 +764,20 @@ export async function setUserRoleAndLandlordIntake(data: {
       };
     }
 
-    // BUGFIX: The landlord trial used to auto-start here without any email
-    // verification — which let anyone navigate to /onboarding/landlord and
-    // reach the admin dashboard with no card and no verified email.
-    // Landlord onboarding now requires a verified email before we create the
-    // trial. Other roles (tenant, homeowner) don't grant dashboard access, so
-    // they can proceed without verification.
+    // NOTE: We intentionally do NOT require a verified email here. Email
+    // verification used to hard-block the role picker, which created a
+    // dead-end for fresh signups who had not yet clicked the verification
+    // link (especially on mobile where switching apps loses the form state).
+    // The real abuse gate is now the subscription picker — the user can't
+    // reach /admin without either a Stripe customer record (card on file)
+    // or a legitimate in-window trial granted via this conscious role
+    // selection. Email verification is nudged from settings instead.
+    // Still kick off a verification email so they have a one-click link
+    // waiting in their inbox.
     if (data.role === 'landlord' && currentUser && !currentUser.emailVerified) {
-      // Re-send verification on demand so the user has a clear next step.
       try {
         await sendVerificationEmailToken(currentUser.email);
       } catch {}
-      return {
-        success: false,
-        message:
-          'Please verify your email before starting a landlord trial. We just sent you a verification link.',
-      };
     }
 
     await prisma.user.update({

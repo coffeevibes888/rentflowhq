@@ -27,10 +27,12 @@ interface LandlordSettingsClientProps {
   isPro: boolean;
   isEnterprise?: boolean;
   twoFactorEnabled?: boolean;
+  emailVerified?: boolean;
+  userEmail?: string;
   initialTab?: string;
 }
 
-export function LandlordSettingsClient({ landlord, isPro, isEnterprise = false, twoFactorEnabled = false, initialTab = 'profile' }: LandlordSettingsClientProps) {
+export function LandlordSettingsClient({ landlord, isPro, isEnterprise = false, twoFactorEnabled = false, emailVerified = false, userEmail = '', initialTab = 'profile' }: LandlordSettingsClientProps) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const router = useRouter();
 
@@ -160,7 +162,11 @@ export function LandlordSettingsClient({ landlord, isPro, isEnterprise = false, 
         </TabsList>
 
         <TabsContent value="profile" className="mt-4">
-          <ProfileSettings landlord={landlord} />
+          <ProfileSettings
+            landlord={landlord}
+            emailVerified={emailVerified}
+            userEmail={userEmail}
+          />
         </TabsContent>
 
         <TabsContent value="banking" className="mt-4">

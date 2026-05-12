@@ -1,0 +1,21 @@
+[33mcommit 6b2218278b1c60772859a51984f4120382b7837c[m
+Author: Allen Young <coffeevives888@gmail.com>
+Date:   Fri May 8 20:30:48 2026 -0600
+
+    fixed google login bypass subsctiption bug
+
+ app/api/auth/register/route.ts                     |  79 [32m++++[m[31m--[m
+ .../landlord/subscription/create-checkout/route.ts |  27 [32m++[m
+ app/onboarding/landlord/page.tsx                   |  19 [32m+[m[31m-[m
+ .../subscription/subscription-selection-client.tsx |   2 [32m+[m
+ auth.ts                                            |  47 [32m++++[m
+ components/subscription/subscription-gate.tsx      |  38 [32m++[m[31m-[m
+ email/templates/first-customer-welcome.tsx         | 295 [32m+++++++++++++++++++++[m
+ lib/actions/user.actions.ts                        |  20 [32m+[m[31m-[m
+ lib/security/audit-logger.ts                       |   5 [32m+[m[31m-[m
+ scripts/check-user2.sql                            |   7 [32m+[m
+ scripts/inspect-user.mjs                           |  80 [32m++++++[m
+ scripts/inspect-user.ts                            |  64 [32m+++++[m
+ scripts/quarantine-bypass-accounts.ts              |  96 [32m+++++++[m
+ scripts/welcome-first-customer.ts                  | 251 [32m++++++++++++++++++[m
+ 14 files changed, 994 insertions(+), 36 deletions(-)

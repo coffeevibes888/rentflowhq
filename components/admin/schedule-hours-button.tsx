@@ -109,9 +109,9 @@ export default function ScheduleHoursButton({ propertyId, existingSchedule }: Sc
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Clock className="h-4 w-4 mr-2" />
-          Set Schedule Hours
+        <Button variant="outline" size="sm" className="shrink-0">
+          <Clock className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Set Schedule Hours</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-slate-900 border-white/10">
