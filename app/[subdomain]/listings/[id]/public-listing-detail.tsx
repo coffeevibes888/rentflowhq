@@ -440,10 +440,34 @@ export default function PublicListingDetail({
 
             {/* Title & Price Section */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-slate-900">{listing.title}</h1>
-              <p className="text-lg text-slate-600 flex items-center gap-1">
+              {/* SEO-shaped H1: "3BR/2BA House for Sale in Denver, CO — $450,000" */}
+              <h1 className="text-3xl font-bold text-slate-900">
+                {(() => {
+                  const beds = listing.bedrooms;
+                  const baths = listing.bathrooms != null ? Number(listing.bathrooms) : null;
+                  const bedBath = beds != null && baths != null
+                    ? `${beds === 0 ? 'Studio' : `${beds}BR`}/${Number.isInteger(baths) ? baths : baths.toFixed(1).replace(/\.0$/, '')}BA`
+                    : '';
+                  const typeLabel = listing.propertyType
+                    ? listing.propertyType.charAt(0).toUpperCase() + listing.propertyType.slice(1)
+                    : 'Home';
+                  const action = (listing.listingType || 'sale').toLowerCase() === 'rent' ? 'for Rent' : 'for Sale';
+                  const locParts = [address?.city, address?.state].filter(Boolean).join(', ');
+                  const priceStr = listing.price
+                    ? `$${Math.round(Number(listing.price)).toLocaleString('en-US')}${(listing.listingType || '').toLowerCase() === 'rent' ? '/mo' : ''}`
+                    : '';
+                  const head = [bedBath, typeLabel].filter(Boolean).join(' ');
+                  const inLoc = locParts ? ` in ${locParts}` : '';
+                  return `${head} ${action}${inLoc}${priceStr ? ` — ${priceStr}` : ''}`.replace(/\s+/g, ' ').trim();
+                })()}
+              </h1>
+              {/* Agent's own listing title as subtitle for context */}
+              {listing.title && (
+                <p className="text-lg font-medium text-slate-700">{listing.title}</p>
+              )}
+              <p className="text-base text-slate-600 flex items-center gap-1">
                 <MapPin className="h-5 w-5" />
-                {address?.street}, {address?.city}, {address?.state} {address?.zip}
+                {[address?.street, address?.city, address?.state, address?.zip].filter(Boolean).join(', ')}
               </p>
               <div className="flex items-baseline gap-2 pt-2">
                 <span className="text-4xl font-bold text-slate-900">

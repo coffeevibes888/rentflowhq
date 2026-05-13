@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
+import { Metadata } from 'next';
 import { prisma } from '@/db/prisma';
 import { auth } from '@/auth';
 import Image from 'next/image';
@@ -10,6 +11,15 @@ import PropertyScheduler from '@/components/subdomain/property-scheduler';
 import { SubdomainApplyButton } from '@/components/subdomain/apply-button';
 import PropertyMap from '@/components/maps/property-map';
 import PropertyMediaSection from '@/components/subdomain/property-media-section';
+import JsonLdScript from '@/components/seo/json-ld-script';
+import {
+  canonicalUrl,
+  buildPropertySeoTitle,
+  buildPropertySeoH1,
+  buildPropertySeoDescription,
+  propertyLd,
+  breadcrumbLd,
+} from '@/lib/seo';
 
 // Group units by floor plan (bedrooms + bathrooms combination)
 interface FloorPlan {
@@ -72,10 +82,88 @@ function groupUnitsByFloorPlan(units: any[]): FloorPlan[] {
   return Array.from(floorPlanMap.values()).sort((a, b) => a.bedrooms - b.bedrooms);
 }
 
+interface PropertyPageParams {
+  subdomain: string;
+  slug: string;
+}
+
+/**
+ * Build SSR metadata: keyword-rich title, location-keyed description,
+ * canonical URL, OG image, and price/bed-aware copy.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<PropertyPageParams>;
+}): Promise<Metadata> {
+  const { subdomain, slug } = await params;
+
+  const landlord = await prisma.landlord.findUnique({
+    where: { subdomain },
+    select: { id: true, name: true, companyName: true },
+  });
+  if (!landlord) return { title: 'Property Not Found' };
+
+  const property = await prisma.property.findFirst({
+    where: { slug, landlordId: landlord.id },
+    include: { units: { where: { isAvailable: true } } },
+  });
+  if (!property) return { title: 'Property Not Found' };
+
+  const address = property.address as any;
+  const city = address?.city || null;
+  const state = address?.state || null;
+  const unitInputs = property.units.map((u) => ({
+    bedrooms: u.bedrooms,
+    bathrooms: u.bathrooms != null ? Number(u.bathrooms) : null,
+    sizeSqFt: u.sizeSqFt,
+    rentAmount: u.rentAmount != null ? Number(u.rentAmount) : null,
+  }));
+
+  const title = buildPropertySeoTitle({
+    propertyName: property.name,
+    propertyType: property.type,
+    city,
+    state,
+    units: unitInputs,
+  });
+  const description = buildPropertySeoDescription({
+    propertyName: property.name,
+    propertyType: property.type,
+    city,
+    state,
+    description: property.description,
+    units: unitInputs,
+  });
+  const ogImage = property.units.find((u) => u.images?.length)?.images?.[0] || undefined;
+  const canonical = canonicalUrl(`/${subdomain}/properties/${property.slug}`);
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    keywords: [
+      `apartments for rent in ${city || ''}`.trim(),
+      `homes for rent in ${city || ''}`.trim(),
+      `${property.type} for rent ${city || ''}`.trim(),
+      property.name,
+    ].filter((k) => k && !k.endsWith('in')),
+    openGraph: {
+      type: 'website',
+      url: canonical,
+      title,
+      description,
+      siteName: 'Property Flow HQ',
+      images: ogImage ? [{ url: ogImage, alt: property.name }] : undefined,
+    },
+    twitter: { card: 'summary_large_image', title, description, images: ogImage ? [ogImage] : undefined },
+  };
+}
+
 export default async function SubdomainPropertyPage({
   params,
 }: {
-  params: Promise<{ subdomain: string; slug: string }>;
+  params: Promise<PropertyPageParams>;
 }) {
   const { subdomain, slug } = await params;
 
@@ -130,8 +218,66 @@ export default async function SubdomainPropertyPage({
 
   const firstImage = property.units[0]?.images?.[0];
 
+  // ── SEO: build H1 + JSON-LD from real, indexable data ────────────────────
+  const address = property.address as any;
+  const city = address?.city || null;
+  const state = address?.state || null;
+  const street = address?.street || null;
+  const zip = address?.zip || null;
+  const lat = address?.lat ?? null;
+  const lng = address?.lng ?? null;
+
+  const unitInputs = property.units.map((u) => ({
+    bedrooms: u.bedrooms,
+    bathrooms: u.bathrooms != null ? Number(u.bathrooms) : null,
+    sizeSqFt: u.sizeSqFt,
+    rentAmount: u.rentAmount != null ? Number(u.rentAmount) : null,
+    isAvailable: u.isAvailable,
+  }));
+
+  const seoH1 = buildPropertySeoH1({
+    propertyName: property.name,
+    propertyType: property.type,
+    city,
+    state,
+    units: unitInputs,
+  });
+
+  const propertyImages = property.units
+    .flatMap((u) => u.images || [])
+    .filter(Boolean)
+    .slice(0, 8);
+
+  const propertyCanonical = canonicalUrl(`/${subdomain}/properties/${property.slug}`);
+  const subdomainCanonical = canonicalUrl(`/${subdomain}`);
+
+  const propertyLdData: object[] = [
+    propertyLd({
+      url: propertyCanonical,
+      name: property.name,
+      description: property.description,
+      propertyType: property.type,
+      street,
+      city,
+      state,
+      zip,
+      lat: typeof lat === 'number' ? lat : null,
+      lng: typeof lng === 'number' ? lng : null,
+      images: propertyImages,
+      units: unitInputs,
+      landlordName: landlord.companyName || landlord.name,
+      landlordUrl: subdomainCanonical,
+    }),
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: landlord.companyName || landlord.name, path: `/${subdomain}` },
+      { name: property.name, path: `/${subdomain}/properties/${property.slug}` },
+    ]),
+  ];
+
   return (
     <main className="flex-1 w-full">
+      <JsonLdScript data={propertyLdData} id="property-ld" />
       <div className="max-w-6xl mx-auto py-12 px-4 space-y-8">
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
@@ -162,12 +308,12 @@ export default async function SubdomainPropertyPage({
 
           <div className="space-y-6">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">{property.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{seoH1}</h1>
               {property.address && typeof property.address === 'object' && (
                 <div className="flex items-center gap-2 text-slate-300">
                   <MapPin className="h-4 w-4" />
                   <span>
-                    {(property.address as any).street}, {(property.address as any).city}, {(property.address as any).state}
+                    {[street, city, state, zip].filter(Boolean).join(', ')}
                   </span>
                 </div>
               )}

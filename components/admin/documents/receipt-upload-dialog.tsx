@@ -256,13 +256,16 @@ export function ReceiptUploadDialog({
         onSuccess();
         handleClose();
       } else {
+        console.error('[ReceiptUploadDialog] extract-receipt failed:', result);
         toast({
-          title: result.message || 'Failed to create expense',
+          title: 'Failed to create expense',
+          description: result.message || `Server returned ${res.status}. Check the amount and date fields.`,
           variant: 'destructive',
         });
       }
-    } catch {
-      toast({ title: 'Failed to create expense', variant: 'destructive' });
+    } catch (err) {
+      console.error('[ReceiptUploadDialog] handleCreateExpense error:', err);
+      toast({ title: 'Failed to create expense', description: 'Network error — please try again.', variant: 'destructive' });
     } finally {
       setProcessing(false);
     }

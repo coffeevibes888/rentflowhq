@@ -63,23 +63,32 @@ export async function POST(req: NextRequest) {
       description: overrides?.description ?? existingData.description ?? null,
     };
 
-    const amount = parseFloat(String(extracted.amount ?? '').replace(/[$,]/g, ''));
-    if (!amount || isNaN(amount) || amount <= 0) {
+    const amount = parseFloat(String(extracted.amount ?? '').replace(/[$,\s]/g, ''));
+    if (isNaN(amount) || amount <= 0) {
       return NextResponse.json({
         success: false,
         message: 'Could not extract a valid amount. Please enter it manually.',
         extracted,
-      }, { status: 400 });
+      }, { status: 422 });
     }
 
-    const incurredAt = extracted.date ? new Date(extracted.date) : new Date();
-    if (isNaN(incurredAt.getTime())) {
-      return NextResponse.json({
-        success: false,
-        message: 'Could not parse date. Please enter it manually.',
-        extracted,
-      }, { status: 400 });
-    }
+    const incurredAt = (() => {
+      if (!extracted.date) return new Date();
+      // Handle YYYY-MM-DD (from <input type="date">) — parse as local time to
+      // avoid UTC-offset shifting the date by one day in some timezones.
+      const iso = String(extracted.date).trim();
+      const localMatch = iso.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (localMatch) {
+        const d = new Date(
+          parseInt(localMatch[1]),
+          parseInt(localMatch[2]) - 1,
+          parseInt(localMatch[3]),
+        );
+        if (!isNaN(d.getTime())) return d;
+      }
+      const d = new Date(iso);
+      return isNaN(d.getTime()) ? new Date() : d;
+    })();
 
     // Build a human-readable description
     const expenseDescription =
@@ -136,7 +145,7 @@ export async function POST(req: NextRequest) {
       extracted,
     });
   } catch (error) {
-    console.error('Extract receipt error:', error);
+    console.error('[extract-receipt] Unhandled error:', error);
     return NextResponse.json({ success: false, message: 'Failed to process receipt' }, { status: 500 });
   }
 }

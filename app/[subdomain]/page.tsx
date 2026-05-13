@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { redirect, notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import { prisma } from '@/db/prisma';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,6 +15,17 @@ import { ServiceAreaBadge } from '@/components/contractor-subdomain/service-area
 import { QuickActions } from '@/components/contractor-subdomain/quick-actions';
 import { TrustBadges } from '@/components/contractor-subdomain/trust-badges';
 import { detectSubdomainEntity, getContractorSubdomainPath } from '@/lib/utils/subdomain-detection';
+import JsonLdScript from '@/components/seo/json-ld-script';
+import {
+  canonicalUrl,
+  buildContractorTitle,
+  buildContractorDescription,
+  contractorLd,
+  agentLd,
+  landlordLd,
+  breadcrumbLd,
+  truncateDescription,
+} from '@/lib/seo';
 import {
   CheckCircle2,
   CreditCard,
@@ -63,6 +75,126 @@ const iconColors: Record<string, string> = {
   'map-pin': 'bg-rose-500/20 border-rose-400/30 text-rose-300',
   user: 'bg-indigo-500/20 border-indigo-400/30 text-indigo-300',
 };
+
+/**
+ * Per-entity metadata (title, description, OG, canonical).
+ * Runs at request time on the server so every contractor/landlord/agent
+ * subdomain ships with its own SEO tags in the initial HTML.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ subdomain: string }>;
+}): Promise<Metadata> {
+  const { subdomain } = await params;
+  const entity = await detectSubdomainEntity(subdomain);
+
+  if (entity.type === 'not_found') {
+    return { title: 'Not Found' };
+  }
+
+  // Canonical: always point to the path-based URL on the apex host.
+  // This collapses /c/{slug}, /{slug}, and {slug}.host into one signal.
+  const path = `/${subdomain}`;
+  const canonical = canonicalUrl(path);
+
+  if (entity.type === 'contractor') {
+    const c = entity.data;
+    const name = c.displayName || c.businessName;
+    const title = buildContractorTitle({
+      businessName: name,
+      specialties: c.specialties,
+      baseCity: c.baseCity,
+      baseState: c.baseState,
+    });
+    const description = buildContractorDescription({
+      businessName: name,
+      tagline: c.tagline,
+      bio: c.bio,
+      specialties: c.specialties,
+      baseCity: c.baseCity,
+      baseState: c.baseState,
+      avgRating: c.avgRating,
+      totalReviews: c.totalReviews,
+    });
+    const heroImage = c.heroImages?.[0] || c.profilePhoto || c.logoUrl || undefined;
+    return {
+      title,
+      description,
+      alternates: { canonical },
+      keywords: [
+        ...(c.specialties || []),
+        c.baseCity ? `${c.specialties?.[0] || 'contractor'} in ${c.baseCity}` : null,
+        c.baseCity && c.baseState ? `${c.baseCity}, ${c.baseState}` : null,
+        'licensed contractor',
+        'insured contractor',
+      ].filter(Boolean) as string[],
+      openGraph: {
+        type: 'website',
+        url: canonical,
+        title,
+        description,
+        siteName: 'Property Flow HQ',
+        images: heroImage ? [{ url: heroImage, alt: name }] : undefined,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: heroImage ? [heroImage] : undefined,
+      },
+    };
+  }
+
+  if (entity.type === 'agent') {
+    const a = entity.data;
+    const loc = [a.serviceAreas?.[0], a.licenseState].filter(Boolean).join(', ');
+    const title = `${a.name}${a.brokerage ? ` — ${a.brokerage}` : ''}${loc ? ` | Real Estate Agent in ${loc}` : ' | Real Estate Agent'} | Property Flow HQ`;
+    const description = truncateDescription(
+      a.aboutBio ||
+        `${a.name} is a licensed real estate agent${a.brokerage ? ` with ${a.brokerage}` : ''}${loc ? ` serving ${loc}` : ''}. Browse active listings, schedule tours, and connect directly.`,
+    );
+    const heroImage = a.heroImages?.[0] || a.user?.image || a.logoUrl || undefined;
+    return {
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: {
+        type: 'profile',
+        url: canonical,
+        title,
+        description,
+        siteName: 'Property Flow HQ',
+        images: heroImage ? [{ url: heroImage, alt: a.name }] : undefined,
+      },
+      twitter: { card: 'summary_large_image', title, description, images: heroImage ? [heroImage] : undefined },
+    };
+  }
+
+  // landlord
+  const l = entity.data;
+  const brand = l.companyName || l.name;
+  const title = `${brand} — Apartments & Homes for Rent | Property Flow HQ`;
+  const description = truncateDescription(
+    l.aboutBio ||
+      `Browse available apartments and homes managed by ${brand}. Apply online with no application fees, pay rent securely, and submit maintenance requests 24/7.`,
+  );
+  const heroImage = l.heroImages?.[0] || l.aboutPhoto || l.logoUrl || undefined;
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: 'website',
+      url: canonical,
+      title,
+      description,
+      siteName: 'Property Flow HQ',
+      images: heroImage ? [{ url: heroImage, alt: brand }] : undefined,
+    },
+    twitter: { card: 'summary_large_image', title, description, images: heroImage ? [heroImage] : undefined },
+  };
+}
 
 /**
  * Unified subdomain page that handles landlords, agents, and contractors
@@ -159,8 +291,27 @@ async function LandlordSubdomainPage({
     ? heroImages
     : properties.flatMap((property) => property.units.flatMap((u: any) => u.images || [])).slice(0, 3);
 
+  const subdomainCanonical = canonicalUrl(`/${subdomain}`);
+  const ldData: object[] = [
+    landlordLd({
+      id: landlord.id,
+      url: subdomainCanonical,
+      name: brandName,
+      email: brandEmail || undefined,
+      phone: brandPhone || undefined,
+      logo: landlord.logoUrl || undefined,
+      image: heroMedia[0] || landlord.aboutPhoto || undefined,
+      address: brandAddress || undefined,
+    }),
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: brandName, path: `/${subdomain}` },
+    ]),
+  ];
+
   return (
     <main className="flex-1 w-full">
+      <JsonLdScript data={ldData} id="landlord-ld" />
       {/* Hero Section - Conversion Focused */}
       <SubdomainHero
         brandName={brandName}
@@ -334,9 +485,45 @@ async function ContractorSubdomainPage({
 
   // Use root path for unified routing
   const basePath = `/${subdomain}`;
+  const contractorCanonical = canonicalUrl(basePath);
+
+  const contractorLdData: object[] = [
+    contractorLd({
+      id: contractor.id,
+      url: contractorCanonical,
+      businessName: contractor.businessName,
+      displayName: contractor.displayName,
+      tagline: contractor.tagline,
+      bio: contractor.bio,
+      email: contractor.email,
+      phone: contractor.phone,
+      website: contractor.website,
+      logoUrl: contractor.logoUrl,
+      profilePhoto: contractor.profilePhoto,
+      heroImages: contractor.heroImages,
+      portfolioImages: contractor.portfolioImages,
+      baseCity: contractor.baseCity,
+      baseState: contractor.baseState,
+      serviceAreas: contractor.serviceAreas,
+      serviceRadius: contractor.serviceRadius,
+      specialties: contractor.specialties,
+      yearsExperience: contractor.yearsExperience,
+      hourlyRate: contractor.hourlyRate ? Number(contractor.hourlyRate) : null,
+      licenseNumber: contractor.licenseNumber,
+      insuranceVerified: contractor.insuranceVerified,
+      avgRating: contractor.avgRating,
+      totalReviews: contractor.totalReviews,
+    }),
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: 'Contractors', path: '/contractors' },
+      { name: brandName, path: basePath },
+    ]),
+  ];
 
   return (
     <main className="flex-1 w-full">
+      <JsonLdScript data={contractorLdData} id="contractor-ld" />
       {/* Hero Section */}
       <ContractorSubdomainHero
         brandName={brandName}
@@ -750,8 +937,35 @@ async function AgentSubdomainPage({
   const heroImages = agent.heroImages?.length ? agent.heroImages : listings.flatMap((l: any) => l.images || []).slice(0, 3);
   const themeColor = agent.themeColor || 'amber';
 
+  const agentCanonical = canonicalUrl(`/${subdomain}`);
+  const agentLdData: object[] = [
+    agentLd({
+      id: agent.id,
+      url: agentCanonical,
+      name: agent.name,
+      brokerage: agent.brokerage,
+      email: agent.companyEmail || agent.user?.email,
+      phone: agent.companyPhone || agent.user?.phoneNumber,
+      image: agent.user?.image || agent.logoUrl || heroImages[0] || null,
+      city: agent.serviceAreas?.[0],
+      state: agent.licenseState,
+      serviceAreas: agent.serviceAreas,
+      licenseNumber: agent.licenseNumber,
+      licenseState: agent.licenseState,
+      totalSales: agent.totalSales,
+      totalListings: agent.totalListings,
+      yearsExperience: agent.yearsExperience,
+      bio: agent.aboutBio,
+    }),
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: brandName, path: `/${subdomain}` },
+    ]),
+  ];
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+      <JsonLdScript data={agentLdData} id="agent-ld" />
       {/* Hero Section */}
       <section className="relative h-[500px] w-full overflow-hidden">
         {heroImages.length > 0 ? (

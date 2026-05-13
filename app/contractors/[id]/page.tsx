@@ -8,6 +8,14 @@ import { Button } from '@/components/ui/button';
 import { auth } from '@/auth';
 import ContactContractorButton from './contact-button';
 import BookingButtons from './booking-buttons';
+import JsonLdScript from '@/components/seo/json-ld-script';
+import {
+  canonicalUrl,
+  buildContractorTitle,
+  buildContractorDescription,
+  contractorLd,
+  breadcrumbLd,
+} from '@/lib/seo';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -15,29 +23,80 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  
+
   // Check if id is a valid UUID
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-  
+
   // Try ContractorProfile first (by ID or slug)
-  let profile = await prisma.contractorProfile.findFirst({
+  const profile = await prisma.contractorProfile.findFirst({
     where: isUUID ? { OR: [{ id }, { slug: id }] } : { slug: id },
-    select: { displayName: true, businessName: true, specialties: true, tagline: true },
+    select: {
+      displayName: true,
+      businessName: true,
+      specialties: true,
+      tagline: true,
+      bio: true,
+      baseCity: true,
+      baseState: true,
+      avgRating: true,
+      totalReviews: true,
+      profilePhoto: true,
+      heroImages: true,
+      slug: true,
+      subdomain: true,
+    },
   });
 
   if (profile) {
     const name = profile.displayName || profile.businessName;
+    // Canonical points to the subdomain page so /contractors/{id} doesn't compete
+    const canonicalSubdomain = profile.subdomain || profile.slug;
+    const canonical = canonicalUrl(`/${canonicalSubdomain}`);
+    const title = buildContractorTitle({
+      businessName: name,
+      specialties: profile.specialties,
+      baseCity: profile.baseCity,
+      baseState: profile.baseState,
+    });
+    const description = buildContractorDescription({
+      businessName: name,
+      tagline: profile.tagline,
+      bio: profile.bio,
+      specialties: profile.specialties,
+      baseCity: profile.baseCity,
+      baseState: profile.baseState,
+      avgRating: profile.avgRating,
+      totalReviews: profile.totalReviews,
+    });
+    const ogImage = profile.profilePhoto || profile.heroImages?.[0] || undefined;
     return {
-      title: `${name} | Property Flow HQ`,
-      description: profile.tagline || `Hire ${name} for ${profile.specialties.slice(0, 3).join(', ')}`,
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: {
+        type: 'website',
+        url: canonical,
+        title,
+        description,
+        siteName: 'Property Flow HQ',
+        images: ogImage ? [{ url: ogImage, alt: name }] : undefined,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: ogImage ? [ogImage] : undefined,
+      },
     };
   }
 
   // Fall back to Contractor table
-  const contractor = isUUID ? await prisma.contractor.findUnique({
-    where: { id },
-    select: { name: true, specialties: true },
-  }) : null;
+  const contractor = isUUID
+    ? await prisma.contractor.findUnique({
+        where: { id },
+        select: { name: true, specialties: true },
+      })
+    : null;
 
   if (!contractor) return { title: 'Contractor Not Found' };
 
@@ -295,8 +354,47 @@ export default async function ContractorProfilePage({ params }: Props) {
   // Check if current user can hire
   const canHire = session?.user?.role === 'admin' || session?.user?.role === 'landlord' || session?.user?.role === 'property_manager';
 
+  // ── SEO: structured data + breadcrumbs (canonical to subdomain) ─────────
+  const canonicalSubdomain = profile.subdomain || profile.slug;
+  const subdomainCanonical = canonicalUrl(`/${canonicalSubdomain}`);
+  const ldData: object[] = [
+    contractorLd({
+      id: profile.id,
+      url: subdomainCanonical,
+      businessName: profile.businessName,
+      displayName: profile.displayName,
+      tagline: profile.tagline,
+      bio: profile.bio,
+      email: profile.email,
+      phone: profile.phone,
+      website: profile.website,
+      logoUrl: profile.logoUrl,
+      profilePhoto: profile.profilePhoto,
+      heroImages: profile.heroImages,
+      portfolioImages: profile.portfolioImages,
+      baseCity: profile.baseCity,
+      baseState: profile.baseState,
+      serviceAreas: profile.serviceAreas,
+      serviceRadius: profile.serviceRadius,
+      specialties: profile.specialties,
+      yearsExperience: profile.yearsExperience,
+      hourlyRate: profile.hourlyRate ? Number(profile.hourlyRate) : null,
+      licenseNumber: profile.licenseNumber,
+      licenseState: profile.licenseState,
+      insuranceVerified: profile.insuranceVerified,
+      avgRating: profile.avgRating,
+      totalReviews: profile.totalReviews,
+    }),
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: 'Contractors', path: '/contractors' },
+      { name: name, path: `/contractors/${profile.slug || profile.id}` },
+    ]),
+  ];
+
   return (
     <div className="min-h-screen bg-white">
+      <JsonLdScript data={ldData} id="contractor-marketplace-ld" />
       {/* Header */}
       <div className="pt-6 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-6">
@@ -454,14 +552,14 @@ export default async function ContractorProfilePage({ params }: Props) {
                               {[...Array(5)].map((_, i) => (
                                 <Star 
                                   key={i} 
-                                  className={`h-4 w-4 ${i < review.overallRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} 
+                                  className={`h-4 w-4 ${i < Number(review.overallRating) ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} 
                                 />
                               ))}
                             </div>
                           </div>
                         </div>
-                        {review.content && (
-                          <p className="text-slate-600">{review.content}</p>
+                        {review.comment && (
+                          <p className="text-slate-600">{review.comment}</p>
                         )}
                       </div>
                     ))}
@@ -509,8 +607,8 @@ export default async function ContractorProfilePage({ params }: Props) {
                       displayName={profile.displayName}
                       businessName={profile.businessName}
                       depositRequired={profile.depositRequired}
-                      depositAmount={profile.depositAmount}
-                      cancellationPolicy={profile.cancellationPolicy}
+                      depositAmount={profile.depositAmount != null ? Number(profile.depositAmount) : null}
+                      cancellationPolicy={profile.cancellationPolicy ?? undefined}
                       cancellationHours={profile.cancellationHours}
                     />
                     {canHire && (
@@ -535,8 +633,8 @@ export default async function ContractorProfilePage({ params }: Props) {
                       displayName={profile.displayName}
                       businessName={profile.businessName}
                       depositRequired={profile.depositRequired}
-                      depositAmount={profile.depositAmount}
-                      cancellationPolicy={profile.cancellationPolicy}
+                      depositAmount={profile.depositAmount != null ? Number(profile.depositAmount) : null}
+                      cancellationPolicy={profile.cancellationPolicy ?? undefined}
                       cancellationHours={profile.cancellationHours}
                     />
                   </div>
