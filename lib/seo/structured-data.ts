@@ -434,6 +434,49 @@ export function agentListingLd(input: AgentListingLdInput): JsonLd {
   });
 }
 
+// ─── listings directory (ItemList) ───────────────────────────────────────────
+
+export interface ListingItemInput {
+  url: string;
+  name: string;
+  description?: string | null;
+  image?: string | null;
+  price?: number | null;
+  priceCurrency?: string;
+  city?: string | null;
+  state?: string | null;
+}
+
+/**
+ * ItemList schema for the /listings directory page.
+ * Tells Google this page is a catalogue of real estate listings.
+ */
+export function listingsDirectoryLd(args: {
+  url: string;
+  name: string;
+  description: string;
+  items: ListingItemInput[];
+}): JsonLd {
+  return omitNullish({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: args.name,
+    description: args.description,
+    url: args.url,
+    numberOfItems: args.items.length,
+    itemListElement: args.items.slice(0, 50).map((item, i) =>
+      omitNullish({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: item.url,
+        name: item.name,
+        description: item.description || undefined,
+        image: item.image || undefined,
+      })
+    ),
+  });
+}
+
 // ─── breadcrumbs ─────────────────────────────────────────────────────────────
 
 export function breadcrumbLd(items: Array<{ name: string; path: string }>): JsonLd {

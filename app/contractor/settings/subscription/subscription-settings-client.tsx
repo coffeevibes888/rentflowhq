@@ -59,6 +59,7 @@ interface SubscriptionSettingsClientProps {
   stripeSubscriptionId: string | null;
   paymentMethod: PaymentMethod | null;
   usage: UsageData;
+  subscriptionEndsAt?: Date | null;
 }
 
 const TIER_CONFIG = {
@@ -115,6 +116,7 @@ export function SubscriptionSettingsClient({
   stripeSubscriptionId,
   paymentMethod,
   usage,
+  subscriptionEndsAt,
 }: SubscriptionSettingsClientProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -322,7 +324,7 @@ export function SubscriptionSettingsClient({
                     <CreditCard className="h-4 w-4 mr-2" />
                     Update Payment Method
                   </Button>
-                  {subscriptionStatus === 'active' && (
+                  {subscriptionStatus === 'active' && !subscriptionEndsAt && (
                     <Button
                       onClick={() => setShowCancelDialog(true)}
                       variant="outline"
@@ -331,6 +333,17 @@ export function SubscriptionSettingsClient({
                       <XCircle className="h-4 w-4 mr-2" />
                       Cancel Subscription
                     </Button>
+                  )}
+                  {subscriptionEndsAt && (
+                    <span className="text-sm text-amber-400 flex items-center gap-1.5">
+                      <XCircle className="h-4 w-4" />
+                      Cancels on{' '}
+                      {new Date(subscriptionEndsAt).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
                   )}
                 </div>
               </CardContent>

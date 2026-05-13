@@ -31,6 +31,8 @@ export default async function SubscriptionPage() {
             nearLimit={subscriptionData.nearLimit ?? false}
             atLimit={subscriptionData.atLimit ?? false}
             features={subscriptionData.features!}
+            cancelAtPeriodEnd={subscriptionData.subscription?.cancelAtPeriodEnd ?? false}
+            currentPeriodEnd={subscriptionData.subscription?.currentPeriodEnd ?? null}
           />
         ) : (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">

@@ -1,9 +1,11 @@
 import { requireAdmin } from '@/lib/auth-guard';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
+import { getCurrentUserTeamRole } from '@/lib/actions/team.actions';
 import { getConnectAccountStatus } from '@/lib/actions/stripe-connect.actions';
 import { prisma } from '@/db/prisma';
 import PayoutsClient from './payouts-client';
 import { formatEstimatedArrival } from '@/lib/config/stripe-constants';
+import { Lock } from 'lucide-react';
 
 const AdminPayoutsPage = async () => {
   await requireAdmin();
@@ -21,6 +23,30 @@ const AdminPayoutsPage = async () => {
   }
 
   const landlord = landlordResult.landlord;
+
+  // Gate: only roles with manage_finances or view_financials can see payouts
+  const userRole = await getCurrentUserTeamRole(landlord.id);
+  const canViewPayouts =
+    userRole.isOwner ||
+    (userRole.permissions as string[]).includes('manage_finances') ||
+    (userRole.permissions as string[]).includes('view_financials');
+
+  if (!canViewPayouts) {
+    return (
+      <main className='px-4 py-10'>
+        <div className='max-w-lg mx-auto text-center space-y-4'>
+          <div className='mx-auto w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center'>
+            <Lock className='h-7 w-7 text-red-400' />
+          </div>
+          <h1 className='text-xl font-semibold text-white'>Access Restricted</h1>
+          <p className='text-slate-400'>
+            Your role does not have permission to view payouts.
+            Contact your account owner to request access.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   // Get Connect account status
   const connectStatusResult = await getConnectAccountStatus();

@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Users, UserPlus, Mail, Shield, ShieldCheck, Crown, 
-  MoreVertical, Trash2, Clock, Search,
+  MoreVertical, Trash2, Clock, Search, QrCode,
+  Copy, Check, RefreshCw,
   Building2, Briefcase, Wrench, Calculator, RotateCcw
 } from 'lucide-react';
 import {
@@ -124,6 +125,22 @@ export function TeamMembersTab({
   const [showPermissionsDialog, setShowPermissionsDialog] = useState<TeamMember | null>(null);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [isSavingPermissions, setIsSavingPermissions] = useState(false);
+  const [invitePhone, setInvitePhone] = useState('');
+  const [showQRDialog, setShowQRDialog] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [showJobSiteDialog, setShowJobSiteDialog] = useState(false);
+  const [jobSiteRole, setJobSiteRole] = useState<string>('employee');
+  const [jobSiteQrDataUrl, setJobSiteQrDataUrl] = useState<string | null>(null);
+  const [jobSiteInviteUrl, setJobSiteInviteUrl] = useState<string | null>(null);
+  const [isGeneratingJobSite, setIsGeneratingJobSite] = useState(false);
+  const [copiedJobSiteLink, setCopiedJobSiteLink] = useState(false);
+
+  const generateQRCode = async (url: string): Promise<string> => {
+    const QRCode = (await import('qrcode')).default;
+    return QRCode.toDataURL(url, { width: 256, margin: 2, color: { dark: '#ffffff', light: '#1e1b4b' } });
+  };
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) return;
@@ -135,7 +152,7 @@ export function TeamMembersTab({
       const res = await fetch('/api/landlord/team/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole, phone: invitePhone.trim() || undefined }),
       });
       const data = await res.json();
       
@@ -144,12 +161,28 @@ export function TeamMembersTab({
         if (data.member) {
           setMembers([...members, data.member]);
         }
-        setTimeout(() => {
+        // Generate QR code if we got an invite URL back
+        if (data.inviteUrl) {
+          setInviteUrl(data.inviteUrl);
+          try {
+            const qr = await generateQRCode(data.inviteUrl);
+            setQrDataUrl(qr);
+          } catch { /* non-critical */ }
           setShowInviteDialog(false);
+          setShowQRDialog(true);
           setInviteEmail('');
           setInviteRole('employee');
+          setInvitePhone('');
           setInviteSuccess(false);
-        }, 1500);
+        } else {
+          setTimeout(() => {
+            setShowInviteDialog(false);
+            setInviteEmail('');
+            setInviteRole('employee');
+            setInvitePhone('');
+            setInviteSuccess(false);
+          }, 1500);
+        }
       } else {
         setInviteError(data.message || 'Failed to send invitation');
       }
@@ -158,6 +191,39 @@ export function TeamMembersTab({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGenerateJobSiteInvite = async () => {
+    setIsGeneratingJobSite(true);
+    try {
+      const res = await fetch('/api/landlord/team/invite-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: jobSiteRole }),
+      });
+      const data = await res.json();
+      if (data.success && data.inviteUrl) {
+        setJobSiteInviteUrl(data.inviteUrl);
+        try {
+          const qr = await generateQRCode(data.inviteUrl);
+          setJobSiteQrDataUrl(qr);
+        } catch { /* non-critical */ }
+      } else {
+        alert(data.message || 'Failed to generate invite link');
+      }
+    } catch {
+      alert('Network error. Please try again.');
+    } finally {
+      setIsGeneratingJobSite(false);
+    }
+  };
+
+  const handleCopyLink = async (url: string, setter: (v: boolean) => void) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setter(true);
+      setTimeout(() => setter(false), 2000);
+    } catch { /* ignore */ }
   };
 
   const handleRemoveMember = async (memberId: string) => {
@@ -363,7 +429,7 @@ export function TeamMembersTab({
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">
-                  {activeMembers.filter(m => m.role === 'admin' || m.role === 'manager').length}
+                  {activeMembers.filter(m => m.role === 'admin' || m.role === 'property_manager').length}
                 </p>
                 <p className="text-xs text-slate-400">Admins</p>
               </div>
@@ -409,6 +475,15 @@ export function TeamMembersTab({
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Invite Member
+            </Button>
+            <Button
+              onClick={() => { setShowJobSiteDialog(true); setJobSiteQrDataUrl(null); setJobSiteInviteUrl(null); }}
+              variant="outline"
+              className="border-white/10 text-white hover:bg-white/10"
+              title="Generate a QR code for on-site sign-up"
+            >
+              <QrCode className="h-4 w-4 mr-2" />
+              Job Site QR
             </Button>
           </div>
         )}
@@ -648,6 +723,26 @@ export function TeamMembersTab({
                 If they don&apos;t have an account, they&apos;ll be invited to sign up.
               </p>
             </div>
+
+{/* Phone/SMS field — uncomment when Twilio account is active
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">
+                Phone Number <span className="text-slate-500 font-normal">(optional — for SMS)</span>
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Input
+                  type="tel"
+                  placeholder="+1 555 000 0000"
+                  value={invitePhone}
+                  onChange={(e) => setInvitePhone(e.target.value)}
+                  className="pl-9 bg-slate-800 border-white/10 text-white"
+                  disabled={isLoading || inviteSuccess}
+                />
+              </div>
+              <p className="text-xs text-slate-500">Requires Twilio to be configured.</p>
+            </div>
+*/}
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">Role</label>
@@ -708,6 +803,169 @@ export function TeamMembersTab({
               {isLoading ? 'Sending...' : inviteSuccess ? '✓ Sent!' : 'Send Invitation'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code Share Dialog (shown after email invite is sent) */}
+      <Dialog open={showQRDialog} onOpenChange={(open) => { if (!open) { setShowQRDialog(false); setQrDataUrl(null); setInviteUrl(null); } }}>
+        <DialogContent className="bg-slate-900 border-white/10 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <QrCode className="h-5 w-5 text-violet-400" />
+              Invite Sent!
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Email sent. Share this QR code or link for quick access.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            {qrDataUrl && (
+              <div className="flex justify-center">
+                <div className="rounded-xl overflow-hidden border-4 border-violet-500/30 shadow-lg shadow-violet-500/10">
+                  <img src={qrDataUrl} alt="Invite QR Code" className="w-48 h-48" />
+                </div>
+              </div>
+            )}
+            {!qrDataUrl && (
+              <div className="flex justify-center items-center h-48 text-slate-500">
+                <QrCode className="h-16 w-16 opacity-30" />
+              </div>
+            )}
+
+            {inviteUrl && (
+              <div className="space-y-2">
+                <p className="text-xs text-slate-400 font-medium">Invite Link</p>
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={inviteUrl}
+                    className="bg-slate-800 border-white/10 text-slate-300 text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-white/10 text-white hover:bg-white/10 flex-shrink-0"
+                    onClick={() => handleCopyLink(inviteUrl, setCopiedLink)}
+                  >
+                    {copiedLink ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <p className="text-xs text-slate-500 text-center">Link expires in 7 days</p>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => { setShowQRDialog(false); setQrDataUrl(null); setInviteUrl(null); }} className="bg-violet-600 hover:bg-violet-500 w-full">
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Job Site QR Code Dialog */}
+      <Dialog open={showJobSiteDialog} onOpenChange={(open) => { if (!open) { setShowJobSiteDialog(false); setJobSiteQrDataUrl(null); setJobSiteInviteUrl(null); } }}>
+        <DialogContent className="bg-slate-900 border-white/10 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <QrCode className="h-5 w-5 text-orange-400" />
+              Job Site Invite
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Show this QR code on-site. Anyone who scans it can create an account and join with the selected role — no email required.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Role for new joiners</label>
+              <Select value={jobSiteRole} onValueChange={(v) => { setJobSiteRole(v); setJobSiteQrDataUrl(null); setJobSiteInviteUrl(null); }}>
+                <SelectTrigger className="bg-slate-800 border-white/10 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-white/10">
+                  {availableRoles.map(role => {
+                    const config = ROLE_CONFIG[role as keyof typeof ROLE_CONFIG];
+                    const Icon = config?.icon || Shield;
+                    return (
+                      <SelectItem key={role} value={role} className="text-white">
+                        <div className="flex items-center gap-2">
+                          <Icon className={`h-4 w-4 ${config?.color || 'text-slate-400'}`} />
+                          {config?.label || role}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {jobSiteQrDataUrl ? (
+              <>
+                <div className="flex justify-center">
+                  <div className="rounded-xl overflow-hidden border-4 border-orange-500/30 shadow-lg shadow-orange-500/10">
+                    <img src={jobSiteQrDataUrl} alt="Job Site QR Code" className="w-48 h-48" />
+                  </div>
+                </div>
+
+                {jobSiteInviteUrl && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-slate-400 font-medium">Or share the link</p>
+                    <div className="flex gap-2">
+                      <Input
+                        readOnly
+                        value={jobSiteInviteUrl}
+                        className="bg-slate-800 border-white/10 text-slate-300 text-xs"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-white/10 text-white hover:bg-white/10 flex-shrink-0"
+                        onClick={() => handleCopyLink(jobSiteInviteUrl, setCopiedJobSiteLink)}
+                      >
+                        {copiedJobSiteLink ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-white/10 text-slate-300 hover:bg-white/10 flex-1"
+                    onClick={() => { setJobSiteQrDataUrl(null); setJobSiteInviteUrl(null); }}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    New Code
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-orange-600 hover:bg-orange-500 flex-1"
+                    onClick={() => setShowJobSiteDialog(false)}
+                  >
+                    Done
+                  </Button>
+                </div>
+
+                <p className="text-xs text-slate-500 text-center">This code is single-use and expires in 7 days.</p>
+              </>
+            ) : (
+              <Button
+                onClick={handleGenerateJobSiteInvite}
+                disabled={isGeneratingJobSite}
+                className="w-full bg-orange-600 hover:bg-orange-500"
+              >
+                {isGeneratingJobSite ? (
+                  <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Generating...</>
+                ) : (
+                  <><QrCode className="h-4 w-4 mr-2" /> Generate QR Code</>
+                )}
+              </Button>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

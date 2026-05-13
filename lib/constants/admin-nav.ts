@@ -1,4 +1,4 @@
-import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings, LayoutDashboard, Briefcase, MessageCircle, Wrench, Calendar, Clock, FileSpreadsheet, DollarSign, UserPlus, Home, Sparkles, Globe, Star, Receipt } from 'lucide-react';
+import { Building2, FileText, CreditCard, Wallet, Palette, TrendingUp, ScanText, Users, HardHat, LucideIcon, Settings, LayoutDashboard, Briefcase, MessageCircle, Wrench, Calendar, Clock, FileSpreadsheet, DollarSign, UserPlus, Home, Sparkles, Globe, Star, Receipt, GraduationCap } from 'lucide-react';
 
 export interface AdminNavLink {
   title: string;
@@ -183,6 +183,19 @@ export const adminNavGroups: AdminNavGroup[] = [
         description: 'Profile, fees & preferences',
         href: '/admin/settings',
         icon: Settings,
+      },
+    ],
+  },
+  {
+    label: 'University',
+    icon: GraduationCap,
+    defaultOpen: false,
+    items: [
+      {
+        title: 'PM University',
+        description: 'Guides, tutorials & help',
+        href: '/admin/university',
+        icon: GraduationCap,
       },
     ],
   },

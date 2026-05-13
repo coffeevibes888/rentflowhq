@@ -100,6 +100,31 @@ export async function getTeamInviteByToken(token: string) {
   }
 }
 
+async function sendTeamInviteSMS(params: {
+  phone: string;
+  inviteToken: string;
+  landlordName: string;
+  role: string;
+}) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromPhone = process.env.TWILIO_PHONE_NUMBER;
+
+  if (!accountSid || !authToken || !fromPhone) {
+    throw new Error('Twilio credentials not configured.');
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SERVER_URL || 'http://localhost:3000';
+  const acceptUrl = `${baseUrl}/team/invite?token=${encodeURIComponent(params.inviteToken)}`;
+
+  const twilio = require('twilio')(accountSid, authToken);
+  await twilio.messages.create({
+    body: `${params.landlordName} has invited you to join their property management team as ${params.role}. Accept here: ${acceptUrl}`,
+    from: fromPhone,
+    to: params.phone,
+  });
+}
+
 async function sendTeamInviteEmail(params: {
   email: string;
   inviteToken: string;
@@ -201,7 +226,7 @@ export async function getTeamMembers() {
   }
 }
 
-export async function inviteTeamMember(email: string, role: TeamMemberRole = 'employee') {
+export async function inviteTeamMember(email: string, role: TeamMemberRole = 'employee', phone?: string) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -313,7 +338,7 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'em
     const inviteExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     // Get default permissions for the role
-    const defaultPermissions = getDefaultPermissionsForRole(normalizedRole);
+    const defaultPermissions = await getDefaultPermissionsForRole(normalizedRole);
 
     // Create pending team member
     // userId is null for users not in the system yet
@@ -379,15 +404,32 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'em
       console.error('Email send error:', emailError);
     }
 
-    // If user doesn't exist and email failed, we need to fail the invite
-    if (!existingUser && !emailSent) {
+    // SMS invite — uncomment when Twilio account is active
+    // let smsSent = false;
+    // if (phone) {
+    //   try {
+    //     await sendTeamInviteSMS({
+    //       phone,
+    //       inviteToken,
+    //       landlordName: landlordResult.landlord.name || 'Property Manager',
+    //       role: normalizedRole,
+    //     });
+    //     smsSent = true;
+    //   } catch (smsError: any) {
+    //     console.error('SMS send error:', smsError.message);
+    //   }
+    // }
+    const smsSent = false;
+
+    // If user doesn't exist and neither email nor SMS succeeded, fail the invite
+    if (!existingUser && !emailSent && !smsSent) {
       // Delete the pending member since we can't notify them
       try {
         await teamMemberModel()?.delete?.({ where: { id: member.id } });
       } catch {}
       return { 
         success: false, 
-        message: `Could not send invitation email: ${emailError}. The user doesn't have an account, so email is required.` 
+        message: `Could not send invitation: ${emailError}. The user doesn't have an account, so email or SMS is required.` 
       };
     }
 
@@ -409,6 +451,68 @@ export async function inviteTeamMember(email: string, role: TeamMemberRole = 'em
       member,
       emailSent,
       notificationSent,
+      inviteToken,
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+/**
+ * Generate an open team invite (no email required) for job-site QR code use.
+ * Anyone who scans can join with the specified role.
+ */
+export async function generateOpenTeamInvite(role: TeamMemberRole) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const landlordResult = await getOrCreateCurrentLandlord();
+    if (!landlordResult.success || !landlordResult.landlord) {
+      return { success: false, message: landlordResult.message };
+    }
+
+    const featureCheck = await checkFeatureAccess(landlordResult.landlord.id, 'teamManagement');
+    if (!featureCheck.allowed) {
+      return { success: false, message: featureCheck.reason, featureLocked: true };
+    }
+
+    const normalizedRole = await normalizeRole(role);
+    const defaultPermissions = await getDefaultPermissionsForRole(normalizedRole);
+    const inviteToken = randomUUID();
+    const inviteExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    let member;
+    try {
+      member = await teamMemberModel()?.create?.({
+        data: {
+          landlordId: landlordResult.landlord.id,
+          userId: null,
+          role: normalizedRole,
+          permissions: defaultPermissions,
+          invitedEmail: null,
+          inviteToken,
+          inviteExpires,
+          status: 'pending',
+        },
+      });
+    } catch (err: any) {
+      console.error('Open invite create error:', err);
+      return { success: false, message: 'Failed to generate invite. Please try again.' };
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SERVER_URL || 'http://localhost:3000';
+    const inviteUrl = `${baseUrl}/team/invite?token=${encodeURIComponent(inviteToken)}`;
+
+    return {
+      success: true,
+      inviteToken,
+      inviteUrl,
+      role: normalizedRole,
+      expiresAt: inviteExpires,
+      member,
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -842,7 +946,7 @@ export async function resetTeamMemberPermissions(memberId: string) {
       return { success: false, message: 'Cannot reset owner permissions' };
     }
 
-    const defaultPermissions = getDefaultPermissionsForRole(member.role as TeamMemberRole);
+    const defaultPermissions = await getDefaultPermissionsForRole(member.role as TeamMemberRole);
 
     await teamMemberModel()?.update?.({
       where: { id: memberId },

@@ -2,17 +2,67 @@ import { Metadata } from 'next';
 import { prisma } from '@/db/prisma';
 import { unstable_cache } from 'next/cache';
 import ListingsClient from './listings-client';
+import JsonLdScript from '@/components/seo/json-ld-script';
+import { canonicalUrl, listingsDirectoryLd, breadcrumbLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Find Your Perfect Home | Property Flow HQ',
-  description: 'Browse available apartments, rooms, and homes for rent or sale in Las Vegas. Search by price, bedrooms, bathrooms, and location. Find your next home today.',
-  keywords: ['apartments for rent', 'homes for rent', 'homes for sale', 'Las Vegas rentals', 'rental properties', 'real estate'],
-  openGraph: {
-    title: 'Find Your Perfect Home | Property Flow HQ',
-    description: 'Browse available apartments, rooms, and homes for rent or sale in Las Vegas.',
-    type: 'website',
-  },
+type ListingsPageSearchParams = {
+  minPrice?: string;
+  maxPrice?: string;
+  bedrooms?: string;
+  bathrooms?: string;
+  type?: string;
+  city?: string;
+  q?: string;
+  view?: string;
+  listingType?: string;
 };
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<ListingsPageSearchParams>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const city = params.city && params.city !== 'all' ? params.city : null;
+  const listingType = params.listingType;
+
+  const locationLabel = city ? ` in ${city}` : ' Near You';
+  const typeLabel =
+    listingType === 'sale' ? 'Homes for Sale'
+    : listingType === 'rent' ? 'Apartments & Rentals'
+    : 'Apartments, Rooms & Homes for Rent';
+
+  const title = `${typeLabel}${locationLabel} | Property Flow HQ`;
+  const description = city
+    ? `Browse available ${typeLabel.toLowerCase()} in ${city}. Filter by price, bedrooms, bathrooms, and more. Find your next home today.`
+    : `Browse apartments, rooms, and homes for rent or sale. Search by city, price, and bedrooms. Find your next home on Property Flow HQ.`;
+
+  const canonical = canonicalUrl('/listings');
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    keywords: [
+      'apartments for rent',
+      'rooms for rent',
+      'homes for rent',
+      'homes for sale',
+      city ? `apartments for rent in ${city}` : 'rental properties near me',
+      city ? `homes for rent in ${city}` : 'find a rental',
+      'property listings',
+      'real estate',
+    ].filter(Boolean) as string[],
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      type: 'website',
+      siteName: 'Property Flow HQ',
+    },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
 
 // Cache filter options for 5 minutes (cities, price ranges)
 const getCachedFilterOptions = unstable_cache(
@@ -396,20 +446,55 @@ async function getListings(searchParams: {
 export default async function ListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    minPrice?: string;
-    maxPrice?: string;
-    bedrooms?: string;
-    bathrooms?: string;
-    type?: string;
-    city?: string;
-    q?: string;
-    view?: string;
-    listingType?: string;
-  }>;
+  searchParams: Promise<ListingsPageSearchParams>;
 }) {
   const params = await searchParams;
   const data = await getListings(params);
 
-  return <ListingsClient initialData={data} searchParams={params} />;
+  // Build ItemList JSON-LD so Google understands this is a property directory
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://www.propertyflowhq.com';
+  const listingItems = data.listings.map((l: any) => {
+    const isAgent = l.source === 'agent';
+    const url = isAgent
+      ? `${baseUrl}/${l.agent?.subdomain}/listings/${l.propertySlug}`
+      : `${baseUrl}/${l.landlord?.subdomain}/properties/${l.propertySlug}`;
+    return {
+      url,
+      name: l.propertyName,
+      description: null as string | null,
+      image: l.images?.[0] || null,
+      price: l.price,
+      city: l.address?.city || null,
+      state: l.address?.state || null,
+    };
+  });
+
+  const city = params.city && params.city !== 'all' ? params.city : null;
+  const directoryTitle = city
+    ? `Apartments & Homes for Rent in ${city}`
+    : 'Apartments, Rooms & Homes for Rent';
+  const directoryDescription = city
+    ? `Browse ${data.total} available rentals in ${city} on Property Flow HQ.`
+    : `Browse ${data.total} available apartments, rooms, and homes for rent on Property Flow HQ.`;
+
+  const ldData = [
+    listingsDirectoryLd({
+      url: canonicalUrl('/listings'),
+      name: directoryTitle,
+      description: directoryDescription,
+      items: listingItems,
+    }),
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: 'Listings', path: '/listings' },
+      ...(city ? [{ name: city, path: `/listings?city=${encodeURIComponent(city)}` }] : []),
+    ]),
+  ];
+
+  return (
+    <>
+      <JsonLdScript data={ldData} id="listings-directory-ld" />
+      <ListingsClient initialData={data} searchParams={params} />
+    </>
+  );
 }

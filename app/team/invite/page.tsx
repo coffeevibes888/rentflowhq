@@ -21,7 +21,7 @@ import {
 
 type InviteData = {
   id: string;
-  email: string;
+  email: string | null;
   role: string;
   landlordId: string;
   landlordName: string;
@@ -29,6 +29,23 @@ type InviteData = {
 };
 
 type OnboardingStep = 'welcome' | 'account' | 'role-info' | 'employment' | 'complete';
+
+const getRoleRedirectUrl = (role: string, isExistingEmployee: boolean): string => {
+  switch (role) {
+    case 'employee':
+      return isExistingEmployee ? '/employee' : '/employee?onboarding=true';
+    case 'maintenance_tech':
+      return '/admin/operations/maintenance';
+    case 'accountant':
+      return '/admin/payouts';
+    case 'showing_agent':
+      return '/admin/properties';
+    case 'leasing_agent':
+      return '/admin/applications';
+    default:
+      return '/admin/team';
+  }
+};
 
 const ROLE_INFO = {
   // Pro Plan Roles
@@ -123,6 +140,7 @@ export default function TeamInvitePage() {
   // Registration form state
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     password: '',
     confirmPassword: '',
     isExistingEmployee: false,
@@ -161,7 +179,12 @@ export default function TeamInvitePage() {
   useEffect(() => {
     async function acceptInvite() {
       if (status === 'authenticated' && session?.user && invite && step === 'welcome') {
-        // Check if logged in with correct email
+        // Open invite (no specific email) — any logged-in user can proceed
+        if (!invite.email) {
+          setStep('role-info');
+          return;
+        }
+        // Email-specific invite — must match
         if (session.user.email?.toLowerCase() === invite.email.toLowerCase()) {
           setStep('role-info');
         }
@@ -194,12 +217,18 @@ export default function TeamInvitePage() {
 
     try {
       // Register the user
+      const registerEmail = invite?.email || formData.email;
+      if (!registerEmail) {
+        setFormError('Please enter your email address');
+        setIsSubmitting(false);
+        return;
+      }
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          email: invite?.email,
+          email: registerEmail,
           password: formData.password,
           role: 'property_manager', // Default role for team members
           inviteToken: token,
@@ -211,7 +240,7 @@ export default function TeamInvitePage() {
       if (data.success || res.ok) {
         // Sign in the user
         const signInResult = await signIn('credentials', {
-          email: invite?.email,
+          email: invite?.email || formData.email,
           password: formData.password,
           redirect: false,
         });
@@ -312,7 +341,8 @@ export default function TeamInvitePage() {
   // Welcome step - show invite details
   if (step === 'welcome') {
     const isLoggedIn = status === 'authenticated' && session?.user;
-    const isCorrectEmail = isLoggedIn && session.user.email?.toLowerCase() === invite.email.toLowerCase();
+    const isOpenInvite = !invite.email; // No specific email — anyone can join
+    const isCorrectEmail = isOpenInvite || (isLoggedIn && session.user.email?.toLowerCase() === invite.email?.toLowerCase());
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
@@ -339,15 +369,17 @@ export default function TeamInvitePage() {
                   <p className="text-white font-medium">{roleInfo.title}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-slate-700/50">
-                  <Mail className="h-5 w-5 text-slate-400" />
+              {invite.email && (
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-slate-700/50">
+                    <Mail className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-400">Invited Email</p>
+                    <p className="text-white font-medium">{invite.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-slate-400">Invited Email</p>
-                  <p className="text-white font-medium">{invite.email}</p>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Action buttons based on auth state */}
@@ -363,8 +395,8 @@ export default function TeamInvitePage() {
               ) : (
                 <div className="space-y-4">
                   <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-sm text-amber-400">
-                    You&apos;re signed in as {session.user.email}, but this invite was sent to {invite.email}. 
-                    Please sign out and sign in with the correct email.
+                    You&apos;re signed in as {session.user.email}, but this invite was sent to {invite.email}.
+                    Please sign in with the correct email to accept.
                   </div>
                   <Button
                     onClick={() => signIn()}
@@ -381,7 +413,7 @@ export default function TeamInvitePage() {
                   onClick={() => setStep('account')}
                   className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500"
                 >
-                  Create Account & Join
+                  {isOpenInvite ? 'Create Account & Join' : 'Create Account & Join'}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
 
@@ -456,14 +488,27 @@ export default function TeamInvitePage() {
                 <Label className="text-slate-300">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                  <Input
-                    type="email"
-                    value={invite.email}
-                    disabled
-                    className="pl-10 bg-slate-800/50 border-white/10 text-slate-400"
-                  />
+                  {invite.email ? (
+                    <Input
+                      type="email"
+                      value={invite.email}
+                      disabled
+                      className="pl-10 bg-slate-800/50 border-white/10 text-slate-400"
+                    />
+                  ) : (
+                    <Input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="pl-10 bg-slate-800/50 border-white/10 text-white"
+                      required
+                    />
+                  )}
                 </div>
-                <p className="text-xs text-slate-500">This email was specified in your invitation</p>
+                <p className="text-xs text-slate-500">
+                  {invite.email ? 'This email was specified in your invitation' : 'Enter your email to create your account'}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -625,9 +670,7 @@ export default function TeamInvitePage() {
 
   // Complete step
   if (step === 'complete') {
-    const redirectUrl = invite.role === 'employee' 
-      ? (formData.isExistingEmployee ? '/employee' : '/employee?onboarding=true')
-      : '/admin/team';
+    const redirectUrl = getRoleRedirectUrl(invite.role, formData.isExistingEmployee);
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
@@ -654,7 +697,7 @@ export default function TeamInvitePage() {
               onClick={() => router.push(redirectUrl)}
               className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500"
             >
-              Go to {invite.role === 'employee' ? 'Employee Portal' : 'Team Hub'}
+              Go to My Dashboard
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </CardContent>

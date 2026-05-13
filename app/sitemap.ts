@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // ── Dynamic queries — all in parallel, each failure-tolerant ─────────────
-  const [contractors, landlords, properties, agents, agentListings] = await Promise.all([
+  const [contractors, landlords, properties, agents, agentListings, cityData] = await Promise.all([
 
     // Contractors — use subdomain if set, otherwise slug
     prisma.contractorProfile
@@ -90,6 +90,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       })
       .catch(() => [] as { slug: string; updatedAt: Date; agentId: string }[]),
+
+    // Distinct cities from available units for city-specific listing pages
+    prisma.unit
+      .findMany({
+        where: {
+          isAvailable: true,
+          property: { status: { not: 'deleted' } },
+        },
+        select: { property: { select: { address: true, updatedAt: true } } },
+      })
+      .catch(() => [] as { property: { address: any; updatedAt: Date } }[]),
   ]);
 
   // Build lookup maps for the join data
@@ -165,11 +176,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
     .filter((e): e is NonNullable<typeof e> => e !== null);
 
+  // Build city-specific listing page entries: /listings/las-vegas, /listings/chicago, etc.
+  const citySlugMap = new Map<string, Date>();
+  for (const row of cityData) {
+    const city: string | undefined = (row.property.address as any)?.city;
+    if (!city || typeof city !== 'string') continue;
+    const slug = city.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    if (!slug) continue;
+    const existing = citySlugMap.get(slug);
+    if (!existing || row.property.updatedAt > existing) {
+      citySlugMap.set(slug, row.property.updatedAt);
+    }
+  }
+  const cityEntries: MetadataRoute.Sitemap = Array.from(citySlugMap.entries()).map(([slug, updatedAt]) => ({
+    url: `${baseUrl}/listings/${slug}`,
+    lastModified: updatedAt,
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }));
+
   return [
     ...staticEntries,
     ...contractorEntries,
     ...landlordEntries,
     ...propertyEntries,
+    ...cityEntries,
     ...agentEntries,
     ...agentListingEntries,
   ];

@@ -32,6 +32,7 @@ export default async function SubscriptionPage() {
       currentPeriodEnd: true,
       stripeCustomerId: true,
       stripeSubscriptionId: true,
+      subscriptionEndsAt: true,
       usageTracking: {
         select: {
           activeJobsCount: true,
@@ -85,6 +86,7 @@ export default async function SubscriptionPage() {
       currentPeriodEnd={contractor.currentPeriodEnd}
       stripeCustomerId={contractor.stripeCustomerId}
       stripeSubscriptionId={contractor.stripeSubscriptionId}
+      subscriptionEndsAt={contractor.subscriptionEndsAt}
       paymentMethod={paymentMethod}
       usage={contractor.usageTracking || {
         activeJobsCount: 0,

@@ -14,6 +14,8 @@ interface SubscriptionDashboardProps {
   nearLimit: boolean;
   atLimit: boolean;
   features: TierFeatures;
+  cancelAtPeriodEnd?: boolean;
+  currentPeriodEnd?: Date | null;
 }
 
 const TIER_ORDER: SubscriptionTier[] = ['starter', 'pro', 'enterprise'];
@@ -37,6 +39,8 @@ export function SubscriptionDashboard({
   nearLimit,
   atLimit,
   features,
+  cancelAtPeriodEnd = false,
+  currentPeriodEnd,
 }: SubscriptionDashboardProps) {
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
   const [referralCode, setReferralCode] = useState('');
@@ -221,16 +225,7 @@ export function SubscriptionDashboard({
         </div>
 
         {/* Manage Subscription Buttons */}
-        <div className="mt-6 pt-6 border-t border-white/10 flex flex-wrap gap-3">
-          {/* <Button
-            onClick={handleSyncSubscription}
-            disabled={isLoading}
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Sync from Stripe
-          </Button> */}
+        <div className="mt-6 pt-6 border-t border-white/10 flex flex-wrap gap-3 items-center">
           {currentTier !== 'starter' && (
             <>
               <Button
@@ -242,15 +237,29 @@ export function SubscriptionDashboard({
                 <Settings className="h-4 w-4 mr-2" />
                 Manage Billing
               </Button>
-              <Button
-                onClick={handleCancelSubscription}
-                disabled={isLoading}
-                variant="ghost"
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Cancel Subscription
-              </Button>
+              {cancelAtPeriodEnd ? (
+                <span className="text-sm text-amber-400 flex items-center gap-1.5">
+                  <XCircle className="h-4 w-4" />
+                  Cancels on{' '}
+                  {currentPeriodEnd
+                    ? new Date(currentPeriodEnd).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : 'end of billing period'}
+                </span>
+              ) : (
+                <Button
+                  onClick={handleCancelSubscription}
+                  disabled={isLoading}
+                  variant="ghost"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Cancel Subscription
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -405,8 +414,13 @@ export function SubscriptionDashboard({
                   </Button>
                 )}
                 {!isUpgrade && !isCurrent && (
-                  <Button disabled className="w-full" variant="ghost">
-                    Included in your plan
+                  <Button
+                    onClick={handleManageBilling}
+                    disabled={isLoading}
+                    variant="outline"
+                    className="w-full border-white/20 text-white hover:bg-white/10"
+                  >
+                    Downgrade
                   </Button>
                 )}
               </div>
