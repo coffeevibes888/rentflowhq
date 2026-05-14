@@ -282,7 +282,7 @@ export function NotificationDropdown({
                 size="sm"
                 className="w-full text-slate-400 hover:text-white hover:bg-white/5"
                 onClick={() => {
-                  router.push('/contractor/settings/subscription');
+                  router.push('/contractor-dashboard/settings/subscription');
                   setOpen(false);
                 }}
               >

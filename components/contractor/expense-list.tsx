@@ -156,7 +156,7 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
         <div className="text-center py-12">
           <Receipt className="h-12 w-12 mx-auto text-gray-300 mb-4" />
           <p className="text-gray-600 mb-4">No expenses found</p>
-          <Link href="/contractor/expenses/new">
+          <Link href="/contractor-dashboard/expenses/new">
             <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white">
               Log Your First Expense
             </Button>
@@ -239,7 +239,7 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
 
               {/* Actions */}
               <div className="flex gap-2 mt-4 pt-4 border-t-2 border-gray-100">
-                <Link href={`/contractor/expenses/${expense.id}`} className="flex-1">
+                <Link href={`/contractor-dashboard/expenses/${expense.id}`} className="flex-1">
                   <Button
                     variant="outline"
                     size="sm"
@@ -249,7 +249,7 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
                     View
                   </Button>
                 </Link>
-                <Link href={`/contractor/expenses/${expense.id}/edit`}>
+                <Link href={`/contractor-dashboard/expenses/${expense.id}/edit`}>
                   <Button
                     variant="outline"
                     size="sm"

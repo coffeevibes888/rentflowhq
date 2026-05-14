@@ -72,7 +72,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
-          href="/contractor/invoices"
+          href="/contractor-dashboard/invoices"
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -93,7 +93,7 @@ export function InvoiceDetailClient({ invoice }: InvoiceDetailClientProps) {
         <div className="flex gap-2">
           {invoice.status === 'draft' && (
             <>
-              <Link href={`/contractor/invoices/${invoice.id}/edit`}>
+              <Link href={`/contractor-dashboard/invoices/${invoice.id}/edit`}>
                 <Button variant="outline" className="border-2 border-gray-200">
                   <Edit className="h-4 w-4 mr-2" />
                   Edit

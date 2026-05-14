@@ -126,7 +126,7 @@ export function ExpenseForm({ expense, mode }: ExpenseFormProps) {
         throw new Error('Failed to save expense');
       }
 
-      router.push('/contractor/expenses');
+      router.push('/contractor-dashboard/expenses');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Failed to save expense');

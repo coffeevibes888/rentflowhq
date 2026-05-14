@@ -241,7 +241,7 @@ export default function LeadsPipeline({ initialLeads = [] }: LeadsPipelineProps)
   };
 
   const handleLeadClick = (leadId: string) => {
-    router.push(`/contractor/crm/customers/${leadId}`);
+    router.push(`/contractor-dashboard/crm/customers/${leadId}`);
   };
 
   // Group leads by status for Kanban view

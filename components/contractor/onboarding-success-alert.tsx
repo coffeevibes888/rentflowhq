@@ -11,7 +11,7 @@ export function OnboardingSuccessAlert() {
   useEffect(() => {
     // Remove query param after 5 seconds
     const timer = setTimeout(() => {
-      router.replace('/contractor/payouts');
+      router.replace('/contractor-dashboard/payouts');
     }, 5000);
 
     return () => clearTimeout(timer);

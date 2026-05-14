@@ -133,7 +133,7 @@ export function LeadDetailModal({
         description: 'Job created successfully',
       });
 
-      router.push(`/contractor/jobs/${data.job.id}`);
+      router.push(`/contractor-dashboard/jobs/${data.job.id}`);
     } catch (error: any) {
       toast({
         title: 'Error',

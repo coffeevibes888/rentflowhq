@@ -308,15 +308,18 @@ class AnalyticsTracker {
 
   private async trackFormInteraction(element: HTMLElement, action: string) {
     const form = element.closest('form');
-    const formId = form?.id || form?.name || 'unknown';
-    const formName = form?.getAttribute('data-form-name') || formId;
+    const formId = String(form?.id || form?.getAttribute('name') || 'unknown');
+    const formName = String(form?.getAttribute('data-form-name') || formId);
+    const el = element as HTMLInputElement;
 
-    const data = {
-      sessionId: this.sessionId,
+    // Explicitly extract only primitive values — never pass DOM nodes or
+    // React fiber-attached objects into JSON.stringify.
+    const data: Record<string, string | boolean> = {
+      sessionId: String(this.sessionId ?? ''),
       formId,
       formName,
-      fieldName: (element as HTMLInputElement).name || (element as HTMLInputElement).id,
-      action,
+      fieldName: String(el.name || el.id || el.getAttribute('name') || el.getAttribute('id') || ''),
+      action: String(action),
       completed: action === 'submit',
     };
 

@@ -29,7 +29,7 @@ export default function ContractorMobileDrawer() {
 
     contractorNavGroups.forEach((group) => {
       if (group.items.some((item) =>
-        pathname === item.href || (item.href !== '/contractor/dashboard' && pathname.startsWith(item.href))
+        pathname === item.href || (item.href !== '/contractor-dashboard' && pathname.startsWith(item.href))
       )) {
         setOpenGroups((prev) => ({ ...prev, [group.label]: true }));
       }
@@ -40,7 +40,7 @@ export default function ContractorMobileDrawer() {
     !item.requiredTier ? false : tierOrder[tier] < tierOrder[item.requiredTier];
 
   const isActive = (href: string) =>
-    pathname === href || (href !== '/contractor/dashboard' && pathname.startsWith(href));
+    pathname === href || (href !== '/contractor-dashboard' && pathname.startsWith(href));
 
   const toggleGroup = (label: string) =>
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -60,15 +60,15 @@ export default function ContractorMobileDrawer() {
           {/* Dashboard */}
           <DrawerClose asChild>
             <Link
-              href='/contractor/dashboard'
+              href='/contractor-dashboard'
               className={cn(
                 'flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
-                isActive('/contractor/dashboard')
+                isActive('/contractor-dashboard')
                   ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900'
                   : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'
               )}
             >
-              <LayoutDashboard className={cn('h-4 w-4 shrink-0', isActive('/contractor/dashboard') ? 'text-slate-900' : 'text-amber-400')} />
+              <LayoutDashboard className={cn('h-4 w-4 shrink-0', isActive('/contractor-dashboard') ? 'text-slate-900' : 'text-amber-400')} />
               <span className='text-sm font-semibold'>Dashboard</span>
             </Link>
           </DrawerClose>

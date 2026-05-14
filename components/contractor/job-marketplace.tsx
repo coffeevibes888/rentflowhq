@@ -265,7 +265,7 @@ export function JobMarketplace({
                 {/* Actions */}
                 <div className="flex gap-2 pt-4 border-t-2 border-gray-100">
                   <Link
-                    href={`/contractor/marketplace/${job.id}`}
+                    href={`/contractor-dashboard/marketplace/${job.id}`}
                     className="flex-1"
                   >
                     <Button
@@ -285,7 +285,7 @@ export function JobMarketplace({
                       {job.postingType === 'estimate' ? 'Estimate Sent' : 'Bid Submitted'}
                     </Button>
                   ) : (
-                    <Link href={`/contractor/marketplace/${job.id}/bid`}>
+                    <Link href={`/contractor-dashboard/marketplace/${job.id}/bid`}>
                       <Button
                         size="sm"
                         className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"

@@ -77,7 +77,7 @@ export function JobsMobileList({ jobs }: JobsListProps) {
   const router = useRouter();
 
   const handleCardClick = (jobId: string) => {
-    router.push(`/contractor/jobs/${jobId}`);
+    router.push(`/contractor-dashboard/jobs/${jobId}`);
   };
 
   return (
@@ -153,7 +153,7 @@ export function JobsDesktopTable({ jobs }: JobsListProps) {
   const router = useRouter();
 
   const handleRowClick = (jobId: string) => {
-    router.push(`/contractor/jobs/${jobId}`);
+    router.push(`/contractor-dashboard/jobs/${jobId}`);
   };
 
   return (

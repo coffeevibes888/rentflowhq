@@ -45,7 +45,7 @@ export function LimitWarningModal({
     if (onUpgrade) {
       onUpgrade();
     } else {
-      router.push('/contractor/settings/subscription');
+      router.push('/contractor-dashboard/settings/subscription');
     }
   };
 

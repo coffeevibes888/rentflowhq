@@ -176,7 +176,7 @@ export function InventoryList({ items }: { items: InventoryItem[] }) {
                   <div className="mb-4 p-2 rounded-lg bg-gray-50 border border-gray-200">
                     <p className="text-xs text-gray-600 mb-1">Vendor</p>
                     <Link
-                      href={`/contractor/vendors/${item.vendor.id}`}
+                      href={`/contractor-dashboard/vendors/${item.vendor.id}`}
                       className="text-sm font-medium text-blue-600 hover:text-blue-700"
                     >
                       {item.vendor.name}
@@ -185,7 +185,7 @@ export function InventoryList({ items }: { items: InventoryItem[] }) {
                 )}
 
                 <div className="flex gap-2 pt-4 border-t-2 border-gray-100">
-                  <Link href={`/contractor/inventory/${item.id}/edit`} className="flex-1">
+                  <Link href={`/contractor-dashboard/inventory/${item.id}/edit`} className="flex-1">
                     <Button
                       variant="outline"
                       size="sm"

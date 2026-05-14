@@ -84,7 +84,7 @@ export function DashboardQuickActions() {
 
       {/* Create Quote */}
       <Button
-        onClick={() => router.push('/contractor/leads')}
+        onClick={() => router.push('/contractor-dashboard/leads')}
         className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-blue-600 via-blue-400 to-indigo-600 border border-black shadow-2xl'
       >
         <FileText className='h-6 w-6' />
@@ -133,7 +133,7 @@ export function DashboardQuickActions() {
 
       {/* View Leads */}
       <Button
-        onClick={() => router.push('/contractor/leads')}
+        onClick={() => router.push('/contractor-dashboard/leads')}
         className='h-auto flex-col gap-2 p-4 bg-gradient-to-r from-blue-600 via-blue-400 to-indigo-600 border border-black shadow-2xl'
       >
         <TrendingUp className='h-6 w-6' />

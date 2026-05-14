@@ -101,7 +101,7 @@ function PortfolioTab({ items, contractorId }: { items: any[]; contractorId: str
           <h3 className="text-lg font-semibold text-gray-900">Portfolio</h3>
           <p className="text-sm text-gray-600">Showcase your work with photos and videos</p>
         </div>
-        <Link href="/contractor/portfolio/new">
+        <Link href="/contractor-dashboard/portfolio/new">
           <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white">
             <Plus className="h-4 w-4 mr-2" />
             Add Work
@@ -113,7 +113,7 @@ function PortfolioTab({ items, contractorId }: { items: any[]; contractorId: str
         <div className="text-center py-12">
           <Camera className="h-12 w-12 mx-auto text-gray-300 mb-4" />
           <p className="text-gray-600 mb-4">No portfolio items yet</p>
-          <Link href="/contractor/portfolio/new">
+          <Link href="/contractor-dashboard/portfolio/new">
             <Button variant="outline">Add Your First Project</Button>
           </Link>
         </div>
@@ -122,7 +122,7 @@ function PortfolioTab({ items, contractorId }: { items: any[]; contractorId: str
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/contractor/portfolio/${item.id}`}
+              href={`/contractor-dashboard/portfolio/${item.id}`}
               className="group rounded-lg border-2 border-gray-200 overflow-hidden hover:border-blue-300 hover:shadow-md transition-all"
             >
               {item.imageUrl && (
@@ -273,7 +273,7 @@ function PayoutsTab({ payouts, hasStripeAccount }: { payouts: any[]; hasStripeAc
           <p className="text-gray-600 mb-6">
             Connect your Stripe account to receive payouts
           </p>
-          <Link href="/contractor/settings">
+          <Link href="/contractor-dashboard/settings">
             <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white">
               Connect Stripe
             </Button>
@@ -290,7 +290,7 @@ function PayoutsTab({ payouts, hasStripeAccount }: { payouts: any[]; hasStripeAc
           <h3 className="text-lg font-semibold text-gray-900">Payouts</h3>
           <p className="text-sm text-gray-600">Your earnings and payment history</p>
         </div>
-        <Link href="/contractor/payouts">
+        <Link href="/contractor-dashboard/payouts">
           <Button variant="outline" className="border-2 border-gray-200">
             <ExternalLink className="h-4 w-4 mr-2" />
             View All

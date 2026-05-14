@@ -80,7 +80,7 @@ export async function onQuoteAccepted(quoteId: string) {
       type: 'reminder',
       title: 'Quote Accepted!',
       message: `${customer.name} accepted your quote "${quote.title}". A contract has been auto-generated and sent for signing.`,
-      actionUrl: `/contractor/contracts/${contract.id}`,
+      actionUrl: `/contractor-dashboard/contracts/${contract.id}`,
     },
   });
 
@@ -151,8 +151,8 @@ export async function onContractSigned(contractId: string) {
       title: 'Contract Signed — Ready to Schedule',
       message: `${contract.customerName} signed "${contract.title}". The job is now ready to be scheduled.`,
       actionUrl: contract.job
-        ? `/contractor/jobs/${contract.job.id}`
-        : `/contractor/contracts/${contract.id}`,
+        ? `/contractor-dashboard/jobs/${contract.job.id}`
+        : `/contractor-dashboard/contracts/${contract.id}`,
     },
   });
 

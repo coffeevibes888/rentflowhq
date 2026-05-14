@@ -103,7 +103,7 @@ export async function createLimitWarningNotification(
     feature,
     featureDisplayName,
     message: `You're using ${currentUsage} of ${limit} ${featureDisplayName.toLowerCase()} (${percentage}%). Consider upgrading to avoid interruptions.`,
-    actionUrl: '/contractor/settings/subscription',
+    actionUrl: '/contractor-dashboard/settings/subscription',
     metadata: {
       currentUsage,
       limit,
@@ -128,7 +128,7 @@ export async function createLimitReachedNotification(
     feature,
     featureDisplayName,
     message: `You've reached your limit of ${limit} ${featureDisplayName.toLowerCase()}. Upgrade now to continue.`,
-    actionUrl: '/contractor/settings/subscription',
+    actionUrl: '/contractor-dashboard/settings/subscription',
     metadata: {
       limit,
     },
@@ -151,7 +151,7 @@ export async function createFeatureLockedNotification(
     feature,
     featureDisplayName,
     message: `${featureDisplayName} is available on the ${requiredTier} plan. Upgrade to unlock this feature.`,
-    actionUrl: '/contractor/settings/subscription',
+    actionUrl: '/contractor-dashboard/settings/subscription',
     metadata: {
       requiredTier,
     },
@@ -171,7 +171,7 @@ export async function createUpgradeSuccessNotification(
     feature: 'subscription',
     featureDisplayName: 'Subscription',
     message: `Welcome to ${newTier}! All your new features are now active.`,
-    actionUrl: '/contractor/dashboard',
+    actionUrl: '/contractor-dashboard',
     metadata: {
       newTier,
     },

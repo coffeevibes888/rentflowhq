@@ -41,7 +41,7 @@ export function UpgradeModal({
   };
 
   const handleUpgrade = () => {
-    router.push('/contractor/settings/subscription');
+    router.push('/contractor-dashboard/settings/subscription');
   };
 
   return (

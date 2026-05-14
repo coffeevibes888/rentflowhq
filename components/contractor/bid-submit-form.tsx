@@ -73,7 +73,7 @@ export function BidSubmitForm({
       });
 
       if (response.ok) {
-        router.push('/contractor/marketplace?success=bid_submitted');
+        router.push('/contractor-dashboard/marketplace?success=bid_submitted');
         router.refresh();
       } else {
         const data = await response.json();

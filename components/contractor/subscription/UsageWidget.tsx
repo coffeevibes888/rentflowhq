@@ -58,7 +58,7 @@ export function UsageWidget({
     if (onUpgrade) {
       onUpgrade();
     } else {
-      router.push('/contractor/settings/subscription');
+      router.push('/contractor-dashboard/settings/subscription');
     }
   };
 

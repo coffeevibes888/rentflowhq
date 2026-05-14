@@ -261,7 +261,7 @@ export function DashboardUsageWidget({ className = '' }: DashboardUsageWidgetPro
               </div>
             </div>
           </div>
-          <Link href="/contractor/settings/subscription">
+          <Link href="/contractor-dashboard/settings/subscription">
             <Button
               variant="ghost"
               size="sm"
@@ -340,7 +340,7 @@ export function DashboardUsageWidget({ className = '' }: DashboardUsageWidgetPro
                     'Upgrade to Enterprise for unlimited capacity and advanced features.'
                   )}
                 </p>
-                <Link href="/contractor/settings/subscription">
+                <Link href="/contractor-dashboard/settings/subscription">
                   <Button
                     size="sm"
                     className="bg-violet-600 hover:bg-violet-700 text-white text-xs h-8"

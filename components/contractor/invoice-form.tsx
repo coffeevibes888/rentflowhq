@@ -181,7 +181,7 @@ export function InvoiceForm({ invoice, mode }: InvoiceFormProps) {
         });
       }
 
-      router.push('/contractor/invoices');
+      router.push('/contractor-dashboard/invoices');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Failed to save invoice');

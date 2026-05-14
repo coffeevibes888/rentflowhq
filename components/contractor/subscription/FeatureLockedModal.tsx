@@ -50,7 +50,7 @@ export function FeatureLockedModal({
     if (onUpgrade) {
       onUpgrade();
     } else {
-      router.push('/contractor/settings/subscription');
+      router.push('/contractor-dashboard/settings/subscription');
     }
   };
 

@@ -294,7 +294,7 @@ export class MarketplaceNotifications {
       type: 'bid_accepted',
       title: '🎉 Your Bid Was Accepted!',
       message: `Congratulations! ${homeownerName} has accepted your bid of $${amount.toFixed(2)} for "${jobTitle}". Payment has been secured in escrow.`,
-      actionUrl: `/contractor/jobs/${jobId}`,
+      actionUrl: `/contractor-dashboard/jobs/${jobId}`,
       metadata: { jobId, homeownerName, amount },
     });
   }
@@ -342,7 +342,7 @@ export class MarketplaceNotifications {
       type: 'payment_received',
       title: '💰 Payment Received',
       message: `Payment of $${amount.toFixed(2)} for "${jobTitle}" has been received and is held in escrow. Complete the work to release funds.`,
-      actionUrl: `/contractor/jobs/${jobId}`,
+      actionUrl: `/contractor-dashboard/jobs/${jobId}`,
       metadata: { jobId, amount },
     });
   }
@@ -366,7 +366,7 @@ export class MarketplaceNotifications {
       type: 'payment_released',
       title: '🎊 Payment Released!',
       message: `Great news! Payment of $${amount.toFixed(2)} for "${jobTitle}" has been released. You received a ${rating}-star review!`,
-      actionUrl: `/contractor/jobs/${jobId}`,
+      actionUrl: `/contractor-dashboard/jobs/${jobId}`,
       metadata: { jobId, amount, rating },
     });
   }
@@ -395,7 +395,7 @@ export class MarketplaceNotifications {
       type: 'review_received',
       title: '⭐ New Review Received',
       message,
-      actionUrl: `/contractor/jobs/${jobId}`,
+      actionUrl: `/contractor-dashboard/jobs/${jobId}`,
       metadata: { jobId, rating, reviewText },
     });
   }
@@ -421,7 +421,7 @@ export class MarketplaceNotifications {
       type: 'dispute_filed',
       title: '⚠️ Dispute Filed',
       message: `${homeownerName} has filed a dispute for "${jobTitle}". Our team will review and contact you within 24 hours. Payment is held during review.`,
-      actionUrl: `/contractor/jobs/${jobId}`,
+      actionUrl: `/contractor-dashboard/jobs/${jobId}`,
       metadata: { jobId, homeownerName },
     });
   }
@@ -523,7 +523,7 @@ export class MarketplaceNotifications {
       type: 'quote_accepted',
       title: '🎉 Quote Accepted!',
       message: `Congratulations! ${customerName} has accepted your quote of $${amount.toFixed(2)} for "${leadTitle}". Time to get started!`,
-      actionUrl: `/contractor/leads`,
+      actionUrl: `/contractor-dashboard/leads`,
       metadata: { quoteId, customerName, amount },
     });
   }
@@ -547,7 +547,7 @@ export class MarketplaceNotifications {
       type: 'quote_rejected',
       title: 'Quote Not Accepted',
       message: `${customerName} has declined your quote for "${leadTitle}". Reason: ${reason}`,
-      actionUrl: `/contractor/leads`,
+      actionUrl: `/contractor-dashboard/leads`,
       metadata: { quoteId, reason },
     });
   }
@@ -572,7 +572,7 @@ export class MarketplaceNotifications {
       type: 'lead_received',
       title: '🎯 New Lead Available!',
       message: `New project: "${leadTitle}".${budgetText} Match score: ${matchScore}%. Review and send a quote now!`,
-      actionUrl: `/contractor/leads`,
+      actionUrl: `/contractor-dashboard/leads`,
       metadata: { leadId, matchScore },
     });
   }
@@ -600,7 +600,7 @@ export class MarketplaceNotifications {
       type: 'counter_offer_received',
       title: '🔄 Counter-Offer Received',
       message: `${customerName} sent a counter-offer of $${counterAmount.toFixed(2)} (${percentDiff}% lower) for "${leadTitle}". Review and respond now.`,
-      actionUrl: `/contractor/leads`,
+      actionUrl: `/contractor-dashboard/leads`,
       metadata: { quoteId, originalAmount, counterAmount },
     });
   }

@@ -189,7 +189,7 @@ export function VendorList({ vendors }: { vendors: Vendor[] }) {
               )}
 
               <div className="flex gap-2 pt-4 border-t-2 border-gray-100">
-                <Link href={`/contractor/vendors/${vendor.id}/edit`} className="flex-1">
+                <Link href={`/contractor-dashboard/vendors/${vendor.id}/edit`} className="flex-1">
                   <Button
                     variant="outline"
                     size="sm"
@@ -199,7 +199,7 @@ export function VendorList({ vendors }: { vendors: Vendor[] }) {
                     Edit
                   </Button>
                 </Link>
-                <Link href={`/contractor/vendors/${vendor.id}`}>
+                <Link href={`/contractor-dashboard/vendors/${vendor.id}`}>
                   <Button
                     size="sm"
                     className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"

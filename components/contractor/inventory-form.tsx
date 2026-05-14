@@ -76,7 +76,7 @@ export function InventoryForm({ contractorId, vendors, item }: InventoryFormProp
         throw new Error(error.error || 'Failed to save item');
       }
 
-      router.push('/contractor/inventory');
+      router.push('/contractor-dashboard/inventory');
       router.refresh();
     } catch (error) {
       console.error('Error saving inventory item:', error);
@@ -279,7 +279,7 @@ export function InventoryForm({ contractorId, vendors, item }: InventoryFormProp
 
       {/* Actions */}
       <div className="flex gap-3 pt-4 border-t-2 border-gray-200">
-        <Link href="/contractor/inventory" className="flex-1">
+        <Link href="/contractor-dashboard/inventory" className="flex-1">
           <Button
             type="button"
             variant="outline"

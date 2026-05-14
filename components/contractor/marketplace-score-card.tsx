@@ -97,7 +97,7 @@ const FACTORS = [
     max: 10,
     pointsKey: 'completenessPoints' as const,
     tip: 'Photo, bio, tagline, location, rate',
-    action: '/contractor/profile/branding',
+    action: '/contractor-dashboard/profile/branding',
   },
   {
     key: 'trust',
@@ -108,7 +108,7 @@ const FACTORS = [
     max: 10,
     pointsKey: 'trustPoints' as const,
     tip: 'Identity + insurance + background check',
-    action: '/contractor/verification',
+    action: '/contractor-dashboard/verification',
   },
   {
     key: 'ontime',
@@ -210,7 +210,7 @@ export default function MarketplaceScoreCard({ score, compact = false }: Props) 
           </div>
         </div>
 
-        <Link href="/contractor/profile/visibility" className="shrink-0">
+        <Link href="/contractor-dashboard/profile/visibility" className="shrink-0">
           <button className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold whitespace-nowrap">
             Full breakdown <ArrowRight className="h-3 w-3" />
           </button>
@@ -235,7 +235,7 @@ export default function MarketplaceScoreCard({ score, compact = false }: Props) 
             </div>
             <p className="text-xs text-slate-400">How you rank among all contractors on PropertyFlowHQ</p>
           </div>
-          <Link href="/contractor/profile/visibility">
+          <Link href="/contractor-dashboard/profile/visibility">
             <button className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 font-semibold">
               Details <ExternalLink className="h-3 w-3" />
             </button>
@@ -327,12 +327,12 @@ export default function MarketplaceScoreCard({ score, compact = false }: Props) 
 
         {/* CTA */}
         <div className="mt-4 flex gap-2">
-          <Link href="/contractor/profile/visibility" className="flex-1">
+          <Link href="/contractor-dashboard/profile/visibility" className="flex-1">
             <button className="w-full text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white rounded-lg py-2 transition-colors">
               Boost Visibility
             </button>
           </Link>
-          <Link href="/contractor/verification" className="flex-1">
+          <Link href="/contractor-dashboard/verification" className="flex-1">
             <button className="w-full text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-2 transition-colors">
               Get Verified +10pts
             </button>

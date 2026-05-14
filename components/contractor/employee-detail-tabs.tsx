@@ -483,7 +483,7 @@ export function EmployeeDetailTabs({ employee }: { employee: Employee }) {
               <h3 className="text-lg font-semibold text-gray-900">Paycheck History</h3>
               <p className="text-sm text-gray-500 mt-0.5">All processed paychecks for this employee</p>
             </div>
-            <Link href="/contractor/payroll" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+            <Link href="/contractor-dashboard/payroll" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
               Payroll →
             </Link>
           </div>

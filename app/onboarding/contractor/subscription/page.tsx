@@ -45,12 +45,12 @@ export default async function ContractorSubscriptionPage({
         profile.subscriptionStatus === 'active';
 
       if (hasActiveSubscription) {
-        redirect('/contractor/dashboard');
+        redirect('/contractor-dashboard');
       }
 
       // If subscription just completed checkout, also redirect
       if (subscriptionSuccess && profile.stripeSubscriptionId) {
-        redirect('/contractor/dashboard');
+        redirect('/contractor-dashboard');
       }
     }
   }

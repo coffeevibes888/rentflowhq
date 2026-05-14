@@ -89,7 +89,7 @@ export function CustomerForm({ initialData }: CustomerFormProps) {
         description: 'Customer created successfully',
       });
 
-      router.push(`/contractor/customers/${data.customer.id}`);
+      router.push(`/contractor-dashboard/customers/${data.customer.id}`);
     } catch (error) {
       console.error('Error creating customer:', error);
       toast({

@@ -31,7 +31,7 @@ export default async function OnboardingPage() {
       case 'agent':
         return redirect('/agent/dashboard');
       case 'contractor':
-        return redirect('/contractor/dashboard');
+        return redirect('/contractor-dashboard');
       case 'homeowner':
         return redirect('/homeowner/dashboard');
       default:

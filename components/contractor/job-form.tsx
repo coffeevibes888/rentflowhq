@@ -121,7 +121,7 @@ export function JobForm({ customers, employees, initialData }: JobFormProps) {
         description: 'Job created successfully',
       });
 
-      router.push(`/contractor/jobs/${data.job.id}`);
+      router.push(`/contractor-dashboard/jobs/${data.job.id}`);
     } catch (error) {
       console.error('Error creating job:', error);
       toast({

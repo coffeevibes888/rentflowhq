@@ -163,7 +163,7 @@ export function InvoiceList({ invoices }: { invoices: Invoice[] }) {
         <div className="text-center py-12">
           <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
           <p className="text-gray-600 mb-4">No invoices found</p>
-          <Link href="/contractor/invoices/new">
+          <Link href="/contractor-dashboard/invoices/new">
             <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white">
               Create Your First Invoice
             </Button>
@@ -247,7 +247,7 @@ export function InvoiceList({ invoices }: { invoices: Invoice[] }) {
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-4 pt-4 border-t-2 border-gray-100">
-                  <Link href={`/contractor/invoices/${invoice.id}`} className="flex-1">
+                  <Link href={`/contractor-dashboard/invoices/${invoice.id}`} className="flex-1">
                     <Button
                       variant="outline"
                       size="sm"
@@ -258,7 +258,7 @@ export function InvoiceList({ invoices }: { invoices: Invoice[] }) {
                     </Button>
                   </Link>
                   {invoice.status === 'draft' && (
-                    <Link href={`/contractor/invoices/${invoice.id}/edit`}>
+                    <Link href={`/contractor-dashboard/invoices/${invoice.id}/edit`}>
                       <Button
                         variant="outline"
                         size="sm"

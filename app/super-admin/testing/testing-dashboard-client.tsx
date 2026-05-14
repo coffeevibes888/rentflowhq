@@ -48,7 +48,7 @@ const ROLE_CONFIG = {
   tenant: { label: 'Tenant', icon: Home, color: 'bg-emerald-500', path: '/user/dashboard' },
   landlord: { label: 'Landlord', icon: Building2, color: 'bg-violet-500', path: '/admin/overview' },
   admin: { label: 'Admin', icon: Shield, color: 'bg-blue-500', path: '/admin/overview' },
-  contractor: { label: 'Contractor', icon: Wrench, color: 'bg-rose-500', path: '/contractor/dashboard' },
+  contractor: { label: 'Contractor', icon: Wrench, color: 'bg-rose-500', path: '/contractor-dashboard' },
   agent: { label: 'Agent', icon: Briefcase, color: 'bg-amber-500', path: '/agent/dashboard' },
   homeowner: { label: 'Homeowner', icon: Key, color: 'bg-sky-500', path: '/homeowner/dashboard' },
   superAdmin: { label: 'Super Admin', icon: Shield, color: 'bg-red-500', path: '/super-admin' },

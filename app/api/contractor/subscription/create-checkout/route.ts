@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
     } catch {}
 
     // Determine redirect URL based on user role
-    let successRedirectUrl = `${baseUrl}/contractor/dashboard?subscription=success&tier=${targetTier}`;
+    let successRedirectUrl = `${baseUrl}/contractor-dashboard?subscription=success&tier=${targetTier}`;
     
     // If user has multiple roles, redirect to appropriate dashboard
     if (session.user.role === 'property_manager') {

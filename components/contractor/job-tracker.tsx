@@ -547,7 +547,7 @@ function ActionPanel(props: ActionPanelProps) {
           </Explain>
           {isContractor && !contractorPaymentReady && (
             <Button asChild className="w-full bg-gradient-to-r from-violet-600 to-blue-600">
-              <a href="/contractor/payments/setup">
+              <a href="/contractor-dashboard/payments/setup">
                 <DollarSign className="h-4 w-4 mr-2" />Finish Payment Setup<ArrowRight className="h-4 w-4 ml-2" />
               </a>
             </Button>

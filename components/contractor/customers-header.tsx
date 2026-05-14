@@ -49,7 +49,7 @@ export function CustomersHeader({ limitInfo }: CustomersHeaderProps) {
             </p>
           )}
         </div>
-        <Link href="/contractor/customers/new" onClick={handleAddCustomer}>
+        <Link href="/contractor-dashboard/customers/new" onClick={handleAddCustomer}>
           <Button 
             className="bg-blue-600 hover:bg-blue-700 text-gray-900"
             disabled={!limitInfo.allowed}
