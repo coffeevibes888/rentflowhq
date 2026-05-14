@@ -234,3 +234,92 @@
 .slide-in-from-bottom {
   animation: slide-in-from-bottom 0.7s ease-out;
 }
+
+
+/* ─── PM University — Shepherd.js Tour Styles ─────────────────────────────── */
+.pfhq-tour-step.shepherd-element {
+  background: #0f172a;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(139, 92, 246, 0.2);
+  max-width: 340px;
+}
+
+.pfhq-tour-step .shepherd-header {
+  background: transparent;
+  padding: 16px 16px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pfhq-tour-step .shepherd-title {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.pfhq-tour-step .shepherd-cancel-icon {
+  color: #64748b;
+}
+
+.pfhq-tour-step .shepherd-cancel-icon:hover {
+  color: #ffffff;
+}
+
+.pfhq-tour-step .shepherd-text {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 16px;
+  font-family: inherit;
+}
+
+.pfhq-tour-step .shepherd-footer {
+  padding: 8px 16px 14px;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pfhq-tour-step .shepherd-btn-primary {
+  background: #7c3aed;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+
+.pfhq-tour-step .shepherd-btn-primary:hover {
+  background: #6d28d9;
+}
+
+.pfhq-tour-step .shepherd-btn-secondary {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.pfhq-tour-step .shepherd-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.shepherd-modal-overlay-container .shepherd-modal-overlay {
+  fill: rgba(0, 0, 0, 0.65);
+}
+
+.pfhq-tour-step .shepherd-arrow::before {
+  background: #0f172a;
+  border-color: rgba(139, 92, 246, 0.4);
+}

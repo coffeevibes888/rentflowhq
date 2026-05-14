@@ -17,7 +17,7 @@
  * and error mapping.
  */
 
-import { prisma } from '@/db/prisma';
+import { prisma, TransactionClient } from '@/db/prisma';
 import { Prisma } from '@prisma/client';
 
 export type LifecycleStatus =
@@ -69,7 +69,7 @@ interface RecordTransitionArgs {
   /** Additional fields to update on the WorkOrder atomically */
   workOrderPatch?: Prisma.WorkOrderUpdateInput;
   /** Pass an existing transaction client to participate in a larger tx */
-  tx?: Prisma.TransactionClient;
+  tx?: TransactionClient;
 }
 
 /**
@@ -88,7 +88,7 @@ export async function recordTransition(args: RecordTransitionArgs) {
     tx,
   } = args;
 
-  const run = async (client: Prisma.TransactionClient) => {
+  const run = async (client: TransactionClient) => {
     const wo = await client.workOrder.findUnique({
       where: { id: workOrderId },
       select: { id: true, lifecycleStatus: true },

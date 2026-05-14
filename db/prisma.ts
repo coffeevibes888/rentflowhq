@@ -179,3 +179,14 @@ export const prisma = prismaBase
       },
     },
   });
+
+/**
+ * Transaction client type derived from the extended prisma instance.
+ * Use this instead of Prisma.TransactionClient whenever passing `tx`
+ * from a prisma.$transaction() callback — the base Prisma.TransactionClient
+ * is incompatible with extended clients.
+ */
+export type TransactionClient = Omit<
+  typeof prisma,
+  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+>;

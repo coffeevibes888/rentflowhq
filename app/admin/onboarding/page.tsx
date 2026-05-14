@@ -2,8 +2,7 @@ import { Metadata } from 'next';
 import { requireAdmin } from '@/lib/auth-guard';
 import { getOrCreateCurrentLandlord } from '@/lib/actions/landlord.actions';
 import Link from 'next/link';
-import { Building2, CreditCard, Palette, Globe, HardHat } from 'lucide-react';
-import { RestartTourButton } from '@/components/onboarding/landlord-tour';
+import { Building2, CreditCard, Palette, Globe, HardHat, GraduationCap } from 'lucide-react';
 import { auth } from '@/auth';
 
 export const metadata: Metadata = {
@@ -31,13 +30,6 @@ const AdminOnboardingPage = async () => {
           <p className='text-lg text-slate-600 max-w-2xl mx-auto'>
             Follow these steps to start managing tenants and rent payments
           </p>
-          
-          {/* Restart Tour Button */}
-          {session?.user?.id && (
-            <div className='pt-4'>
-              <RestartTourButton userId={session.user.id} />
-            </div>
-          )}
         </div>
 
         {/* Quick start steps */}
@@ -146,6 +138,29 @@ const AdminOnboardingPage = async () => {
           >
             Skip for now and explore the dashboard
           </Link>
+        </div>
+
+        {/* PM University callout */}
+        <div className='max-w-xl mx-auto rounded-2xl border-2 border-violet-200 bg-gradient-to-r from-violet-50 to-indigo-50 p-6'>
+          <div className='flex items-start gap-4'>
+            <div className='h-12 w-12 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0'>
+              <GraduationCap className='h-6 w-6' />
+            </div>
+            <div className='flex-1'>
+              <h3 className='text-lg font-semibold text-slate-900 mb-1'>
+                New to the platform?
+              </h3>
+              <p className='text-sm text-slate-600 mb-3'>
+                PM University has step-by-step guides for everything — from setting up Stripe to understanding tenant cards and running investor reports.
+              </p>
+              <Link
+                href='/admin/university'
+                className='inline-flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700 transition-colors'
+              >
+                Open PM University →
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </main>

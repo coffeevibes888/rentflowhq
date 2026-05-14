@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import '@/assets/styles/globals.css';
+import 'shepherd.js/dist/css/shepherd.css';
 import { APP_DESCRIPTION, APP_NAME, SERVER_URL } from '@/lib/constants';
 import { Toaster } from '@/components/ui/toaster';
 import PageViewTracker from '@/components/analytics/page-view-tracker';

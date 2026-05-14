@@ -8,7 +8,6 @@ import MobileMenu from '@/components/mobile/mobile-menu';
 import SessionProviderWrapper from '@/components/session-provider-wrapper';
 import { SubscriptionProvider } from '@/components/subscription/subscription-provider';
 import { AdminSidebarWrapper } from '@/components/admin/admin-sidebar-wrapper';
-import { OnboardingWrapper } from '@/components/onboarding/onboarding-wrapper';
 import { SubscriptionGate } from '@/components/subscription/subscription-gate';
 import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
 import { headers } from 'next/headers';
@@ -88,7 +87,6 @@ export default async function AdminLayout({
           <Footer />
         </div>
         <TeamChatWidgetWrapper />
-        <OnboardingWrapper />
       </SubscriptionProvider>
     </SessionProviderWrapper>
   );
