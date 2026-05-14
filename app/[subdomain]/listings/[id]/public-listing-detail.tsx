@@ -287,7 +287,7 @@ export default function PublicListingDetail({
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
             <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
             <Link href="/listings" className="hover:text-slate-900 transition-colors">Listings</Link>
-            <Link href="/contractors" className="hover:text-slate-900 transition-colors">Contractor Marketplace</Link>
+            <Link href="/contractor-marketplace" className="hover:text-slate-900 transition-colors">Contractor Marketplace</Link>
             <Link href="/contact" className="hover:text-slate-900 transition-colors">Contact</Link>
           </nav>
           <div className="flex items-center gap-2">

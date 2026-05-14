@@ -62,7 +62,7 @@ const ContactClient = () => {
   };
 
   return (
-    <main className="relative min-h-[calc(100vh-4rem)] w-full bg-gradient-to-br from-slate-950 via-violet-800/60 to-slate-900 text-slate-50 flex items-center justify-center px-4 py-10">
+    <main className="relative min-h-[calc(100vh-4rem)] w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-50 flex items-center justify-center px-4 py-10">
       {/* Logo watermark in the background */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-10">
         <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] lg:w-[380px] lg:h-[380px]">
@@ -70,7 +70,7 @@ const ContactClient = () => {
             src="/images/logo.svg"
             alt={`${APP_NAME} logo watermark`}
             fill
-            className="object-contain drop-shadow-[0_0_45px_rgba(129,140,248,0.6)]"
+            className="object-contain drop-shadow-[0_0_45px_rgba(56,189,248,0.4)]"
             priority
           />
         </div>
@@ -85,11 +85,11 @@ const ContactClient = () => {
             {/* Form side */}
             <section className="space-y-6">
               <header className="space-y-2">
-                <p className="inline-flex items-center rounded-full bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-violet-200/80 ring-1 ring-white/10">
+                <p className="inline-flex items-center rounded-full bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-sky-200/80 ring-1 ring-white/10">
                   We&apos;re here to help
                 </p>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight">
-                  Contact <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">{APP_NAME}</span>
+                  Contact <span className="bg-gradient-to-r from-sky-300 via-cyan-300 to-blue-300 bg-clip-text text-transparent">{APP_NAME}</span>
                 </h1>
                 <p className="text-sm sm:text-base text-slate-300/80 max-w-xl">
                   Have questions about our property management platform? Looking to list your properties? We&apos;d love to hear from you.
@@ -107,7 +107,7 @@ const ContactClient = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Your full name"
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/40 placeholder:text-slate-400/70"
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-sky-400/70 focus:ring-2 focus:ring-sky-500/40 placeholder:text-slate-400/70"
                     />
                   </div>
 
@@ -120,7 +120,7 @@ const ContactClient = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/40 placeholder:text-slate-400/70"
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-sky-400/70 focus:ring-2 focus:ring-sky-500/40 placeholder:text-slate-400/70"
                     />
                   </div>
                 </div>
@@ -135,7 +135,7 @@ const ContactClient = () => {
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
                       placeholder="What's this about?"
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/40 placeholder:text-slate-400/70"
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-sky-400/70 focus:ring-2 focus:ring-sky-500/40 placeholder:text-slate-400/70"
                     />
                   </div>
 
@@ -146,7 +146,7 @@ const ContactClient = () => {
                     <select
                       value={inquiryType}
                       onChange={(e) => setInquiryType(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/40 bg-[rgba(15,23,42,0.4)]"
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-sky-400/70 focus:ring-2 focus:ring-sky-500/40 bg-[rgba(15,23,42,0.4)]"
                     >
                       <option value="" className="bg-slate-900">
                         Select an option
@@ -179,7 +179,7 @@ const ContactClient = () => {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Tell us how we can help you..."
                     rows={5}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/40 placeholder:text-slate-400/70 resize-none"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-50 outline-none transition focus:border-sky-400/70 focus:ring-2 focus:ring-sky-500/40 placeholder:text-slate-400/70 resize-none"
                   />
                 </div>
 
@@ -191,7 +191,7 @@ const ContactClient = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-violet-500/30 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {isSubmitting ? 'Sending...' : 'Send message'}
                   </button>
@@ -211,13 +211,13 @@ const ContactClient = () => {
             </section>
 
             {/* Overview / profile side */}
-            <aside className="relative flex flex-col justify-between rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-slate-900/40 to-violet-900/60 px-5 py-6 sm:px-6 lg:px-7 lg:py-8 shadow-inner shadow-slate-950/60 overflow-hidden">
-              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-violet-500/30 blur-3xl" />
+            <aside className="relative flex flex-col justify-between rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-slate-800/60 to-sky-900/40 px-5 py-6 sm:px-6 lg:px-7 lg:py-8 shadow-inner shadow-slate-950/60 overflow-hidden">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-sky-500/20 blur-3xl" />
               <div className="pointer-events-none absolute -left-16 bottom-[-3rem] h-40 w-40 rounded-full bg-cyan-400/20 blur-3xl" />
 
               <div className="relative space-y-5">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-400 via-fuchsia-400 to-amber-300 text-slate-950 font-bold text-xl shadow-lg shadow-violet-500/50">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white font-bold text-xl shadow-lg shadow-sky-500/40">
                     R4R
                   </div>
                   <div>
@@ -242,14 +242,14 @@ const ContactClient = () => {
                     <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400/90">
                       Email
                     </p>
-                    <p className="mt-1 font-medium break-all">allen@propertyflowhq.com</p>
+                    <p className="mt-1 font-medium break-all">propertyflowhq@gmail.com</p>
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-slate-900/60 px-3.5 py-3 text-xs text-slate-200/90">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400/90">
-                      Best For
+                      Phone
                     </p>
-                    <p className="mt-1">Landlords, property managers &amp; tenants</p>
+                    <p className="mt-1 font-medium">(702) 582-7390</p>
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-slate-900/60 px-3.5 py-3 text-xs text-slate-200/90">

@@ -72,12 +72,13 @@ const Menu = async () => {
               <Link href='/' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Home</Link>
               <Link href='/listings' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Listings</Link>
               <Link href='/jobs' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Jobs</Link>
-              <Link href='/contractors' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Contractor Marketplace</Link>
+              <Link href='/contractor-marketplace' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Contractor Marketplace</Link>
               <div className='border-t border-slate-200 my-2' />
               <p className='px-3 text-[10px] uppercase tracking-wider text-slate-400 font-semibold'>Resources</p>
               <Link href='/faq' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>FAQs</Link>
               <Link href='/docs/api' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>API & Webhooks</Link>
               <Link href='/affiliate-program' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Affiliate Program</Link>
+              <Link href='/about' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>About</Link>
               <Link href='/contact' className='px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors'>Contact</Link>
               <div className='border-t border-slate-200 my-2' />
               <UserButton />

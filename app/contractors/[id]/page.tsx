@@ -179,7 +179,7 @@ export default async function ContractorProfilePage({ params }: Props) {
       <div className="min-h-screen bg-white">
         <div className="pt-6 bg-white">
           <div className="max-w-6xl mx-auto px-4 py-6">
-            <Link href="/contractors" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
+            <Link href="/contractor-marketplace" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
               <ArrowLeft className="h-4 w-4" />
               Back to Contractors
             </Link>
@@ -398,7 +398,7 @@ export default async function ContractorProfilePage({ params }: Props) {
       {/* Header */}
       <div className="pt-6 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <Link href="/contractors" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
+          <Link href="/contractor-marketplace" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
             <ArrowLeft className="h-4 w-4" />
             Back to Contractors
           </Link>

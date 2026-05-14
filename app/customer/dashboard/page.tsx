@@ -45,7 +45,7 @@ export default async function CustomerDashboardPage() {
           <p className="text-gray-600 mb-6">
             You don't have any active projects with contractors yet.
           </p>
-          <Link href="/contractors">
+          <Link href="/contractor-marketplace">
             <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white">
               Find Contractors
             </Button>
@@ -236,7 +236,7 @@ export default async function CustomerDashboardPage() {
               <span className="text-sm">Messages</span>
             </Button>
           </Link>
-          <Link href="/contractors">
+          <Link href="/contractor-marketplace">
             <Button
               variant="outline"
               className="w-full border-2 border-gray-200 h-auto py-4 flex-col gap-2"

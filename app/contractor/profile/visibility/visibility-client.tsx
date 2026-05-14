@@ -457,7 +457,7 @@ export default function VisibilityClient({ profile, packages, boostResult }: Pro
 
       {/* View public profile */}
       <div className="flex justify-center pb-8">
-        <Link href="/contractors" target="_blank">
+        <Link href="/contractor-marketplace" target="_blank">
           <Button variant="outline" className="gap-2">
             <ExternalLink className="h-4 w-4" />
             See how you appear in the marketplace

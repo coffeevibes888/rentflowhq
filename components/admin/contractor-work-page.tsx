@@ -37,7 +37,7 @@ export default function ContractorWorkPage() {
         </div>
         <div className='flex items-center gap-2'>
           <Link
-            href='/contractors'
+            href='/contractor-marketplace'
             className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all'
           >
             <Globe className='h-3.5 w-3.5' />
@@ -182,7 +182,7 @@ export default function ContractorWorkPage() {
             {/* Quick Actions */}
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
               <Link
-                href='/contractors'
+                href='/contractor-marketplace'
                 className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-all group flex items-center gap-3'
               >
                 <div className='h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform'>

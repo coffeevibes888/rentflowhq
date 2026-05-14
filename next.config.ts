@@ -44,6 +44,28 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', 'date-fns'],
   },
   turbopack: {},
+  async redirects() {
+    return [
+      // Old contractor marketplace URL → new canonical URL
+      {
+        source: '/contractors',
+        destination: '/contractor-marketplace',
+        permanent: true,
+      },
+      {
+        source: '/contractors/:path*',
+        destination: '/contractor-marketplace/:path*',
+        permanent: true,
+      },
+      // Old contractor landing (?for=contractor on homepage) → dedicated /contractor page
+      {
+        source: '/',
+        has: [{ type: 'query', key: 'for', value: 'contractor' }],
+        destination: '/contractor',
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {

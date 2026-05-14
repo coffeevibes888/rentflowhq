@@ -85,9 +85,8 @@ const Header = async () => {
         <div className="flex-1 flex items-center justify-center gap-1 text-sm font-medium">
           <Link href='/' className="px-2.5 py-1.5 text-black hover:underline">Home</Link>
           <Link href='/listings' className="px-2.5 py-1.5 text-black hover:underline">Listings</Link>
-          {/* <Link href='/about' className="px-2.5 py-1.5 text-black hover:underline">About Me</Link> */}
           <Link href='/jobs' className="px-2.5 py-1.5 text-black hover:underline">Jobs</Link>
-          <Link href='/contractors' className="px-2.5 py-1.5 text-black hover:underline">Contractor Marketplace</Link>
+          <Link href='/contractor-marketplace' className="px-2.5 py-1.5 text-black hover:underline">Contractor Marketplace</Link>
 
           {/* Resources Dropdown */}
           <div className="relative group">
@@ -105,6 +104,9 @@ const Header = async () => {
                 </Link>
                 <Link href='/affiliate-program' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">
                   Affiliate Program
+                </Link>
+                <Link href='/about' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">
+                  About
                 </Link>
                 <div className="border-t my-1"></div>
                 <Link href='/contact' className="block px-4 py-2 text-sm text-black hover:bg-gray-100">

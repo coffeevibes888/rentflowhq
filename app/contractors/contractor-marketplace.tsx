@@ -171,7 +171,6 @@ export default function ContractorMarketplace({
           <div className="flex justify-center mb-8">
             <div className="bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 rounded-xl p-1 flex gap-1 border border-black">
               <Button
-                // variant={view === 'contractors' ? 'default' : 'ghost'}
                 className={view === 'contractors'
                   ? 'bg-white text-blue-600 hover:bg-white/90 font-bold'
                   : 'text-white hover:bg-white/20 font-bold'}
@@ -181,7 +180,6 @@ export default function ContractorMarketplace({
                 Find Contractors
               </Button>
               <Button
-                // variant={view === 'jobs' ? 'default' : 'ghost'}
                 className={view === 'jobs'
                   ? 'bg-slate-400 text-white hover:bg-white/90 font-bold'
                   : 'text-white hover:bg-white/20 font-bold'}
@@ -210,7 +208,7 @@ export default function ContractorMarketplace({
               <h2 className="text-lg font-bold text-black">Browse by Specialty</h2>
               {specialty && (
                 <Link
-                  href="/contractors"
+                  href="/contractor-marketplace"
                   className="px-4 py-1.5 rounded-full bg-gradient-to-r from-sky-500 via-violet-600 to-amber-200 border border-black text-slate-900 hover:bg-slate-200 text-sm font-bold transition-all"
                 >
                   ✕ Clear Filter
@@ -275,7 +273,7 @@ export default function ContractorMarketplace({
                     <Wrench className="h-16 w-16 mx-auto text-slate-400 mb-4" />
                     <h3 className="text-xl font-bold text-slate-900 mb-2">No contractors found</h3>
                     <p className="text-slate-600 font-semibold mb-4">Try adjusting your search or browse all categories</p>
-                    <Link href="/contractors">
+                    <Link href="/contractor-marketplace">
                       <Button variant="surface" className="font-bold">View All Contractors</Button>
                     </Link>
                   </div>

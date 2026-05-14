@@ -31,7 +31,7 @@ const Footer = () => {
           <div className='flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold'>
             <Link href='/' className='text-black hover:text-white transition-colors'>Home</Link>
             <Link href='/listings' className='text-black hover:text-white transition-colors'>Listings</Link>
-            <Link href='/contractors' className='text-black hover:text-white transition-colors'>Contractors</Link>
+            <Link href='/contractor-marketplace' className='text-black hover:text-white transition-colors'>Contractors</Link>
             <Link href='/faq' className='text-black hover:text-white transition-colors'>FAQs</Link>
             <Link href='/docs/api' className='text-black hover:text-white transition-colors'>API</Link>
             <Link href='/affiliate-program' className='text-black hover:text-white transition-colors'>Affiliates</Link>

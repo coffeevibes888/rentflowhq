@@ -63,7 +63,7 @@ export default function RecommendedContractors({ interestedServices }: Recommend
         <CardContent className="text-center py-8">
           <Wrench className="h-12 w-12 mx-auto text-slate-400 mb-4" />
           <p className="text-slate-700 mb-4">No contractors found matching your preferences yet.</p>
-          <Link href="/contractors">
+          <Link href="/contractor-marketplace">
             <Button variant="outline">Browse All Contractors</Button>
           </Link>
         </CardContent>
@@ -78,7 +78,7 @@ export default function RecommendedContractors({ interestedServices }: Recommend
           <Sparkles className="h-5 w-5 text-amber-500" />
           Recommended For You
         </CardTitle>
-        <Link href="/contractors" className="text-sm text-sky-600 hover:text-sky-500">
+        <Link href="/contractor-marketplace" className="text-sm text-sky-600 hover:text-sky-500">
           View all →
         </Link>
       </CardHeader>

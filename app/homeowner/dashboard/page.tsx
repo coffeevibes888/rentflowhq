@@ -386,7 +386,7 @@ export default async function HomeownerDashboardPage() {
               </CardContent>
             </Card>
           </Link>
-          <Link href="/contractors">
+          <Link href="/contractor-marketplace">
             <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-colors cursor-pointer h-full">
               <CardContent className="p-4 text-center">
                 <Wrench className="h-8 w-8 mx-auto text-white mb-2" />

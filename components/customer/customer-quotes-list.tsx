@@ -143,7 +143,7 @@ export function CustomerQuotesList({ quotes }: { quotes: Quote[] }) {
         <div className="text-center py-12">
           <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
           <p className="text-gray-600 mb-4">No quotes found</p>
-          <Link href="/contractors">
+          <Link href="/contractor-marketplace">
             <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white">
               Find Contractors
             </Button>

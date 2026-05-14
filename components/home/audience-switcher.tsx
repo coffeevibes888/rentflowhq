@@ -250,6 +250,7 @@ export default function AudienceSwitcher({
   contractorLifecycleSection,
   pmComparisonSection,
   contractorComparisonSection,
+  forceAudience,
 }: {
   pmPricingSection: React.ReactNode;
   contractorPricingSection: React.ReactNode;
@@ -258,14 +259,21 @@ export default function AudienceSwitcher({
   contractorLifecycleSection?: React.ReactNode;
   pmComparisonSection?: React.ReactNode;
   contractorComparisonSection?: React.ReactNode;
+  /** When set, overrides the search-param detection and locks the view */
+  forceAudience?: 'pm' | 'contractor';
 }) {
   const searchParams = useSearchParams();
-  const [audience, setAudience] = useState<Audience>('pm');
+  const [audience, setAudience] = useState<Audience>(forceAudience ?? 'pm');
 
   useEffect(() => {
+    // If a forced audience is provided, always use it — ignore search params
+    if (forceAudience) {
+      setAudience(forceAudience);
+      return;
+    }
     const param = searchParams.get('for');
     setAudience(param === 'contractor' ? 'contractor' : 'pm');
-  }, [searchParams]);
+  }, [searchParams, forceAudience]);
 
   const isPM = audience === 'pm';
 
