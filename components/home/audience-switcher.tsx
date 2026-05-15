@@ -103,15 +103,15 @@ function ContractorFeatures() {
           {points.map((p) => {
             const Icon = p.icon;
             return (
-              <div key={p.title} className="group rounded-xl md:rounded-2xl border border-rose-500/20 bg-linear-to-r from-orange-500 via-amber-700 to-amber-200 p-6 space-y-4 transition-all duration-300 shadow-2xl hover:border-rose-500/40">
+              <div key={p.title} className="group rounded-xl md:rounded-2xl border border-orange-400/30 bg-gradient-to-br from-orange-950 via-orange-900 to-amber-900 p-6 space-y-4 transition-all duration-300 shadow-2xl hover:border-orange-400/50">
                 <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-rose-500/20 p-2 border border-rose-500/30">
-                    <Icon className={`h-5 w-5 ${p.iconColor}`} />
+                  <div className="rounded-lg bg-orange-500/20 p-2 border border-orange-500/30">
+                    <Icon className="h-5 w-5 text-orange-300" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-base font-bold text-white mb-2">{p.title}</h3>
-                    <p className="text-sm text-black mb-3 font-bold">{p.desc}</p>
-                    <div className="flex items-center gap-2 text-white text-xs ">
+                    <p className="text-sm text-orange-100/70 mb-3">{p.desc}</p>
+                    <div className="flex items-center gap-2 text-amber-300 text-xs font-semibold">
                       <ArrowRight className="h-3 w-3" />
                       <span>Solution: {p.solution}</span>
                     </div>
@@ -137,71 +137,71 @@ function ContractorShowcase() {
 
           {/* Marketplace Card */}
           <div className="group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-rose-900 to-slate-950" />
-            <div className="absolute inset-0 border border-rose-500/30 rounded-2xl md:rounded-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-950 via-orange-900 to-amber-950" />
+            <div className="absolute inset-0 border border-orange-500/30 rounded-2xl md:rounded-3xl" />
             <div className="absolute top-4 right-4 md:top-6 md:right-6">
-              <span className="inline-flex items-center gap-1 bg-rose-500/20 backdrop-blur-sm text-rose-300 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-rose-500/40">
+              <span className="inline-flex items-center gap-1 bg-orange-500/20 backdrop-blur-sm text-orange-200 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-orange-500/40">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-400"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-400"></span>
                 </span>
                 YOUR STOREFRONT
               </span>
             </div>
             <div className="relative p-8 md:p-10 space-y-5 md:space-y-7">
-              <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-rose-500/20 backdrop-blur-sm flex items-center justify-center border border-rose-500/30">
-                <MapPin className="h-7 w-7 md:h-8 md:w-8 text-rose-400" />
+              <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-orange-500/20 backdrop-blur-sm flex items-center justify-center border border-orange-500/30">
+                <MapPin className="h-7 w-7 md:h-8 md:w-8 text-orange-400" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl md:text-3xl font-bold text-white">Your Own Contractor Profile</h3>
-                <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                <p className="text-orange-100/75 text-sm md:text-base leading-relaxed">
                   Get discovered by property managers in your area. Your branded subdomain, portfolio, reviews, and service area — all in one public profile.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {['yourname.propertyflowhq.com', 'Client Reviews', 'Portfolio Gallery', 'Service Area Map'].map((t) => (
-                  <span key={t} className="inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50">
-                    <CheckCircle className="h-3 w-3 text-rose-400" />
+                  <span key={t} className="inline-flex items-center gap-1.5 bg-orange-950/60 text-orange-100 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-orange-700/50">
+                    <CheckCircle className="h-3 w-3 text-orange-400" />
                     {t}
                   </span>
                 ))}
               </div>
-              <p className="text-slate-400 text-xs md:text-sm">Get found. Get hired. Get paid. No cold calling.</p>
+              <p className="text-orange-200/60 text-xs md:text-sm">Get found. Get hired. Get paid. No cold calling.</p>
             </div>
           </div>
 
           {/* Business OS Card */}
           <div className="group relative rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-violet-900 to-slate-950" />
-            <div className="absolute inset-0 border border-violet-500/30 rounded-2xl md:rounded-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-950 via-orange-900 to-orange-950" />
+            <div className="absolute inset-0 border border-amber-500/30 rounded-2xl md:rounded-3xl" />
             <div className="absolute top-4 right-4 md:top-6 md:right-6">
-              <span className="inline-flex items-center gap-1 bg-violet-500/20 backdrop-blur-sm text-violet-300 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-violet-500/40">
+              <span className="inline-flex items-center gap-1 bg-amber-500/20 backdrop-blur-sm text-amber-200 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-amber-500/40">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-400"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
                 </span>
                 FULL BUSINESS OS
               </span>
             </div>
             <div className="relative p-8 md:p-10 space-y-5 md:space-y-7">
-              <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-violet-500/20 backdrop-blur-sm flex items-center justify-center border border-violet-500/30">
-                <Zap className="h-7 w-7 md:h-8 md:w-8 text-violet-400" />
+              <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-amber-500/20 backdrop-blur-sm flex items-center justify-center border border-amber-500/30">
+                <Zap className="h-7 w-7 md:h-8 md:w-8 text-amber-400" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl md:text-3xl font-bold text-white">Everything A-to-Z</h3>
-                <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                <p className="text-orange-100/75 text-sm md:text-base leading-relaxed">
                   Leads, jobs, invoices, inventory, payroll, team scheduling, time tracking, marketing — one subscription runs your whole operation.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {['Jobs & Work Orders', 'Invoicing & Estimates', 'Team + Time Tracking', 'Inventory & Equipment', 'Marketing Tools', 'QuickBooks Sync'].map((t) => (
-                  <span key={t} className="inline-flex items-center gap-1.5 bg-slate-800/60 text-slate-200 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-slate-700/50">
-                    <CheckCircle className="h-3 w-3 text-violet-400" />
+                  <span key={t} className="inline-flex items-center gap-1.5 bg-orange-950/60 text-orange-100 text-[11px] md:text-xs font-medium px-3 py-1.5 rounded-full border border-orange-700/50">
+                    <CheckCircle className="h-3 w-3 text-amber-400" />
                     {t}
                   </span>
                 ))}
               </div>
-              <p className="text-slate-400 text-xs md:text-sm">Starts at $19.99/month. No per-job fees. Ever.</p>
+              <p className="text-orange-200/60 text-xs md:text-sm">Starts at $19.99/month. No per-job fees. Ever.</p>
             </div>
           </div>
         </div>

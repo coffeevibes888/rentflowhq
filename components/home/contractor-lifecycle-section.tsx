@@ -7,7 +7,7 @@ export function ContractorLifecycleSection() {
       <div className='max-w-6xl mx-auto space-y-8'>
         {/* Headline */}
         <div className='text-center space-y-3 max-w-3xl mx-auto'>
-          <h2 className='text-2xl sm:text-3xl md:text-4xl font-bold text-black'>
+          <h2 className='text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent'>
             Complete Job Lifecycle
           </h2>
           <p className='text-sm sm:text-base md:text-lg text-black/70 leading-relaxed'>
