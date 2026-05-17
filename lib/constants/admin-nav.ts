@@ -199,6 +199,19 @@ export const adminNavGroups: AdminNavGroup[] = [
       },
     ],
   },
+  {
+    label: 'Beta Program',
+    icon: Sparkles,
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Beta Testers',
+        description: 'Redeem code & give feedback',
+        href: '/admin/beta-testers',
+        icon: Sparkles,
+      },
+    ],
+  },
 ];
 
 export const adminNavLinks: AdminNavLink[] = [

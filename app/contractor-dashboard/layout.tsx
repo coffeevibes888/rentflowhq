@@ -7,12 +7,51 @@ import { ContractorSidebarWrapper } from '@/components/contractor/contractor-sid
 import ContractorMainNav from './main-nav';
 import { SubscriptionGate } from '@/components/subscription/subscription-gate';
 import { TeamChatWidgetWrapper } from '@/components/team/team-chat-widget-wrapper';
+import { headers } from 'next/headers';
+import { auth } from '@/auth';
+import { prisma } from '@/db/prisma';
+import { syncContractorSubscriptionFromStripe } from '@/lib/actions/contractor-subscription-sync';
 
 export default async function ContractorLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // If arriving from a successful Stripe checkout, sync the contractor's
+  // subscription into the DB *before* SubscriptionGate runs. We call the
+  // shared server action directly (not a self-fetch) so this always runs
+  // with the user's own session and is independent of webhook delivery.
+  const headersList = await headers();
+  const referer = headersList.get('referer') || '';
+  const isFromStripeCheckout = referer.includes('checkout.stripe.com');
+
+  if (isFromStripeCheckout) {
+    try {
+      const session = await auth();
+      if (session?.user?.id) {
+        let contractorId: string | null = null;
+        if (session.user.role === 'contractor_employee') {
+          const employee = await prisma.contractorEmployee.findFirst({
+            where: { userId: session.user.id, status: 'active' },
+            select: { contractorId: true },
+          });
+          contractorId = employee?.contractorId ?? null;
+        } else {
+          const profile = await prisma.contractorProfile.findUnique({
+            where: { userId: session.user.id },
+            select: { id: true },
+          });
+          contractorId = profile?.id ?? null;
+        }
+        if (contractorId) {
+          await syncContractorSubscriptionFromStripe(contractorId);
+        }
+      }
+    } catch {
+      // Non-fatal — page-level handling will still kick in if needed.
+    }
+  }
+
   // Ensure user has active subscription before accessing contractor dashboard
   await SubscriptionGate({ role: 'contractor', redirectTo: '/onboarding/contractor/subscription' });
   return (

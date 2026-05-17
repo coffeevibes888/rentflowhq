@@ -71,6 +71,9 @@ export default async function JobDetailsPage({
         orderBy: { createdAt: 'desc' },
         take: 20,
       },
+      jobPhotos: {
+        orderBy: { takenAt: 'desc' },
+      },
     },
   });
 
@@ -134,6 +137,16 @@ export default async function JobDetailsPage({
       ...note,
       createdAt: note.createdAt.toISOString(),
       updatedAt: note.updatedAt.toISOString(),
+    })),
+    jobPhotos: (job.jobPhotos ?? []).map((photo: any) => ({
+      id: photo.id,
+      url: photo.url,
+      thumbnail: photo.thumbnail ?? null,
+      caption: photo.caption ?? null,
+      category: photo.category,
+      visibleToCustomer: Boolean(photo.visibleToCustomer),
+      takenAt: photo.takenAt.toISOString(),
+      tags: photo.tags ?? [],
     })),
   };
 

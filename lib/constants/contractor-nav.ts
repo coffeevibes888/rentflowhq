@@ -27,6 +27,7 @@ import {
   MapPin,
   Zap,
   MessageSquare,
+  Sparkles,
   LucideIcon 
 } from 'lucide-react';
 
@@ -109,7 +110,7 @@ export const contractorNavGroups: ContractorNavGroup[] = [
   {
     label: 'Team',
     icon: Users,
-    defaultOpen: false,
+    defaultOpen: true,
     items: [
       {
         title: 'Directory',
@@ -130,6 +131,13 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         description: 'Clock in/out & tracking',
         href: '/contractor-dashboard/team/time',
         icon: ClipboardList,
+        requiredTier: 'pro',
+      },
+      {
+        title: 'Live Crew Map',
+        description: 'See where your crew is right now',
+        href: '/contractor-dashboard/crew-map',
+        icon: MapPin,
         requiredTier: 'pro',
       },
       {
@@ -310,6 +318,19 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         description: 'Plan, usage & upgrades',
         href: '/contractor-dashboard/settings/subscription',
         icon: TrendingUp,
+      },
+    ],
+  },
+  {
+    label: 'Beta Program',
+    icon: Sparkles,
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Beta Testers',
+        description: 'Redeem code & give feedback',
+        href: '/contractor-dashboard/beta-testers',
+        icon: Sparkles,
       },
     ],
   },

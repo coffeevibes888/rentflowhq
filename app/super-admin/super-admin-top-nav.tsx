@@ -8,6 +8,7 @@ import { Menu as MenuIcon, X } from 'lucide-react';
 const links = [
   { href: '/super-admin', label: 'Dashboard', emoji: '🏠' },
   { href: '/super-admin/insights', label: 'Insights', emoji: '⚡' },
+  { href: '/super-admin/beta-feedback', label: 'Beta Feedback', emoji: '✨' },
   { href: '/super-admin/resume-builder', label: 'Resume Builder', emoji: '📄' },
   { href: '/super-admin/affiliates', label: 'Affiliates', emoji: '💰' },
   { href: '/super-admin/audit-logs', label: 'Audit Logs', emoji: '🔒' },

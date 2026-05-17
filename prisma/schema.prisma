@@ -471,7 +471,7 @@ model Thread {
 
   messages     Message[]
   participants ThreadParticipant[]
-  folder       MessageFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  folder       MessageFolder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   @@index([folderId])
   @@index([isArchived])
@@ -2270,14 +2270,14 @@ model ContractorInvite {
 
 // WorkOrderBid - Contractor bids on open job postings (Upwork/Fiverr-style)
 model WorkOrderBid {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workOrderId       String    @db.Uuid
-  contractorId      String    @db.Uuid
-  amount            Decimal   @db.Decimal(12, 2) // total amount
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId  String  @db.Uuid
+  contractorId String  @db.Uuid
+  amount       Decimal @db.Decimal(12, 2) // total amount
 
   // Cost breakdown (optional — shows transparency)
-  laborCost         Decimal?  @db.Decimal(12, 2)
-  materialsCost    Decimal?  @db.Decimal(12, 2)
+  laborCost     Decimal? @db.Decimal(12, 2)
+  materialsCost Decimal? @db.Decimal(12, 2)
 
   // Timeline
   estimatedHours          Decimal?  @db.Decimal(6, 2)
@@ -2301,8 +2301,8 @@ model WorkOrderBid {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  workOrder  WorkOrder           @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
-  contractor Contractor          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  workOrder  WorkOrder             @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  contractor Contractor            @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   messages   WorkOrderBidMessage[]
 
   @@unique([workOrderId, contractorId])
@@ -2319,14 +2319,14 @@ model WorkOrderBidMessage {
   bidId    String @db.Uuid
   senderId String @db.Uuid // User.id of sender (PM or contractor)
 
-  type String @default("message") // 'message' | 'counter_offer' | 'system'
+  type String  @default("message") // 'message' | 'counter_offer' | 'system'
   body String? // chat content; optional note for counter offers
 
   // Counter-offer fields (null for plain messages)
-  counterAmount Decimal? @db.Decimal(12, 2)
+  counterAmount Decimal?  @db.Decimal(12, 2)
   counterStatus String? // 'pending' | 'accepted' | 'rejected' | 'superseded' | 'expired'
   respondedAt   DateTime? @db.Timestamp(6)
-  respondedBy   String?  @db.Uuid // User.id who accepted/rejected
+  respondedBy   String?   @db.Uuid // User.id who accepted/rejected
 
   readAt    DateTime? @db.Timestamp(6)
   createdAt DateTime  @default(now()) @db.Timestamp(6)
@@ -2365,7 +2365,7 @@ model WorkOrder {
   escrowRefundedAt      DateTime? @db.Timestamp(6)
   stripePaymentIntentId String?
   stripeTransferId      String? // contractor payout transfer
-  acceptedBidId         String?  @db.Uuid // which bid was accepted
+  acceptedBidId         String?   @db.Uuid // which bid was accepted
 
   // Job lifecycle (Uber-style state machine)
   // pending -> funded -> scheduled -> in_progress -> awaiting_approval -> released
@@ -2386,11 +2386,11 @@ model WorkOrder {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  landlord          Landlord             @relation(fields: [landlordId], references: [id], onDelete: Cascade)
-  contractor        Contractor?          @relation(fields: [contractorId], references: [id], onDelete: SetNull)
-  maintenanceTicket MaintenanceTicket?   @relation(fields: [maintenanceTicketId], references: [id], onDelete: SetNull)
-  property          Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  unit              Unit?                @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  landlord          Landlord               @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  contractor        Contractor?            @relation(fields: [contractorId], references: [id], onDelete: SetNull)
+  maintenanceTicket MaintenanceTicket?     @relation(fields: [maintenanceTicketId], references: [id], onDelete: SetNull)
+  property          Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unit              Unit?                  @relation(fields: [unitId], references: [id], onDelete: SetNull)
   media             WorkOrderMedia[]
   history           WorkOrderHistory[]
   payment           ContractorPayment?
@@ -2413,15 +2413,15 @@ model WorkOrder {
 // WorkOrderStatusEvent - Audit trail of every lifecycle transition
 // Powers the Uber-style timeline ribbon
 model WorkOrderStatusEvent {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workOrderId  String   @db.Uuid
-  fromStatus   String?
-  toStatus     String
-  actorUserId  String?  @db.Uuid // who triggered this (null = system/cron)
-  actorRole    String? // 'landlord', 'contractor', 'system'
-  note         String?
-  metadata     Json? // arbitrary payload (e.g., paymentIntentId, transferId, photo refs)
-  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId String   @db.Uuid
+  fromStatus  String?
+  toStatus    String
+  actorUserId String?  @db.Uuid // who triggered this (null = system/cron)
+  actorRole   String? // 'landlord', 'contractor', 'system'
+  note        String?
+  metadata    Json? // arbitrary payload (e.g., paymentIntentId, transferId, photo refs)
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
 
   workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
 
@@ -2440,11 +2440,11 @@ model WorkOrderDispute {
   description   String
   evidenceUrls  String[] @default([]) // photos/docs supporting the claim
 
-  status        String    @default("open") // open, in_review, resolved_release, resolved_refund, resolved_split, withdrawn
-  resolution    String? // human-readable resolution note
-  resolvedAt    DateTime? @db.Timestamp(6)
-  resolvedByUserId String? @db.Uuid
-  refundAmount  Decimal? @db.Decimal(12, 2) // amount refunded to PM (rest goes to contractor)
+  status           String    @default("open") // open, in_review, resolved_release, resolved_refund, resolved_split, withdrawn
+  resolution       String? // human-readable resolution note
+  resolvedAt       DateTime? @db.Timestamp(6)
+  resolvedByUserId String?   @db.Uuid
+  refundAmount     Decimal?  @db.Decimal(12, 2) // amount refunded to PM (rest goes to contractor)
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -2459,18 +2459,18 @@ model WorkOrderDispute {
 // WorkOrderMilestone - Optional milestone-based release for big jobs
 // e.g. 20% materials advance, 30% midpoint, 50% on completion
 model WorkOrderMilestone {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workOrderId   String   @db.Uuid
-  order         Int // 1, 2, 3...
-  title         String
-  description   String?
-  amount        Decimal  @db.Decimal(12, 2)
-  releaseRule   String // 'on_start' | 'on_receipts' | 'on_midpoint' | 'on_completion' | 'manual'
-  status        String   @default("pending") // pending, ready, released, refunded
-  receiptUrls   String[] @default([]) // for materials advances
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId String   @db.Uuid
+  order       Int // 1, 2, 3...
+  title       String
+  description String?
+  amount      Decimal  @db.Decimal(12, 2)
+  releaseRule String // 'on_start' | 'on_receipts' | 'on_midpoint' | 'on_completion' | 'manual'
+  status      String   @default("pending") // pending, ready, released, refunded
+  receiptUrls String[] @default([]) // for materials advances
 
-  releasedAt        DateTime? @db.Timestamp(6)
-  stripeTransferId  String?
+  releasedAt       DateTime? @db.Timestamp(6)
+  stripeTransferId String?
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -2745,31 +2745,31 @@ model PayrollSettings {
 
 // Job postings for hiring
 model JobPosting {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  landlordId   String?  @db.Uuid
-  userId       String   @db.Uuid // The user who posted the job
-  title        String
-  description  String
-  type         String   @default("full-time") // full-time, part-time, contract, temporary, internship
-  category     String   @default("general") // property-management, maintenance, virtual-assistant, leasing, accounting, admin, construction, landscaping, cleaning, other
-  location     String
-  isRemote     Boolean  @default(false)
-  salary       String?
-  salaryMin    Decimal? @db.Decimal(12, 2)
-  salaryMax    Decimal? @db.Decimal(12, 2)
-  salaryType   String   @default("yearly") // hourly, yearly, per-project
-  requirements String?
-  benefits     String?
-  companyName  String?
-  companyLogo  String?
-  companyAbout String?
-  experienceLevel String @default("entry") // entry, mid, senior, executive
-  status       String   @default("draft") // draft, active, closed, filled
-  views        Int      @default(0)
-  createdAt    DateTime @default(now()) @db.Timestamp(6)
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId      String?  @db.Uuid
+  userId          String   @db.Uuid // The user who posted the job
+  title           String
+  description     String
+  type            String   @default("full-time") // full-time, part-time, contract, temporary, internship
+  category        String   @default("general") // property-management, maintenance, virtual-assistant, leasing, accounting, admin, construction, landscaping, cleaning, other
+  location        String
+  isRemote        Boolean  @default(false)
+  salary          String?
+  salaryMin       Decimal? @db.Decimal(12, 2)
+  salaryMax       Decimal? @db.Decimal(12, 2)
+  salaryType      String   @default("yearly") // hourly, yearly, per-project
+  requirements    String?
+  benefits        String?
+  companyName     String?
+  companyLogo     String?
+  companyAbout    String?
+  experienceLevel String   @default("entry") // entry, mid, senior, executive
+  status          String   @default("draft") // draft, active, closed, filled
+  views           Int      @default(0)
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt
 
-  landlord   Landlord?      @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  landlord   Landlord?       @relation(fields: [landlordId], references: [id], onDelete: Cascade)
   applicants JobApplicant[]
   reviews    CompanyReview[]
 
@@ -2781,68 +2781,68 @@ model JobPosting {
 
 // Job applicants - full employment application (wizard-style)
 model JobApplicant {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  jobId       String   @db.Uuid
-  landlordId  String?  @db.Uuid
-  userId      String?  @db.Uuid // If applicant has an account
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId       String  @db.Uuid
+  landlordId  String? @db.Uuid
+  userId      String? @db.Uuid // If applicant has an account
   name        String
   email       String
   phone       String?
   resumeUrl   String?
   coverLetter String?
-  status      String   @default("draft") // draft, new, reviewing, interview, offered, hired, rejected, withdrawn
+  status      String  @default("draft") // draft, new, reviewing, interview, offered, hired, rejected, withdrawn
   notes       String?
 
   // Personal / identity (encrypted at rest ideally)
-  dateOfBirth     String?
-  ssnLast4        String? // only store last 4 for display
-  ssnEncrypted    String? // full encrypted SSN for background checks
-  addressLine1    String?
-  addressLine2    String?
-  city            String?
-  stateRegion     String?
-  postalCode      String?
-  country         String? @default("US")
+  dateOfBirth  String?
+  ssnLast4     String? // only store last 4 for display
+  ssnEncrypted String? // full encrypted SSN for background checks
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  stateRegion  String?
+  postalCode   String?
+  country      String? @default("US")
 
   // Work authorization
-  workAuth        String? // us_citizen, perm_resident, work_visa, requires_sponsorship
+  workAuth            String? // us_citizen, perm_resident, work_visa, requires_sponsorship
   requiresSponsorship Boolean @default(false)
 
   // Employment / education / references stored as structured JSON
-  workHistory     Json? @db.Json // [{ employer, title, startDate, endDate, current, description, supervisorName, supervisorPhone, mayContact }]
-  education       Json? @db.Json // [{ institution, degree, field, graduationYear, gpa }]
-  references      Json? @db.Json // [{ name, relationship, phone, email, yearsKnown }]
+  workHistory     Json?    @db.Json // [{ employer, title, startDate, endDate, current, description, supervisorName, supervisorPhone, mayContact }]
+  education       Json?    @db.Json // [{ institution, degree, field, graduationYear, gpa }]
+  references      Json?    @db.Json // [{ name, relationship, phone, email, yearsKnown }]
   skills          String[] @default([])
   certifications  String[] @default([])
   yearsExperience Int?
 
   // Documents uploaded during application
-  documents       Json? @db.Json // [{ id, type: 'id'|'resume'|'certification'|'other', url, name, uploadedAt }]
+  documents Json? @db.Json // [{ id, type: 'id'|'resume'|'certification'|'other', url, name, uploadedAt }]
 
   // Consents / signature
-  backgroundCheckConsent Boolean @default(false)
-  creditCheckConsent     Boolean @default(false)
+  backgroundCheckConsent Boolean   @default(false)
+  creditCheckConsent     Boolean   @default(false)
   signatureUrl           String? // data URL or uploaded signature image
   signedAt               DateTime? @db.Timestamp(6)
   signedName             String?
   signedIp               String?
 
   // Wizard progress
-  currentStep     Int      @default(0)
-  completedAt     DateTime? @db.Timestamp(6)
+  currentStep Int       @default(0)
+  completedAt DateTime? @db.Timestamp(6)
 
   // Review workflow metadata
   reviewedAt      DateTime? @db.Timestamp(6)
-  reviewedById    String?  @db.Uuid
+  reviewedById    String?   @db.Uuid
   rejectionReason String?
-  offerAmount     Decimal? @db.Decimal(12, 2)
+  offerAmount     Decimal?  @db.Decimal(12, 2)
   offerMessage    String?
 
-  appliedAt   DateTime @default(now()) @db.Timestamp(6)
-  updatedAt   DateTime @updatedAt
+  appliedAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
 
-  job      JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  landlord Landlord?  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  job      JobPosting            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  landlord Landlord?             @relation(fields: [landlordId], references: [id], onDelete: Cascade)
   messages JobApplicantMessage[]
 
   @@index([jobId])
@@ -2853,13 +2853,13 @@ model JobApplicant {
 
 // Messages between applicant and employer
 model JobApplicantMessage {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  applicantId String   @db.Uuid
-  senderId    String?  @db.Uuid // null for system messages
-  senderRole  String   // applicant, employer, system
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  applicantId String    @db.Uuid
+  senderId    String?   @db.Uuid // null for system messages
+  senderRole  String // applicant, employer, system
   content     String
   readAt      DateTime? @db.Timestamp(6)
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
 
   applicant JobApplicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
 
@@ -2874,7 +2874,7 @@ model CompanyReview {
   jobId       String?  @db.Uuid
   companyName String
   userId      String   @db.Uuid
-  rating      Int      // 1-5
+  rating      Int // 1-5
   title       String
   review      String
   pros        String?
@@ -2891,35 +2891,35 @@ model CompanyReview {
 
 // Job seeker profiles - people looking for work in the industry
 model JobSeekerProfile {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId          String   @unique @db.Uuid
-  headline        String   // "Experienced Property Manager" or "Licensed Electrician"
-  bio             String?
-  profilePhoto    String?
-  coverPhoto      String?
-  firstName       String
-  lastName        String
-  email           String
-  phone           String?
-  city            String?
-  state           String?
-  isAvailable     Boolean  @default(true)
-  availableFrom   DateTime? @db.Timestamp(6)
-  desiredJobTypes String[] @default([]) // full-time, part-time, contract
-  desiredCategories String[] @default([]) // property-management, maintenance, etc.
-  desiredSalaryMin Decimal? @db.Decimal(12, 2)
-  desiredSalaryMax Decimal? @db.Decimal(12, 2)
-  salaryType      String   @default("yearly") // hourly, yearly
-  skills          String[] @default([])
-  certifications  String[] @default([])
-  yearsExperience Int?
-  education       String?
-  resumeUrl       String?
-  portfolioUrl    String?
-  isPublic        Boolean  @default(true)
-  views           Int      @default(0)
-  createdAt       DateTime @default(now()) @db.Timestamp(6)
-  updatedAt       DateTime @updatedAt
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @unique @db.Uuid
+  headline          String // "Experienced Property Manager" or "Licensed Electrician"
+  bio               String?
+  profilePhoto      String?
+  coverPhoto        String?
+  firstName         String
+  lastName          String
+  email             String
+  phone             String?
+  city              String?
+  state             String?
+  isAvailable       Boolean   @default(true)
+  availableFrom     DateTime? @db.Timestamp(6)
+  desiredJobTypes   String[]  @default([]) // full-time, part-time, contract
+  desiredCategories String[]  @default([]) // property-management, maintenance, etc.
+  desiredSalaryMin  Decimal?  @db.Decimal(12, 2)
+  desiredSalaryMax  Decimal?  @db.Decimal(12, 2)
+  salaryType        String    @default("yearly") // hourly, yearly
+  skills            String[]  @default([])
+  certifications    String[]  @default([])
+  yearsExperience   Int?
+  education         String?
+  resumeUrl         String?
+  portfolioUrl      String?
+  isPublic          Boolean   @default(true)
+  views             Int       @default(0)
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt
 
   @@index([userId])
   @@index([isPublic, isAvailable])
@@ -3409,17 +3409,17 @@ model RateLimitRecord {
 // impossible-travel heuristics. Separate from AuditLog so high-volume auth
 // traffic doesn't swamp the audit trail.
 model LoginAttempt {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email      String?
-  userId     String?  @db.Uuid
-  success    Boolean  @default(false)
-  reason     String? // bad_password, rate_limited, user_not_found, ok, etc
-  ipAddress  String?
-  country    String?
-  region     String?
-  city       String?
-  userAgent  String?
-  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String?
+  userId    String?  @db.Uuid
+  success   Boolean  @default(false)
+  reason    String? // bad_password, rate_limited, user_not_found, ok, etc
+  ipAddress String?
+  country   String?
+  region    String?
+  city      String?
+  userAgent String?
+  createdAt DateTime @default(now()) @db.Timestamp(6)
 
   @@index([email])
   @@index([userId])
@@ -3431,19 +3431,19 @@ model LoginAttempt {
 // Persistent visitor fingerprint (separate from session cookie) so we can tell
 // new vs returning visitors across sessions.
 model VisitorProfile {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  visitorId       String   @unique // cookie-based UUID
-  firstSeenAt     DateTime @default(now()) @db.Timestamp(6)
-  lastSeenAt      DateTime @default(now()) @db.Timestamp(6)
-  totalVisits     Int      @default(1)
-  totalPageViews  Int      @default(0)
-  firstUtmSource  String?
-  firstUtmMedium  String?
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  visitorId        String   @unique // cookie-based UUID
+  firstSeenAt      DateTime @default(now()) @db.Timestamp(6)
+  lastSeenAt       DateTime @default(now()) @db.Timestamp(6)
+  totalVisits      Int      @default(1)
+  totalPageViews   Int      @default(0)
+  firstUtmSource   String?
+  firstUtmMedium   String?
   firstUtmCampaign String?
-  firstReferrer   String?
+  firstReferrer    String?
   firstLandingPath String?
-  lastUtmSource   String?
-  userId          String?  @db.Uuid
+  lastUtmSource    String?
+  userId           String?  @db.Uuid
 
   @@index([visitorId])
   @@index([userId])
@@ -3454,10 +3454,10 @@ model VisitorProfile {
 // Cron heartbeat — every scheduled job writes one row per run so the
 // dashboard can flag jobs that silently stopped.
 model CronRunLog {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   jobName    String
   status     String // success, failure, running, skipped
-  startedAt  DateTime @default(now()) @db.Timestamp(6)
+  startedAt  DateTime  @default(now()) @db.Timestamp(6)
   finishedAt DateTime?
   durationMs Int?
   message    String?
@@ -3493,16 +3493,16 @@ model InboundWebhookEvent {
 // (lease docs, SSN, bank info, etc.). Required for SOC2 and most data
 // privacy reviews.
 model SensitivePIIAccess {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  actorUserId  String   @db.Uuid // the admin doing the viewing
-  subjectUserId String? @db.Uuid // whose data was viewed
-  subjectLandlordId String? @db.Uuid
-  resourceType String // lease_document, ssn, bank_account, application, etc.
-  resourceId   String?
-  reason       String?
-  ipAddress    String?
-  userAgent    String?
-  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId       String   @db.Uuid // the admin doing the viewing
+  subjectUserId     String?  @db.Uuid // whose data was viewed
+  subjectLandlordId String?  @db.Uuid
+  resourceType      String // lease_document, ssn, bank_account, application, etc.
+  resourceId        String?
+  reason            String?
+  ipAddress         String?
+  userAgent         String?
+  createdAt         DateTime @default(now()) @db.Timestamp(6)
 
   @@index([actorUserId])
   @@index([subjectUserId])
@@ -4014,9 +4014,9 @@ model ContractorProfile {
   trialRemindersSent  Json?     @db.Json
 
   // Stripe Connect for Payouts
-  stripeConnectAccountId  String?
-  stripeOnboardingStatus  String? // pending, active, invalid
-  isPaymentReady          Boolean @default(false)
+  stripeConnectAccountId String?
+  stripeOnboardingStatus String? // pending, active, invalid
+  isPaymentReady         Boolean @default(false)
 
   // Subdomain & Branding (mirrors landlord subdomain)
   subdomain  String?  @unique // contractor's custom subdomain
@@ -4051,10 +4051,10 @@ model ContractorProfile {
 
   // Marketplace Visibility & Ranking
   featuredUntil           DateTime? @db.Timestamp(6) // paid visibility boost active until
-  visibilityCredits       Int       @default(0)       // remaining impression credits
+  visibilityCredits       Int       @default(0) // remaining impression credits
   newContractorBoostUntil DateTime? @db.Timestamp(6) // auto 30-day new member boost
   lastActiveAt            DateTime? @db.Timestamp(6) // last login/activity for recency score
-  profileCompletionScore  Int       @default(0)       // 0-100 cached completeness %
+  profileCompletionScore  Int       @default(0) // 0-100 cached completeness %
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -4136,21 +4136,21 @@ model ContractorProfile {
   usageTracking ContractorUsageTracking?
 
   // New Features (7 Enhanced Contractor Features)
-  purchaseOrders        ContractorPurchaseOrder[]
-  warranties            ContractorWarranty[]
-  subcontractors        ContractorSubcontractor[]
-  safetyChecklists      ContractorSafetyChecklist[]
-  safetyCompletions     ContractorSafetyChecklistCompletion[]
-  dispatchBoards        ContractorDispatchBoard[]
-  labelConfigs          ContractorLabelConfig[]
-  labels                ContractorLabel[]
-  shipments             ContractorShipment[]
-  apiKeys               ContractorApiKey[]
-  webhookEndpoints      ContractorWebhookEndpoint[]
+  purchaseOrders    ContractorPurchaseOrder[]
+  warranties        ContractorWarranty[]
+  subcontractors    ContractorSubcontractor[]
+  safetyChecklists  ContractorSafetyChecklist[]
+  safetyCompletions ContractorSafetyChecklistCompletion[]
+  dispatchBoards    ContractorDispatchBoard[]
+  labelConfigs      ContractorLabelConfig[]
+  labels            ContractorLabel[]
+  shipments         ContractorShipment[]
+  apiKeys           ContractorApiKey[]
+  webhookEndpoints  ContractorWebhookEndpoint[]
 
   // Hiring & Applications
-  hiringPostings        ContractorHiringPost[]
-  hiringApplications    ContractorHiringApplication[]
+  hiringPostings     ContractorHiringPost[]
+  hiringApplications ContractorHiringApplication[]
 
   @@index([slug])
   @@index([rankScore])
@@ -4170,11 +4170,11 @@ model ContractorUsageTracking {
   invoicesThisMonth Int @default(0)
 
   // Cumulative counters
-  totalCustomers    Int @default(0)
-  teamMembersCount  Int @default(0)
-  inventoryCount    Int @default(0)
-  equipmentCount    Int @default(0)
-  activeLeadsCount  Int @default(0)
+  totalCustomers   Int @default(0)
+  teamMembersCount Int @default(0)
+  inventoryCount   Int @default(0)
+  equipmentCount   Int @default(0)
+  activeLeadsCount Int @default(0)
 
   // Metadata
   lastResetDate DateTime @default(now()) @db.Timestamp(6)
@@ -4556,20 +4556,20 @@ model ContractorAppointment {
   cancellationReason String?
 
   // Payment / Escrow
-  depositAmount    Decimal? @db.Decimal(10, 2)
-  depositPaid      Boolean  @default(false)
-  depositPaymentId String?  // Stripe PaymentIntent ID (funds held by platform)
-  escrowStatus     String   @default("none") // none, held, released, refunded, disputed
+  depositAmount    Decimal?  @db.Decimal(10, 2)
+  depositPaid      Boolean   @default(false)
+  depositPaymentId String? // Stripe PaymentIntent ID (funds held by platform)
+  escrowStatus     String    @default("none") // none, held, released, refunded, disputed
   escrowReleasedAt DateTime? @db.Timestamp(6)
   escrowRefundedAt DateTime? @db.Timestamp(6)
   autoReleaseAt    DateTime? @db.Timestamp(6) // Auto-release to contractor after this date (e.g. 3 days post-completion)
-  platformFee      Decimal? @db.Decimal(10, 2) // Platform cut on release
+  platformFee      Decimal?  @db.Decimal(10, 2) // Platform cut on release
 
   // Completion
-  completedAt          DateTime? @db.Timestamp(6)
-  customerConfirmedAt  DateTime? @db.Timestamp(6) // Customer confirmed job done
-  disputeReason        String?
-  disputeFiledAt       DateTime? @db.Timestamp(6)
+  completedAt         DateTime? @db.Timestamp(6)
+  customerConfirmedAt DateTime? @db.Timestamp(6) // Customer confirmed job done
+  disputeReason       String?
+  disputeFiledAt      DateTime? @db.Timestamp(6)
 
   // Job linkage
   jobId String? @db.Uuid
@@ -5026,7 +5026,7 @@ model ContractorJob {
   expenses        ContractorExpense[]
   changeOrders    ContractorChangeOrder[]
   jobMilestones   ContractorJobMilestone[]
-  contracts     ContractorContract[]
+  contracts       ContractorContract[]
   jobNotes        ContractorJobNote[]
   incidentReports ContractorIncidentReport[]
   inventoryUsage  ContractorInventoryUsage[]
@@ -5034,11 +5034,11 @@ model ContractorJob {
   truckLoads      ContractorTruckLoad[]
 
   // New Feature Relations
-  jobPhotos            ContractorJobPhoto[]
-  purchaseOrders       ContractorPurchaseOrder[]
+  jobPhotos                ContractorJobPhoto[]
+  purchaseOrders           ContractorPurchaseOrder[]
   subcontractorAssignments ContractorSubcontractorAssignment[]
-  warranties           ContractorWarranty[]
-  safetyCompletions    ContractorSafetyChecklistCompletion[]
+  warranties               ContractorWarranty[]
+  safetyCompletions        ContractorSafetyChecklistCompletion[]
 
   @@index([contractorId])
   @@index([customerId])
@@ -5061,18 +5061,18 @@ model ContractorEmployee {
   photo     String?
 
   // Employment
-  role            String // Lead Technician, Helper, Subcontractor, Admin (legacy - use roleId)
-  employeeType    String    @default("w2") // w2, 1099, subcontractor
-  status          String    @default("active") // active, inactive, terminated, invited
-  hireDate        DateTime  @db.Timestamp(6)
-  terminationDate DateTime? @db.Timestamp(6)
+  role              String // Lead Technician, Helper, Subcontractor, Admin (legacy - use roleId)
+  employeeType      String    @default("w2") // w2, 1099, subcontractor
+  status            String    @default("active") // active, inactive, terminated, invited
+  hireDate          DateTime  @db.Timestamp(6)
+  terminationDate   DateTime? @db.Timestamp(6)
   terminationReason String? // voluntary, involuntary, contract_end, layoff
 
   // Invite / Onboarding
-  inviteToken   String?   @unique // UUID token sent via email for account linking
-  inviteExpiry  DateTime? @db.Timestamp(6)
-  invitedAt     DateTime? @db.Timestamp(6)
-  onboardedAt   DateTime? @db.Timestamp(6) // when they accepted invite & linked account
+  inviteToken  String?   @unique // UUID token sent via email for account linking
+  inviteExpiry DateTime? @db.Timestamp(6)
+  invitedAt    DateTime? @db.Timestamp(6)
+  onboardedAt  DateTime? @db.Timestamp(6) // when they accepted invite & linked account
 
   // Compensation
   payRate     Decimal @db.Decimal(10, 2)
@@ -5118,11 +5118,11 @@ model ContractorEmployee {
   timeOffRequests        ContractorTimeOff[]
   employeeCertifications ContractorCertification[]
   incidentReports        ContractorIncidentReport[]
-  equipmentAssignments   ContractorEquipment[]     @relation("EquipmentAssignments")
+  equipmentAssignments   ContractorEquipment[]          @relation("EquipmentAssignments")
   assignedTrucks         ContractorTruck[]
-  truckLoadsPerformed    ContractorTruckLoad[]     @relation("TruckLoadEmployee")
+  truckLoadsPerformed    ContractorTruckLoad[]          @relation("TruckLoadEmployee")
   inventoryReceived      ContractorInventoryReceiving[] @relation("InventoryReceivedBy")
-  truckInventoryLoaded   ContractorTruckInventory[] @relation("TruckInventoryLoadedBy")
+  truckInventoryLoaded   ContractorTruckInventory[]     @relation("TruckInventoryLoadedBy")
   paychecks              ContractorPaycheck[]
 
   @@index([contractorId])
@@ -6015,8 +6015,8 @@ model ContractorCommunication {
 
 // ContractorInventoryItem - Material and supply inventory
 model ContractorInventoryItem {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
   vendorId     String? @db.Uuid
 
   // Item details
@@ -6026,10 +6026,10 @@ model ContractorInventoryItem {
   description String?
 
   // Inventory
-  quantity     Int     @default(0)
-  unit         String  @default("each") // each, box, gallon, foot, etc.
-  unitCost     Decimal @default(0) @db.Decimal(10, 2)
-  costPerUnit  Decimal @default(0) @db.Decimal(10, 2) // Alias for backward compatibility
+  quantity    Int     @default(0)
+  unit        String  @default("each") // each, box, gallon, foot, etc.
+  unitCost    Decimal @default(0) @db.Decimal(10, 2)
+  costPerUnit Decimal @default(0) @db.Decimal(10, 2) // Alias for backward compatibility
 
   // Multi-location tracking
   warehouseQuantity Int @default(0) // In warehouse
@@ -6037,11 +6037,11 @@ model ContractorInventoryItem {
   reservedQuantity  Int @default(0) // Reserved for jobs
 
   // Reordering
-  reorderPoint Int? // Alert when quantity drops below this
-  reorderLevel Int? // Alias for backward compatibility
-  reorderQty   Int? // Quantity to reorder
-  autoReorder  Boolean @default(false) // Automatically create reorder when low
-  lastReorderDate DateTime? @db.Timestamp(6)
+  reorderPoint     Int? // Alert when quantity drops below this
+  reorderLevel     Int? // Alias for backward compatibility
+  reorderQty       Int? // Quantity to reorder
+  autoReorder      Boolean   @default(false) // Automatically create reorder when low
+  lastReorderDate  DateTime? @db.Timestamp(6)
   reorderFrequency String? // weekly, biweekly, monthly, as_needed
 
   // Supplier (legacy fields)
@@ -6052,21 +6052,21 @@ model ContractorInventoryItem {
   location String? // warehouse, truck 1, job site, etc.
   qrCode   String? // Generated QR code for scanning
   barcode  String?
-  
+
   // Warehouse organization
-  warehouseZone   String? // Zone A, Zone B, etc.
-  warehouseAisle  String? // Aisle 1, 2, 3
-  warehouseShelf  String? // Shelf A, B, C
-  warehouseBin    String? // Bin 1, 2, 3
+  warehouseZone  String? // Zone A, Zone B, etc.
+  warehouseAisle String? // Aisle 1, 2, 3
+  warehouseShelf String? // Shelf A, B, C
+  warehouseBin   String? // Bin 1, 2, 3
 
   // Usage tracking
   averageMonthlyUsage Int? // Calculated from usage history
-  lastUsedDate DateTime? @db.Timestamp(6)
-  lastReceivedDate DateTime? @db.Timestamp(6)
+  lastUsedDate        DateTime? @db.Timestamp(6)
+  lastReceivedDate    DateTime? @db.Timestamp(6)
 
   // Job planning
   standardJobQuantity Int? // Default quantity needed per job
-  isConsumable Boolean @default(true) // True for items that get used up
+  isConsumable        Boolean @default(true) // True for items that get used up
 
   // Metadata
   notes String?
@@ -6076,16 +6076,16 @@ model ContractorInventoryItem {
   updatedAt DateTime @updatedAt
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  vendor     ContractorVendor? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
-  usageHistory ContractorInventoryUsage[]
-  reorderHistory ContractorInventoryReorder[]
-  truckInventory ContractorTruckInventory[]
-  jobMaterials ContractorJobMaterial[]
-  receivingHistory ContractorInventoryReceiving[]
+  contractor         ContractorProfile              @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  vendor             ContractorVendor?              @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  usageHistory       ContractorInventoryUsage[]
+  reorderHistory     ContractorInventoryReorder[]
+  truckInventory     ContractorTruckInventory[]
+  jobMaterials       ContractorJobMaterial[]
+  receivingHistory   ContractorInventoryReceiving[]
   purchaseOrderItems ContractorPurchaseOrderItem[]
-  labels           ContractorLabel[]
-  shipmentItems    ContractorShipmentItem[]
+  labels             ContractorLabel[]
+  shipmentItems      ContractorShipmentItem[]
 
   @@index([contractorId])
   @@index([vendorId])
@@ -6098,9 +6098,9 @@ model ContractorInventoryItem {
 
 // ContractorInventoryUsage - Track inventory usage over time
 model ContractorInventoryUsage {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
-  itemId       String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
+  itemId       String  @db.Uuid
   jobId        String? @db.Uuid
 
   quantityUsed Int
@@ -6110,9 +6110,9 @@ model ContractorInventoryUsage {
   createdAt DateTime @default(now()) @db.Timestamp(6)
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile       @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  job        ContractorJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  job        ContractorJob?          @relation(fields: [jobId], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
   @@index([itemId])
@@ -6122,32 +6122,32 @@ model ContractorInventoryUsage {
 
 // ContractorInventoryReorder - Track reorder history
 model ContractorInventoryReorder {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
-  itemId       String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
+  itemId       String  @db.Uuid
   vendorId     String? @db.Uuid
 
   quantityOrdered Int
   unitCost        Decimal @db.Decimal(10, 2)
   totalCost       Decimal @db.Decimal(10, 2)
-  
-  status          String @default("pending") // pending, ordered, received, cancelled
-  orderDate       DateTime @default(now()) @db.Timestamp(6)
-  expectedDate    DateTime? @db.Timestamp(6)
-  receivedDate    DateTime? @db.Timestamp(6)
-  
-  orderNumber     String?
-  trackingNumber  String?
-  notes           String?
-  autoGenerated   Boolean @default(false) // Was this auto-generated?
+
+  status       String    @default("pending") // pending, ordered, received, cancelled
+  orderDate    DateTime  @default(now()) @db.Timestamp(6)
+  expectedDate DateTime? @db.Timestamp(6)
+  receivedDate DateTime? @db.Timestamp(6)
+
+  orderNumber    String?
+  trackingNumber String?
+  notes          String?
+  autoGenerated  Boolean @default(false) // Was this auto-generated?
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  vendor     ContractorVendor? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  contractor       ContractorProfile              @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  item             ContractorInventoryItem        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  vendor           ContractorVendor?              @relation(fields: [vendorId], references: [id], onDelete: SetNull)
   receivingRecords ContractorInventoryReceiving[]
 
   @@index([contractorId])
@@ -6166,32 +6166,32 @@ model ContractorTruck {
   vehicleType  String // truck, van, trailer
   licensePlate String?
   vin          String?
-  
-  status       String @default("active") // active, maintenance, retired
-  
+
+  status String @default("active") // active, maintenance, retired
+
   // Capacity
-  maxWeight    Int? // pounds
-  maxVolume    Int? // cubic feet
-  
+  maxWeight Int? // pounds
+  maxVolume Int? // cubic feet
+
   // Assignment
   assignedDriverId String? @db.Uuid
   currentJobId     String? @db.Uuid
-  
+
   // Maintenance
-  lastServiceDate  DateTime? @db.Timestamp(6)
-  nextServiceDate  DateTime? @db.Timestamp(6)
-  odometerReading  Int?
-  
+  lastServiceDate DateTime? @db.Timestamp(6)
+  nextServiceDate DateTime? @db.Timestamp(6)
+  odometerReading Int?
+
   notes String?
-  
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  assignedDriver ContractorEmployee? @relation(fields: [assignedDriverId], references: [id], onDelete: SetNull)
-  inventory ContractorTruckInventory[]
-  loadHistory ContractorTruckLoad[]
+  contractor     ContractorProfile          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  assignedDriver ContractorEmployee?        @relation(fields: [assignedDriverId], references: [id], onDelete: SetNull)
+  inventory      ContractorTruckInventory[]
+  loadHistory    ContractorTruckLoad[]
 
   @@index([contractorId])
   @@index([assignedDriverId])
@@ -6205,20 +6205,20 @@ model ContractorTruckInventory {
   truckId      String @db.Uuid
   itemId       String @db.Uuid
 
-  quantity     Int
-  loadedAt     DateTime @default(now()) @db.Timestamp(6)
-  loadedBy     String? @db.Uuid // Employee who loaded it
-  
-  status       String @default("loaded") // loaded, in_use, returned
-  
+  quantity Int
+  loadedAt DateTime @default(now()) @db.Timestamp(6)
+  loadedBy String?  @db.Uuid // Employee who loaded it
+
+  status String @default("loaded") // loaded, in_use, returned
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  truck      ContractorTruck @relation(fields: [truckId], references: [id], onDelete: Cascade)
-  item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  loadedByEmployee ContractorEmployee? @relation("TruckInventoryLoadedBy", fields: [loadedBy], references: [id], onDelete: SetNull)
+  contractor       ContractorProfile       @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  truck            ContractorTruck         @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  item             ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  loadedByEmployee ContractorEmployee?     @relation("TruckInventoryLoadedBy", fields: [loadedBy], references: [id], onDelete: SetNull)
 
   @@unique([truckId, itemId])
   @@index([contractorId])
@@ -6229,25 +6229,25 @@ model ContractorTruckInventory {
 
 // ContractorTruckLoad - Track loading/unloading events
 model ContractorTruckLoad {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
-  truckId      String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
+  truckId      String  @db.Uuid
   jobId        String? @db.Uuid
 
-  type         String // load, unload, restock
-  items        Json   @db.Json // Array of {itemId, quantity, scanned}
-  
-  loadedBy     String? @db.Uuid
-  loadedAt     DateTime @default(now()) @db.Timestamp(6)
-  
-  notes        String?
-  
+  type  String // load, unload, restock
+  items Json   @db.Json // Array of {itemId, quantity, scanned}
+
+  loadedBy String?  @db.Uuid
+  loadedAt DateTime @default(now()) @db.Timestamp(6)
+
+  notes String?
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  truck      ContractorTruck @relation(fields: [truckId], references: [id], onDelete: Cascade)
-  job        ContractorJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  contractor       ContractorProfile   @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  truck            ContractorTruck     @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  job              ContractorJob?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   loadedByEmployee ContractorEmployee? @relation("TruckLoadEmployee", fields: [loadedBy], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
@@ -6269,26 +6269,26 @@ model ContractorJobMaterial {
   quantityLoaded   Int @default(0)
   quantityUsed     Int @default(0)
   quantityReturned Int @default(0)
-  
+
   status String @default("planned") // planned, reserved, loaded, in_use, completed
-  
+
   // Tracking
   reservedAt DateTime? @db.Timestamp(6)
   loadedAt   DateTime? @db.Timestamp(6)
   usedAt     DateTime? @db.Timestamp(6)
-  
+
   // Cost tracking
   unitCostAtTime Decimal @db.Decimal(10, 2) // Cost when reserved
   totalCost      Decimal @db.Decimal(10, 2) // quantityUsed * unitCostAtTime
-  
+
   notes String?
-  
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  job        ContractorJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile       @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  job        ContractorJob           @relation(fields: [jobId], references: [id], onDelete: Cascade)
   item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@unique([jobId, itemId])
@@ -6300,42 +6300,42 @@ model ContractorJobMaterial {
 
 // ContractorInventoryReceiving - Track items received into warehouse
 model ContractorInventoryReceiving {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
-  itemId       String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
+  itemId       String  @db.Uuid
   reorderId    String? @db.Uuid
 
   quantityReceived Int
   quantityExpected Int?
-  
-  receivedBy   String? @db.Uuid
-  receivedAt   DateTime @default(now()) @db.Timestamp(6)
-  
+
+  receivedBy String?  @db.Uuid
+  receivedAt DateTime @default(now()) @db.Timestamp(6)
+
   // Location assigned
   warehouseZone  String?
   warehouseAisle String?
   warehouseShelf String?
   warehouseBin   String?
-  
+
   // Quality check
   qualityChecked Boolean @default(false)
   qualityStatus  String? // passed, failed, partial
   damageNotes    String?
-  
+
   // Documents
-  poNumber       String?
-  invoiceNumber  String?
-  packingSlip    String?
-  
+  poNumber      String?
+  invoiceNumber String?
+  packingSlip   String?
+
   notes String?
-  
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  item       ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  reorder    ContractorInventoryReorder? @relation(fields: [reorderId], references: [id], onDelete: SetNull)
-  receivedByEmployee ContractorEmployee? @relation("InventoryReceivedBy", fields: [receivedBy], references: [id], onDelete: SetNull)
+  contractor         ContractorProfile           @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  item               ContractorInventoryItem     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  reorder            ContractorInventoryReorder? @relation(fields: [reorderId], references: [id], onDelete: SetNull)
+  receivedByEmployee ContractorEmployee?         @relation("InventoryReceivedBy", fields: [receivedBy], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
   @@index([itemId])
@@ -6387,7 +6387,7 @@ model ContractorEquipment {
   updatedAt DateTime @updatedAt
 
   // Relations
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile   @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   assignedTo ContractorEmployee? @relation("EquipmentAssignments", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
@@ -6437,7 +6437,7 @@ model ContractorVendor {
   updatedAt DateTime @updatedAt
 
   // Relations
-  contractor     ContractorProfile         @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor     ContractorProfile            @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   inventoryItems ContractorInventoryItem[]
   reorders       ContractorInventoryReorder[]
   purchaseOrders ContractorPurchaseOrder[]
@@ -6583,29 +6583,28 @@ model ContractorIncidentReport {
   @@index([incidentDate])
 }
 
-
 // ============================================
 // MILESTONE ESCROW SYSTEM (Phase 8.2)
 // ============================================
 
 // JobEscrow - Main escrow account for milestone-based payments
 model JobEscrow {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorJobId   String   @unique @db.Uuid
-  totalAmount       Decimal  @db.Decimal(12, 2)
-  platformFee       Decimal  @db.Decimal(12, 2)
-  contractorAmount  Decimal  @db.Decimal(12, 2)
-  status            String   @default("pending") // pending, funded, partial, released, refunded, disputed
-  stripePaymentId   String?
-  fundedAt          DateTime? @db.Timestamp(6)
-  createdAt         DateTime @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime @updatedAt
-  
-  contractorJob     ContractorJob @relation(fields: [contractorJobId], references: [id], onDelete: Cascade)
-  milestones        JobMilestone[]
-  releases          EscrowRelease[]
-  disputes          EscrowDispute[]
-  
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorJobId  String    @unique @db.Uuid
+  totalAmount      Decimal   @db.Decimal(12, 2)
+  platformFee      Decimal   @db.Decimal(12, 2)
+  contractorAmount Decimal   @db.Decimal(12, 2)
+  status           String    @default("pending") // pending, funded, partial, released, refunded, disputed
+  stripePaymentId  String?
+  fundedAt         DateTime? @db.Timestamp(6)
+  createdAt        DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime  @updatedAt
+
+  contractorJob ContractorJob   @relation(fields: [contractorJobId], references: [id], onDelete: Cascade)
+  milestones    JobMilestone[]
+  releases      EscrowRelease[]
+  disputes      EscrowDispute[]
+
   @@index([contractorJobId])
   @@index([status])
   @@index([fundedAt])
@@ -6613,53 +6612,53 @@ model JobEscrow {
 
 // JobMilestone - Individual payment milestones with verification requirements
 model JobMilestone {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  escrowId        String   @db.Uuid
-  order           Int      // Milestone sequence number
-  title           String
-  description     String?
-  amount          Decimal  @db.Decimal(12, 2)
-  percentage      Int      // Percentage of total job amount
-  status          String   @default("pending") // pending, in_progress, completed, released, disputed
-  
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  escrowId    String  @db.Uuid
+  order       Int // Milestone sequence number
+  title       String
+  description String?
+  amount      Decimal @db.Decimal(12, 2)
+  percentage  Int // Percentage of total job amount
+  status      String  @default("pending") // pending, in_progress, completed, released, disputed
+
   // Verification requirements
-  requireGPS      Boolean  @default(false)
-  requirePhotos   Boolean  @default(false)
-  minPhotos       Int      @default(0)
+  requireGPS       Boolean @default(false)
+  requirePhotos    Boolean @default(false)
+  minPhotos        Int     @default(0)
   requireSignature Boolean @default(false)
-  
+
   // GPS Verification data
-  gpsVerified     Boolean  @default(false)
-  gpsLat          Float?
-  gpsLng          Float?
-  gpsAddress      String?
-  gpsVerifiedAt   DateTime? @db.Timestamp(6)
-  
+  gpsVerified   Boolean   @default(false)
+  gpsLat        Float?
+  gpsLng        Float?
+  gpsAddress    String?
+  gpsVerifiedAt DateTime? @db.Timestamp(6)
+
   // Photo verification data
-  photosUploaded  Int      @default(0)
-  photoUrls       String[] @default([])
-  photoPublicIds  String[] @default([])
-  
+  photosUploaded Int      @default(0)
+  photoUrls      String[] @default([])
+  photoPublicIds String[] @default([])
+
   // Digital signatures
-  contractorSigned Boolean @default(false)
-  contractorSignedAt DateTime? @db.Timestamp(6)
+  contractorSigned    Boolean   @default(false)
+  contractorSignedAt  DateTime? @db.Timestamp(6)
   contractorSignature String? // Base64 image or URL
-  
-  customerSigned  Boolean  @default(false)
-  customerSignedAt DateTime? @db.Timestamp(6)
+
+  customerSigned    Boolean   @default(false)
+  customerSignedAt  DateTime? @db.Timestamp(6)
   customerSignature String? // Base64 image or URL
-  
+
   // Completion tracking
-  completedAt     DateTime? @db.Timestamp(6)
-  releasedAt      DateTime? @db.Timestamp(6)
-  autoReleaseAt   DateTime? @db.Timestamp(6) // Auto-release after 7 days
-  
-  createdAt       DateTime @default(now()) @db.Timestamp(6)
-  updatedAt       DateTime @updatedAt
-  
-  escrow          JobEscrow @relation(fields: [escrowId], references: [id], onDelete: Cascade)
-  releases        EscrowRelease[]
-  
+  completedAt   DateTime? @db.Timestamp(6)
+  releasedAt    DateTime? @db.Timestamp(6)
+  autoReleaseAt DateTime? @db.Timestamp(6) // Auto-release after 7 days
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  escrow   JobEscrow       @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+  releases EscrowRelease[]
+
   @@index([escrowId])
   @@index([status])
   @@index([order])
@@ -6668,26 +6667,26 @@ model JobMilestone {
 
 // EscrowRelease - Track fund releases from escrow to contractor
 model EscrowRelease {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  escrowId          String   @db.Uuid
-  milestoneId       String?  @db.Uuid
-  amount            Decimal  @db.Decimal(12, 2)
-  platformFee       Decimal  @db.Decimal(12, 2)
-  contractorAmount  Decimal  @db.Decimal(12, 2)
-  releaseType       String   // milestone, bonus, refund, dispute_resolution, early_release
-  stripeTransferId  String?
-  status            String   @default("pending") // pending, processing, completed, failed
-  releasedBy        String?  @db.Uuid // userId who approved release
-  releasedAt        DateTime? @db.Timestamp(6)
-  completedAt       DateTime? @db.Timestamp(6)
-  failureReason     String?
-  notes             String?
-  createdAt         DateTime @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime @updatedAt
-  
-  escrow            JobEscrow @relation(fields: [escrowId], references: [id], onDelete: Cascade)
-  milestone         JobMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
-  
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  escrowId         String    @db.Uuid
+  milestoneId      String?   @db.Uuid
+  amount           Decimal   @db.Decimal(12, 2)
+  platformFee      Decimal   @db.Decimal(12, 2)
+  contractorAmount Decimal   @db.Decimal(12, 2)
+  releaseType      String // milestone, bonus, refund, dispute_resolution, early_release
+  stripeTransferId String?
+  status           String    @default("pending") // pending, processing, completed, failed
+  releasedBy       String?   @db.Uuid // userId who approved release
+  releasedAt       DateTime? @db.Timestamp(6)
+  completedAt      DateTime? @db.Timestamp(6)
+  failureReason    String?
+  notes            String?
+  createdAt        DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime  @updatedAt
+
+  escrow    JobEscrow     @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+  milestone JobMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
   @@index([escrowId])
   @@index([milestoneId])
   @@index([status])
@@ -6697,26 +6696,26 @@ model EscrowRelease {
 
 // EscrowDispute - Handle payment disputes between customer and contractor
 model EscrowDispute {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  escrowId        String   @db.Uuid
-  milestoneId     String?  @db.Uuid
-  filedBy         String   @db.Uuid // userId who filed dispute
-  filedByRole     String   // customer, contractor
-  reason          String   // not_completed, poor_quality, wrong_work, other
-  description     String
-  requestedAmount Decimal  @db.Decimal(12, 2)
-  evidenceUrls    String[] @default([])
-  evidencePublicIds String[] @default([])
-  status          String   @default("open") // open, under_review, resolved, closed
-  resolution      String?  // full_refund, partial_refund, release_to_contractor, split_payment
-  resolutionNotes String?
-  resolvedBy      String?  @db.Uuid // admin userId
-  resolvedAt      DateTime? @db.Timestamp(6)
-  createdAt       DateTime @default(now()) @db.Timestamp(6)
-  updatedAt       DateTime @updatedAt
-  
-  escrow          JobEscrow @relation(fields: [escrowId], references: [id], onDelete: Cascade)
-  
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  escrowId          String    @db.Uuid
+  milestoneId       String?   @db.Uuid
+  filedBy           String    @db.Uuid // userId who filed dispute
+  filedByRole       String // customer, contractor
+  reason            String // not_completed, poor_quality, wrong_work, other
+  description       String
+  requestedAmount   Decimal   @db.Decimal(12, 2)
+  evidenceUrls      String[]  @default([])
+  evidencePublicIds String[]  @default([])
+  status            String    @default("open") // open, under_review, resolved, closed
+  resolution        String? // full_refund, partial_refund, release_to_contractor, split_payment
+  resolutionNotes   String?
+  resolvedBy        String?   @db.Uuid // admin userId
+  resolvedAt        DateTime? @db.Timestamp(6)
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt
+
+  escrow JobEscrow @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+
   @@index([escrowId])
   @@index([milestoneId])
   @@index([filedBy])
@@ -6729,10 +6728,10 @@ model MilestoneTemplate {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   description String
-  category    String   // standard, progressive, detailed, custom
+  category    String // standard, progressive, detailed, custom
   isDefault   Boolean  @default(false)
   isActive    Boolean  @default(true)
-  structure   Json     // Array of {title, percentage, requireGPS, requirePhotos, minPhotos, requireSignature}
+  structure   Json // Array of {title, percentage, requireGPS, requirePhotos, minPhotos, requireSignature}
   createdAt   DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @updatedAt
 
@@ -6745,13 +6744,13 @@ model MilestoneTemplate {
 
 // ContractorPurchaseOrder - Formal purchase order tracking for materials
 model ContractorPurchaseOrder {
-  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String  @db.Uuid
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
 
   // PO Details
-  poNumber     String  @unique // PO-2024-0001
-  status       String  @default("draft") // draft, sent, acknowledged, partially_received, received, canceled
-  vendorId     String? @db.Uuid // Link to ContractorVendor
+  poNumber String  @unique // PO-2024-0001
+  status   String  @default("draft") // draft, sent, acknowledged, partially_received, received, canceled
+  vendorId String? @db.Uuid // Link to ContractorVendor
 
   // Job reference
   jobId String? @db.Uuid // Optional - PO can be for general inventory or specific job
@@ -6760,22 +6759,22 @@ model ContractorPurchaseOrder {
   subcontractorId String? @db.Uuid
 
   // Financial
-  subtotal      Decimal  @db.Decimal(12, 2)
-  tax           Decimal  @db.Decimal(12, 2)
-  shipping      Decimal? @db.Decimal(12, 2)
-  total         Decimal  @db.Decimal(12, 2)
-  currency      String   @default("USD")
+  subtotal Decimal  @db.Decimal(12, 2)
+  tax      Decimal  @db.Decimal(12, 2)
+  shipping Decimal? @db.Decimal(12, 2)
+  total    Decimal  @db.Decimal(12, 2)
+  currency String   @default("USD")
 
   // Dates
-  orderDate   DateTime  @default(now()) @db.Timestamp(6)
+  orderDate    DateTime  @default(now()) @db.Timestamp(6)
   requiredDate DateTime? @db.Timestamp(6)
   deliveryDate DateTime? @db.Timestamp(6)
 
   // Delivery
-  deliveryAddress String?
-  deliveryCity    String?
-  deliveryState   String?
-  deliveryZip     String?
+  deliveryAddress      String?
+  deliveryCity         String?
+  deliveryState        String?
+  deliveryZip          String?
   deliveryInstructions String?
 
   // Relations
@@ -6788,9 +6787,9 @@ model ContractorPurchaseOrder {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile     @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  vendor     ContractorVendor?     @relation(fields: [vendorId], references: [id], onDelete: SetNull)
-  job        ContractorJob?        @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  contractor    ContractorProfile        @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  vendor        ContractorVendor?        @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  job           ContractorJob?           @relation(fields: [jobId], references: [id], onDelete: SetNull)
   subcontractor ContractorSubcontractor? @relation("SubcontractorPO", fields: [subcontractorId], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
@@ -6803,8 +6802,8 @@ model ContractorPurchaseOrder {
 
 // ContractorPurchaseOrderItem - Individual line items on a PO
 model ContractorPurchaseOrderItem {
-  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  poId      String @db.Uuid
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  poId      String  @db.Uuid
   itemName  String
   sku       String?
   quantity  Decimal @db.Decimal(10, 2)
@@ -6813,8 +6812,8 @@ model ContractorPurchaseOrderItem {
   total     Decimal @db.Decimal(12, 2)
 
   // Receiving tracking
-  quantityOrdered  Decimal  @db.Decimal(10, 2)
-  quantityReceived Decimal  @default(0) @db.Decimal(10, 2)
+  quantityOrdered     Decimal @db.Decimal(10, 2)
+  quantityReceived    Decimal @default(0) @db.Decimal(10, 2)
   quantityBackordered Decimal @default(0) @db.Decimal(10, 2)
 
   // Optional inventory link
@@ -6822,8 +6821,8 @@ model ContractorPurchaseOrderItem {
 
   notes String?
 
-  purchaseOrder  ContractorPurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
-  inventoryItem  ContractorInventoryItem?    @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
+  purchaseOrder ContractorPurchaseOrder  @relation(fields: [poId], references: [id], onDelete: Cascade)
+  inventoryItem ContractorInventoryItem? @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
 
   @@index([poId])
   @@index([inventoryItemId])
@@ -6831,18 +6830,18 @@ model ContractorPurchaseOrderItem {
 
 // ContractorWarranty - Warranty and service agreement tracking
 model ContractorWarranty {
-  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String  @db.Uuid
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid
 
   // Reference
-  jobId       String? @db.Uuid // Optional - warranty can be standalone
-  customerId  String  @db.Uuid
-  invoiceId   String? @db.Uuid
+  jobId      String? @db.Uuid // Optional - warranty can be standalone
+  customerId String  @db.Uuid
+  invoiceId  String? @db.Uuid
 
   // Warranty Details
-  warrantyNumber String  @unique // W-2024-0001
+  warrantyNumber String @unique // W-2024-0001
   warrantyType   String // workmanship, material, extended, manufacturer
-  status         String  @default("active") // active, expired, claimed, voided
+  status         String @default("active") // active, expired, claimed, voided
 
   // Coverage
   title       String
@@ -6851,12 +6850,12 @@ model ContractorWarranty {
   exclusions  String? // What's not covered
 
   // Duration
-  startDate      DateTime  @db.Timestamp(6)
-  endDate          DateTime  @db.Timestamp(6)
-  durationMonths   Int
-  reminderSent30   Boolean @default(false)
-  reminderSent60   Boolean @default(false)
-  reminderSent90   Boolean @default(false)
+  startDate      DateTime @db.Timestamp(6)
+  endDate        DateTime @db.Timestamp(6)
+  durationMonths Int
+  reminderSent30 Boolean  @default(false)
+  reminderSent60 Boolean  @default(false)
+  reminderSent90 Boolean  @default(false)
 
   // Claim tracking
   claims ContractorWarrantyClaim[]
@@ -6871,9 +6870,9 @@ model ContractorWarranty {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile    @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  job        ContractorJob?       @relation(fields: [jobId], references: [id], onDelete: SetNull)
-  customer   ContractorCustomer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  job        ContractorJob?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  customer   ContractorCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([contractorId])
   @@index([customerId])
@@ -6883,31 +6882,31 @@ model ContractorWarranty {
 
 // ContractorWarrantyClaim - Individual warranty claims
 model ContractorWarrantyClaim {
-  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  warrantyId  String @db.Uuid
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  warrantyId   String @db.Uuid
   contractorId String @db.Uuid
 
   // Claim details
-  claimNumber String   @unique // WC-2024-0001
-  status      String   @default("submitted") // submitted, under_review, approved, in_progress, completed, denied
-  priority    String   @default("normal") // low, normal, high, emergency
+  claimNumber String @unique // WC-2024-0001
+  status      String @default("submitted") // submitted, under_review, approved, in_progress, completed, denied
+  priority    String @default("normal") // low, normal, high, emergency
 
   // Issue
   issueDescription String
-  reportedDate     DateTime @default(now()) @db.Timestamp(6)
+  reportedDate     DateTime  @default(now()) @db.Timestamp(6)
   siteVisitDate    DateTime? @db.Timestamp(6)
 
   // Resolution
-  resolution        String?
-  resolutionDate    DateTime? @db.Timestamp(6)
-  costToRepair      Decimal?  @db.Decimal(12, 2)
-  isValidClaim      Boolean?
-  denialReason      String?
+  resolution     String?
+  resolutionDate DateTime? @db.Timestamp(6)
+  costToRepair   Decimal?  @db.Decimal(12, 2)
+  isValidClaim   Boolean?
+  denialReason   String?
 
   // Photos/Documents
-  photosBefore  String[] @default([])
-  photosAfter   String[] @default([])
-  documents     String[] @default([])
+  photosBefore String[] @default([])
+  photosAfter  String[] @default([])
+  documents    String[] @default([])
 
   warranty ContractorWarranty @relation(fields: [warrantyId], references: [id], onDelete: Cascade)
 
@@ -6918,8 +6917,8 @@ model ContractorWarrantyClaim {
 
 // ContractorSubcontractor - Dedicated subcontractor management
 model ContractorSubcontractor {
-  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String  @db.Uuid // The general contractor
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String @db.Uuid // The general contractor
 
   // Business info
   companyName     String
@@ -6955,7 +6954,7 @@ model ContractorSubcontractor {
 
   // Relations
   assignments ContractorSubcontractorAssignment[]
-  pos           ContractorPurchaseOrder[] @relation("SubcontractorPO")
+  pos         ContractorPurchaseOrder[]           @relation("SubcontractorPO")
 
   notes String?
 
@@ -6964,10 +6963,10 @@ model ContractorSubcontractor {
 
   contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
 
+  @@unique([contractorId, email])
   @@index([contractorId])
   @@index([status])
   @@index([email])
-  @@unique([contractorId, email])
 }
 
 // ContractorSubcontractorAssignment - Assign subs to jobs
@@ -6978,9 +6977,9 @@ model ContractorSubcontractorAssignment {
   jobId           String @db.Uuid
 
   // Assignment details
-  scopeOfWork     String
-  agreedPrice     Decimal @db.Decimal(12, 2)
-  estimatedHours  Int?
+  scopeOfWork    String
+  agreedPrice    Decimal @db.Decimal(12, 2)
+  estimatedHours Int?
 
   // Schedule
   startDate DateTime? @db.Timestamp(6)
@@ -6990,14 +6989,14 @@ model ContractorSubcontractorAssignment {
   status String @default("assigned") // assigned, in_progress, completed, canceled
 
   // Completion
-  actualHours    Int?
-  finalPrice     Decimal? @db.Decimal(12, 2)
-  completedDate  DateTime? @db.Timestamp(6)
-  qualityRating  Int? // 1-5
+  actualHours   Int?
+  finalPrice    Decimal?  @db.Decimal(12, 2)
+  completedDate DateTime? @db.Timestamp(6)
+  qualityRating Int? // 1-5
 
   // Payment
-  paymentStatus String @default("pending") // pending, invoiced, paid
-  paidAmount    Decimal? @db.Decimal(12, 2)
+  paymentStatus String    @default("pending") // pending, invoiced, paid
+  paidAmount    Decimal?  @db.Decimal(12, 2)
   paidDate      DateTime? @db.Timestamp(6)
 
   // Documents
@@ -7030,7 +7029,7 @@ model ContractorSafetyChecklist {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor  ContractorProfile                     @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   completions ContractorSafetyChecklistCompletion[]
 
   @@index([contractorId])
@@ -7040,10 +7039,10 @@ model ContractorSafetyChecklist {
 
 // ContractorSafetyChecklistItem - Individual checklist items
 model ContractorSafetyChecklistItem {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  checklistId  String @db.Uuid
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  checklistId String @db.Uuid
 
-  itemText String
+  itemText   String
   isRequired Boolean @default(true)
   order      Int
 
@@ -7055,9 +7054,9 @@ model ContractorSafetyChecklistItem {
 
 // ContractorSafetyChecklistCompletion - Completed checklists
 model ContractorSafetyChecklistCompletion {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
-  checklistId  String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
+  checklistId  String  @db.Uuid
   jobId        String? @db.Uuid // Optional - can be general safety or job-specific
   employeeId   String? @db.Uuid // Who completed it
 
@@ -7069,18 +7068,18 @@ model ContractorSafetyChecklistCompletion {
   responses Json // Array of {itemId, checked, notes, photo}
 
   // Results
-  allItemsChecked Boolean
-  issuesFound     Int @default(0)
+  allItemsChecked  Boolean
+  issuesFound      Int     @default(0)
   correctiveAction String?
 
   // Supervisor review
-  reviewedBy String? @db.Uuid
+  reviewedBy String?   @db.Uuid
   reviewedAt DateTime? @db.Timestamp(6)
   approved   Boolean?
 
-  checklist   ContractorSafetyChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
-  job         ContractorJob?            @relation(fields: [jobId], references: [id], onDelete: SetNull)
-  contractor  ContractorProfile         @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  checklist  ContractorSafetyChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  job        ContractorJob?            @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  contractor ContractorProfile         @relation(fields: [contractorId], references: [id], onDelete: Cascade)
 
   @@index([contractorId])
   @@index([checklistId])
@@ -7095,18 +7094,18 @@ model ContractorJobPhoto {
   jobId        String @db.Uuid
 
   // Photo details
-  url         String
-  thumbnail   String?
-  caption     String?
-  category    String @default("general") // before, during, after, issue, completion, inspection
+  url       String
+  thumbnail String?
+  caption   String?
+  category  String  @default("general") // before, during, after, issue, completion, inspection
 
   // Timeline
-  takenAt     DateTime @default(now()) @db.Timestamp(6)
-  takenBy     String?  @db.Uuid // Employee ID
-  location    Json?    // GPS
+  takenAt  DateTime @default(now()) @db.Timestamp(6)
+  takenBy  String?  @db.Uuid // Employee ID
+  location Json? // GPS
 
   // Organization
-  milestoneId String? @db.Uuid // Link to milestone if applicable
+  milestoneId String?  @db.Uuid // Link to milestone if applicable
   tags        String[] @default([])
 
   // Customer visibility
@@ -7147,27 +7146,27 @@ model ContractorContract {
   contractorPhone String?
 
   // Financial
-  contractAmount  Decimal? @db.Decimal(12, 2)
-  depositAmount   Decimal? @db.Decimal(12, 2)
-  paymentTerms    String?
+  contractAmount Decimal? @db.Decimal(12, 2)
+  depositAmount  Decimal? @db.Decimal(12, 2)
+  paymentTerms   String?
 
   // Signing
-  token           String?   @unique // public signing token
-  status          String    @default("draft") // draft, sent, viewed, signed, declined, expired, void
-  sentAt          DateTime? @db.Timestamp(6)
-  viewedAt        DateTime? @db.Timestamp(6)
-  signedAt        DateTime? @db.Timestamp(6)
-  declinedAt      DateTime? @db.Timestamp(6)
-  expiresAt       DateTime? @db.Timestamp(6)
+  token      String?   @unique // public signing token
+  status     String    @default("draft") // draft, sent, viewed, signed, declined, expired, void
+  sentAt     DateTime? @db.Timestamp(6)
+  viewedAt   DateTime? @db.Timestamp(6)
+  signedAt   DateTime? @db.Timestamp(6)
+  declinedAt DateTime? @db.Timestamp(6)
+  expiresAt  DateTime? @db.Timestamp(6)
 
   // Customer signature (base64 data URL stored inline, or URL if uploaded)
   customerSignatureDataUrl String? @db.Text
   customerSignedIp         String?
   customerSignedUserAgent  String?
-  customerSignedName       String?  // name they typed when signing
+  customerSignedName       String? // name they typed when signing
 
   // Contractor countersignature
-  contractorSignatureDataUrl String? @db.Text
+  contractorSignatureDataUrl String?   @db.Text
   contractorSignedAt         DateTime? @db.Timestamp(6)
 
   // Signed PDF (optional, generated on demand)
@@ -7182,8 +7181,8 @@ model ContractorContract {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  job        ContractorJob?    @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  contractor ContractorProfile         @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  job        ContractorJob?            @relation(fields: [jobId], references: [id], onDelete: SetNull)
   events     ContractorContractEvent[]
 
   @@index([contractorId])
@@ -7227,22 +7226,22 @@ model ContractorFinancialSummary {
   month Int? // null = annual summary
 
   // Revenue
-  totalRevenue        Decimal @default(0) @db.Decimal(14, 2)
-  invoicedRevenue     Decimal @default(0) @db.Decimal(14, 2) // from paid invoices
-  jobRevenue          Decimal @default(0) @db.Decimal(14, 2) // from completed jobs actualCost
+  totalRevenue    Decimal @default(0) @db.Decimal(14, 2)
+  invoicedRevenue Decimal @default(0) @db.Decimal(14, 2) // from paid invoices
+  jobRevenue      Decimal @default(0) @db.Decimal(14, 2) // from completed jobs actualCost
 
   // Expenses by tax category
-  totalExpenses           Decimal @default(0) @db.Decimal(14, 2)
-  expensesMaterials       Decimal @default(0) @db.Decimal(14, 2)
-  expensesTools           Decimal @default(0) @db.Decimal(14, 2)
-  expensesFuel            Decimal @default(0) @db.Decimal(14, 2)
-  expensesSubcontractor   Decimal @default(0) @db.Decimal(14, 2)
-  expensesPermits         Decimal @default(0) @db.Decimal(14, 2)
-  expensesOther           Decimal @default(0) @db.Decimal(14, 2)
+  totalExpenses         Decimal @default(0) @db.Decimal(14, 2)
+  expensesMaterials     Decimal @default(0) @db.Decimal(14, 2)
+  expensesTools         Decimal @default(0) @db.Decimal(14, 2)
+  expensesFuel          Decimal @default(0) @db.Decimal(14, 2)
+  expensesSubcontractor Decimal @default(0) @db.Decimal(14, 2)
+  expensesPermits       Decimal @default(0) @db.Decimal(14, 2)
+  expensesOther         Decimal @default(0) @db.Decimal(14, 2)
 
   // Payroll
-  totalPayroll     Decimal @default(0) @db.Decimal(14, 2)
-  totalNetPayroll  Decimal @default(0) @db.Decimal(14, 2)
+  totalPayroll    Decimal @default(0) @db.Decimal(14, 2)
+  totalNetPayroll Decimal @default(0) @db.Decimal(14, 2)
 
   // Net profit
   grossProfit Decimal @default(0) @db.Decimal(14, 2) // revenue - expenses
@@ -7280,15 +7279,15 @@ model ContractorPayroll {
   paySchedule String @default("biweekly") // weekly, biweekly, semimonthly, monthly
 
   // Totals (computed on run)
-  totalGrossPay    Decimal @default(0) @db.Decimal(12, 2)
-  totalDeductions  Decimal @default(0) @db.Decimal(12, 2)
-  totalNetPay      Decimal @default(0) @db.Decimal(12, 2)
-  employeeCount    Int     @default(0)
+  totalGrossPay   Decimal @default(0) @db.Decimal(12, 2)
+  totalDeductions Decimal @default(0) @db.Decimal(12, 2)
+  totalNetPay     Decimal @default(0) @db.Decimal(12, 2)
+  employeeCount   Int     @default(0)
 
   // Status
-  status    String    @default("draft") // draft, processing, completed, cancelled
-  runAt     DateTime? @db.Timestamp(6) // when payroll was finalized
-  runBy     String?   @db.Uuid         // user who ran it
+  status String    @default("draft") // draft, processing, completed, cancelled
+  runAt  DateTime? @db.Timestamp(6) // when payroll was finalized
+  runBy  String?   @db.Uuid // user who ran it
 
   // Notes
   notes String?
@@ -7307,21 +7306,21 @@ model ContractorPayroll {
 
 // ContractorPaycheck - Individual paycheck for one employee in a payroll run
 model ContractorPaycheck {
-  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  payrollId  String @db.Uuid
-  employeeId String @db.Uuid
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payrollId    String @db.Uuid
+  employeeId   String @db.Uuid
   contractorId String @db.Uuid
 
   // Pay details
-  payType     String  @default("hourly") // hourly, salary, per_job
+  payType       String  @default("hourly") // hourly, salary, per_job
   regularHours  Decimal @default(0) @db.Decimal(7, 2)
   overtimeHours Decimal @default(0) @db.Decimal(7, 2)
   payRate       Decimal @db.Decimal(10, 2)
   overtimeRate  Decimal @default(0) @db.Decimal(10, 2) // typically 1.5x
 
   // PTO / time-off hours included
-  ptoHours  Decimal @default(0) @db.Decimal(7, 2)
-  ptoPay    Decimal @default(0) @db.Decimal(12, 2)
+  ptoHours Decimal @default(0) @db.Decimal(7, 2)
+  ptoPay   Decimal @default(0) @db.Decimal(12, 2)
 
   // Gross
   regularPay  Decimal @default(0) @db.Decimal(12, 2)
@@ -7329,16 +7328,16 @@ model ContractorPaycheck {
   grossPay    Decimal @default(0) @db.Decimal(12, 2)
 
   // Deductions (JSON array: [{label, amount, type}])
-  deductions     Json    @default("[]") @db.Json
+  deductions      Json    @default("[]") @db.Json
   totalDeductions Decimal @default(0) @db.Decimal(12, 2)
 
   // Net pay
   netPay Decimal @default(0) @db.Decimal(12, 2)
 
   // Payment method & tracking
-  paymentMethod  String?   // check, direct_deposit, cash, zelle, other
-  paymentRef     String?   // check number, transaction ID, etc.
-  paidAt         DateTime? @db.Timestamp(6)
+  paymentMethod String? // check, direct_deposit, cash, zelle, other
+  paymentRef    String? // check number, transaction ID, etc.
+  paidAt        DateTime? @db.Timestamp(6)
 
   // Status
   status String @default("pending") // pending, paid, void
@@ -7393,29 +7392,29 @@ model ContractorLabelConfig {
   id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   contractorId String @db.Uuid
 
-  name         String          // e.g. "Warehouse Storage Label", "Shipping Label"
-  labelType    String          // storage | shipping | receiving | item
-  isDefault    Boolean @default(false)
+  name      String // e.g. "Warehouse Storage Label", "Shipping Label"
+  labelType String // storage | shipping | receiving | item
+  isDefault Boolean @default(false)
 
   // Number sequence settings
-  prefix       String?         // e.g. "CON-", "CEMENT-", "01-", or blank
-  suffix       String?         // e.g. "-2026", or blank
-  sequenceType String @default("sequential") // sequential | random | date_prefix | custom
-  currentSeq   Int    @default(0)           // current counter for sequential
-  padLength    Int    @default(4)           // zero-padding: 4 = "0001"
-  startAt      Int    @default(1)           // start number for sequential
+  prefix       String? // e.g. "CON-", "CEMENT-", "01-", or blank
+  suffix       String? // e.g. "-2026", or blank
+  sequenceType String  @default("sequential") // sequential | random | date_prefix | custom
+  currentSeq   Int     @default(0) // current counter for sequential
+  padLength    Int     @default(4) // zero-padding: 4 = "0001"
+  startAt      Int     @default(1) // start number for sequential
 
   // Label layout
-  showLogo       Boolean @default(true)
-  showBarcode    Boolean @default(true)
-  showLocation   Boolean @default(true)
-  showDate       Boolean @default(true)
-  showQty        Boolean @default(true)
-  showItemName   Boolean @default(true)
-  showSku        Boolean @default(true)
-  showNotes      Boolean @default(false)
-  labelSize      String  @default("4x6")   // 4x6 | 4x4 | 3x2 | letter
-  copies         Int     @default(1)
+  showLogo     Boolean @default(true)
+  showBarcode  Boolean @default(true)
+  showLocation Boolean @default(true)
+  showDate     Boolean @default(true)
+  showQty      Boolean @default(true)
+  showItemName Boolean @default(true)
+  showSku      Boolean @default(true)
+  showNotes    Boolean @default(false)
+  labelSize    String  @default("4x6") // 4x6 | 4x4 | 3x2 | letter
+  copies       Int     @default(1)
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -7429,20 +7428,20 @@ model ContractorLabelConfig {
 
 // ContractorLabel - Individual printed label records
 model ContractorLabel {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  contractorId String @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contractorId String  @db.Uuid
   configId     String? @db.Uuid
-  itemId       String? @db.Uuid   // linked inventory item, if any
+  itemId       String? @db.Uuid // linked inventory item, if any
 
-  labelNumber  String              // The generated number/barcode on the label
-  labelType    String              // storage | shipping | receiving | item
-  description  String?             // What this label is for
+  labelNumber String // The generated number/barcode on the label
+  labelType   String // storage | shipping | receiving | item
+  description String? // What this label is for
 
   // What's on this label (snapshot at print time)
-  itemName     String?
-  sku          String?
-  quantity     Int?
-  unit         String?
+  itemName String?
+  sku      String?
+  quantity Int?
+  unit     String?
 
   // Location (for storage labels)
   warehouseZone  String?
@@ -7451,22 +7450,22 @@ model ContractorLabel {
   warehouseBin   String?
 
   // Shipping / receiving reference
-  shipmentId    String? @db.Uuid
-  receivingId   String? @db.Uuid
+  shipmentId  String? @db.Uuid
+  receivingId String? @db.Uuid
 
   // Status
-  status       String @default("active")  // active | voided | used
+  status       String   @default("active") // active | voided | used
   printedAt    DateTime @default(now()) @db.Timestamp(6)
-  printedCount Int     @default(1)
+  printedCount Int      @default(1)
 
   notes String?
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
 
-  contractor ContractorProfile     @relation(fields: [contractorId], references: [id], onDelete: Cascade)
-  config     ContractorLabelConfig? @relation(fields: [configId], references: [id], onDelete: SetNull)
+  contractor ContractorProfile        @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  config     ContractorLabelConfig?   @relation(fields: [configId], references: [id], onDelete: SetNull)
   item       ContractorInventoryItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
-  shipment   ContractorShipment?   @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+  shipment   ContractorShipment?      @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
 
   @@index([contractorId])
   @@index([labelNumber])
@@ -7480,23 +7479,23 @@ model ContractorShipment {
   id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   contractorId String @db.Uuid
 
-  shipmentNumber String            // Auto-generated or manual
+  shipmentNumber String // Auto-generated or manual
   status         String @default("draft") // draft | packed | in_transit | delivered | cancelled
 
   // Destination
-  destinationType String?          // job_site | subcontractor | warehouse | customer
-  destinationId   String?          // jobId, subcontractorId, etc.
-  destinationName String?
+  destinationType    String? // job_site | subcontractor | warehouse | customer
+  destinationId      String? // jobId, subcontractorId, etc.
+  destinationName    String?
   destinationAddress String?
 
   // Origin
   fromWarehouseZone String?
 
   // Carrier / tracking
-  carrier         String?
-  trackingNumber  String?
+  carrier           String?
+  trackingNumber    String?
   estimatedDelivery DateTime? @db.Timestamp(6)
-  deliveredAt     DateTime?  @db.Timestamp(6)
+  deliveredAt       DateTime? @db.Timestamp(6)
 
   notes    String?
   shipDate DateTime? @db.Timestamp(6)
@@ -7504,7 +7503,7 @@ model ContractorShipment {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor ContractorProfile      @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile        @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   items      ContractorShipmentItem[]
   labels     ContractorLabel[]
 
@@ -7531,7 +7530,7 @@ model ContractorShipmentItem {
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
 
-  shipment ContractorShipment     @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  shipment ContractorShipment      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   item     ContractorInventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@index([shipmentId])
@@ -7548,37 +7547,37 @@ model ContractorHiringPost {
   // Position details
   title        String // "Lead Plumber", "HVAC Technician", "Office Admin"
   description  String
-  roleId       String? @db.Uuid // Link to ContractorRole for auto-assignment on hire
-  employeeType String  @default("w2") // w2, 1099, subcontractor
-  payType      String  @default("hourly") // hourly, salary, per_job
+  roleId       String?  @db.Uuid // Link to ContractorRole for auto-assignment on hire
+  employeeType String   @default("w2") // w2, 1099, subcontractor
+  payType      String   @default("hourly") // hourly, salary, per_job
   payRangeMin  Decimal? @db.Decimal(10, 2)
   payRangeMax  Decimal? @db.Decimal(10, 2)
 
   // Requirements
-  requiredSkills    String[] @default([])
-  requiredCerts     String[] @default([])
-  experienceYears   Int?
-  driversLicense    Boolean @default(false)
-  backgroundCheck   Boolean @default(false)
+  requiredSkills  String[] @default([])
+  requiredCerts   String[] @default([])
+  experienceYears Int?
+  driversLicense  Boolean  @default(false)
+  backgroundCheck Boolean  @default(false)
 
   // Location
   city  String?
   state String?
 
   // Status
-  status    String @default("active") // draft, active, paused, closed, filled
-  openings  Int    @default(1)
-  hiredCount Int   @default(0)
+  status     String @default("active") // draft, active, paused, closed, filled
+  openings   Int    @default(1)
+  hiredCount Int    @default(0)
 
   // Settings
-  requireResume Boolean @default(false)
-  requireId     Boolean @default(true) // Require government ID upload
-  customQuestions Json? @db.Json // Array of { question: string, required: boolean }
+  requireResume   Boolean @default(false)
+  requireId       Boolean @default(true) // Require government ID upload
+  customQuestions Json?   @db.Json // Array of { question: string, required: boolean }
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
 
-  contractor   ContractorProfile          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor   ContractorProfile             @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   applications ContractorHiringApplication[]
 
   @@index([contractorId])
@@ -7593,14 +7592,14 @@ model ContractorHiringApplication {
   userId       String? @db.Uuid // If applicant has an account
 
   // Applicant info
-  firstName    String
-  lastName     String
-  email        String
-  phone        String?
-  address      String?
-  city         String?
-  state        String?
-  zipCode      String?
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+  address   String?
+  city      String?
+  state     String?
+  zipCode   String?
 
   // Professional info
   yearsExperience Int?
@@ -7610,10 +7609,10 @@ model ContractorHiringApplication {
   licenseState    String?
 
   // Documents (URLs from UploadThing)
-  resumeUrl        String?
-  governmentIdUrl  String? // Front of ID
+  resumeUrl           String?
+  governmentIdUrl     String? // Front of ID
   governmentIdBackUrl String? // Back of ID
-  additionalDocs   String[] @default([]) // W4, I9, certs, etc.
+  additionalDocs      String[] @default([]) // W4, I9, certs, etc.
 
   // Cover letter / notes
   coverLetter String?
@@ -7622,10 +7621,10 @@ model ContractorHiringApplication {
   customAnswers Json? @db.Json // Array of { question: string, answer: string }
 
   // Application status
-  status       String    @default("submitted") // submitted, under_review, interview, approved, hired, rejected, withdrawn
-  reviewedBy   String?   @db.Uuid
-  reviewedAt   DateTime? @db.Timestamp(6)
-  reviewNotes  String?   // Internal notes from reviewer
+  status          String    @default("submitted") // submitted, under_review, interview, approved, hired, rejected, withdrawn
+  reviewedBy      String?   @db.Uuid
+  reviewedAt      DateTime? @db.Timestamp(6)
+  reviewNotes     String? // Internal notes from reviewer
   rejectionReason String?
 
   // If hired, link to the created employee record
@@ -7635,11 +7634,123 @@ model ContractorHiringApplication {
   submittedAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @updatedAt
 
-  contractor ContractorProfile  @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractor ContractorProfile    @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   post       ContractorHiringPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([contractorId])
   @@index([postId])
   @@index([status])
   @@index([email])
+}
+
+// =================================================================
+// Beta Tester Program
+//
+// Two programs (one per audience) with strict redemption caps.
+// Each tester gets free Enterprise for `freeMonths`, then a
+// `postFreeDiscountPercent` off for `postFreeDiscountMonths` months.
+// Discount is currently tracked in-app and applied manually until
+// the Stripe coupon flow is wired up.
+// =================================================================
+
+model BetaProgram {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                    String    @unique
+  audience                String // 'pm' | 'contractor'
+  tier                    String    @default("enterprise")
+  maxRedemptions          Int       @default(25)
+  redeemedCount           Int       @default(0)
+  freeMonths              Int       @default(2)
+  postFreeDiscountPercent Int       @default(35)
+  postFreeDiscountMonths  Int       @default(24)
+  expiresAt               DateTime? @db.Timestamp(6)
+  isActive                Boolean   @default(true)
+  createdAt               DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt               DateTime  @updatedAt
+
+  testers BetaTester[]
+
+  @@index([code])
+  @@index([audience])
+}
+
+model BetaTester {
+  id                  String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  programId           String  @db.Uuid
+  userId              String  @db.Uuid
+  audience            String // mirrors BetaProgram.audience for fast filters
+  landlordId          String? @db.Uuid
+  contractorProfileId String? @db.Uuid
+
+  freePeriodStart   DateTime @default(now()) @db.Timestamp(6)
+  freePeriodEnd     DateTime @db.Timestamp(6)
+  discountPeriodEnd DateTime @db.Timestamp(6)
+
+  redeemedAt        DateTime @default(now()) @db.Timestamp(6)
+  redeemedFromIp    String?
+  redeemedUserAgent String?
+
+  testimonialConsent Boolean @default(false)
+  npsScore           Int? // last NPS rating, optional
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  program  BetaProgram    @relation(fields: [programId], references: [id], onDelete: Cascade)
+  feedback BetaFeedback[]
+
+  @@unique([programId, userId])
+  @@unique([userId, audience]) // one redemption per user per audience
+  @@unique([landlordId])
+  @@unique([contractorProfileId])
+  @@index([userId])
+  @@index([audience])
+  @@index([freePeriodEnd])
+}
+
+model BetaFeedback {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  betaTesterId            String   @db.Uuid
+  audience                String // 'pm' | 'contractor'
+  category                String // 'complaint' | 'like' | 'dislike' | 'feature' | 'bug' | 'testimonial'
+  subject                 String
+  body                    String
+  npsScore                Int?
+  consentToUseInMarketing Boolean  @default(false)
+  attachments             String[] @default([])
+
+  status                String  @default("new") // 'new' | 'in_review' | 'replied' | 'resolved' | 'archived'
+  priority              String  @default("normal") // 'low' | 'normal' | 'high' | 'urgent'
+  isFeaturedTestimonial Boolean @default(false)
+
+  resolvedAt DateTime? @db.Timestamp(6)
+  resolvedBy String?   @db.Uuid
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  tester   BetaTester            @relation(fields: [betaTesterId], references: [id], onDelete: Cascade)
+  messages BetaFeedbackMessage[]
+
+  @@index([betaTesterId])
+  @@index([audience])
+  @@index([status])
+  @@index([category])
+  @@index([isFeaturedTestimonial])
+}
+
+model BetaFeedbackMessage {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  feedbackId String    @db.Uuid
+  senderId   String    @db.Uuid
+  senderRole String // 'tester' | 'superAdmin'
+  body       String
+  isInternal Boolean   @default(false) // super-admin internal note, not shown to tester
+  readAt     DateTime? @db.Timestamp(6)
+  createdAt  DateTime  @default(now()) @db.Timestamp(6)
+
+  feedback BetaFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@index([feedbackId])
+  @@index([createdAt])
 }

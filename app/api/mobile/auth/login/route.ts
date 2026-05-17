@@ -40,6 +40,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
+    // Detect any extra portals the user has access to (multi-role users)
+    const db = prisma as any;
+    const [contractorProfile, agent, landlord, contractorEmployee, teamMember, tenantLease] = await Promise.all([
+      db.contractorProfile.findUnique({ where: { userId: user.id }, select: { id: true } }),
+      db.agent.findUnique({ where: { userId: user.id }, select: { id: true } }),
+      db.landlord.findFirst({ where: { ownerUserId: user.id }, select: { id: true } }),
+      db.contractorEmployee.findFirst({ where: { userId: user.id, status: { not: 'terminated' } }, select: { id: true } }),
+      db.teamMember.findFirst({ where: { userId: user.id, status: { not: 'terminated' } }, select: { id: true } }),
+      db.lease.findFirst({ where: { tenantId: user.id, status: { in: ['active', 'pending_signature'] } }, select: { id: true } }),
+    ]);
+
+    // Build portals array — order matters (most-specific first)
+    const portals: { role: string; label: string; reason: string }[] = [];
+    if (contractorProfile) portals.push({ role: 'contractor', label: 'Contractor', reason: 'Manage jobs, invoices, crew' });
+    if (landlord || user.role === 'admin' || user.role === 'superAdmin') portals.push({ role: 'admin', label: 'Property Manager', reason: 'Manage properties and tenants' });
+    if (agent) portals.push({ role: 'agent', label: 'Real Estate Agent', reason: 'Manage listings and leads' });
+    if (contractorEmployee || teamMember) portals.push({ role: 'employee', label: 'Employee', reason: 'Clock in, view paystubs' });
+    if (tenantLease || user.role === 'tenant') portals.push({ role: 'tenant', label: 'Tenant', reason: 'Pay rent, request maintenance' });
+    if (user.role === 'homeowner' && portals.length === 0) portals.push({ role: 'homeowner', label: 'Homeowner', reason: 'Find contractors, manage projects' });
+
+    // Fallback: if nothing detected, use the User.role
+    if (portals.length === 0) {
+      portals.push({ role: user.role, label: user.role, reason: 'Your account' });
+    }
+
+    // The token is portal-agnostic — the same JWT works for any of the user's portals
+    // because every mobile endpoint also re-checks role/profile against the userId.
     const secret = new TextEncoder().encode(
       process.env.MOBILE_JWT_SECRET || process.env.NEXTAUTH_SECRET || ''
     );
@@ -60,9 +87,11 @@ export async function POST(req: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.role,  // legacy single role for backward compat
         image: user.image,
       },
+      // NEW: list of portals this user can access
+      portals,
     });
   } catch (error) {
     console.error('[mobile/auth/login]', error);

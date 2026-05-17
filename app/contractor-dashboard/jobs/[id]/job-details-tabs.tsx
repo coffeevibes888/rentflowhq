@@ -27,6 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { JobPhotoGallery } from '@/components/contractor/job-photo-gallery';
 
 interface JobDetailsTabsProps {
   job: any;
@@ -472,61 +473,21 @@ export function JobDetailsTabs({
 
             {/* Photos Tab */}
             <TabsContent value='photos' className='mt-0'>
-              <div className='grid gap-4 sm:grid-cols-2'>
-                {/* Before Photos */}
-                <Card className='border-2 border-black'>
-                  <CardHeader>
-                    <CardTitle className='text-black'>Before Photos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {job.beforePhotos.length === 0 ? (
-                      <p className='text-sm text-black/60 text-center py-8'>
-                        No before photos yet
-                      </p>
-                    ) : (
-                      <div className='grid grid-cols-2 gap-2'>
-                        {job.beforePhotos.map((photo: string, index: number) => (
-                          <Image
-                            key={index}
-                            src={photo}
-                            alt={`Before ${index + 1}`}
-                            width={200}
-                            height={200}
-                            className='rounded-lg object-cover border-2 border-black w-full h-32'
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* After Photos */}
-                <Card className='border-2 border-black'>
-                  <CardHeader>
-                    <CardTitle className='text-black'>After Photos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {job.afterPhotos.length === 0 ? (
-                      <p className='text-sm text-black/60 text-center py-8'>
-                        No after photos yet
-                      </p>
-                    ) : (
-                      <div className='grid grid-cols-2 gap-2'>
-                        {job.afterPhotos.map((photo: string, index: number) => (
-                          <Image
-                            key={index}
-                            src={photo}
-                            alt={`After ${index + 1}`}
-                            width={200}
-                            height={200}
-                            className='rounded-lg object-cover border-2 border-black w-full h-32'
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+              <Card className='border-2 border-black'>
+                <CardContent className='p-4 sm:p-6'>
+                  <JobPhotoGallery
+                    jobId={job.id}
+                    initialPhotos={{
+                      before: (job.jobPhotos ?? []).filter((p: any) => p.category === 'before'),
+                      during: (job.jobPhotos ?? []).filter((p: any) => p.category === 'during'),
+                      after: (job.jobPhotos ?? []).filter((p: any) => p.category === 'after'),
+                      issue: (job.jobPhotos ?? []).filter((p: any) => p.category === 'issue'),
+                      inspection: (job.jobPhotos ?? []).filter((p: any) => p.category === 'inspection'),
+                      general: (job.jobPhotos ?? []).filter((p: any) => p.category === 'general'),
+                    }}
+                  />
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Notes Tab */}
