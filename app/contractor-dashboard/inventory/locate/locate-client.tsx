@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, MapPin, Package, AlertTriangle, Layers, Hash } from 'lucide-react';
+import { Search, MapPin, Package, AlertTriangle, Layers, Hash, ScanLine } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import BarcodeScanner from '@/components/shared/barcode-scanner';
 
 interface ItemLocation {
   id: string;
@@ -55,6 +57,7 @@ export function LocateClient({ items, labels }: Props) {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<'item' | 'label' | 'zone'>('item');
   const [selectedZone, setSelectedZone] = useState('');
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const zones = useMemo(() => {
     const z = new Set<string>();
@@ -96,15 +99,38 @@ export function LocateClient({ items, labels }: Props) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-          <MapPin className="h-6 w-6 text-emerald-600" />
-          Find Inventory
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Look up any item or scan a label number to find exactly where it's stored
-        </p>
+      <div className='flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3'>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <MapPin className="h-6 w-6 text-emerald-600" />
+            Find Inventory
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Look up any item or scan a label number to find exactly where it&apos;s stored
+          </p>
+        </div>
+        <Button
+          onClick={() => setScannerOpen(true)}
+          className='bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-sm'
+        >
+          <ScanLine className='h-4 w-4 mr-1.5' />
+          Scan Code
+        </Button>
       </div>
+
+      <BarcodeScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScan={(value) => {
+          // Switch to label mode if it looks like a label number, otherwise item search
+          const looksLikeLabel = /^[A-Z0-9-]+$/i.test(value) && /\d/.test(value);
+          setMode(looksLikeLabel ? 'label' : 'item');
+          setQuery(value);
+          setScannerOpen(false);
+        }}
+        title='Scan to find inventory'
+        description='Point at a label, item barcode, or QR code. We&apos;ll search by what you scan.'
+      />
 
       {/* Mode Tabs */}
       <div className="flex gap-1 p-1 bg-slate-100 rounded-xl w-fit">

@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Tag, Plus, Printer, Settings, Search, Trash2,
-  CheckCircle2, MapPin, Hash, Package,
+  CheckCircle2, MapPin, Hash, Package, ScanLine,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import BarcodeScanner from '@/components/shared/barcode-scanner';
 
 interface LabelConfig {
   id: string;
@@ -143,6 +144,31 @@ export function LabelsClient({ configs: initialConfigs, recentLabels, items, bus
   });
   const [printing, setPrinting] = useState(false);
   const [lastPrinted, setLastPrinted] = useState<LabelRecord[] | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+
+  // When a code is scanned, try to match it to an inventory item by SKU,
+  // otherwise treat it as a description fill.
+  const handleScannedCode = (value: string) => {
+    const matchedItem = items.find(
+      (i) => i.sku?.toLowerCase() === value.toLowerCase() || i.name.toLowerCase() === value.toLowerCase()
+    );
+    if (matchedItem) {
+      setPrintForm((f) => ({
+        ...f,
+        itemId: matchedItem.id,
+        unit: matchedItem.unit,
+        warehouseZone: matchedItem.warehouseZone ?? '',
+        warehouseAisle: matchedItem.warehouseAisle ?? '',
+        warehouseShelf: matchedItem.warehouseShelf ?? '',
+        warehouseBin: matchedItem.warehouseBin ?? '',
+        itemSearch: '',
+        description: f.description || matchedItem.name,
+      }));
+    } else {
+      setPrintForm((f) => ({ ...f, description: value }));
+    }
+    setScannerOpen(false);
+  };
 
   const selectedConfig = configs.find((c) => c.id === printForm.configId);
   const selectedItem = items.find((i) => i.id === printForm.itemId);
@@ -225,6 +251,14 @@ export function LabelsClient({ configs: initialConfigs, recentLabels, items, bus
 
   return (
     <div className="space-y-6">
+      <BarcodeScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScan={handleScannedCode}
+        title='Scan to fill label'
+        description='Scan an item barcode or QR code to auto-populate this print form.'
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -234,6 +268,13 @@ export function LabelsClient({ configs: initialConfigs, recentLabels, items, bus
           </h1>
           <p className="text-sm text-slate-500 mt-1">Print storage, shipping, and receiving labels with custom number sequences</p>
         </div>
+        <Button
+          onClick={() => setScannerOpen(true)}
+          className='bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-sm'
+        >
+          <ScanLine className='h-4 w-4 mr-1.5' />
+          Scan Item
+        </Button>
       </div>
 
       {/* Tabs */}

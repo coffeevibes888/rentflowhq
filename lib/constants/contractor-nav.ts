@@ -28,6 +28,7 @@ import {
   Zap,
   MessageSquare,
   Sparkles,
+  ShoppingBag,
   LucideIcon 
 } from 'lucide-react';
 
@@ -209,6 +210,12 @@ export const contractorNavGroups: ContractorNavGroup[] = [
         href: '/contractor-dashboard/inventory/locate',
         icon: MapPin,
         requiredTier: 'pro',
+      },
+      {
+        title: 'Equipment Shop',
+        description: 'Scanners, label printers & supplies',
+        href: '/contractor-dashboard/shop',
+        icon: ShoppingBag,
       },
     ],
   },
