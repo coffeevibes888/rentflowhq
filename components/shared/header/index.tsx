@@ -5,6 +5,7 @@ import AdminMobileDrawer from '@/components/admin/admin-mobile-drawer';
 import ContractorMobileDrawer from '@/components/contractor/contractor-mobile-drawer';
 import AgentMobileDrawer from '@/components/agent/agent-mobile-drawer';
 import TenantMobileMenu from '@/components/mobile/tenant-mobile-menu';
+import HomeownerMobileDrawer from '@/components/homeowner/homeowner-mobile-drawer';
 import MainNav from '@/app/user/main-nav';
 import { getCategoryTree } from '@/lib/actions/product.actions';
 import { prisma } from '@/db/prisma';
@@ -39,6 +40,8 @@ const Header = async () => {
               <AgentMobileDrawer />
             ) : (userRole === 'landlord' || userRole === 'admin' || userRole === 'superAdmin' || userRole === 'property_manager') ? (
               <AdminMobileDrawer />
+            ) : userRole === 'homeowner' ? (
+              <HomeownerMobileDrawer />
             ) : userRole === 'tenant' ? (
               <TenantMobileMenu>
                 <MainNav />

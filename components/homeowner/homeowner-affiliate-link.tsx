@@ -46,14 +46,14 @@ export function HomeownerAffiliateLink() {
   }
 
   return (
-    <Link href="/affiliate-program/dashboard">
+    <Link href="/affiliate-program/dashboard" className='block'>
       <Button 
         variant="ghost" 
         size="sm" 
-        className="text-violet-300 hover:text-white hover:bg-violet-600/20 border border-violet-500/30"
+        className="w-full justify-start text-violet-300 hover:text-white hover:bg-violet-600/20 border border-violet-500/30"
       >
         <HandCoins className="h-4 w-4 mr-2" />
-        Affiliate
+        <span className='nav-text-content'>Affiliate</span>
       </Button>
     </Link>
   );

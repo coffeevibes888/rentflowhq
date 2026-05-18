@@ -1,10 +1,12 @@
- import { auth } from '@/auth';
+import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { HousePlus, Briefcase, Wrench, Settings, Scale } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SignOutButtonGeneric } from '@/components/shared/sign-out-button-generic';
-import { HomeownerAffiliateLink } from '@/components/homeowner/homeowner-affiliate-link';
+import Image from 'next/image';
+import { APP_NAME } from '@/lib/constants';
+import MainNav from './main-nav';
+import Header from '@/components/shared/header';
+import Footer from '@/components/footer';
+import SessionProviderWrapper from '@/components/session-provider-wrapper';
+import { HomeownerSidebarWrapper } from '@/components/homeowner/homeowner-sidebar-wrapper';
 
 export default async function HomeownerLayout({
   children,
@@ -21,70 +23,41 @@ export default async function HomeownerLayout({
     return redirect('/');
   }
 
-  const navItems = [
-    { href: '/homeowner/dashboard', label: 'Dashboard', icon: HousePlus },
-    { href: '/homeowner/jobs', label: 'My Jobs', icon: Briefcase },
-    { href: '/contractors', label: 'Find Contractors', icon: Wrench },
-    { href: '/homeowner/disputes', label: 'Disputes', icon: Scale },
-    { href: '/homeowner/settings', label: 'Settings', icon: Settings },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-600 via-blue-600 to-sky-700">
-      {/* Top Navigation */}
-      <nav className="bg-white/10 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/homeowner/dashboard" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-white/20 flex items-center justify-center">
-                <HousePlus className="h-5 w-5 text-white" />
+    <SessionProviderWrapper>
+      <div className='flex min-h-screen flex-col bg-white'>
+        <Header />
+        <div className='flex flex-1 text-black'>
+          {/* Collapsible Sidebar */}
+          <HomeownerSidebarWrapper>
+            <div className='flex items-center gap-3 px-2 p-2'>
+              <div className='relative h-10 w-10 rounded-lg overflow-hidden flex items-center justify-center bg-white/10'>
+                <Image
+                  src='/images/logo.svg'
+                  height={40}
+                  width={40}
+                  alt={APP_NAME}
+                  className='object-contain filter brightness-0 invert'
+                />
               </div>
-              <span className="font-semibold text-white">PropertyFlow</span>
-            </Link>
-
-            <div className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.href} href={item.href}>
-                    <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">
-                      <Icon className="h-4 w-4 mr-2" />
-                      {item.label}
-                    </Button>
-                  </Link>
-                );
-              })}
-              <HomeownerAffiliateLink />
+              <div className='flex flex-col sidebar-expanded-only'>
+                <span className='text-sm text-black'>Home, jobs & contractors</span>
+              </div>
             </div>
+            <MainNav className='flex-1' />
+          </HomeownerSidebarWrapper>
 
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-white/80 hidden sm:block">
-                {session.user.name}
-              </span>
-              <SignOutButtonGeneric className="text-white/60 hover:text-white hover:bg-white/10" />
-            </div>
+          {/* Content */}
+          <div className='flex-1 flex flex-col min-w-0'>
+            <main className='flex-1 overflow-y-auto px-2 sm:px-4 md:px-6 lg:px-8 py-3 md:py-6 bg-gray-50/50'>
+              <div className='mx-auto max-w-7xl w-full'>
+                {children}
+              </div>
+            </main>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        <div className="md:hidden border-t border-white/10 px-4 py-2 flex gap-1 overflow-x-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.href} href={item.href}>
-                <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 whitespace-nowrap">
-                  <Icon className="h-4 w-4 mr-1" />
-                  {item.label}
-                </Button>
-              </Link>
-            );
-          })}
-          <HomeownerAffiliateLink />
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      {children}
-    </div>
+        <Footer />
+      </div>
+    </SessionProviderWrapper>
   );
 }
