@@ -20,6 +20,7 @@ interface User {
   id: string;
   name: string | null;
   email: string;
+  phoneNumber: string | null;
   role: string;
   image: string | null;
 }
@@ -63,6 +64,7 @@ const AdminUserPage = async (props: {
               <TableHead>AVATAR</TableHead>
               <TableHead>NAME</TableHead>
               <TableHead>EMAIL</TableHead>
+              <TableHead>PHONE</TableHead>
               <TableHead>ROLE</TableHead>
               <TableHead>ACTIONS</TableHead>
             </TableRow>
@@ -87,6 +89,18 @@ const AdminUserPage = async (props: {
                 </TableCell>
                 <TableCell>{user.name || 'Unknown'}</TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  {user.phoneNumber ? (
+                    <a
+                      href={`tel:${user.phoneNumber}`}
+                      className='text-blue-600 hover:text-blue-800 hover:underline text-sm'
+                    >
+                      {user.phoneNumber}
+                    </a>
+                  ) : (
+                    <span className='text-slate-400 text-xs italic'>—</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   {user.role === 'user' ? (
                     <Badge variant='secondary'>User</Badge>

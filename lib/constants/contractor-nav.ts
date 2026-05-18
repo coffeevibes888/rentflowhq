@@ -321,19 +321,7 @@ export const contractorNavGroups: ContractorNavGroup[] = [
       },
     ],
   },
-  {
-    label: 'Beta Program',
-    icon: Sparkles,
-    defaultOpen: false,
-    items: [
-      {
-        title: 'Beta Testers',
-        description: 'Redeem code & give feedback',
-        href: '/contractor-dashboard/beta-testers',
-        icon: Sparkles,
-      },
-    ],
-  },
+  // Beta Program nav intentionally hidden — see admin-nav.ts for rationale.
 ];
 
 export const contractorNavLinks: ContractorNavLink[] = [

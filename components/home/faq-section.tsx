@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp, HelpCircle, ArrowRight } from 'lucide-react';
 
@@ -93,7 +93,9 @@ const contractorFaqs = [
 
 export default function FAQSection() {
   const searchParams = useSearchParams();
-  const isContractor = searchParams.get('for') === 'contractor';
+  const pathname = usePathname();
+  const isContractor =
+    searchParams.get('for') === 'contractor' || pathname?.startsWith('/contractor');
   const faqs = isContractor ? contractorFaqs : pmFaqs;
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 

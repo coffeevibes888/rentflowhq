@@ -704,7 +704,7 @@ model Landlord {
 
   expenses         Expense[]
   marketBenchmarks MarketBenchmark[]
-
+  documents        Document[]
   leaseViolations LeaseViolation[]
 
   applicationDocuments        ApplicationDocument[]
@@ -1143,17 +1143,21 @@ model MaintenanceTicket {
 }
 
 model Expense {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  landlordId  String   @db.Uuid
-  propertyId  String?  @db.Uuid
-  unitId      String?  @db.Uuid
-  amount      Decimal  @db.Decimal(12, 2)
-  category    String
-  description String?
-  incurredAt  DateTime @db.Timestamp(6)
-  isRecurring Boolean  @default(false)
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId      String   @db.Uuid
+  propertyId      String?  @db.Uuid
+  unitId          String?  @db.Uuid
+  amount          Decimal  @db.Decimal(12, 2)
+  category        String
+  description     String?
+  incurredAt      DateTime @db.Timestamp(6)
+  isRecurring     Boolean  @default(false)
+  // Receipt scanning (optional — populated when an expense was created from a scanned receipt)
+  receiptUrl      String?  // Cloudinary URL of the receipt image
+  receiptOcrData  Json?    // Raw OCR extraction result (vendor, line items, confidence, etc.)
+  vendor          String?  // Extracted from OCR or manually entered
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime @updatedAt
 
   landlord Landlord  @relation(fields: [landlordId], references: [id], onDelete: Cascade)
   property Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -1164,6 +1168,54 @@ model Expense {
   @@index([unitId])
   @@index([incurredAt])
   @@index([category])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Document — unified document library for PMs / tenants / contractors.
+//
+// Used by:
+//   - PM /admin/documents page (web) and /(pm)/documents (mobile)
+//   - Property detail "Documents" tab
+//   - Tenant card "Documents" tab
+//
+// Stored as Cloudinary/S3 URLs. The `relatedToType`/`relatedToId` fields make
+// it easy to list documents per property, per tenant, per lease, or per unit
+// without needing dozens of bridge tables.
+// ─────────────────────────────────────────────────────────────────────────────
+model Document {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId    String   @db.Uuid
+
+  /// Display name — "Lease PDF", "Insurance certificate", etc.
+  name          String
+  /// Stable slug-like category — see DocumentCategory below.
+  category      String   // 'lease' | 'insurance' | 'inspection' | 'receipt' | 'tax' | 'misc'
+  /// Hosted file URL (Cloudinary, S3, etc.).
+  fileUrl       String
+  /// MIME type — drives icon and preview. e.g. application/pdf, image/jpeg.
+  mimeType      String?
+  /// Bytes — used to display "1.4 MB" in lists.
+  sizeBytes     Int?
+
+  /// Optional polymorphic link to the entity this document belongs to.
+  relatedToType String?  // 'property' | 'unit' | 'lease' | 'tenant' | 'expense' | 'maintenance'
+  relatedToId   String?  @db.Uuid
+
+  /// Free-form notes from the uploader (e.g. "Signed by tenant on 5/2").
+  notes         String?
+
+  /// Who uploaded (for audit trail).
+  uploadedById  String?  @db.Uuid
+
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt
+
+  landlord Landlord @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+
+  @@index([landlordId])
+  @@index([category])
+  @@index([relatedToType, relatedToId])
+  @@index([createdAt])
 }
 
 model MarketBenchmark {

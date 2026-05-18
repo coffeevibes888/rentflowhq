@@ -25,8 +25,10 @@ export const NEXTAUTH_URL = rawNextAuthUrl
 export const signUpDefaultValues = {
   name: '',
   email: '',
+  phoneNumber: '',
   password: '',
   confirmPassword: '',
+  betaCode: '',
 };
 
 export const shippingAddressDefaultValues = {

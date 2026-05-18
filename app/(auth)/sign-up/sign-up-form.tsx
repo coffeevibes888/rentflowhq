@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { signUpDefaultValues } from '@/lib/constants';
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signUpUser } from '@/lib/actions/user.actions';
 import { useSearchParams, usePathname } from 'next/navigation';
 import OAuthButtons from '@/components/auth/oauth-buttons';
+import { Sparkles } from 'lucide-react';
 
 // Reserved top-level routes that are NOT landlord subdomains. Kept in sync with
 // `middleware.ts` so that `/sign-up` at the root domain resolves subdomain=""
@@ -63,6 +64,36 @@ const SignUpForm = () => {
   // Referral tracking
   const referralCode = searchParams.get('ref') || '';
 
+  // Beta code — pulled from `?code=` URL param. Auto-validates the code and
+  // shows a green banner so the user never has to type or remember it.
+  const urlBetaCode = (searchParams.get('code') || '').trim().toUpperCase();
+  const [betaInfo, setBetaInfo] = useState<{
+    code: string;
+    audience: 'pm' | 'contractor';
+    freeMonths: number;
+    postFreeDiscountPercent: number;
+    postFreeDiscountMonths: number;
+    spotsRemaining: number;
+  } | null>(null);
+  const [betaError, setBetaError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!urlBetaCode) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/beta/validate?code=${encodeURIComponent(urlBetaCode)}`);
+        const json = await res.json();
+        if (!res.ok || !json.valid) {
+          setBetaError(json.message ?? 'Invalid beta code');
+          return;
+        }
+        setBetaInfo(json.program);
+      } catch {
+        setBetaError('Could not validate code. Try again.');
+      }
+    })();
+  }, [urlBetaCode]);
+
   const SignUpButton = () => {
     const { pending } = useFormStatus();
 
@@ -75,6 +106,35 @@ const SignUpForm = () => {
 
   return (
     <div className='space-y-4'>
+      {/* Show beta code banner — supersedes other context messages */}
+      {betaInfo && (
+        <div className='rounded-lg bg-emerald-500/10 border border-emerald-400/40 p-4 mb-4'>
+          <div className='flex items-start gap-3'>
+            <Sparkles className='h-5 w-5 text-emerald-300 shrink-0 mt-0.5' />
+            <div className='space-y-1'>
+              <p className='text-sm font-bold text-emerald-50'>
+                ✓ {betaInfo.code} unlocked
+              </p>
+              <p className='text-xs text-emerald-100/90'>
+                {betaInfo.freeMonths} months free Enterprise · then{' '}
+                {betaInfo.postFreeDiscountPercent}% off for{' '}
+                {betaInfo.postFreeDiscountMonths} months. No credit card required.
+              </p>
+              <p className='text-[11px] text-emerald-200/80'>
+                {betaInfo.spotsRemaining} spots left
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {betaError && !betaInfo && (
+        <div className='rounded-lg bg-red-500/10 border border-red-400/40 p-4 mb-4'>
+          <p className='text-sm text-red-100'>
+            <strong>Invalid code:</strong> {betaError}
+          </p>
+        </div>
+      )}
+
       {/* Show referral message if coming from referral link */}
       {referralCode && (
         <div className='rounded-lg bg-violet-500/10 border border-violet-400/30 p-4 mb-4'>
@@ -130,6 +190,13 @@ const SignUpForm = () => {
         {referralCode && (
           <input type='hidden' name='referralCode' value={referralCode} />
         )}
+
+        {/* Pass beta code to the server action when URL param was present
+             and validated. We never let the user paste in an arbitrary code
+             on this form — that's the /redeem flow for existing users. */}
+        {betaInfo && (
+          <input type='hidden' name='betaCode' value={betaInfo.code} />
+        )}
         
         <div className='space-y-6'>
           <div>
@@ -155,6 +222,22 @@ const SignUpForm = () => {
               className='bg-white text-gray-900 border-gray-300'
               placeholder='you@example.com'
             />
+          </div>
+          <div>
+            <Label htmlFor='phoneNumber'>Phone number</Label>
+            <Input
+              id='phoneNumber'
+              name='phoneNumber'
+              type='tel'
+              autoComplete='tel'
+              defaultValue={signUpDefaultValues.phoneNumber}
+              className='bg-white text-gray-900 border-gray-300'
+              placeholder='(555) 123-4567'
+              required
+            />
+            <p className='text-[11px] text-gray-400 mt-1'>
+              For rent reminders, security alerts, and verification codes. Never sold.
+            </p>
           </div>
           <div>
             <Label htmlFor='password'>Password</Label>

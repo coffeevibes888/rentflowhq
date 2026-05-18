@@ -199,19 +199,10 @@ export const adminNavGroups: AdminNavGroup[] = [
       },
     ],
   },
-  {
-    label: 'Beta Program',
-    icon: Sparkles,
-    defaultOpen: false,
-    items: [
-      {
-        title: 'Beta Testers',
-        description: 'Redeem code & give feedback',
-        href: '/admin/beta-testers',
-        icon: Sparkles,
-      },
-    ],
-  },
+  // Beta Program nav intentionally hidden — beta testers redeem at signup
+  // via the URL code parameter and access /admin/beta-testers directly when
+  // they want to give feedback. Keeping it out of the visible nav prevents
+  // every regular user from seeing "Beta Program" and trying to enter codes.
 ];
 
 export const adminNavLinks: AdminNavLink[] = [

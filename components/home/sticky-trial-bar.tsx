@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { X, ArrowRight, Zap } from 'lucide-react';
 
 export default function StickyTrialBar() {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const searchParams = useSearchParams();
-  const isContractor = searchParams.get('for') === 'contractor';
+  const pathname = usePathname();
+  const isContractor =
+    searchParams.get('for') === 'contractor' || pathname?.startsWith('/contractor');
 
   useEffect(() => {
     const dismissed = sessionStorage.getItem('stickyBarDismissed');

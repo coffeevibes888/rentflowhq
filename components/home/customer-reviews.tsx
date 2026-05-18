@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Star, Quote, ArrowRight, Users, Clock, Shield, Briefcase, DollarSign } from 'lucide-react';
 
@@ -72,7 +72,9 @@ const contractorStats = [
 
 const CustomerReviews = () => {
   const searchParams = useSearchParams();
-  const isContractor = searchParams.get('for') === 'contractor';
+  const pathname = usePathname();
+  const isContractor =
+    searchParams.get('for') === 'contractor' || pathname?.startsWith('/contractor');
 
   const reviews = isContractor ? contractorReviews : pmReviews;
   const stats = isContractor ? contractorStats : "" ;

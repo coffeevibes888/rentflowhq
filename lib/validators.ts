@@ -88,15 +88,24 @@ export const signInFormSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
+// Phone number — accepts US formats with or without country code, dashes,
+// spaces, dots, or parens. Normalised server-side before storage.
+const phoneRegex = /^(\+1|1)?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/;
+
 // Schema for signing up a user
 export const signUpFormSchema = z
   .object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
     email: z.string().email('Invalid email address'),
+    phoneNumber: z
+      .string()
+      .regex(phoneRegex, 'Invalid phone number format (e.g., +1 (555) 123-4567)'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z
       .string()
       .min(6, 'Confirm password must be at least 6 characters'),
+    /** Optional beta code. Pre-filled from `?code=` URL param. */
+    betaCode: z.string().trim().toUpperCase().optional().or(z.literal('')),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -182,12 +191,16 @@ export const paymentResultSchema = z.object({
   pricePaid: z.string(),
 });
 
-const phoneRegex = /^(\+1|1)?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/;
-
 // Schema for updating the user profile
 export const updateProfileSchema = z.object({
   name: z.string().min(3, 'Name must be at leaast 3 characters'),
   email: z.string().min(3, 'Email must be at leaast 3 characters'),
+  phoneNumber: z
+    .string()
+    .regex(phoneRegex, 'Invalid phone number format')
+    .optional()
+    .or(z.literal(''))
+    .nullable(),
 });
 
 // Schema for updating user address

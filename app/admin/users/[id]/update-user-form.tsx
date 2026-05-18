@@ -119,6 +119,34 @@ const UpdateUserForm = ({
             )}
           />
         </div>
+        {/* Phone number */}
+        <div>
+          <FormField
+            control={form.control}
+            name='phoneNumber'
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<
+                z.infer<typeof updateUserSchema>,
+                'phoneNumber'
+              >;
+            }) => (
+              <FormItem className='w-full'>
+                <FormLabel>Phone</FormLabel>
+                <FormControl>
+                  <Input
+                    type='tel'
+                    placeholder='(555) 123-4567'
+                    {...field}
+                    value={field.value ?? ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         {/* Role */}
         <div>
           <FormField

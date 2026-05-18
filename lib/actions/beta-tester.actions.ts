@@ -272,6 +272,190 @@ export async function redeemBetaCode(rawCode: string): Promise<RedeemResult> {
   };
 }
 
+/**
+ * Redeem a beta code for a brand-new user mid-signup.
+ *
+ * Differences from `redeemBetaCode()`:
+ *   - No session required — caller passes `userId` directly.
+ *   - No email-verified gate — beta access activates immediately so the
+ *     marketing promise ("free, no card needed") is honoured. Email
+ *     verification still happens via the standard verify link, but it
+ *     doesn't block dashboard access.
+ *   - Auto-creates the matching Landlord or ContractorProfile shell so the
+ *     subscription gate has something to flip to enterprise. The user fills
+ *     in the rest later from the dashboard.
+ *
+ * Caller responsibility:
+ *   - Validate the program exists / is active / has spots BEFORE calling.
+ *     We do it again here for safety, but pre-validation keeps the signup
+ *     UX clean (we want to show "invalid code" before persisting the user).
+ *
+ * Atomic guarantees:
+ *   - Slot increment uses the same `updateMany ... where redeemedCount < max`
+ *     pattern that prevents race conditions on the cap.
+ *   - Tester row + profile flip + audit log all run in one transaction.
+ *   - On failure, the slot is refunded so the program counter stays accurate.
+ */
+export async function redeemBetaCodeForNewUser(args: {
+  userId: string;
+  program: { id: string; code: string; audience: string; maxRedemptions: number; freeMonths: number; postFreeDiscountMonths: number; postFreeDiscountPercent: number };
+  name?: string;
+}): Promise<RedeemResult> {
+  const { userId, program } = args;
+  const audience = program.audience as BetaAudience;
+
+  // Atomic slot claim
+  const claimed = await prisma.betaProgram.updateMany({
+    where: {
+      id: program.id,
+      isActive: true,
+      redeemedCount: { lt: program.maxRedemptions },
+    },
+    data: { redeemedCount: { increment: 1 } },
+  });
+  if (claimed.count === 0) {
+    return {
+      success: false,
+      message: `All ${program.maxRedemptions} beta spots for this program were just taken.`,
+    };
+  }
+
+  const { now, freePeriodEnd, discountPeriodEnd } = computePeriods(
+    program.freeMonths,
+    program.postFreeDiscountMonths
+  );
+
+  let ctx: RedeemContext = {};
+  try {
+    const h = await headers();
+    ctx = {
+      ip: h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || undefined,
+      userAgent: h.get('user-agent') || undefined,
+    };
+  } catch {
+    /* outside request context */
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      let landlordId: string | null = null;
+      let contractorProfileId: string | null = null;
+
+      if (audience === 'pm') {
+        // Create or find a landlord shell. We need an ownerUserId so the
+        // user owns the landlord; the rest can stay null and get filled in
+        // later from /admin/settings.
+        const existing = await tx.landlord.findFirst({
+          where: { ownerUserId: userId },
+          select: { id: true },
+        });
+        if (existing) {
+          landlordId = existing.id;
+        } else {
+          const landlord = await tx.landlord.create({
+            data: {
+              ownerUserId: userId,
+              name: args.name ?? 'My Properties',
+              subdomain: `pm-${userId.slice(0, 8)}`, // unique placeholder
+              subscriptionTier: ENTERPRISE_TIER,
+              subscriptionStatus: 'active',
+              subscriptionEndsAt: freePeriodEnd,
+              trialStatus: 'active',
+              trialStartDate: now,
+              trialEndDate: freePeriodEnd,
+            },
+          });
+          landlordId = landlord.id;
+        }
+      } else if (audience === 'contractor') {
+        const existing = await tx.contractorProfile.findUnique({
+          where: { userId },
+          select: { id: true },
+        });
+        if (existing) {
+          contractorProfileId = existing.id;
+        } else {
+          const profile = await tx.contractorProfile.create({
+            data: {
+              userId,
+              businessName: args.name ?? 'My Contracting Business',
+              email: '', // filled in later by the user
+              subscriptionTier: ENTERPRISE_TIER,
+              subscriptionStatus: 'active',
+              currentPeriodStart: now,
+              currentPeriodEnd: freePeriodEnd,
+              subscriptionEndsAt: freePeriodEnd,
+              trialStatus: 'active',
+              trialStartDate: now,
+              trialEndDate: freePeriodEnd,
+            },
+          });
+          contractorProfileId = profile.id;
+        }
+      }
+
+      await tx.betaTester.create({
+        data: {
+          programId: program.id,
+          userId,
+          audience,
+          landlordId,
+          contractorProfileId,
+          freePeriodStart: now,
+          freePeriodEnd,
+          discountPeriodEnd,
+          redeemedFromIp: ctx.ip ?? null,
+          redeemedUserAgent: ctx.userAgent ?? null,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          action: 'BETA_CODE_REDEEMED_AT_SIGNUP',
+          userId,
+          landlordId: landlordId ?? undefined,
+          resourceType: 'beta_program',
+          resourceId: program.id,
+          metadata: JSON.stringify({
+            code: program.code,
+            audience,
+            freeMonths: program.freeMonths,
+            postFreeDiscountPercent: program.postFreeDiscountPercent,
+            postFreeDiscountMonths: program.postFreeDiscountMonths,
+            freePeriodEnd: freePeriodEnd.toISOString(),
+            discountPeriodEnd: discountPeriodEnd.toISOString(),
+          }),
+          ipAddress: ctx.ip ?? null,
+          userAgent: ctx.userAgent ?? null,
+          severity: 'INFO',
+        },
+      });
+    });
+  } catch (error) {
+    await prisma.betaProgram
+      .update({
+        where: { id: program.id },
+        data: { redeemedCount: { decrement: 1 } },
+      })
+      .catch(() => {});
+    console.error('[redeemBetaCodeForNewUser]', error);
+    return {
+      success: false,
+      message: 'Beta redemption failed. Your account was created — try redeeming from the dashboard.',
+    };
+  }
+
+  return {
+    success: true,
+    message: `Beta unlocked. Free until ${freePeriodEnd.toLocaleDateString()}.`,
+    audience,
+    freePeriodEnd: freePeriodEnd.toISOString(),
+    discountPeriodEnd: discountPeriodEnd.toISOString(),
+    discountPercent: program.postFreeDiscountPercent,
+    redirectTo: audience === 'pm' ? '/admin/overview' : '/contractor-dashboard',
+  };
+}
+
 export async function getMyBetaTesterStatus() {
   const session = await auth();
   if (!session?.user?.id) return null;

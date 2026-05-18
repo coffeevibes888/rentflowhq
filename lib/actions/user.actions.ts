@@ -26,6 +26,7 @@ import { getOrCreateCurrentLandlord } from './landlord.actions';
 import { getSubdomainRedirectUrl } from '../utils/subdomain-redirect';
 import { notifyNewSignup } from '../services/admin-notifications';
 import { logAuthEvent } from '@/lib/security/audit-logger';
+import { redeemBetaCodeForNewUser } from './beta-tester.actions';
 
 // Sign in the user with credentials
 export async function signInWithCredentials(
@@ -119,8 +120,10 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
     const user = signUpFormSchema.parse({
       name: formData.get('name'),
       email: formData.get('email'),
+      phoneNumber: formData.get('phoneNumber'),
       password: formData.get('password'),
       confirmPassword: formData.get('confirmPassword'),
+      betaCode: formData.get('betaCode'),
     });
 
     const plainPassword = user.password;
@@ -133,22 +136,49 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
     
     // Supported roles: user, tenant, landlord, property_manager, contractor, homeowner, agent
     const validRoles = ['user', 'tenant', 'landlord', 'property_manager', 'contractor', 'homeowner', 'agent'];
-    const roleValue = fromProperty
+    let roleValue = fromProperty
       ? 'tenant'
       : rawRole && validRoles.includes(rawRole as string)
         ? (rawRole as string)
         : 'user';
 
+    // ── Beta code pre-validation ───────────────────────────────────────────
+    // If a code was provided, look it up before creating the user. This lets
+    // us infer the role (pm vs contractor) from the program audience and
+    // skip onboarding cleanly downstream.
+    let betaProgram: Awaited<ReturnType<typeof prisma.betaProgram.findUnique>> | null = null;
+    if (user.betaCode && user.betaCode.length > 0) {
+      betaProgram = await prisma.betaProgram.findUnique({
+        where: { code: user.betaCode.toUpperCase() },
+      });
+      if (!betaProgram || !betaProgram.isActive) {
+        return { success: false, message: `Invalid beta code: ${user.betaCode}` };
+      }
+      if (betaProgram.expiresAt && betaProgram.expiresAt < new Date()) {
+        return { success: false, message: 'That beta code has expired.' };
+      }
+      if (betaProgram.redeemedCount >= betaProgram.maxRedemptions) {
+        return {
+          success: false,
+          message: `That beta code is fully redeemed (${betaProgram.maxRedemptions}/${betaProgram.maxRedemptions} spots used).`,
+        };
+      }
+      // Match user role to program audience for clarity in the dashboard
+      if (betaProgram.audience === 'pm') roleValue = 'landlord';
+      else if (betaProgram.audience === 'contractor') roleValue = 'contractor';
+    }
+
     const createdUser = await prisma.user.create({
       data: {
         name: user.name,
         email: user.email,
+        phoneNumber: user.phoneNumber,
         password: user.password,
         role: roleValue,
-        // Applicants coming from a property "Apply" link already declared
-        // intent (they're applying to rent), so we skip the generic
-        // role-selection onboarding flow.
-        onboardingCompleted: fromProperty ? true : false,
+        // Beta testers skip onboarding entirely (they redeemed a code so we
+        // know what they want; no need to walk through the role picker).
+        // Property applicants also skip — they've declared intent already.
+        onboardingCompleted: fromProperty || !!betaProgram,
         // Enable 2FA by default for landlords and property managers
         twoFactorEnabled: roleValue === 'landlord' || roleValue === 'property_manager',
       },
@@ -159,7 +189,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       name: user.name,
       email: user.email,
       role: roleValue,
-      signupMethod: 'Email',
+      signupMethod: betaProgram ? `Beta (${betaProgram.code})` : 'Email',
     }).catch(console.error);
 
     // Send verification email (non-blocking)
@@ -173,20 +203,47 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       success: true,
     }).catch(console.error);
 
+    // ── Redeem beta code in the same flow ───────────────────────────────────
+    // We do this AFTER the user is created so the BetaTester record can link
+    // back to the new userId. We do NOT block signup if redemption fails —
+    // the user can retry from /admin/beta-testers or /contractor-dashboard/beta-testers.
+    if (betaProgram) {
+      try {
+        await redeemBetaCodeForNewUser({
+          userId: createdUser.id,
+          program: betaProgram,
+          name: user.name,
+        });
+      } catch (e) {
+        // Soft-fail — log it, the user can still finish signup.
+        console.error('[signUp] beta redeem failed', e);
+      }
+    }
+
     // Sign in automatically and redirect to onboarding/subscription flow
     const callbackUrl = formData.get('callbackUrl') as string | null;
-    
+
+    // Beta testers go straight to their dashboard — no onboarding, no plan picker.
+    const betaRedirect =
+      betaProgram?.audience === 'pm'
+        ? '/admin/overview'
+        : betaProgram?.audience === 'contractor'
+        ? '/contractor-dashboard'
+        : null;
+
     await signIn('credentials', {
       email: user.email,
       password: plainPassword,
       redirect: true,
-      redirectTo: callbackUrl || '/onboarding',
+      redirectTo: betaRedirect || callbackUrl || '/onboarding',
     });
 
     // This return won't be reached due to redirect, but needed for type safety
     return {
       success: true,
-      message: 'Account created successfully!',
+      message: betaProgram
+        ? `Welcome to the beta! ${betaProgram.freeMonths} months free unlocked.`
+        : 'Account created successfully!',
     };
   } catch (error) {
     if (isRedirectError(error)) {
@@ -324,6 +381,7 @@ export async function getAllUsers({
       id: true,
       name: true,
       email: true,
+      phoneNumber: true,
       role: true,
       image: true,
     },
@@ -364,6 +422,9 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
       data: {
         name: user.name,
         role: user.role,
+        // Phone is optional from the admin form. Empty string means "clear it",
+        // null means "leave alone". Treat both as clear here.
+        phoneNumber: user.phoneNumber ? user.phoneNumber : null,
       },
     });
 

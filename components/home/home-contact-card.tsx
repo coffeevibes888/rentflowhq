@@ -2,9 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { MessageSquare, Mail, Clock, ArrowRight } from 'lucide-react';
 
 const HomeContactCard = () => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  // Treat both /?for=contractor and /contractor as the contractor side.
+  const isContractor =
+    searchParams.get('for') === 'contractor' || pathname?.startsWith('/contractor');
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -54,7 +61,13 @@ const HomeContactCard = () => {
   return (
     <section className="w-full py-16 md:py-20 px-4">
       <div className="max-w-5xl mx-auto">
-        <div className="rounded-3xl border border-black bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600 shadow-2xl p-8 md:p-10 grid gap-8 md:grid-cols-[1.4fr_1fr]">
+        <div
+          className={`rounded-3xl border border-black shadow-2xl p-8 md:p-10 grid gap-8 md:grid-cols-[1.4fr_1fr] ${
+            isContractor
+              ? 'bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500'
+              : 'bg-gradient-to-r from-cyan-600 via-blue-500 to-violet-600'
+          }`}
+        >
           <div className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-2xl md:text-3xl font-bold text-white">
