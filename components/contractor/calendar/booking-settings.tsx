@@ -85,21 +85,21 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
   return (
     <div className="space-y-6">
       {/* Instant Booking */}
-      <Card className="rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 shadow-2xl border border-slate-100">
+      <Card className="rounded-xl bg-white shadow-sm border border-gray-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-black">
+          <CardTitle className="flex items-center gap-2 text-gray-900">
             <Clock className="h-5 w-5" />
             Instant Booking
           </CardTitle>
-          <CardDescription className="text-black/80">
+          <CardDescription className="text-gray-500">
             Allow customers to book appointments instantly without waiting for approval
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-white border border-black">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50/40 border border-gray-200">
             <div className="space-y-0.5">
-              <Label className="text-black font-medium">Enable Instant Booking</Label>
-              <p className="text-sm text-black/70">
+              <Label className="text-gray-700 font-medium">Enable Instant Booking</Label>
+              <p className="text-sm text-gray-500">
                 Customers can book immediately based on your availability
               </p>
             </div>
@@ -108,16 +108,16 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
               onCheckedChange={(checked) =>
                 setSettings({ ...settings, instantBookingEnabled: checked })
               }
-              className="data-[state=checked]:bg-violet-600"
+              className="data-[state=checked]:bg-amber-500"
             />
           </div>
 
           {settings.instantBookingEnabled && (
             <>
-              <div className="flex items-center justify-between p-4 rounded-lg bg-white border border-black">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50/40 border border-gray-200">
                 <div className="space-y-0.5">
-                  <Label className="text-black font-medium">Auto-Confirm Bookings</Label>
-                  <p className="text-sm text-black/70">
+                  <Label className="text-gray-700 font-medium">Auto-Confirm Bookings</Label>
+                  <p className="text-sm text-gray-500">
                     Automatically confirm bookings without manual review
                   </p>
                 </div>
@@ -126,12 +126,12 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
                   onCheckedChange={(checked) =>
                     setSettings({ ...settings, autoConfirm: checked })
                   }
-                  className="data-[state=checked]:bg-violet-600"
+                  className="data-[state=checked]:bg-amber-500"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-black font-medium">Booking Instructions (Optional)</Label>
+                <Label className="text-gray-700 font-medium">Booking Instructions (Optional)</Label>
                 <Textarea
                   placeholder="e.g., Please provide photos of the issue, exact address, parking instructions..."
                   value={settings.bookingInstructions}
@@ -139,9 +139,9 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
                     setSettings({ ...settings, bookingInstructions: e.target.value })
                   }
                   rows={3}
-                  className="bg-white border-black text-black placeholder:text-black/50"
+                  className="bg-white border-black text-black placeholder:text-gray-400"
                 />
-                <p className="text-xs text-black/70">
+                <p className="text-xs text-gray-500">
                   These instructions will be shown to customers during booking
                 </p>
               </div>
@@ -151,21 +151,21 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
       </Card>
 
       {/* Deposit Settings */}
-      <Card className="rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 shadow-2xl border border-slate-100">
+      <Card className="rounded-xl bg-white shadow-sm border border-gray-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-black">
+          <CardTitle className="flex items-center gap-2 text-gray-900">
             <DollarSign className="h-5 w-5" />
             Deposit Requirements
           </CardTitle>
-          <CardDescription className="text-black/80">
+          <CardDescription className="text-gray-500">
             Require a deposit to secure bookings and reduce no-shows
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-white border border-black">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50/40 border border-gray-200">
             <div className="space-y-0.5">
-              <Label className="text-black font-medium">Require Deposit</Label>
-              <p className="text-sm text-black/70">
+              <Label className="text-gray-700 font-medium">Require Deposit</Label>
+              <p className="text-sm text-gray-500">
                 Customers must pay a deposit when booking
               </p>
             </div>
@@ -174,7 +174,7 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
               onCheckedChange={(checked) =>
                 setSettings({ ...settings, depositRequired: checked })
               }
-              className="data-[state=checked]:bg-violet-600"
+              className="data-[state=checked]:bg-amber-500"
             />
           </div>
 
@@ -182,7 +182,7 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-black font-medium">Fixed Amount ($)</Label>
+                  <Label className="text-gray-700 font-medium">Fixed Amount ($)</Label>
                   <Input
                     type="number"
                     min="0"
@@ -193,12 +193,12 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
                     }
                     className="bg-white border-black text-black"
                   />
-                  <p className="text-xs text-black/70">
+                  <p className="text-xs text-gray-500">
                     Fixed deposit amount per booking
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-black font-medium">Percentage (%)</Label>
+                  <Label className="text-gray-700 font-medium">Percentage (%)</Label>
                   <Input
                     type="number"
                     min="0"
@@ -209,19 +209,19 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
                     }
                     className="bg-white border-black text-black"
                   />
-                  <p className="text-xs text-black/70">
+                  <p className="text-xs text-gray-500">
                     Or percentage of total cost
                   </p>
                 </div>
               </div>
 
               {/* Escrow Explanation for Contractor */}
-              <div className="p-4 rounded-lg bg-white border border-black text-sm space-y-2">
-                <p className="font-semibold text-black flex items-center gap-2">
+              <div className="p-4 rounded-lg bg-gray-50/40 border border-gray-200 text-sm space-y-2">
+                <p className="font-semibold text-gray-900 flex items-center gap-2">
                   <Shield className="h-4 w-4" />
                   How Escrow Protection Works
                 </p>
-                <ul className="space-y-1.5 text-black/80 list-none">
+                <ul className="space-y-1.5 text-gray-500 list-none">
                   <li className="flex items-start gap-2">
                     <span className="text-emerald-600 font-bold mt-0.5">1.</span>
                     <span>Customer pays the deposit when they book. Funds are held securely by PropertyFlowHQ — not sent to you yet.</span>
@@ -239,7 +239,7 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
                     <span>Funds are released to your account minus a flat $1 platform fee.</span>
                   </li>
                 </ul>
-                <p className="text-black/60 text-xs pt-1 border-t border-black/10 mt-2">
+                <p className="text-gray-400 text-xs pt-1 border-t border-gray-100 mt-2">
                   The customer also pays a $1 booking fee on their side. This protects both you and the customer. If you cancel, the customer gets a full refund automatically. If the customer disputes, our team reviews the case before any money moves.
                 </p>
               </div>
@@ -249,19 +249,19 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
       </Card>
 
       {/* Cancellation Policy */}
-      <Card className="rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 shadow-2xl border border-slate-100">
+      <Card className="rounded-xl bg-white shadow-sm border border-gray-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-black">
+          <CardTitle className="flex items-center gap-2 text-gray-900">
             <Shield className="h-5 w-5" />
             Cancellation Policy
           </CardTitle>
-          <CardDescription className="text-black/80">
+          <CardDescription className="text-gray-500">
             Set your cancellation policy and refund rules
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-black font-medium">Cancellation Policy</Label>
+            <Label className="text-gray-700 font-medium">Cancellation Policy</Label>
             <Select
               value={settings.cancellationPolicy}
               onValueChange={(value) =>
@@ -286,7 +286,7 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
           </div>
 
           <div className="space-y-2">
-            <Label className="text-black font-medium">Cancellation Notice (hours)</Label>
+            <Label className="text-gray-700 font-medium">Cancellation Notice (hours)</Label>
             <Input
               type="number"
               min="1"
@@ -297,34 +297,35 @@ export default function BookingSettings({ contractorId }: BookingSettingsProps) 
               }
               className="bg-white border-black text-black"
             />
-            <p className="text-xs text-black/70">
+            <p className="text-xs text-gray-500">
               Hours of notice required for full refund (moderate policy)
             </p>
           </div>
 
           {/* Policy Explanation */}
-          <div className="p-4 rounded-lg bg-white border border-black text-sm space-y-2">
-            <p className="font-medium text-black">Your Current Policy:</p>
+          <div className="p-4 rounded-lg bg-gray-50/40 border border-gray-200 text-sm space-y-2">
+            <p className="font-medium text-gray-900">Your Current Policy:</p>
             {settings.cancellationPolicy === 'flexible' && (
-              <p className="text-black/80">Customers receive 50% refund regardless of when they cancel.</p>
+              <p className="text-gray-500">Customers receive 50% refund regardless of when they cancel.</p>
             )}
             {settings.cancellationPolicy === 'moderate' && (
-              <p className="text-black/80">
+              <p className="text-gray-500">
                 Customers receive full refund if cancelled {settings.cancellationHours}+ hours in advance.
                 No refund for late cancellations.
               </p>
             )}
             {settings.cancellationPolicy === 'strict' && (
-              <p className="text-black/80">No refunds for any cancellations.</p>
+              <p className="text-gray-500">No refunds for any cancellations.</p>
             )}
           </div>
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} disabled={saving} className="w-full bg-black text-white hover:bg-black/90" size="lg">
+      <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm" size="lg">
         <Save className="h-4 w-4 mr-2" />
         {saving ? 'Saving...' : 'Save Booking Settings'}
       </Button>
     </div>
   );
 }
+

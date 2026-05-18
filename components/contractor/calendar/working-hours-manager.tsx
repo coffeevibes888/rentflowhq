@@ -117,51 +117,49 @@ export default function WorkingHoursManager({ contractorId }: { contractorId: st
   if (loading) return <div>Loading...</div>;
 
   return (
-    <Card className="rounded-xl bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500 shadow-2xl border border-slate-100">
+    <Card className="rounded-xl bg-white shadow-sm border border-gray-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-black">
-          <Clock className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-gray-900">
+          <Clock className="h-5 w-5 text-amber-500" />
           Working Hours
         </CardTitle>
-        <CardDescription className="text-black/80">
+        <CardDescription className="text-gray-500">
           Set your availability schedule for customer bookings
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Weekly Schedule */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {DAYS.map(({ key, label }) => {
             const day = hours[key as keyof WorkingHours] as DaySchedule;
             return (
-              <div key={key} className="flex items-center gap-4 p-4 rounded-lg border border-black bg-white shadow-sm">
-                <div className="w-32">
+              <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50/40">
+                <div className="w-full sm:w-40">
                   <div className="flex items-center space-x-3">
                     <Switch
                       checked={day.enabled}
                       onCheckedChange={(checked) => updateDay(key, 'enabled', checked)}
-                      className="data-[state=checked]:bg-violet-600"
+                      className="data-[state=checked]:bg-amber-500"
                     />
-                    <Label className="font-medium text-black">{label}</Label>
+                    <Label className="font-medium text-gray-900">{label}</Label>
                   </div>
                 </div>
-                <div className="flex-1 flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="time"
-                      value={day.start}
-                      onChange={(e) => updateDay(key, 'start', e.target.value)}
-                      disabled={!day.enabled}
-                      className="w-32 border-black text-black bg-white disabled:opacity-50"
-                    />
-                    <span className="text-black font-medium">to</span>
-                    <Input
-                      type="time"
-                      value={day.end}
-                      onChange={(e) => updateDay(key, 'end', e.target.value)}
-                      disabled={!day.enabled}
-                      className="w-32 border-black text-black bg-white disabled:opacity-50"
-                    />
-                  </div>
+                <div className="flex-1 flex items-center gap-3 flex-wrap">
+                  <Input
+                    type="time"
+                    value={day.start}
+                    onChange={(e) => updateDay(key, 'start', e.target.value)}
+                    disabled={!day.enabled}
+                    className="w-32 border-gray-200 text-gray-900 bg-white disabled:opacity-50"
+                  />
+                  <span className="text-gray-500 text-sm font-medium">to</span>
+                  <Input
+                    type="time"
+                    value={day.end}
+                    onChange={(e) => updateDay(key, 'end', e.target.value)}
+                    disabled={!day.enabled}
+                    className="w-32 border-gray-200 text-gray-900 bg-white disabled:opacity-50"
+                  />
                 </div>
               </div>
             );
@@ -169,49 +167,53 @@ export default function WorkingHoursManager({ contractorId }: { contractorId: st
         </div>
 
         {/* Booking Settings */}
-        <div className="space-y-4 pt-4 border-t border-black/20">
-          <h4 className="font-medium text-black">Booking Settings</h4>
+        <div className="space-y-4 pt-4 border-t border-gray-200">
+          <h4 className="font-bold text-gray-900 text-sm">Booking Window</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-black font-medium">Buffer Time (minutes)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-gray-700 text-xs font-semibold">Buffer Time (minutes)</Label>
               <Input
                 type="number"
                 value={hours.bufferMinutes}
-                onChange={(e) => setHours(prev => ({ ...prev, bufferMinutes: parseInt(e.target.value) }))}
+                onChange={(e) => setHours(prev => ({ ...prev, bufferMinutes: parseInt(e.target.value) || 0 }))}
                 min="0"
                 max="120"
-                className="border-black text-black bg-white"
+                className="border-gray-200 text-gray-900 bg-white"
               />
-              <p className="text-xs text-black/70">Time between appointments</p>
+              <p className="text-[11px] text-gray-500">Time between appointments</p>
             </div>
-            <div className="space-y-2">
-              <Label className="text-black font-medium">Minimum Notice (hours)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-gray-700 text-xs font-semibold">Minimum Notice (hours)</Label>
               <Input
                 type="number"
                 value={hours.minNoticeHours}
-                onChange={(e) => setHours(prev => ({ ...prev, minNoticeHours: parseInt(e.target.value) }))}
+                onChange={(e) => setHours(prev => ({ ...prev, minNoticeHours: parseInt(e.target.value) || 0 }))}
                 min="1"
                 max="168"
-                className="border-black text-black bg-white"
+                className="border-gray-200 text-gray-900 bg-white"
               />
-              <p className="text-xs text-black/70">Advance booking required</p>
+              <p className="text-[11px] text-gray-500">Advance booking required</p>
             </div>
-            <div className="space-y-2">
-              <Label className="text-black font-medium">Max Advance (days)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-gray-700 text-xs font-semibold">Max Advance (days)</Label>
               <Input
                 type="number"
                 value={hours.maxAdvanceDays}
-                onChange={(e) => setHours(prev => ({ ...prev, maxAdvanceDays: parseInt(e.target.value) }))}
+                onChange={(e) => setHours(prev => ({ ...prev, maxAdvanceDays: parseInt(e.target.value) || 1 }))}
                 min="1"
                 max="365"
-                className="border-black text-black bg-white"
+                className="border-gray-200 text-gray-900 bg-white"
               />
-              <p className="text-xs text-black/70">How far ahead to book</p>
+              <p className="text-[11px] text-gray-500">How far ahead to book</p>
             </div>
           </div>
         </div>
 
-        <Button onClick={handleSave} disabled={saving} className="w-full bg-black text-white hover:bg-black/90">
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm"
+        >
           <Save className="h-4 w-4 mr-2" />
           {saving ? 'Saving...' : 'Save Working Hours'}
         </Button>

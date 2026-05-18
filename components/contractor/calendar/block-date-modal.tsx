@@ -47,8 +47,8 @@ export default function BlockDateModal({
     try {
       setLoading(true);
 
-      // Block each selected date
-      await Promise.all(
+      // Block each selected date and capture failures
+      const results = await Promise.allSettled(
         selectedDates.map((date) =>
           fetch('/api/contractor/calendar/block-date', {
             method: 'POST',
@@ -58,14 +58,40 @@ export default function BlockDateModal({
               date: date.toISOString(),
               reason,
             }),
+          }).then(async (res) => {
+            if (!res.ok) {
+              const data = await res.json().catch(() => ({}));
+              throw new Error(data.error || `Failed to block ${date.toDateString()}`);
+            }
+            return res;
           })
         )
       );
 
-      toast({
-        title: 'Dates blocked successfully',
-        description: `${selectedDates.length} date(s) have been blocked`,
-      });
+      const failed = results.filter((r) => r.status === 'rejected');
+
+      if (failed.length === selectedDates.length) {
+        const firstError = (failed[0] as PromiseRejectedResult).reason;
+        toast({
+          title: 'Failed to block dates',
+          description: firstError instanceof Error ? firstError.message : 'Unknown error',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (failed.length > 0) {
+        toast({
+          title: `Blocked ${selectedDates.length - failed.length} of ${selectedDates.length} dates`,
+          description: `${failed.length} failed — please try again`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Dates blocked successfully',
+          description: `${selectedDates.length} date(s) have been blocked`,
+        });
+      }
 
       onSuccess?.();
       onOpenChange(false);
@@ -74,6 +100,7 @@ export default function BlockDateModal({
     } catch (error) {
       toast({
         title: 'Failed to block dates',
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
     } finally {
