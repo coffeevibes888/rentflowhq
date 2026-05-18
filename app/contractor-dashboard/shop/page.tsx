@@ -131,6 +131,16 @@ export default async function ContractorShopPage({ searchParams }: PageProps) {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
         {visibleItems.map((item) => {
           const Icon = item.icon;
+          // Category-specific tile gradients so each card feels distinct
+          const tileGradient =
+            item.category === 'scanner'
+              ? 'from-violet-500 via-purple-500 to-fuchsia-500'
+              : item.category === 'printer'
+                ? 'from-sky-500 via-cyan-500 to-blue-500'
+                : item.category === 'labels'
+                  ? 'from-amber-500 via-orange-500 to-rose-500'
+                  : 'from-emerald-500 via-teal-500 to-cyan-500';
+
           return (
             <div
               key={item.id}
@@ -145,33 +155,39 @@ export default async function ContractorShopPage({ searchParams }: PageProps) {
                 </span>
               )}
 
-              {/* Product image */}
-              <div className='relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 border-b border-gray-100 flex items-center justify-center overflow-hidden'>
+              {/* Hero tile */}
+              <div className={`relative aspect-[16/9] bg-gradient-to-br ${tileGradient} overflow-hidden`}>
                 {item.imageUrl ? (
                   <img
                     src={item.imageUrl}
                     alt={item.name}
                     loading='lazy'
-                    className='max-h-full max-w-full object-contain p-4 mix-blend-multiply'
+                    className='w-full h-full object-contain p-4'
                   />
                 ) : (
-                  <div className='h-20 w-20 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-md'>
-                    <Icon className='h-10 w-10 text-white' />
-                  </div>
+                  <>
+                    {/* Decorative blobs */}
+                    <div className='absolute -top-12 -left-8 h-40 w-40 rounded-full bg-white/15 blur-2xl' />
+                    <div className='absolute -bottom-16 -right-10 h-48 w-48 rounded-full bg-black/10 blur-3xl' />
+                    <div className='absolute inset-0 flex items-center justify-center'>
+                      <div className='h-20 w-20 rounded-2xl bg-white/95 shadow-xl flex items-center justify-center backdrop-blur-sm'>
+                        <Icon className='h-10 w-10 text-gray-800' />
+                      </div>
+                    </div>
+                    {/* Vendor watermark */}
+                    <span className='absolute bottom-2 right-3 text-[10px] font-bold uppercase tracking-widest text-white/70'>
+                      {item.vendor.replace(' (via Amazon)', '')}
+                    </span>
+                  </>
                 )}
               </div>
 
               <div className='p-4 flex-1 flex flex-col'>
-                <div className='flex items-start gap-3 mb-3'>
-                  <div className='shrink-0 h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center'>
-                    <Icon className='h-4 w-4 text-white' />
-                  </div>
-                  <div className='min-w-0 flex-1'>
-                    <p className='text-[10px] uppercase font-bold text-gray-400 tracking-wide'>
-                      {item.vendor}
-                    </p>
-                    <h3 className='text-sm font-bold text-gray-900 leading-tight'>{item.name}</h3>
-                  </div>
+                <div className='mb-3'>
+                  <p className='text-[10px] uppercase font-bold text-gray-400 tracking-wide'>
+                    {item.vendor}
+                  </p>
+                  <h3 className='text-sm font-bold text-gray-900 leading-tight'>{item.name}</h3>
                 </div>
 
                 <p className='text-xs text-gray-600 leading-relaxed mb-3'>{item.pitch}</p>

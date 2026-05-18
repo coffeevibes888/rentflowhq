@@ -15,14 +15,15 @@ import { Smartphone, Cable, Bluetooth, Printer, Zap, Tag, ScanLine } from 'lucid
 
 const AMAZON_TAG = process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG || '';
 
-function amazonUrl(asin: string): string {
-  const base = `https://www.amazon.com/dp/${asin}`;
-  return AMAZON_TAG ? `${base}?tag=${AMAZON_TAG}` : base;
-}
-
-/** Amazon hosts product images on a stable CDN keyed by ASIN. */
-function amazonImage(asin: string): string {
-  return `https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCRM_.jpg`;
+/**
+ * Amazon search URL with affiliate tag. Search URLs are explicitly allowed by
+ * Amazon Associates, never 404, and always show current matching products.
+ * This is more durable than hard-coding ASINs that can change/expire.
+ */
+function amazonSearch(query: string): string {
+  const q = encodeURIComponent(query);
+  const base = `https://www.amazon.com/s?k=${q}`;
+  return AMAZON_TAG ? `${base}&tag=${AMAZON_TAG}` : base;
 }
 
 export type EquipmentCategory = 'scanner' | 'printer' | 'labels' | 'mobile';
@@ -82,21 +83,19 @@ export const equipmentTiers: EquipmentTier[] = [
     works: ['UPC/EAN', 'Code 128', 'Code 39', 'QR (with 2D version)'],
     bestFor: 'Warehouse desk, receiving dock with a laptop',
     vendor: 'Tera (via Amazon)',
-    buyUrl: amazonUrl('B07Q5NXHCR'),
-    imageUrl: amazonImage('B07Q5NXHCR'),
+    buyUrl: amazonSearch('Tera 5100 USB barcode scanner'),
     icon: Cable,
   },
   {
     id: 'netum-2d-usb',
-    name: 'NETUM 2D USB Scanner (NT-1228BL)',
+    name: 'NETUM 2D USB Scanner',
     category: 'scanner',
     pitch: '2D scanner reads QR + 1D + 2D codes from screens or paper. Cabled USB. The best $40 scanner you can buy.',
     priceUsd: 40,
     works: ['All 1D barcodes', 'QR codes', 'Data Matrix', 'PDF417'],
     bestFor: 'Most contractors who want a single device that scans everything',
     vendor: 'NETUM (via Amazon)',
-    buyUrl: amazonUrl('B073XC6LL9'),
-    imageUrl: amazonImage('B073XC6LL9'),
+    buyUrl: amazonSearch('NETUM NT-1228BL 2D barcode scanner'),
     icon: ScanLine,
     recommended: true,
   },
@@ -112,8 +111,7 @@ export const equipmentTiers: EquipmentTier[] = [
     caveats: ['Bluetooth 4.0+ required'],
     bestFor: 'Crews moving between job sites and the warehouse',
     vendor: 'Eyoyo (via Amazon)',
-    buyUrl: amazonUrl('B07PBBPBJB'),
-    imageUrl: amazonImage('B07PBBPBJB'),
+    buyUrl: amazonSearch('Eyoyo bluetooth 2D barcode scanner'),
     icon: Bluetooth,
   },
   {
@@ -125,8 +123,7 @@ export const equipmentTiers: EquipmentTier[] = [
     works: ['All 1D + 2D codes', 'OCR text', 'Direct-part marks'],
     bestFor: 'Larger crews, daily heavy use, rough environments',
     vendor: 'Zebra Technologies',
-    buyUrl: amazonUrl('B074Q4Y3ZK'),
-    imageUrl: amazonImage('B074Q4Y3ZK'),
+    buyUrl: amazonSearch('Zebra DS2208 barcode scanner'),
     icon: Zap,
   },
 
@@ -141,8 +138,7 @@ export const equipmentTiers: EquipmentTier[] = [
     caveats: ['USB only — no wireless'],
     bestFor: 'Office desk, low-medium volume',
     vendor: 'DYMO (via Amazon)',
-    buyUrl: amazonUrl('B0027JCQ6M'),
-    imageUrl: amazonImage('B0027JCQ6M'),
+    buyUrl: amazonSearch('DYMO LabelWriter 450 thermal label printer'),
     icon: Printer,
   },
   {
@@ -154,8 +150,7 @@ export const equipmentTiers: EquipmentTier[] = [
     works: ['Property Flow HQ Label Center', 'AirPrint', 'Direct from phone'],
     bestFor: 'The contractor who wants the best label workflow',
     vendor: 'Brother',
-    buyUrl: amazonUrl('B07876FK15'),
-    imageUrl: amazonImage('B07876FK15'),
+    buyUrl: amazonSearch('Brother QL-820NWB label printer'),
     icon: Printer,
     recommended: true,
   },
@@ -168,23 +163,21 @@ export const equipmentTiers: EquipmentTier[] = [
     works: ['Property Flow HQ shipping labels', 'AirPrint'],
     bestFor: 'Contractors shipping materials to job sites',
     vendor: 'Rollo',
-    buyUrl: amazonUrl('B0CFV8YKM7'),
-    imageUrl: amazonImage('B0CFV8YKM7'),
+    buyUrl: amazonSearch('Rollo X1040 wireless thermal printer'),
     icon: Printer,
   },
 
   // ── Label rolls / supplies ───────────────────────────────────────────────
   {
     id: 'dymo-rolls',
-    name: 'DYMO 30252 Address Labels (12-pack)',
+    name: 'DYMO 30252 Address Labels',
     category: 'labels',
-    pitch: '1-1/8" x 3-1/2" labels for the LabelWriter 450. 350 labels per roll, 4,200 labels total.',
+    pitch: '1-1/8" x 3-1/2" labels for the LabelWriter 450. 350 labels per roll, sold in multi-packs.',
     priceUsd: 65,
     works: ['DYMO LabelWriter 450', '550', '4XL'],
     bestFor: 'Bulk address + storage labels',
     vendor: 'DYMO (via Amazon)',
-    buyUrl: amazonUrl('B0001A2VDY'),
-    imageUrl: amazonImage('B0001A2VDY'),
+    buyUrl: amazonSearch('DYMO 30252 address labels'),
     icon: Tag,
   },
   {
@@ -196,8 +189,7 @@ export const equipmentTiers: EquipmentTier[] = [
     works: ['Brother QL-820NWB', 'QL-1100', 'QL-1110NWB'],
     bestFor: 'Shipping bulky materials',
     vendor: 'Brother (via Amazon)',
-    buyUrl: amazonUrl('B0042V4GOC'),
-    imageUrl: amazonImage('B0042V4GOC'),
+    buyUrl: amazonSearch('Brother DK-1241 shipping labels'),
     icon: Tag,
   },
 ];
