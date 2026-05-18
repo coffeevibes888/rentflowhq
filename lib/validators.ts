@@ -104,8 +104,19 @@ export const signUpFormSchema = z
     confirmPassword: z
       .string()
       .min(6, 'Confirm password must be at least 6 characters'),
-    /** Optional beta code. Pre-filled from `?code=` URL param. */
-    betaCode: z.string().trim().toUpperCase().optional().or(z.literal('')),
+    /**
+     * Optional beta code, pre-filled from the `?code=` URL param.
+     *
+     * Accepts `null` (FormData.get returns null for missing fields), empty
+     * string, or a real code. We coerce → trim → upper-case so the action
+     * downstream gets a clean comparable value.
+     */
+    betaCode: z
+      .preprocess(
+        (val) => (val == null ? '' : String(val).trim().toUpperCase()),
+        z.string(),
+      )
+      .optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",

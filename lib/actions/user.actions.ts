@@ -130,6 +130,19 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
 
     user.password = await hash(user.password);
 
+    // Normalize phone to E.164 (+15551234567) so SMS service can use it
+    // without re-parsing. Strips formatting characters and prefixes +1 for
+    // 10-digit US numbers.
+    const phoneDigits = user.phoneNumber.replace(/\D/g, '');
+    const normalizedPhone =
+      phoneDigits.length === 10
+        ? `+1${phoneDigits}`
+        : phoneDigits.length === 11 && phoneDigits.startsWith('1')
+        ? `+${phoneDigits}`
+        : phoneDigits.startsWith('+')
+        ? user.phoneNumber
+        : `+${phoneDigits}`;
+
     const fromProperty = formData.get('fromProperty') === 'true' || Boolean(formData.get('propertySlug'));
 
     const rawRole = formData.get('role');
@@ -172,7 +185,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       data: {
         name: user.name,
         email: user.email,
-        phoneNumber: user.phoneNumber,
+        phoneNumber: normalizedPhone,
         password: user.password,
         role: roleValue,
         // Beta testers skip onboarding entirely (they redeemed a code so we
