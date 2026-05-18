@@ -210,7 +210,7 @@ export default async function HomeownerDashboardPage() {
               </p>
             </div>
             <Link
-              href='/homeowner/settings'
+              href='/homeowner/settings/payment'
               className='shrink-0 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition-all shadow-sm'
             >
               Set up
@@ -233,7 +233,7 @@ export default async function HomeownerDashboardPage() {
               </p>
             </div>
             <Link
-              href='/homeowner/settings'
+              href='/homeowner/settings/payment'
               className='text-[11px] font-semibold text-emerald-700 hover:text-emerald-900'
             >
               Manage →

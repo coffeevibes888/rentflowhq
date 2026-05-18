@@ -11,8 +11,9 @@ import {
 } from '@/lib/actions/user.actions';
 import { savedPaymentMethodSchema } from '@/lib/validators';
 import { z } from 'zod';
-import { Trash2, Edit2 } from 'lucide-react';
+import { Trash2, Edit2, Building2 } from 'lucide-react';
 import CardForm from './card-form';
+import AddBankAccountButton from '@/components/shared/add-bank-account-button';
 
 type SavedPaymentMethod = {
   id: string;
@@ -115,15 +116,22 @@ export default function SavedPaymentMethods() {
     <div className='space-y-4'>
       <div className='flex justify-between items-center'>
         <h3 className='text-lg font-semibold text-white'>Saved Payment Methods</h3>
-        <Button
-          type='button'
-          variant='outline'
-          className='border-white/20 text-white hover:bg-white/10'
-          onClick={() => setShowForm(!showForm)}
-          disabled={isLoading}
-        >
-          {showForm ? 'Cancel' : 'Add Payment Method'}
-        </Button>
+        <div className='flex flex-wrap gap-2'>
+          <AddBankAccountButton
+            onSuccess={fetchPaymentMethods}
+            variant='outline'
+            className='border-white/20 text-white hover:bg-white/10'
+          />
+          <Button
+            type='button'
+            variant='outline'
+            className='border-white/20 text-white hover:bg-white/10'
+            onClick={() => setShowForm(!showForm)}
+            disabled={isLoading}
+          >
+            {showForm ? 'Cancel' : 'Add Card'}
+          </Button>
+        </div>
       </div>
 
       {isLoading && (
@@ -147,22 +155,32 @@ export default function SavedPaymentMethods() {
 
       {methods.length === 0 && !isLoading ? (
         <div className='p-4 text-center text-gray-400 border border-dashed border-white/20 rounded-lg bg-white/5'>
-          No saved payment methods. Add one to get started!
+          No saved payment methods. Add a card or link a bank account to get started!
         </div>
       ) : (
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-          {methods.map((method) => (
+          {methods.map((method) => {
+            const isBank = method.type === 'us_bank_account' || method.type === 'bank_account';
+            return (
             <div
               key={method.id}
               className='flex flex-col justify-between p-4 border border-white/20 rounded-lg bg-white/5'
             >
               <div>
-                <p className='font-medium text-white'>
-                  {method.cardholderName && <span>{method.cardholderName} - </span>}
-                  {method.brand} •••• {method.last4}
-                  {method.expirationDate && (
-                    <span className='text-sm text-gray-400 ml-2'>Expires {method.expirationDate}</span>
-                  )}
+                <p className='font-medium text-white flex items-center gap-2'>
+                  {isBank ? (
+                    <Building2 className='w-4 h-4 text-emerald-300 shrink-0' />
+                  ) : null}
+                  <span>
+                    {method.cardholderName && <span>{method.cardholderName} - </span>}
+                    {method.brand} •••• {method.last4}
+                    {method.expirationDate && !isBank && (
+                      <span className='text-sm text-gray-400 ml-2'>Expires {method.expirationDate}</span>
+                    )}
+                    {isBank && (
+                      <span className='text-sm text-emerald-300 ml-2'>ACH bank transfer</span>
+                    )}
+                  </span>
                 </p>
                 <div className='flex gap-2 mt-2'>
                   {method.isDefault && (
@@ -178,15 +196,17 @@ export default function SavedPaymentMethods() {
                 </div>
               </div>
               <div className='flex gap-2 mt-4'>
-                <Button
-                  type='button'
-                  variant='ghost'
-                  size='sm'
-                  className='text-gray-400 hover:text-white hover:bg-white/10'
-                  onClick={() => handleEdit(method)}
-                >
-                  <Edit2 className='w-4 h-4' />
-                </Button>
+                {!isBank && (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    className='text-gray-400 hover:text-white hover:bg-white/10'
+                    onClick={() => handleEdit(method)}
+                  >
+                    <Edit2 className='w-4 h-4' />
+                  </Button>
+                )}
                 <Button
                   type='button'
                   variant='ghost'
@@ -199,7 +219,8 @@ export default function SavedPaymentMethods() {
                 </Button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
