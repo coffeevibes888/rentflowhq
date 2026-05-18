@@ -139,16 +139,32 @@ export default async function ContractorShopPage({ searchParams }: PageProps) {
               }`}
             >
               {item.recommended && (
-                <span className='absolute top-3 right-3 inline-flex items-center gap-0.5 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 px-2 py-0.5 text-[10px] font-bold text-white shadow'>
+                <span className='absolute top-3 right-3 z-10 inline-flex items-center gap-0.5 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 px-2 py-0.5 text-[10px] font-bold text-white shadow'>
                   <Star className='h-2.5 w-2.5 fill-current' />
                   Recommended
                 </span>
               )}
 
+              {/* Product image */}
+              <div className='relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 border-b border-gray-100 flex items-center justify-center overflow-hidden'>
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    loading='lazy'
+                    className='max-h-full max-w-full object-contain p-4 mix-blend-multiply'
+                  />
+                ) : (
+                  <div className='h-20 w-20 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-md'>
+                    <Icon className='h-10 w-10 text-white' />
+                  </div>
+                )}
+              </div>
+
               <div className='p-4 flex-1 flex flex-col'>
                 <div className='flex items-start gap-3 mb-3'>
-                  <div className='shrink-0 h-11 w-11 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center'>
-                    <Icon className='h-5 w-5 text-white' />
+                  <div className='shrink-0 h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center'>
+                    <Icon className='h-4 w-4 text-white' />
                   </div>
                   <div className='min-w-0 flex-1'>
                     <p className='text-[10px] uppercase font-bold text-gray-400 tracking-wide'>

@@ -20,6 +20,11 @@ function amazonUrl(asin: string): string {
   return AMAZON_TAG ? `${base}?tag=${AMAZON_TAG}` : base;
 }
 
+/** Amazon hosts product images on a stable CDN keyed by ASIN. */
+function amazonImage(asin: string): string {
+  return `https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCRM_.jpg`;
+}
+
 export type EquipmentCategory = 'scanner' | 'printer' | 'labels' | 'mobile';
 
 export interface EquipmentTier {
@@ -40,6 +45,8 @@ export interface EquipmentTier {
   vendor: string;
   /** Affiliate-tagged purchase link. */
   buyUrl: string | null;
+  /** Product image URL. Optional — falls back to icon. */
+  imageUrl?: string;
   icon: LucideIcon;
   /** Highlight the recommended option in each tier. */
   recommended?: boolean;
@@ -76,6 +83,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'Warehouse desk, receiving dock with a laptop',
     vendor: 'Tera (via Amazon)',
     buyUrl: amazonUrl('B07Q5NXHCR'),
+    imageUrl: amazonImage('B07Q5NXHCR'),
     icon: Cable,
   },
   {
@@ -88,6 +96,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'Most contractors who want a single device that scans everything',
     vendor: 'NETUM (via Amazon)',
     buyUrl: amazonUrl('B073XC6LL9'),
+    imageUrl: amazonImage('B073XC6LL9'),
     icon: ScanLine,
     recommended: true,
   },
@@ -104,6 +113,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'Crews moving between job sites and the warehouse',
     vendor: 'Eyoyo (via Amazon)',
     buyUrl: amazonUrl('B07PBBPBJB'),
+    imageUrl: amazonImage('B07PBBPBJB'),
     icon: Bluetooth,
   },
   {
@@ -116,6 +126,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'Larger crews, daily heavy use, rough environments',
     vendor: 'Zebra Technologies',
     buyUrl: amazonUrl('B074Q4Y3ZK'),
+    imageUrl: amazonImage('B074Q4Y3ZK'),
     icon: Zap,
   },
 
@@ -131,6 +142,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'Office desk, low-medium volume',
     vendor: 'DYMO (via Amazon)',
     buyUrl: amazonUrl('B0027JCQ6M'),
+    imageUrl: amazonImage('B0027JCQ6M'),
     icon: Printer,
   },
   {
@@ -143,6 +155,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'The contractor who wants the best label workflow',
     vendor: 'Brother',
     buyUrl: amazonUrl('B07876FK15'),
+    imageUrl: amazonImage('B07876FK15'),
     icon: Printer,
     recommended: true,
   },
@@ -156,6 +169,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'Contractors shipping materials to job sites',
     vendor: 'Rollo',
     buyUrl: amazonUrl('B0CFV8YKM7'),
+    imageUrl: amazonImage('B0CFV8YKM7'),
     icon: Printer,
   },
 
@@ -170,6 +184,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'Bulk address + storage labels',
     vendor: 'DYMO (via Amazon)',
     buyUrl: amazonUrl('B0001A2VDY'),
+    imageUrl: amazonImage('B0001A2VDY'),
     icon: Tag,
   },
   {
@@ -182,6 +197,7 @@ export const equipmentTiers: EquipmentTier[] = [
     bestFor: 'Shipping bulky materials',
     vendor: 'Brother (via Amazon)',
     buyUrl: amazonUrl('B0042V4GOC'),
+    imageUrl: amazonImage('B0042V4GOC'),
     icon: Tag,
   },
 ];

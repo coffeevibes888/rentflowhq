@@ -98,6 +98,17 @@ const nextConfig: NextConfig = {
         hostname: 'uploadthing.com',
         port: '',
       },
+      // Amazon product images for the contractor equipment shop
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+        port: '',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images-na.ssl-images-amazon.com',
+        port: '',
+      },
     ],
   },
   // Reduce compilation overhead
